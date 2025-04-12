@@ -11,7 +11,7 @@ interface SectionHeadingProps {
 const SectionHeading: React.FC<SectionHeadingProps> = ({ 
   title, 
   subtitle, 
-  centered = false,
+  centered = true, // Changed default to true for consistency
   className = ''
 }) => {
   return (
