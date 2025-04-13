@@ -1,5 +1,4 @@
 
-
 export interface TeamMember {
   id: string;
   first_name: string;
@@ -12,4 +11,3 @@ export interface TeamMember {
   bio?: string;
   created_at?: string;
 }
-

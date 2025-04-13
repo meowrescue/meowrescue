@@ -1,5 +1,4 @@
 
-
 export interface User {
   id?: string;
   email?: string;
@@ -26,4 +25,3 @@ export interface ExtendedUser extends User {
   donation_count?: number;
   is_active?: boolean;
 }
-
