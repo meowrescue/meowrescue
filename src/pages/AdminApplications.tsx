@@ -9,35 +9,13 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, File, Search, UserCheck, UserX } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import SEO from '@/components/SEO';
-
-interface Application {
-  id: string;
-  applicant_id: string | null;
-  application_type: string;
-  status: string;
-  feedback: string | null;
-  reviewer_id: string | null;
-  reviewed_at: string | null;
-  updated_at: string;
-  created_at: string;
-  form_data: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    [key: string]: any;
-  };
-  profiles?: {
-    first_name: string | null;
-    last_name: string | null;
-    email: string;
-  } | null;
-}
+import { Application } from '@/types/applications';
 
 const AdminApplications: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -46,7 +24,7 @@ const AdminApplications: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const { data: applications, isLoading } = useQuery({
+  const { data: applications, isLoading, refetch } = useQuery({
     queryKey: ['admin-applications', filterStatus, filterType],
     queryFn: async () => {
       try {
@@ -75,7 +53,7 @@ const AdminApplications: React.FC = () => {
           throw error;
         }
         
-        return data as unknown as Application[];
+        return data as Application[];
       } catch (error) {
         console.error('Error fetching applications:', error);
         return [] as Application[];
@@ -111,8 +89,7 @@ const AdminApplications: React.FC = () => {
         description: `Application status changed to ${newStatus}.`,
       });
       
-      // Refetch applications after status update
-      // This will be automatic with React Query
+      refetch();
     } catch (error) {
       console.error('Error updating application status:', error);
     }
@@ -124,9 +101,10 @@ const AdminApplications: React.FC = () => {
 
   const filteredApplications = applications?.filter(app => {
     const searchMatch = 
-      (app.applicant_id?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
-      app.application_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      JSON.stringify(app.form_data).toLowerCase().includes(searchTerm.toLowerCase());
+      (app.form_data?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+      (app.form_data?.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+      (app.form_data?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+      app.application_type.toLowerCase().includes(searchTerm.toLowerCase());
     
     return searchMatch;
   });
@@ -245,12 +223,12 @@ const AdminApplications: React.FC = () => {
                         <TableCell className="font-medium">
                           <div className="flex items-center">
                             <Avatar className="h-8 w-8 mr-2">
-                              <AvatarImage src={`https://ui-avatars.com/api/?name=${encodeURIComponent(application.form_data.firstName + " " + application.form_data.lastName)}&background=random`} />
-                              <AvatarFallback>{application.form_data.firstName?.[0]}{application.form_data.lastName?.[0]}</AvatarFallback>
+                              <AvatarImage src={`https://ui-avatars.com/api/?name=${encodeURIComponent((application.form_data?.firstName || '') + " " + (application.form_data?.lastName || ''))}&background=random`} />
+                              <AvatarFallback>{application.form_data?.firstName?.[0]}{application.form_data?.lastName?.[0]}</AvatarFallback>
                             </Avatar>
                             <div>
-                              <div className="font-medium">{application.form_data.firstName} {application.form_data.lastName}</div>
-                              <div className="text-xs text-gray-500">{application.form_data.email}</div>
+                              <div className="font-medium">{application.form_data?.firstName} {application.form_data?.lastName}</div>
+                              <div className="text-xs text-gray-500">{application.form_data?.email}</div>
                             </div>
                           </div>
                         </TableCell>
@@ -299,6 +277,7 @@ const AdminApplications: React.FC = () => {
             )}
           </TabsContent>
           
+          {/* We'll repeat the same pattern for other tab contents but with filtered lists */}
           <TabsContent value="volunteer" className="w-full overflow-x-auto">
             {isLoading ? (
               <div className="text-center py-10">
@@ -330,12 +309,12 @@ const AdminApplications: React.FC = () => {
                         <TableCell className="font-medium">
                           <div className="flex items-center">
                             <Avatar className="h-8 w-8 mr-2">
-                              <AvatarImage src={`https://ui-avatars.com/api/?name=${encodeURIComponent(application.form_data.firstName + " " + application.form_data.lastName)}&background=random`} />
-                              <AvatarFallback>{application.form_data.firstName?.[0]}{application.form_data.lastName?.[0]}</AvatarFallback>
+                              <AvatarImage src={`https://ui-avatars.com/api/?name=${encodeURIComponent((application.form_data?.firstName || '') + " " + (application.form_data?.lastName || ''))}&background=random`} />
+                              <AvatarFallback>{application.form_data?.firstName?.[0]}{application.form_data?.lastName?.[0]}</AvatarFallback>
                             </Avatar>
                             <div>
-                              <div className="font-medium">{application.form_data.firstName} {application.form_data.lastName}</div>
-                              <div className="text-xs text-gray-500">{application.form_data.email}</div>
+                              <div className="font-medium">{application.form_data?.firstName} {application.form_data?.lastName}</div>
+                              <div className="text-xs text-gray-500">{application.form_data?.email}</div>
                             </div>
                           </div>
                         </TableCell>
@@ -379,6 +358,7 @@ const AdminApplications: React.FC = () => {
             )}
           </TabsContent>
 
+          {/* Similar implementations for Adoption and Foster tabs */}
           <TabsContent value="adoption" className="w-full overflow-x-auto">
             {isLoading ? (
               <div className="text-center py-10">
@@ -396,6 +376,7 @@ const AdminApplications: React.FC = () => {
             ) : (
               <div className="rounded-md border overflow-hidden">
                 <Table>
+                  {/* Similar table structure as the volunteer tab */}
                   <TableHeader>
                     <TableRow>
                       <TableHead className="whitespace-nowrap">Applicant</TableHead>
@@ -410,12 +391,12 @@ const AdminApplications: React.FC = () => {
                         <TableCell className="font-medium">
                           <div className="flex items-center">
                             <Avatar className="h-8 w-8 mr-2">
-                              <AvatarImage src={`https://ui-avatars.com/api/?name=${encodeURIComponent(application.form_data.firstName + " " + application.form_data.lastName)}&background=random`} />
-                              <AvatarFallback>{application.form_data.firstName?.[0]}{application.form_data.lastName?.[0]}</AvatarFallback>
+                              <AvatarImage src={`https://ui-avatars.com/api/?name=${encodeURIComponent((application.form_data?.firstName || '') + " " + (application.form_data?.lastName || ''))}&background=random`} />
+                              <AvatarFallback>{application.form_data?.firstName?.[0]}{application.form_data?.lastName?.[0]}</AvatarFallback>
                             </Avatar>
                             <div>
-                              <div className="font-medium">{application.form_data.firstName} {application.form_data.lastName}</div>
-                              <div className="text-xs text-gray-500">{application.form_data.email}</div>
+                              <div className="font-medium">{application.form_data?.firstName} {application.form_data?.lastName}</div>
+                              <div className="text-xs text-gray-500">{application.form_data?.email}</div>
                             </div>
                           </div>
                         </TableCell>
@@ -476,6 +457,7 @@ const AdminApplications: React.FC = () => {
             ) : (
               <div className="rounded-md border overflow-hidden">
                 <Table>
+                  {/* Similar table structure as the other tabs */}
                   <TableHeader>
                     <TableRow>
                       <TableHead className="whitespace-nowrap">Applicant</TableHead>
@@ -490,12 +472,12 @@ const AdminApplications: React.FC = () => {
                         <TableCell className="font-medium">
                           <div className="flex items-center">
                             <Avatar className="h-8 w-8 mr-2">
-                              <AvatarImage src={`https://ui-avatars.com/api/?name=${encodeURIComponent(application.form_data.firstName + " " + application.form_data.lastName)}&background=random`} />
-                              <AvatarFallback>{application.form_data.firstName?.[0]}{application.form_data.lastName?.[0]}</AvatarFallback>
+                              <AvatarImage src={`https://ui-avatars.com/api/?name=${encodeURIComponent((application.form_data?.firstName || '') + " " + (application.form_data?.lastName || ''))}&background=random`} />
+                              <AvatarFallback>{application.form_data?.firstName?.[0]}{application.form_data?.lastName?.[0]}</AvatarFallback>
                             </Avatar>
                             <div>
-                              <div className="font-medium">{application.form_data.firstName} {application.form_data.lastName}</div>
-                              <div className="text-xs text-gray-500">{application.form_data.email}</div>
+                              <div className="font-medium">{application.form_data?.firstName} {application.form_data?.lastName}</div>
+                              <div className="text-xs text-gray-500">{application.form_data?.email}</div>
                             </div>
                           </div>
                         </TableCell>

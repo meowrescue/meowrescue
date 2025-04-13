@@ -9,7 +9,7 @@ export interface Donation {
   status: string;
   notes?: string;
   donor_profile_id?: string;
-  income_type?: string; // New field for donation/grant/personal funds
+  income_type: string; // Field for donation/grant/personal funds
 }
 
 export interface Expense {

@@ -23,17 +23,29 @@ const AdminSecurity: React.FC = () => {
     queryKey: ['activity-logs'],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase
+        // Modified query to avoid the relationship issue
+        const { data: logsData, error: logsError } = await supabase
           .from('activity_logs')
-          .select(`
-            *,
-            profiles:user_id(email, first_name, last_name, role)
-          `)
+          .select('*')
           .order('created_at', { ascending: false });
           
-        if (error) throw error;
+        if (logsError) throw logsError;
         
-        return data as ActivityLog[];
+        // For each log with a user_id, fetch the profile info separately
+        const logsWithProfiles = await Promise.all(logsData.map(async (log) => {
+          if (log.user_id) {
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('email, first_name, last_name, role')
+              .eq('id', log.user_id)
+              .single();
+              
+            return { ...log, profiles: profileData || null };
+          }
+          return { ...log, profiles: null };
+        }));
+        
+        return logsWithProfiles as ActivityLog[];
       } catch (err: any) {
         console.error("Error fetching activity logs:", err);
         toast({

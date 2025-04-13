@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Mail, Check, X } from 'lucide-react';
+import { Search, Mail, Check, X, Eye, EyeOff } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -35,7 +35,7 @@ interface ContactMessage {
   received_at: string;
   responded_at: string | null;
   response: string | null;
-  status: 'New' | 'Replied' | 'Archived';
+  status: 'New' | 'Read' | 'Replied' | 'Archived';
 }
 
 const AdminMessages: React.FC = () => {
@@ -112,8 +112,48 @@ const AdminMessages: React.FC = () => {
   };
 
   const handleViewMessage = (message: ContactMessage) => {
+    // If the message is new, mark it as read when viewing
+    if (message.status === 'New') {
+      updateMessageStatus(message.id, 'Read');
+    }
+    
     setSelectedMessage(message);
     setResponse(message.response || '');
+  };
+
+  const updateMessageStatus = async (messageId: string, status: ContactMessage['status']) => {
+    try {
+      const { error } = await supabase
+        .from('contact_messages')
+        .update({ status })
+        .eq('id', messageId);
+        
+      if (error) throw error;
+      
+      toast({
+        title: "Status Updated",
+        description: `Message marked as ${status.toLowerCase()}.`
+      });
+      
+      refetch();
+    } catch (err: any) {
+      toast({
+        title: "Error Updating Status",
+        description: err.message || "Failed to update message status",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Get badge variant based on message status
+  const getStatusBadgeVariant = (status: ContactMessage['status']): "default" | "outline" | "secondary" | "destructive" => {
+    switch(status) {
+      case 'New': return 'destructive';
+      case 'Read': return 'secondary';
+      case 'Replied': return 'default';
+      case 'Archived': return 'outline';
+      default: return 'default';
+    }
   };
 
   return (
@@ -166,27 +206,38 @@ const AdminMessages: React.FC = () => {
               </TableHeader>
               <TableBody>
                 {filteredMessages.map((message) => (
-                  <TableRow key={message.id}>
+                  <TableRow key={message.id} className={message.status === 'New' ? 'bg-gray-50' : ''}>
                     <TableCell className="font-medium">{message.name}</TableCell>
                     <TableCell>{message.email}</TableCell>
                     <TableCell>{new Date(message.received_at).toLocaleDateString()}</TableCell>
                     <TableCell>
-                      <Badge variant={
-                        message.status === 'New' ? 'destructive' : 
-                        message.status === 'Replied' ? 'default' : 
-                        'outline'
-                      }>
+                      <Badge variant={getStatusBadgeVariant(message.status)}>
                         {message.status}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleViewMessage(message)}
-                      >
-                        View/Reply
-                      </Button>
+                      <div className="flex justify-end gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleViewMessage(message)}
+                          className="flex items-center"
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          View/Reply
+                        </Button>
+                        {message.status !== 'New' ? (
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => updateMessageStatus(message.id, 'New')}
+                            className="flex items-center"
+                          >
+                            <EyeOff className="h-4 w-4 mr-1" />
+                            Mark Unread
+                          </Button>
+                        ) : null}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -238,11 +289,26 @@ const AdminMessages: React.FC = () => {
           </div>
           
           <DialogFooter>
-            <Button variant="outline" onClick={() => setSelectedMessage(null)}>Cancel</Button>
-            <Button onClick={handleSendResponse} disabled={!response.trim()}>
-              <Mail className="mr-2 h-4 w-4" />
-              Send Response
-            </Button>
+            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+              {selectedMessage?.status !== 'New' ? (
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    updateMessageStatus(selectedMessage?.id || '', 'New');
+                    setSelectedMessage(null);
+                  }}
+                  className="flex items-center"
+                >
+                  <EyeOff className="h-4 w-4 mr-2" />
+                  Mark Unread
+                </Button>
+              ) : null}
+              <Button variant="outline" onClick={() => setSelectedMessage(null)}>Cancel</Button>
+              <Button onClick={handleSendResponse} disabled={!response.trim()}>
+                <Mail className="mr-2 h-4 w-4" />
+                Send Response
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
