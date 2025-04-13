@@ -80,7 +80,7 @@ const VolunteerForm: React.FC = () => {
 
       // Use type assertion to bypass TypeScript's strict checking
       const { data: applicationId, error } = await supabase
-        .rpc('create_application', {
+        .rpc('create_application' as any, {
           p_applicant_id: user.id,
           p_application_type: 'volunteer',
           p_status: 'pending',

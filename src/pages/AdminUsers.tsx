@@ -62,7 +62,7 @@ const AdminUsers: React.FC = () => {
             try {
               // Use type assertion to bypass TypeScript's strict checking
               const { data: statusData, error: statusError } = await supabase
-                .rpc('get_user_status', { user_id: profile.id }) as { data: boolean | null, error: Error | null };
+                .rpc('get_user_status' as any, { user_id: profile.id }) as { data: boolean | null, error: Error | null };
                 
               // If data is returned and not null, use it
               if (statusData !== null) {
@@ -117,7 +117,7 @@ const AdminUsers: React.FC = () => {
 
       // Update user status using RPC function with type assertion
       const { error: statusError } = await supabase
-        .rpc('update_user_status', { 
+        .rpc('update_user_status' as any, { 
           p_user_id: editingUser.id, 
           p_is_active: editingUser.is_active 
         }) as { data: null, error: Error | null };
@@ -148,7 +148,7 @@ const AdminUsers: React.FC = () => {
       
       // Use type assertion to bypass TypeScript's strict checking
       const { error } = await supabase
-        .rpc('update_user_status', {
+        .rpc('update_user_status' as any, {
           p_user_id: user.id,
           p_is_active: newStatus
         }) as { data: null, error: Error | null };

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -51,7 +52,7 @@ const AdminApplications: React.FC = () => {
       try {
         // Use type assertion to bypass TypeScript's strict checking
         const { data, error } = await supabase
-          .rpc('get_applications', {
+          .rpc('get_applications' as any, {
             p_status: statusFilter,
             p_type: typeFilter
           }) as { data: Application[] | null, error: Error | null };
@@ -79,7 +80,7 @@ const AdminApplications: React.FC = () => {
     try {
       // Use type assertion to bypass TypeScript's strict checking
       const { error } = await supabase
-        .rpc('update_application_status', {
+        .rpc('update_application_status' as any, {
           p_application_id: viewingApplication.id,
           p_status: newStatus,
           p_feedback: feedback
