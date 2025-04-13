@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -447,8 +448,8 @@ const AdminEvents: React.FC = () => {
                     <Button type="button" variant="ghost" onClick={closeModal}>
                       Cancel
                     </Button>
-                    <Button type="submit" disabled={createOrUpdateEvent.isLoading}>
-                      {createOrUpdateEvent.isLoading ? 'Saving...' : 'Save'}
+                    <Button type="submit" disabled={createOrUpdateEvent.isPending}>
+                      {createOrUpdateEvent.isPending ? 'Saving...' : 'Save'}
                     </Button>
                   </div>
                 </form>
