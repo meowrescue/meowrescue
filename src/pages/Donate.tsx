@@ -1,11 +1,68 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import Layout from '../components/Layout';
 import SectionHeading from '../components/ui/SectionHeading';
 import { Button } from "@/components/ui/button";
 import { Heart, DollarSign, Gift, ShoppingBag } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
 
 const Donate: React.FC = () => {
+  const { toast } = useToast();
+  const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
+  const [customAmount, setCustomAmount] = useState<string>('');
+  const [isMonthly, setIsMonthly] = useState(false);
+
+  // Handler for selecting a predefined amount
+  const handleAmountSelection = (amount: number) => {
+    setSelectedAmount(amount);
+    setCustomAmount('');
+  };
+
+  // Handler for custom amount input
+  const handleCustomAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Only allow numbers and decimal point
+    if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+      setCustomAmount(value);
+      setSelectedAmount(null);
+    }
+  };
+
+  // Handler for donation button click
+  const handleDonateClick = () => {
+    const amount = selectedAmount || (customAmount ? parseFloat(customAmount) : null);
+    
+    if (!amount || amount <= 0) {
+      toast({
+        title: "Please select an amount",
+        description: "Please select or enter a valid donation amount.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // For now, just show a toast with the donation details
+    // This will be replaced with actual Stripe integration later
+    toast({
+      title: "Thank you for your donation!",
+      description: `You have selected to donate $${amount}${isMonthly ? ' monthly' : ''}. Stripe integration coming soon.`,
+      variant: "default"
+    });
+    
+    console.log("Donation details:", { amount, isMonthly });
+  };
+
+  // Handler for donation to specific cause
+  const handleSpecificDonation = (amount: number, cause: string) => {
+    toast({
+      title: "Thank you for your donation!",
+      description: `You have selected to donate $${amount} to ${cause}. Stripe integration coming soon.`,
+      variant: "default"
+    });
+    
+    console.log("Specific donation:", { amount, cause, isMonthly: false });
+  };
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12">
@@ -34,18 +91,19 @@ const Donate: React.FC = () => {
             <h2 className="text-2xl font-bold text-center mb-6">One-Time Donation</h2>
             
             <div className="grid grid-cols-2 gap-4 mb-6">
-              <Button variant="outline" className="border-meow-primary text-meow-primary hover:bg-meow-primary/10">
-                $25
-              </Button>
-              <Button variant="outline" className="border-meow-primary text-meow-primary hover:bg-meow-primary/10">
-                $50
-              </Button>
-              <Button variant="outline" className="border-meow-primary text-meow-primary hover:bg-meow-primary/10">
-                $100
-              </Button>
-              <Button variant="outline" className="border-meow-primary text-meow-primary hover:bg-meow-primary/10">
-                $250
-              </Button>
+              {[25, 50, 100, 250].map((amount) => (
+                <Button 
+                  key={amount}
+                  variant={selectedAmount === amount && !isMonthly ? "meow" : "outline"} 
+                  className={`${selectedAmount === amount && !isMonthly ? 'text-white' : 'text-meow-primary border-meow-primary hover:bg-meow-primary/10'}`}
+                  onClick={() => {
+                    handleAmountSelection(amount);
+                    setIsMonthly(false);
+                  }}
+                >
+                  ${amount}
+                </Button>
+              ))}
             </div>
             
             <div className="mb-6">
@@ -57,15 +115,21 @@ const Donate: React.FC = () => {
                   <span className="text-gray-500">$</span>
                 </div>
                 <input
-                  type="number"
+                  type="text"
                   id="custom-amount"
+                  value={customAmount}
+                  onChange={handleCustomAmountChange}
                   className="w-full pl-7 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-meow-primary focus:border-transparent"
                   placeholder="Other amount"
                 />
               </div>
             </div>
             
-            <Button className="w-full bg-meow-secondary hover:bg-meow-secondary/90">
+            <Button 
+              className="w-full bg-meow-secondary hover:bg-meow-secondary/90" 
+              onClick={handleDonateClick}
+              disabled={!selectedAmount && !customAmount}
+            >
               Donate Now
             </Button>
           </div>
@@ -82,21 +146,26 @@ const Donate: React.FC = () => {
             </p>
             
             <div className="grid grid-cols-2 gap-4 mb-6">
-              <Button variant="outline" className="border-meow-primary text-meow-primary hover:bg-meow-primary/10">
-                $10/mo
-              </Button>
-              <Button variant="outline" className="border-meow-primary text-meow-primary hover:bg-meow-primary/10">
-                $20/mo
-              </Button>
-              <Button variant="outline" className="border-meow-primary text-meow-primary hover:bg-meow-primary/10">
-                $50/mo
-              </Button>
-              <Button variant="outline" className="border-meow-primary text-meow-primary hover:bg-meow-primary/10">
-                $100/mo
-              </Button>
+              {[10, 20, 50, 100].map((amount) => (
+                <Button 
+                  key={amount}
+                  variant={selectedAmount === amount && isMonthly ? "meow" : "outline"} 
+                  className={`${selectedAmount === amount && isMonthly ? 'text-white' : 'text-meow-primary border-meow-primary hover:bg-meow-primary/10'}`}
+                  onClick={() => {
+                    handleAmountSelection(amount);
+                    setIsMonthly(true);
+                  }}
+                >
+                  ${amount}/mo
+                </Button>
+              ))}
             </div>
             
-            <Button className="w-full bg-meow-secondary hover:bg-meow-secondary/90">
+            <Button 
+              className="w-full bg-meow-secondary hover:bg-meow-secondary/90"
+              onClick={handleDonateClick}
+              disabled={!selectedAmount || !isMonthly}
+            >
               Become a Monthly Supporter
             </Button>
           </div>
@@ -138,8 +207,11 @@ const Donate: React.FC = () => {
                   treatment for a skin condition, neutering, and flea treatment. Your donation can help Fluffy get the medical care he needs.
                 </p>
                 <div className="flex justify-center md:justify-start">
-                  <Button asChild className="bg-meow-secondary hover:bg-meow-secondary/90">
-                    <a href="/donate?amount=250&cause=fluffys-care">Help Fluffy - Donate $250</a>
+                  <Button 
+                    className="bg-meow-secondary hover:bg-meow-secondary/90"
+                    onClick={() => handleSpecificDonation(250, "Fluffy's Care")}
+                  >
+                    Help Fluffy - Donate $250
                   </Button>
                 </div>
               </div>
@@ -229,7 +301,18 @@ const Donate: React.FC = () => {
               </div>
               
               <div className="mt-6 text-center">
-                <Button className="bg-meow-primary hover:bg-meow-primary/90">
+                <Button 
+                  className="bg-meow-primary hover:bg-meow-primary/90"
+                  onClick={() => {
+                    toast({
+                      title: "Amazon Wish List",
+                      description: "You'll be redirected to our Amazon Wish List",
+                      variant: "default"
+                    });
+                    // In a real implementation, this would open the Amazon wish list in a new tab
+                    window.open('https://www.amazon.com/hz/wishlist/ls/example', '_blank');
+                  }}
+                >
                   View Our Amazon Wish List
                 </Button>
               </div>
