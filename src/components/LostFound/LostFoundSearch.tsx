@@ -4,6 +4,7 @@ import { Search, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface LostFoundSearchProps {
   searchTerm: string;
@@ -11,23 +12,33 @@ interface LostFoundSearchProps {
 }
 
 const LostFoundSearch: React.FC<LostFoundSearchProps> = ({ searchTerm, setSearchTerm }) => {
+  const { user } = useAuth();
+  
   return (
     <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
       <div className="relative w-full sm:w-auto flex-grow max-w-md">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
         <Input
           type="text"
-          placeholder="Search posts..."
+          placeholder="Search by pet type, location, description..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-9 w-full"
         />
       </div>
-      <Button asChild variant="meow" className="whitespace-nowrap">
-        <Link to="/lost-found/new">
-          <Plus className="mr-1" size={16} /> New Post
-        </Link>
-      </Button>
+      {user ? (
+        <Button asChild variant="meow" className="whitespace-nowrap">
+          <Link to="/lost-found/new">
+            <Plus className="mr-1" size={16} /> New Post
+          </Link>
+        </Button>
+      ) : (
+        <Button asChild variant="outline" className="whitespace-nowrap">
+          <Link to="/login?redirect=/lost-found/new">
+            <Plus className="mr-1" size={16} /> Log in to Post
+          </Link>
+        </Button>
+      )}
     </div>
   );
 };
