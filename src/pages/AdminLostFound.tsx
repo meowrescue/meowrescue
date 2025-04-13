@@ -2,16 +2,30 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
-import SEO from '@/components/SEO';
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { LostFoundPost } from '@/types/supabase';
+import { supabase } from '@/integrations/supabase/client';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { 
+  MoreHorizontal, 
+  PlusCircle, 
+  Search, 
+  Trash2, 
+  Archive, 
+  FileEdit,
+  ArchiveRestore
+} from 'lucide-react';
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -20,374 +34,448 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog';
+import SEO from '@/components/SEO';
 
-interface LostFoundPost {
-  id: string;
-  profile_id: string;
-  title: string;
-  description: string;
-  location: string;
-  status: string;
-  pet_type: string;
-  pet_name?: string;
-  date_occurred: string;
-  contact_info?: string;
-  photos_urls?: string[];
-  created_at: string;
-  updated_at: string;
-  profiles?: {
-    email: string;
-    first_name: string | null;
-    last_name: string | null;
-  };
-}
-
-const AdminLostFound: React.FC = () => {
-  const [searchQuery, setSearchQuery] = useState('');
+const AdminLostFound = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [archiveId, setArchiveId] = useState<string | null>(null);
-  const [includeArchived, setIncludeArchived] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [confirmArchiveId, setConfirmArchiveId] = useState<string | null>(null);
+  const [confirmRestoreId, setConfirmRestoreId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string>('active');
 
-  // Fetch lost and found posts
-  const { data: posts, isLoading, error, refetch } = useQuery({
-    queryKey: ['admin-lost-found-posts', includeArchived],
+  // Fetch all lost and found posts
+  const { data: posts, isLoading, error } = useQuery({
+    queryKey: ['admin-lost-found', activeTab],
     queryFn: async () => {
       try {
-        // Build the query based on whether we want to include archived posts
+        console.log(`Fetching lost and found posts with status ${activeTab === 'archived' ? 'archived' : 'not archived'}`);
         let query = supabase
           .from('lost_found_posts')
-          .select('*, profiles:profile_id(email, first_name, last_name)');
+          .select('*');
           
-        if (!includeArchived) {
+        if (activeTab === 'archived') {
+          query = query.eq('status', 'archived');
+        } else {
           query = query.neq('status', 'archived');
         }
         
-        query = query.order('created_at', { ascending: false });
+        const { data, error } = await query.order('created_at', { ascending: false });
         
-        const { data, error } = await query;
-          
         if (error) {
           console.error("Error fetching lost and found posts:", error);
           throw error;
         }
         
-        console.log("Fetched lost and found posts:", data);
-        return data as unknown as LostFoundPost[];
-      } catch (err: any) {
-        console.error("Error fetching lost and found posts:", err);
-        toast({
-          title: "Error fetching posts",
-          description: err.message || "Failed to load lost & found posts",
-          variant: "destructive"
-        });
-        return [] as LostFoundPost[];
+        console.log(`Fetched ${data?.length} lost and found posts`);
+        return data || [];
+      } catch (err) {
+        console.error("Error in lost and found posts query:", err);
+        return [];
       }
-    }
+    },
   });
 
-  // Force refetch on mount
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
-
-  // Filter posts based on search query
-  const filteredPosts = posts?.filter(post =>
-    post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    post.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    post.location.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  // Delete mutation
-  const deletePostMutation = useMutation({
+  // Delete post mutation
+  const deletePost = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('lost_found_posts')
         .delete()
         .eq('id', id);
-        
+      
       if (error) throw error;
-      return id;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-lost-found'] });
       toast({
         title: "Post Deleted",
-        description: "The lost & found post has been deleted successfully."
+        description: "The post has been permanently deleted.",
       });
-      queryClient.invalidateQueries({ queryKey: ['admin-lost-found-posts'] });
-      setDeleteId(null);
+      setConfirmDeleteId(null);
     },
     onError: (error: any) => {
       toast({
-        title: "Error Deleting Post",
-        description: error.message || "Failed to delete post",
-        variant: "destructive"
+        title: "Error",
+        description: `Failed to delete post: ${error.message}`,
+        variant: "destructive",
       });
-      setDeleteId(null);
-    }
+    },
   });
 
-  // Archive mutation
-  const archivePostMutation = useMutation({
+  // Archive post mutation
+  const archivePost = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('lost_found_posts')
         .update({ status: 'archived' })
         .eq('id', id);
-        
+      
       if (error) throw error;
-      return id;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-lost-found'] });
       toast({
         title: "Post Archived",
-        description: "The lost & found post has been archived successfully."
+        description: "The post has been archived.",
       });
-      queryClient.invalidateQueries({ queryKey: ['admin-lost-found-posts'] });
-      setArchiveId(null);
+      setConfirmArchiveId(null);
     },
     onError: (error: any) => {
       toast({
-        title: "Error Archiving Post",
-        description: error.message || "Failed to archive post",
-        variant: "destructive"
+        title: "Error",
+        description: `Failed to archive post: ${error.message}`,
+        variant: "destructive",
       });
-      setArchiveId(null);
-    }
+    },
   });
 
-  // Restore mutation
-  const restorePostMutation = useMutation({
+  // Restore post mutation
+  const restorePost = useMutation({
     mutationFn: async (id: string) => {
-      // Get the original status first
+      // Get the post to see its original status
       const { data, error: fetchError } = await supabase
         .from('lost_found_posts')
-        .select('*')
+        .select('status')
         .eq('id', id)
         .single();
-        
+      
       if (fetchError) throw fetchError;
       
-      // Restore to 'lost' or 'found' status based on original before archiving
-      // Default to 'lost' if we can't determine
-      const originalStatus = data.status === 'archived' 
-        ? (data.pet_name ? 'lost' : 'found') // Simple heuristic: if it has a name, it was likely lost
-        : data.status;
+      // Determine the correct status to restore to
+      let originalStatus = data.status === 'archived' ? 'lost' : data.status;
       
+      // Update the post
       const { error } = await supabase
         .from('lost_found_posts')
         .update({ status: originalStatus })
         .eq('id', id);
-        
+      
       if (error) throw error;
-      return id;
     },
-    onSuccess: (id) => {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-lost-found'] });
       toast({
         title: "Post Restored",
-        description: "The post has been restored and is now visible on the public site."
+        description: "The post has been restored from the archive.",
       });
-      queryClient.invalidateQueries({ queryKey: ['admin-lost-found-posts'] });
+      setConfirmRestoreId(null);
     },
     onError: (error: any) => {
       toast({
-        title: "Error Restoring Post",
-        description: error.message || "Failed to restore post",
-        variant: "destructive"
+        title: "Error",
+        description: `Failed to restore post: ${error.message}`,
+        variant: "destructive",
       });
-    }
+    },
   });
 
-  const handleDeletePost = () => {
-    if (deleteId) {
-      deletePostMutation.mutate(deleteId);
-    }
+  // Filter posts based on search term
+  const filteredPosts = posts?.filter((post) => {
+    const searchString = searchTerm.toLowerCase();
+    return (
+      post.title.toLowerCase().includes(searchString) ||
+      post.description.toLowerCase().includes(searchString) ||
+      post.location.toLowerCase().includes(searchString) ||
+      post.pet_type.toLowerCase().includes(searchString) ||
+      (post.pet_name && post.pet_name.toLowerCase().includes(searchString))
+    );
+  });
+
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    }).format(date);
   };
 
-  const handleArchivePost = () => {
-    if (archiveId) {
-      archivePostMutation.mutate(archiveId);
+  // Get status badge color
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'lost':
+        return <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">Lost</span>;
+      case 'found':
+        return <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Found</span>;
+      case 'reunited':
+        return <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">Reunited</span>;
+      case 'archived':
+        return <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">Archived</span>;
+      default:
+        return <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">{status}</span>;
     }
-  };
-
-  const handleRestorePost = (id: string) => {
-    restorePostMutation.mutate(id);
   };
 
   return (
     <AdminLayout title="Lost & Found">
-      <SEO title="Lost & Found | Meow Rescue Admin" />
+      <SEO title="Manage Lost & Found Posts | Meow Rescue Admin" />
       
       <div className="container mx-auto py-10">
-        <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
-          <h1 className="text-3xl font-bold text-meow-primary">Lost & Found</h1>
-          <div className="flex items-center gap-4 w-full md:w-auto">
-            <div className="relative w-full md:w-auto">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold text-meow-primary mb-4 sm:mb-0">Lost & Found Posts</h1>
+          <div className="flex gap-4 w-full sm:w-auto">
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
               <Input
+                type="search"
                 placeholder="Search posts..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 w-full md:w-64"
+                className="pl-8"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Button 
-              variant="outline"
-              onClick={() => {
-                setIncludeArchived(!includeArchived);
-                refetch();
-              }}
-            >
-              {includeArchived ? "Hide Archived" : "Show Archived"}
-            </Button>
-            <Button onClick={() => refetch()}>
-              Refresh
+            <Button asChild>
+              <Link to="/lost-found/new">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                New Post
+              </Link>
             </Button>
           </div>
         </div>
-        
-        {isLoading ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
-          </div>
-        ) : error ? (
-          <div className="text-center py-12">
-            <p className="text-red-500">Error loading lost & found posts. Please try again later.</p>
-            <Button 
-              variant="outline" 
-              className="mt-4"
-              onClick={() => refetch()}
-            >
-              Try Again
-            </Button>
-          </div>
-        ) : filteredPosts && filteredPosts.length > 0 ? (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <Table>
-              <TableCaption>All lost and found pet listings.</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Posted By</TableHead>
-                  <TableHead>Date Posted</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredPosts.map((post) => (
-                  <TableRow key={post.id} className={post.status === 'archived' ? 'bg-gray-100' : ''}>
-                    <TableCell className="font-medium">{post.title}</TableCell>
-                    <TableCell>
-                      <Badge variant={
-                        post.status === 'lost' ? 'destructive' : 
-                        post.status === 'found' ? 'default' : 
-                        post.status === 'archived' ? 'outline' :
-                        'secondary'
-                      }>
-                        {post.status.charAt(0).toUpperCase() + post.status.slice(1)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{post.location}</TableCell>
-                    <TableCell>
-                      {post.profiles ? 
-                        `${post.profiles.first_name || ''} ${post.profiles.last_name || ''}`.trim() || post.profiles.email : 
-                        'Unknown User'}
-                    </TableCell>
-                    <TableCell>{new Date(post.created_at).toLocaleDateString()}</TableCell>
-                    <TableCell className="text-right">
-                      <Link to={`/lost-found/${post.id}`}>
-                        <Button variant="ghost" size="sm">View</Button>
-                      </Link>
-                      {post.status !== 'archived' && (
-                        <>
-                          <Link to={`/lost-found/edit/${post.id}`}>
-                            <Button variant="ghost" size="sm">Edit</Button>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList>
+            <TabsTrigger value="active">Active</TabsTrigger>
+            <TabsTrigger value="archived">Archived</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="active" className="space-y-4">
+            {isLoading ? (
+              <div className="flex justify-center py-10">
+                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-meow-primary"></div>
+              </div>
+            ) : error ? (
+              <div className="text-center py-10">
+                <p className="text-red-500">Error loading lost and found posts.</p>
+                <Button
+                  variant="outline"
+                  onClick={() => queryClient.invalidateQueries({ queryKey: ['admin-lost-found'] })}
+                  className="mt-4"
+                >
+                  Try Again
+                </Button>
+              </div>
+            ) : filteredPosts?.length === 0 ? (
+              <div className="text-center py-10">
+                <p className="text-gray-500">No active lost and found posts found.</p>
+                <Button asChild className="mt-4">
+                  <Link to="/lost-found/new">Create a new post</Link>
+                </Button>
+              </div>
+            ) : (
+              <div className="border rounded-md">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Pet Type</TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Date Posted</TableHead>
+                      <TableHead></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredPosts?.map((post) => (
+                      <TableRow key={post.id}>
+                        <TableCell className="font-medium">
+                          <Link to={`/lost-found/${post.id}`} className="text-meow-primary hover:underline">
+                            {post.title}
                           </Link>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => setArchiveId(post.id)}
-                          >
-                            Archive
-                          </Button>
-                        </>
-                      )}
-                      {post.status === 'archived' && (
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleRestorePost(post.id)}
-                        >
-                          Restore
-                        </Button>
-                      )}
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-red-500 hover:text-red-700"
-                        onClick={() => setDeleteId(post.id)}
-                      >
-                        Delete
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        ) : (
-          <div className="bg-white p-6 rounded-lg shadow">
-            <div className="text-center py-12">
-              <h2 className="text-2xl font-semibold text-gray-700 mb-4">No Lost & Found Posts</h2>
-              <p className="text-gray-500 mb-8">
-                {includeArchived 
-                  ? "There are no lost and found posts in the database yet. Posts created on the public site will appear here for moderation."
-                  : "There are no active lost and found posts. Try showing archived posts or check back later."}
-              </p>
-            </div>
-          </div>
-        )}
+                        </TableCell>
+                        <TableCell>{getStatusBadge(post.status)}</TableCell>
+                        <TableCell>{post.pet_type}</TableCell>
+                        <TableCell>{post.location}</TableCell>
+                        <TableCell>{formatDate(post.date_occurred)}</TableCell>
+                        <TableCell>{formatDate(post.created_at)}</TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem asChild>
+                                <Link to={`/lost-found/${post.id}`}>
+                                  <Search className="mr-2 h-4 w-4" />
+                                  View
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem asChild>
+                                <Link to={`/lost-found/edit/${post.id}`}>
+                                  <FileEdit className="mr-2 h-4 w-4" />
+                                  Edit
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setConfirmArchiveId(post.id)}>
+                                <Archive className="mr-2 h-4 w-4" />
+                                Archive
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setConfirmDeleteId(post.id)}>
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="archived" className="space-y-4">
+            {isLoading ? (
+              <div className="flex justify-center py-10">
+                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-meow-primary"></div>
+              </div>
+            ) : error ? (
+              <div className="text-center py-10">
+                <p className="text-red-500">Error loading archived posts.</p>
+                <Button
+                  variant="outline"
+                  onClick={() => queryClient.invalidateQueries({ queryKey: ['admin-lost-found'] })}
+                  className="mt-4"
+                >
+                  Try Again
+                </Button>
+              </div>
+            ) : filteredPosts?.length === 0 ? (
+              <div className="text-center py-10">
+                <p className="text-gray-500">No archived posts found.</p>
+              </div>
+            ) : (
+              <div className="border rounded-md">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Original Status</TableHead>
+                      <TableHead>Pet Type</TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Date Posted</TableHead>
+                      <TableHead></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredPosts?.map((post) => (
+                      <TableRow key={post.id}>
+                        <TableCell className="font-medium">
+                          <Link to={`/lost-found/${post.id}`} className="text-meow-primary hover:underline">
+                            {post.title}
+                          </Link>
+                        </TableCell>
+                        <TableCell>{getStatusBadge(post.status)}</TableCell>
+                        <TableCell>{post.pet_type}</TableCell>
+                        <TableCell>{post.location}</TableCell>
+                        <TableCell>{formatDate(post.date_occurred)}</TableCell>
+                        <TableCell>{formatDate(post.created_at)}</TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem asChild>
+                                <Link to={`/lost-found/${post.id}`}>
+                                  <Search className="mr-2 h-4 w-4" />
+                                  View
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setConfirmRestoreId(post.id)}>
+                                <ArchiveRestore className="mr-2 h-4 w-4" />
+                                Restore
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setConfirmDeleteId(post.id)}>
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+        
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={!!confirmDeleteId} onOpenChange={() => setConfirmDeleteId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the post from the database.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={() => confirmDeleteId && deletePost.mutate(confirmDeleteId)}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+        
+        {/* Archive Confirmation Dialog */}
+        <AlertDialog open={!!confirmArchiveId} onOpenChange={() => setConfirmArchiveId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Archive this post?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will archive the post so it no longer appears on the public site. You can restore it later.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={() => confirmArchiveId && archivePost.mutate(confirmArchiveId)}
+              >
+                Archive
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+        
+        {/* Restore Confirmation Dialog */}
+        <AlertDialog open={!!confirmRestoreId} onOpenChange={() => setConfirmRestoreId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Restore this post?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will restore the post and make it visible on the public site again.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={() => confirmRestoreId && restorePost.mutate(confirmRestoreId)}
+              >
+                Restore
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to delete this post?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the lost & found post from the database.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeletePost} className="bg-red-500 hover:bg-red-600">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Archive Confirmation Dialog */}
-      <AlertDialog open={!!archiveId} onOpenChange={(open) => !open && setArchiveId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Archive this post?</AlertDialogTitle>
-            <AlertDialogDescription>
-              The post will be archived and no longer visible on the public site, but you can restore it later if needed.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleArchivePost}>
-              Archive
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </AdminLayout>
   );
 };

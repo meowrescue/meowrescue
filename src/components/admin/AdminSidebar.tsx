@@ -27,39 +27,65 @@ const AdminSidebar: React.FC = () => {
   const [unreadChat, setUnreadChat] = useState(0);
   const [unreadMessages, setUnreadMessages] = useState(0);
   
-  // Fetch unread counts
-  const { data: unreadCounts } = useQuery({
+  // Fetch unread counts using the new RPC function
+  const { data: unreadCounts, refetch: refetchUnreadCounts } = useQuery({
     queryKey: ['unreadCounts'],
     queryFn: async () => {
       try {
-        // Count unread chat messages
-        const { data: chatData, error: chatError } = await supabase
-          .from('chat_messages')
-          .select('id')
-          .eq('is_admin', false)
-          .is('read_at', null);
-          
-        if (chatError) throw chatError;
+        console.log("Fetching unread counts");
         
-        // Count unread contact messages
-        const { data: messageData, error: messageError } = await supabase
-          .from('contact_messages')
-          .select('id')
-          .eq('status', 'new');
+        // Use the RPC function to get counts
+        const { data, error } = await supabase
+          .rpc('get_unread_counts', { user_id: (await supabase.auth.getUser()).data.user?.id });
           
-        if (messageError) throw messageError;
+        if (error) {
+          console.error("Error fetching unread counts from RPC:", error);
+          // Fallback to direct queries if RPC fails
+          return await fallbackFetchCounts();
+        }
         
+        console.log("Unread counts from RPC:", data);
         return {
-          chatCount: chatData?.length || 0,
-          messageCount: messageData?.length || 0
+          chatCount: data.chat_count || 0,
+          messageCount: data.message_count || 0
         };
       } catch (err) {
-        console.error("Error fetching unread counts:", err);
+        console.error("Error in unreadCounts query:", err);
         return { chatCount: 0, messageCount: 0 };
       }
     },
     refetchInterval: 30000 // Refresh every 30 seconds
   });
+  
+  // Fallback function to fetch counts directly if RPC fails
+  const fallbackFetchCounts = async () => {
+    try {
+      // Count unread chat messages
+      const { data: chatData, error: chatError } = await supabase
+        .from('chat_messages')
+        .select('id')
+        .eq('is_admin', false)
+        .is('read_at', null);
+        
+      if (chatError) throw chatError;
+      
+      // Count unread contact messages
+      const { data: messageData, error: messageError } = await supabase
+        .from('contact_messages')
+        .select('id')
+        .eq('status', 'New');
+        
+      if (messageError) throw messageError;
+      
+      return {
+        chatCount: chatData?.length || 0,
+        messageCount: messageData?.length || 0
+      };
+    } catch (err) {
+      console.error("Error in fallback fetch for unread counts:", err);
+      return { chatCount: 0, messageCount: 0 };
+    }
+  };
   
   // Update badges when data changes
   useEffect(() => {
@@ -68,6 +94,70 @@ const AdminSidebar: React.FC = () => {
       setUnreadMessages(unreadCounts.messageCount);
     }
   }, [unreadCounts]);
+  
+  // Reset counters when navigating to relevant pages
+  useEffect(() => {
+    if (location.pathname === '/admin/chat' && unreadChat > 0) {
+      setUnreadChat(0);
+      // Mark messages as read in database when visiting chat page
+      markChatMessagesAsRead();
+    }
+    
+    if (location.pathname === '/admin/messages' && unreadMessages > 0) {
+      setUnreadMessages(0);
+      // Update contact messages status when visiting messages page
+      markContactMessagesAsRead();
+    }
+  }, [location.pathname]);
+  
+  // Function to mark chat messages as read
+  const markChatMessagesAsRead = async () => {
+    try {
+      // Get all unread messages
+      const { data: unreadMessages, error: fetchError } = await supabase
+        .from('chat_messages')
+        .select('id')
+        .eq('is_admin', false)
+        .is('read_at', null);
+        
+      if (fetchError) throw fetchError;
+      
+      if (unreadMessages && unreadMessages.length > 0) {
+        const unreadIds = unreadMessages.map(msg => msg.id);
+        
+        // Mark them as read
+        const { error: updateError } = await supabase
+          .from('chat_messages')
+          .update({ read_at: new Date().toISOString() })
+          .in('id', unreadIds);
+          
+        if (updateError) throw updateError;
+        
+        // Refetch counts
+        refetchUnreadCounts();
+      }
+    } catch (err) {
+      console.error("Error marking chat messages as read:", err);
+    }
+  };
+  
+  // Function to mark contact messages as read
+  const markContactMessagesAsRead = async () => {
+    try {
+      // Update all 'New' messages to 'Read'
+      const { error } = await supabase
+        .from('contact_messages')
+        .update({ status: 'Read' })
+        .eq('status', 'New');
+        
+      if (error) throw error;
+      
+      // Refetch counts
+      refetchUnreadCounts();
+    } catch (err) {
+      console.error("Error marking contact messages as read:", err);
+    }
+  };
   
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -197,7 +287,6 @@ const AdminSidebar: React.FC = () => {
             className={`flex items-center justify-between p-2 rounded transition-colors ${
               isActive('/admin/chat') ? 'bg-gray-100' : 'hover:bg-gray-100'
             }`}
-            onClick={() => setUnreadChat(0)} // Reset when clicked
           >
             <div className="flex items-center">
               <MessageCircle className="mr-3 h-5 w-5 text-gray-600" />
@@ -213,7 +302,6 @@ const AdminSidebar: React.FC = () => {
             className={`flex items-center justify-between p-2 rounded transition-colors ${
               isActive('/admin/messages') ? 'bg-gray-100' : 'hover:bg-gray-100'
             }`}
-            onClick={() => setUnreadMessages(0)} // Reset when clicked
           >
             <div className="flex items-center">
               <Mail className="mr-3 h-5 w-5 text-gray-600" />

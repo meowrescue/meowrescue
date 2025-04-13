@@ -49,10 +49,38 @@ const AdminChat: React.FC = () => {
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [autoScroll, setAutoScroll] = useState(true);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [lastScrollPosition, setLastScrollPosition] = useState(0);
+  const [initialScrollComplete, setInitialScrollComplete] = useState(false);
 
-  // Scroll to bottom of messages
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  // Modified scroll function to respect user scrolling
+  const scrollToBottom = (force = false) => {
+    if (!messagesEndRef.current) return;
+    
+    if (force || autoScroll) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  // Handle scroll events in the messages area
+  const handleScroll = () => {
+    if (!scrollAreaRef.current || !initialScrollComplete) return;
+    
+    const { scrollTop, scrollHeight, clientHeight } = scrollAreaRef.current;
+    const scrollPosition = scrollTop + clientHeight;
+    
+    // If user scrolls up more than 100px, disable auto-scroll
+    if (lastScrollPosition - scrollPosition > 100) {
+      setAutoScroll(false);
+    }
+    
+    // If user scrolls to bottom, enable auto-scroll
+    if (scrollHeight - scrollPosition < 50) {
+      setAutoScroll(true);
+    }
+    
+    setLastScrollPosition(scrollPosition);
   };
 
   // Fetch active chat sessions
@@ -164,10 +192,12 @@ const AdminChat: React.FC = () => {
             .from('chat_messages')
             .update({ read_at: new Date().toISOString() })
             .in('id', unreadIds);
+            
+          // Also update sidebar counters
+          queryClient.invalidateQueries({ queryKey: ['unreadCounts'] });
         }
         
         if (data) {
-          setTimeout(scrollToBottom, 100);
           return data as ChatMessage[];
         }
         return [] as ChatMessage[];
@@ -180,10 +210,24 @@ const AdminChat: React.FC = () => {
     refetchInterval: selectedChatId ? 5000 : false, // Poll for new messages if chat is selected
   });
 
-  // Effect to scroll to bottom when messages change
+  // Effect to scroll to bottom when messages change or chat is selected
   useEffect(() => {
-    scrollToBottom();
-  }, [chatMessages]);
+    if (chatMessages && chatMessages.length > 0) {
+      // Reset auto-scroll when changing chats
+      if (!initialScrollComplete) {
+        setAutoScroll(true);
+        setInitialScrollComplete(true);
+        setTimeout(() => scrollToBottom(true), 100);
+      } else {
+        setTimeout(() => scrollToBottom(), 100);
+      }
+    }
+  }, [chatMessages, selectedChatId]);
+
+  // Reset scroll state when selecting a different chat
+  useEffect(() => {
+    setInitialScrollComplete(false);
+  }, [selectedChatId]);
 
   // Send message mutation
   const sendMessage = useMutation({
@@ -244,9 +288,11 @@ const AdminChat: React.FC = () => {
     },
     onSuccess: () => {
       setNewMessage('');
+      // Always enable auto-scroll after sending a message
+      setAutoScroll(true);
       queryClient.invalidateQueries({ queryKey: ['chat-messages', selectedChatId] });
       queryClient.invalidateQueries({ queryKey: ['chat-sessions'] });
-      setTimeout(scrollToBottom, 100);
+      setTimeout(() => scrollToBottom(true), 100);
     },
     onError: (error: any) => {
       console.error("Error in send message mutation:", error);
@@ -299,6 +345,7 @@ const AdminChat: React.FC = () => {
     },
     onSuccess: () => {
       setSelectedChatId(null);
+      setInitialScrollComplete(false);
       queryClient.invalidateQueries({ queryKey: ['chat-sessions'] });
       toast({
         title: "Chat Closed",
@@ -419,8 +466,12 @@ const AdminChat: React.FC = () => {
               <CardContent className="flex-1 p-0 flex flex-col">
                 {selectedChatId ? (
                   <>
-                    {/* Messages Area */}
-                    <ScrollArea className="flex-1 p-4">
+                    {/* Messages Area - with scroll event handler */}
+                    <div 
+                      className="flex-1 overflow-y-auto p-4" 
+                      ref={scrollAreaRef}
+                      onScroll={handleScroll}
+                    >
                       {messagesLoading ? (
                         <div className="flex justify-center py-6">
                           <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-meow-primary"></div>
@@ -453,7 +504,20 @@ const AdminChat: React.FC = () => {
                           <p>No messages yet</p>
                         </div>
                       )}
-                    </ScrollArea>
+                    </div>
+                    
+                    {/* Auto-scroll toggle */}
+                    <div className="px-3 py-1 border-t text-right">
+                      <button 
+                        onClick={() => {
+                          setAutoScroll(!autoScroll);
+                          if (!autoScroll) scrollToBottom(true);
+                        }}
+                        className={`text-xs ${autoScroll ? 'text-meow-primary' : 'text-gray-500'}`}
+                      >
+                        {autoScroll ? 'Auto-scroll enabled' : 'Auto-scroll disabled (click to enable)'}
+                      </button>
+                    </div>
                     
                     {/* Message Input */}
                     <div className="p-3 border-t">

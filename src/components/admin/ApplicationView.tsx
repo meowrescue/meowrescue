@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Application } from '@/types/applications';
 import { Button } from '@/components/ui/button';
@@ -27,18 +26,35 @@ const ApplicationView: React.FC<ApplicationViewProps> = ({ application, onClose 
 
   const updateApplicationStatus = useMutation({
     mutationFn: async ({ id, status, feedback }: { id: string; status: string; feedback: string }) => {
+      console.log(`Updating application ${id} to status: ${status} with feedback: ${feedback}`);
+      
       const { data, error } = await supabase
-        .from('applications')
-        .update({ 
-          status,
-          feedback,
-          reviewed_at: new Date().toISOString(),
-          reviewer_id: (await supabase.auth.getUser()).data.user?.id
-        })
-        .eq('id', id)
-        .select();
+        .rpc('update_application_status', {
+          p_application_id: id,
+          p_status: status,
+          p_feedback: feedback
+        });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating application status with RPC:', error);
+        
+        // Fallback to direct update if RPC fails
+        const { data: updateData, error: updateError } = await supabase
+          .from('applications')
+          .update({ 
+            status,
+            feedback,
+            reviewed_at: new Date().toISOString(),
+            reviewer_id: (await supabase.auth.getUser()).data.user?.id,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', id)
+          .select();
+          
+        if (updateError) throw updateError;
+        return updateData;
+      }
+      
       return data;
     },
     onSuccess: () => {
@@ -50,6 +66,7 @@ const ApplicationView: React.FC<ApplicationViewProps> = ({ application, onClose 
       onClose();
     },
     onError: (error: any) => {
+      console.error('Error in updateApplicationStatus mutation:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to update application",
