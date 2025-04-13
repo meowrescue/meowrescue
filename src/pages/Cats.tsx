@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Cat as CatIcon, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Select,
@@ -13,10 +13,12 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
+import Layout from '@/components/Layout';
 import SEO from '@/components/SEO';
+import CatCard from '@/components/CatCard';
 
 interface Cat {
   id: string;
@@ -26,11 +28,12 @@ interface Cat {
   gender: string | null;
   status: "Available" | "Pending" | "Adopted";
   photos_urls: string[] | null;
+  description: string | null;
 }
 
 const Cats: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState<"Available" | "Pending" | "Adopted" | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<"Available" | "Pending" | "Adopted" | null>("Available");
   const [cats, setCats] = useState<Cat[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -59,9 +62,56 @@ const Cats: React.FC = () => {
         throw error;
       }
 
-      setCats(data as Cat[]);
+      if (data && data.length) {
+        setCats(data as Cat[]);
+      } else {
+        // If no data in database, use mock data
+        const { cats: mockCats } = await import('@/data/cats');
+        const formattedMockCats = mockCats.map(cat => ({
+          id: cat.id,
+          name: cat.name,
+          age_estimate: cat.age,
+          breed: cat.breed,
+          gender: cat.gender,
+          status: cat.status,
+          description: cat.description,
+          photos_urls: cat.images,
+        }));
+        
+        if (selectedStatus) {
+          const filteredMockCats = formattedMockCats.filter(cat => cat.status === selectedStatus);
+          setCats(filteredMockCats as Cat[]);
+        } else {
+          setCats(formattedMockCats as Cat[]);
+        }
+      }
     } catch (error: any) {
       setError(error.message);
+      console.error("Error fetching cats:", error);
+      
+      // Fallback to mock data on error
+      try {
+        const { cats: mockCats } = await import('@/data/cats');
+        const formattedMockCats = mockCats.map(cat => ({
+          id: cat.id,
+          name: cat.name,
+          age_estimate: cat.age,
+          breed: cat.breed,
+          gender: cat.gender,
+          status: cat.status,
+          description: cat.description,
+          photos_urls: cat.images,
+        }));
+        
+        if (selectedStatus) {
+          const filteredMockCats = formattedMockCats.filter(cat => cat.status === selectedStatus);
+          setCats(filteredMockCats as Cat[]);
+        } else {
+          setCats(formattedMockCats as Cat[]);
+        }
+      } catch (mockError) {
+        console.error("Error loading mock data:", mockError);
+      }
     } finally {
       setLoading(false);
     }
@@ -69,7 +119,7 @@ const Cats: React.FC = () => {
 
   const handleStatusChange = (status: string) => {
     // Cast to the correct type when setting the status
-    setSelectedStatus(status as "Available" | "Pending" | "Adopted");
+    setSelectedStatus(status as "Available" | "Pending" | "Adopted" | null);
   };
 
   const filteredCats = cats.filter(cat =>
@@ -77,33 +127,35 @@ const Cats: React.FC = () => {
   );
 
   return (
-    <>
-      <SEO title="Cats | Meow Rescue" />
+    <Layout>
+      <SEO title="Adoptable Cats | Meow Rescue" description="Browse our available cats for adoption. Find your perfect feline companion!" />
       
       <div className="container mx-auto py-10">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-meow-primary">Our Cats</h1>
-          <Input
-            type="text"
-            placeholder="Search cats..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="max-w-sm"
-          />
-        </div>
-
-        <div className="mb-6">
-          <Label htmlFor="status">Filter by Status</Label>
-          <Select onValueChange={handleStatusChange}>
-            <SelectTrigger className="w-auto">
-              <SelectValue placeholder="All Statuses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Available">Available</SelectItem>
-              <SelectItem value="Pending">Pending</SelectItem>
-              <SelectItem value="Adopted">Adopted</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold text-meow-primary mb-4 md:mb-0">Adoptable Cats</h1>
+          <div className="w-full md:w-auto flex flex-col md:flex-row gap-4">
+            <div className="w-full md:w-auto">
+              <Input
+                type="text"
+                placeholder="Search cats..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <div className="w-full md:w-auto">
+              <Select value={selectedStatus || ''} onValueChange={handleStatusChange}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="All Statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Available">Available</SelectItem>
+                  <SelectItem value="Pending">Pending</SelectItem>
+                  <SelectItem value="Adopted">Adopted</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
 
         {loading ? (
@@ -112,47 +164,44 @@ const Cats: React.FC = () => {
           </div>
         ) : error ? (
           <div className="text-center py-12">
-            <p className="text-red-500">Error: {error}</p>
+            <p className="text-red-500 mb-4">There was an issue loading the cats. Using backup data.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
+              {filteredCats.map(cat => (
+                <CatCard
+                  key={cat.id}
+                  id={cat.id}
+                  name={cat.name}
+                  imageUrl={cat.photos_urls && cat.photos_urls.length > 0 ? cat.photos_urls[0] : '/placeholder.svg'}
+                  age={cat.age_estimate || 'Unknown age'}
+                  gender={cat.gender || 'Unknown'}
+                  description={cat.description || 'No description available'}
+                  status={cat.status}
+                />
+              ))}
+            </div>
+          </div>
+        ) : filteredCats.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-600">No cats found matching your search criteria.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
             {filteredCats.map(cat => (
-              <Link key={cat.id} to={`/cats/${cat.id}`}>
-                <Card className="hover:shadow-md transition-shadow duration-300">
-                  <CardHeader>
-                    {cat.photos_urls && cat.photos_urls.length > 0 ? (
-                      <Avatar className="w-full h-48 rounded-md">
-                        <AvatarImage src={cat.photos_urls[0]} alt={cat.name} className="object-cover" />
-                        <AvatarFallback>{cat.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                    ) : (
-                      <Avatar className="w-full h-48 rounded-md">
-                        <AvatarFallback>{cat.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                    )}
-                    <CardTitle className="mt-2">{cat.name}</CardTitle>
-                    <CardDescription>
-                      {cat.age_estimate ? `${cat.age_estimate} years old` : 'Age unknown'}
-                      {cat.breed ? ` - ${cat.breed}` : ''}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between">
-                      <Badge variant="secondary">{cat.gender || 'Unknown'}</Badge>
-                      <Badge>
-                        {cat.status === 'Available' && <span className="text-green-500">{cat.status}</span>}
-                        {cat.status === 'Pending' && <span className="text-yellow-500">{cat.status}</span>}
-                        {cat.status === 'Adopted' && <span className="text-blue-500">{cat.status}</span>}
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
+              <CatCard
+                key={cat.id}
+                id={cat.id}
+                name={cat.name}
+                imageUrl={cat.photos_urls && cat.photos_urls.length > 0 ? cat.photos_urls[0] : '/placeholder.svg'}
+                age={cat.age_estimate || 'Unknown age'}
+                gender={cat.gender || 'Unknown'}
+                description={cat.description || 'No description available'}
+                status={cat.status}
+              />
             ))}
           </div>
         )}
       </div>
-    </>
+    </Layout>
   );
 };
 

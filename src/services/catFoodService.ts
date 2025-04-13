@@ -5,9 +5,11 @@ import { CatFood, CatFeedingRecord, CatFoodAPI } from '@/types/finance';
 export const catFoodApi: CatFoodAPI = {
   getCatFood: async () => {
     try {
-      // Call the RPC function using the raw SQL query method since typed RPCs are not working
+      // Direct table query instead of RPC
       const { data, error } = await supabase
-        .rpc('get_cat_food') as unknown as { data: CatFood[] | null, error: any };
+        .from('cat_food')
+        .select('*')
+        .order('purchase_date', { ascending: false });
       
       if (error) {
         console.error('Error fetching cat food:', error);
@@ -23,16 +25,17 @@ export const catFoodApi: CatFoodAPI = {
   
   addCatFood: async (food) => {
     try {
-      // Call the RPC function using the raw SQL query method
+      // Direct table insert instead of RPC
       const { error } = await supabase
-        .rpc('add_cat_food', {
-          p_brand: food.brand,
-          p_type: food.type,
-          p_quantity: food.quantity,
-          p_units: food.units,
-          p_cost_per_unit: food.cost_per_unit,
-          p_purchase_date: food.purchase_date
-        }) as unknown as { data: any, error: any };
+        .from('cat_food')
+        .insert({
+          brand: food.brand,
+          type: food.type,
+          quantity: food.quantity,
+          units: food.units,
+          cost_per_unit: food.cost_per_unit,
+          purchase_date: food.purchase_date
+        });
       
       if (error) {
         console.error('Error adding cat food:', error);
@@ -46,16 +49,35 @@ export const catFoodApi: CatFoodAPI = {
   
   getCatFeedingRecords: async () => {
     try {
-      // Call the RPC function using the raw SQL query method
+      // Direct table query with joins instead of RPC
       const { data, error } = await supabase
-        .rpc('get_cat_feeding_records') as unknown as { data: CatFeedingRecord[] | null, error: any };
+        .from('cat_feeding_records')
+        .select(`
+          *,
+          cats:cat_id(name),
+          cat_food:cat_food_id(brand, type)
+        `)
+        .order('feeding_date', { ascending: false });
       
       if (error) {
         console.error('Error fetching feeding records:', error);
         return [];
       }
       
-      return data as CatFeedingRecord[] || [];
+      // Transform the joined data to match the expected interface
+      const records = data.map(record => ({
+        id: record.id,
+        cat_id: record.cat_id,
+        cat_food_id: record.cat_food_id,
+        amount: record.amount,
+        feeding_date: record.feeding_date,
+        created_at: record.created_at,
+        cat_name: record.cats?.name,
+        food_brand: record.cat_food?.brand,
+        food_type: record.cat_food?.type
+      }));
+      
+      return records as CatFeedingRecord[];
     } catch (error) {
       console.error('Error in getCatFeedingRecords:', error);
       return [];
@@ -64,14 +86,15 @@ export const catFoodApi: CatFoodAPI = {
   
   addCatFeedingRecord: async (record) => {
     try {
-      // Call the RPC function using the raw SQL query method
+      // Direct table insert instead of RPC
       const { error } = await supabase
-        .rpc('add_cat_feeding_record', {
-          p_cat_id: record.cat_id,
-          p_cat_food_id: record.cat_food_id,
-          p_amount: record.amount,
-          p_feeding_date: record.feeding_date
-        }) as unknown as { data: any, error: any };
+        .from('cat_feeding_records')
+        .insert({
+          cat_id: record.cat_id,
+          cat_food_id: record.cat_food_id,
+          amount: record.amount,
+          feeding_date: record.feeding_date
+        });
       
       if (error) {
         console.error('Error recording feeding:', error);
