@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const FeaturedCatsSection: React.FC = () => {
   // Fetch available cats from the database
-  const { data: featuredCats = [], isLoading } = useQuery({
+  const { data: featuredCats = [], isLoading, isError } = useQuery({
     queryKey: ['featured-cats'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -31,8 +31,8 @@ const FeaturedCatsSection: React.FC = () => {
     });
   };
 
-  // Show nothing if there are no available cats
-  if (!isLoading && featuredCats.length === 0) {
+  // Don't render anything if there are no available cats or if there was an error
+  if ((isLoading === false && featuredCats.length === 0) || isError) {
     return null;
   }
 
@@ -45,29 +45,37 @@ const FeaturedCatsSection: React.FC = () => {
           centered
         />
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
-          {featuredCats.map(cat => (
-            <CatCard 
-              key={cat.id}
-              id={cat.id}
-              name={cat.name}
-              imageUrl={cat.photos_urls ? cat.photos_urls[0] : ''}
-              age={cat.age_estimate || 'Unknown'}
-              gender={cat.gender || 'Unknown'}
-              description={cat.description || ''}
-              status={'Available'} // They're all available since we filtered them
-            />
-          ))}
-        </div>
-        
-        <div className="mt-12 text-center">
-          <Button 
-            asChild
-            variant="meow"
-          >
-            <Link to="/cats" onClick={scrollToTop}>See All Cats</Link>
-          </Button>
-        </div>
+        {isLoading ? (
+          <div className="flex justify-center items-center h-40">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-meow-primary"></div>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
+              {featuredCats.map(cat => (
+                <CatCard 
+                  key={cat.id}
+                  id={cat.id}
+                  name={cat.name}
+                  imageUrl={cat.photos_urls ? cat.photos_urls[0] : ''}
+                  age={cat.age_estimate || 'Unknown'}
+                  gender={cat.gender || 'Unknown'}
+                  description={cat.description || ''}
+                  status={'Available'} // They're all available since we filtered them
+                />
+              ))}
+            </div>
+            
+            <div className="mt-12 text-center">
+              <Button 
+                asChild
+                variant="meow"
+              >
+                <Link to="/cats" onClick={scrollToTop}>See All Cats</Link>
+              </Button>
+            </div>
+          </>
+        )}
       </div>
     </section>
   );
