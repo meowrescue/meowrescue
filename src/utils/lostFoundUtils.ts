@@ -37,7 +37,6 @@ export const formatDateForDisplay = (dateString: string | null | undefined): str
       const date = new Date(dateString);
       // Check if date is valid
       if (isNaN(date.getTime())) {
-          // console.error('Invalid date encountered:', dateString); // Optional: for debugging
           return 'Invalid date';
       }
       return date.toLocaleDateString('en-US', {
@@ -47,7 +46,6 @@ export const formatDateForDisplay = (dateString: string | null | undefined): str
       });
     } catch (e) {
       console.error('Error formatting date:', dateString, e);
-      // Return original string if formatting fails but it's not null/undefined
       return typeof dateString === 'string' ? dateString : 'Invalid date input';
     }
   };
