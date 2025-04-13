@@ -40,6 +40,15 @@ import AdminCats from "./pages/AdminCats";
 import AdminCatForm from "./pages/AdminCatForm";
 import AdminBlog from "./pages/AdminBlog";
 import AdminBlogForm from "./pages/AdminBlogForm";
+import AdminUsers from "./pages/AdminUsers";
+import AdminFinance from "./pages/AdminFinance";
+import AdminForum from "./pages/AdminForum";
+import AdminPages from "./pages/AdminPages";
+import AdminEvents from "./pages/AdminEvents";
+import AdminLostFound from "./pages/AdminLostFound";
+import AdminAnalytics from "./pages/AdminAnalytics";
+import AdminSecurity from "./pages/AdminSecurity";
+import AdminSettings from "./pages/AdminSettings";
 
 const queryClient = new QueryClient();
 
@@ -110,18 +119,18 @@ const App = () => (
               <Route path="/admin/cats" element={<AdminCats />} />
               <Route path="/admin/cats/new" element={<AdminCatForm />} />
               <Route path="/admin/cats/edit/:id" element={<AdminCatForm />} />
-              <Route path="/admin/users" element={<AdminDashboard />} />
-              <Route path="/admin/finance" element={<AdminDashboard />} />
-              <Route path="/admin/forum" element={<AdminDashboard />} />
+              <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/admin/finance" element={<AdminFinance />} />
+              <Route path="/admin/forum" element={<AdminForum />} />
+              <Route path="/admin/pages" element={<AdminPages />} />
               <Route path="/admin/blog" element={<AdminBlog />} />
               <Route path="/admin/blog/new" element={<AdminBlogForm />} />
               <Route path="/admin/blog/edit/:id" element={<AdminBlogForm />} />
-              <Route path="/admin/pages" element={<AdminDashboard />} />
-              <Route path="/admin/events" element={<AdminDashboard />} />
-              <Route path="/admin/lost-found" element={<AdminDashboard />} />
-              <Route path="/admin/analytics" element={<AdminDashboard />} />
-              <Route path="/admin/security" element={<AdminDashboard />} />
-              <Route path="/admin/settings" element={<AdminDashboard />} />
+              <Route path="/admin/events" element={<AdminEvents />} />
+              <Route path="/admin/lost-found" element={<AdminLostFound />} />
+              <Route path="/admin/analytics" element={<AdminAnalytics />} />
+              <Route path="/admin/security" element={<AdminSecurity />} />
+              <Route path="/admin/settings" element={<AdminSettings />} />
               
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

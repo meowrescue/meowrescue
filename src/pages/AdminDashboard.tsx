@@ -1,11 +1,51 @@
 
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import AdminLayout from './Admin';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DollarSign, Cat, Users, FileText, TrendingUp, Calendar, Search } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const AdminDashboard: React.FC = () => {
+  // Get counts from Supabase
+  const { data: catCount = 0, isLoading: isLoadingCats } = useQuery({
+    queryKey: ['cats-count'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('cats')
+        .select('*', { count: 'exact', head: true });
+      
+      if (error) throw error;
+      return count || 0;
+    }
+  });
+
+  const { data: userCount = 0, isLoading: isLoadingUsers } = useQuery({
+    queryKey: ['users-count'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+      
+      if (error) throw error;
+      return count || 0;
+    }
+  });
+
+  const { data: donationTotal = 0, isLoading: isLoadingDonations } = useQuery({
+    queryKey: ['donations-total'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('donations')
+        .select('amount');
+      
+      if (error) throw error;
+      
+      return data.reduce((sum, donation) => sum + parseFloat(donation.amount), 0) || 0;
+    }
+  });
+
   return (
     <AdminLayout title="Dashboard">
       <div className="flex items-center justify-between mb-8">
@@ -20,8 +60,14 @@ const AdminDashboard: React.FC = () => {
             <DollarSign className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$12,580</div>
-            <p className="text-xs text-gray-500 mt-1">+$1,235 this month</p>
+            <div className="text-2xl font-bold">
+              {isLoadingDonations ? (
+                <span className="text-gray-400">Loading...</span>
+              ) : (
+                `$${donationTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+              )}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">Total donations to date</p>
           </CardContent>
         </Card>
         <Card>
@@ -30,8 +76,14 @@ const AdminDashboard: React.FC = () => {
             <Cat className="h-4 w-4 text-meow-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">24</div>
-            <p className="text-xs text-gray-500 mt-1">+2 new this week</p>
+            <div className="text-2xl font-bold">
+              {isLoadingCats ? (
+                <span className="text-gray-400">Loading...</span>
+              ) : (
+                catCount
+              )}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">Total cats in system</p>
           </CardContent>
         </Card>
         <Card>
@@ -40,8 +92,14 @@ const AdminDashboard: React.FC = () => {
             <Users className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">128</div>
-            <p className="text-xs text-gray-500 mt-1">+15 new this month</p>
+            <div className="text-2xl font-bold">
+              {isLoadingUsers ? (
+                <span className="text-gray-400">Loading...</span>
+              ) : (
+                userCount
+              )}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">Total registered users</p>
           </CardContent>
         </Card>
       </div>

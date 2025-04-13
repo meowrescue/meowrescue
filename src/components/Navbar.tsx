@@ -20,6 +20,16 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu";
+import { cn } from '@/lib/utils';
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -53,18 +63,6 @@ const Navbar: React.FC = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  const navLinks = [
-    { name: 'Home', path: '/' },
-    { name: 'About', path: '/about' },
-    { name: 'Adopt', path: '/cats' },
-    { name: 'Lost & Found', path: '/lost-found' },
-    { name: 'Volunteer', path: '/volunteer' },
-    { name: 'Blog', path: '/blog' },
-    { name: 'Events', path: '/events' },
-    { name: 'Resources', path: '/resources' },
-    { name: 'Contact', path: '/contact' },
-  ];
-
   return (
     <header
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
@@ -86,20 +84,105 @@ const Navbar: React.FC = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:block">
-            <ul className="flex space-x-6">
-              {navLinks.map((link) => (
-                <li key={link.path}>
-                  <Link
-                    to={link.path}
-                    className={`font-medium transition-colors hover:text-meow-primary ${
-                      isActive(link.path) ? 'text-meow-primary' : 'text-gray-700'
-                    }`}
-                  >
-                    {link.name}
+            <NavigationMenu>
+              <NavigationMenuList>
+                <NavigationMenuItem>
+                  <Link to="/">
+                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                      Home
+                    </NavigationMenuLink>
                   </Link>
-                </li>
-              ))}
-            </ul>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <Link to="/about">
+                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                      About
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger>Adopt</NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid gap-3 p-4 md:w-[400px] lg:w-[500px] lg:grid-cols-2">
+                      <li className="row-span-3">
+                        <NavigationMenuLink asChild>
+                          <a
+                            className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-meow-primary/50 to-meow-primary p-6 no-underline outline-none focus:shadow-md"
+                            href="/cats"
+                          >
+                            <Cat className="h-6 w-6 text-white" />
+                            <div className="mb-2 mt-4 text-lg font-medium text-white">
+                              Available Cats
+                            </div>
+                            <p className="text-sm leading-tight text-white/90">
+                              Browse all our cats ready for adoption
+                            </p>
+                          </a>
+                        </NavigationMenuLink>
+                      </li>
+                      <ListItem href="/adopt" title="Adoption Process">
+                        Learn about our adoption requirements and steps
+                      </ListItem>
+                      <ListItem href="/resources" title="Adoption Resources">
+                        Helpful guides for new cat parents
+                      </ListItem>
+                      <ListItem href="/events" title="Adoption Events">
+                        Meet cats in person at our upcoming events
+                      </ListItem>
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger>Get Involved</NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid gap-3 p-4 md:w-[400px] lg:w-[500px] lg:grid-cols-2">
+                      <ListItem href="/volunteer" title="Volunteer">
+                        Join our team of dedicated volunteers
+                      </ListItem>
+                      <ListItem href="/donate" title="Donate">
+                        Support our mission with a donation
+                      </ListItem>
+                      <ListItem href="/forum" title="Community Forum">
+                        Connect with other cat lovers
+                      </ListItem>
+                      <ListItem href="/events" title="Events">
+                        Participate in our upcoming events
+                      </ListItem>
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <Link to="/lost-found">
+                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                      Lost & Found
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger>Resources</NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid gap-3 p-4 w-[400px]">
+                      <ListItem href="/blog" title="Blog">
+                        Read our latest articles and updates
+                      </ListItem>
+                      <ListItem href="/resources" title="Cat Care Resources">
+                        Guides for new and experienced cat owners
+                      </ListItem>
+                      <ListItem href="/forum" title="Community Forum">
+                        Ask questions and share experiences
+                      </ListItem>
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <Link to="/contact">
+                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                      Contact
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+              </NavigationMenuList>
+            </NavigationMenu>
           </nav>
 
           {/* Right Side Links */}
@@ -123,7 +206,7 @@ const Navbar: React.FC = () => {
                       Profile
                     </Link>
                   </DropdownMenuItem>
-                  {(user.user_metadata?.role === 'admin' || user.email?.endsWith('@meowrescue.org')) && (
+                  {(user.user_metadata?.role === 'admin' || user.email === 'patrick@meowrescue.org' || user.email?.endsWith('@meowrescue.org')) && (
                     <DropdownMenuItem asChild>
                       <Link to="/admin" className="w-full cursor-pointer">
                         Admin Dashboard
@@ -161,19 +244,116 @@ const Navbar: React.FC = () => {
         <div className="lg:hidden bg-white border-t border-gray-200">
           <div className="container mx-auto px-4 py-4">
             <ul className="flex flex-col space-y-4">
-              {navLinks.map((link) => (
-                <li key={link.path}>
-                  <Link
-                    to={link.path}
-                    className={`block font-medium transition-colors hover:text-meow-primary ${
-                      isActive(link.path) ? 'text-meow-primary' : 'text-gray-700'
-                    }`}
-                    onClick={closeMenu}
-                  >
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
+              <li>
+                <Link
+                  to="/"
+                  className={`block font-medium transition-colors hover:text-meow-primary ${
+                    isActive('/') ? 'text-meow-primary' : 'text-gray-700'
+                  }`}
+                  onClick={closeMenu}
+                >
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/about"
+                  className={`block font-medium transition-colors hover:text-meow-primary ${
+                    isActive('/about') ? 'text-meow-primary' : 'text-gray-700'
+                  }`}
+                  onClick={closeMenu}
+                >
+                  About
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/cats"
+                  className={`block font-medium transition-colors hover:text-meow-primary ${
+                    isActive('/cats') ? 'text-meow-primary' : 'text-gray-700'
+                  }`}
+                  onClick={closeMenu}
+                >
+                  Adopt
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/volunteer"
+                  className={`block font-medium transition-colors hover:text-meow-primary ${
+                    isActive('/volunteer') ? 'text-meow-primary' : 'text-gray-700'
+                  }`}
+                  onClick={closeMenu}
+                >
+                  Volunteer
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/forum"
+                  className={`block font-medium transition-colors hover:text-meow-primary ${
+                    isActive('/forum') ? 'text-meow-primary' : 'text-gray-700'
+                  }`}
+                  onClick={closeMenu}
+                >
+                  Forum
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/lost-found"
+                  className={`block font-medium transition-colors hover:text-meow-primary ${
+                    isActive('/lost-found') ? 'text-meow-primary' : 'text-gray-700'
+                  }`}
+                  onClick={closeMenu}
+                >
+                  Lost & Found
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/blog"
+                  className={`block font-medium transition-colors hover:text-meow-primary ${
+                    isActive('/blog') ? 'text-meow-primary' : 'text-gray-700'
+                  }`}
+                  onClick={closeMenu}
+                >
+                  Blog
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/resources"
+                  className={`block font-medium transition-colors hover:text-meow-primary ${
+                    isActive('/resources') ? 'text-meow-primary' : 'text-gray-700'
+                  }`}
+                  onClick={closeMenu}
+                >
+                  Resources
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/events"
+                  className={`block font-medium transition-colors hover:text-meow-primary ${
+                    isActive('/events') ? 'text-meow-primary' : 'text-gray-700'
+                  }`}
+                  onClick={closeMenu}
+                >
+                  Events
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/contact"
+                  className={`block font-medium transition-colors hover:text-meow-primary ${
+                    isActive('/contact') ? 'text-meow-primary' : 'text-gray-700'
+                  }`}
+                  onClick={closeMenu}
+                >
+                  Contact
+                </Link>
+              </li>
               <li>
                 <Link
                   to="/donate"
@@ -190,5 +370,31 @@ const Navbar: React.FC = () => {
     </header>
   );
 };
+
+const ListItem = React.forwardRef<
+  React.ElementRef<"a">,
+  React.ComponentPropsWithoutRef<"a"> & { title: string }
+>(({ className, title, children, ...props }, ref) => {
+  return (
+    <li>
+      <NavigationMenuLink asChild>
+        <a
+          ref={ref}
+          className={cn(
+            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+            className
+          )}
+          {...props}
+        >
+          <div className="text-sm font-medium leading-none">{title}</div>
+          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+            {children}
+          </p>
+        </a>
+      </NavigationMenuLink>
+    </li>
+  );
+});
+ListItem.displayName = "ListItem";
 
 export default Navbar;
