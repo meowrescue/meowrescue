@@ -8,11 +8,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from './contexts/AuthContext';
 
-// Conditionally import ReactQueryDevtools only in development
-import.meta.env.DEV && import('@tanstack/react-query-devtools').then((mod) => {
-  const ReactQueryDevtools = mod.ReactQueryDevtools;
-});
-
 // Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,6 +18,30 @@ const queryClient = new QueryClient({
   },
 });
 
+// Create a component that conditionally renders ReactQueryDevtools
+const ReactQueryDevToolsProduction = React.lazy(() =>
+  import('@tanstack/react-query-devtools').then((d) => ({
+    default: d.ReactQueryDevtools,
+  }))
+);
+
+function QueryDevTools() {
+  const [showDevtools, setShowDevtools] = React.useState(false);
+
+  React.useEffect(() => {
+    // Only enable devtools in development
+    if (import.meta.env.DEV) {
+      setShowDevtools(true);
+    }
+  }, []);
+
+  return showDevtools ? (
+    <React.Suspense fallback={null}>
+      <ReactQueryDevToolsProduction initialIsOpen={false} />
+    </React.Suspense>
+  ) : null;
+}
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <HelmetProvider>
@@ -30,7 +49,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <AuthProvider>
           <App />
           <Toaster />
-          {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+          <QueryDevTools />
         </AuthProvider>
       </QueryClientProvider>
     </HelmetProvider>
