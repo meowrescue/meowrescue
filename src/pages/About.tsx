@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Layout from '@/components/Layout';
@@ -9,16 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-
-interface TeamMember {
-  id: string;
-  first_name: string | null;
-  last_name: string | null;
-  avatar_url: string | null;
-  role: string;
-  role_title: string | null;
-  show_in_team: boolean;
-}
+import { TeamMember } from '@/types/team';
 
 const About = () => {
   const { data: teamMembers, isLoading } = useQuery({
@@ -26,7 +16,7 @@ const About = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, first_name, last_name, avatar_url, role, role_title, show_in_team')
+        .select('id, first_name, last_name, avatar_url, role, role_title, show_in_team, email')
         .eq('show_in_team', true)
         .order('created_at', { ascending: true });
       

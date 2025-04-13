@@ -14,7 +14,6 @@ export interface User {
   state: string | null;
   zip: string | null;
   bio: string | null;
-  is_active: boolean;
   role_title: string | null;
   show_in_team: boolean;
 }
