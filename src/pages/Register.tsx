@@ -21,7 +21,11 @@ import { Input } from '@/components/ui/input';
 const registerSchema = z.object({
   firstName: z.string().min(1, { message: 'First name is required' }),
   lastName: z.string().min(1, { message: 'Last name is required' }),
-  email: z.string().email({ message: 'Please enter a valid email address' }),
+  email: z.string()
+    .email({ message: 'Please enter a valid email address' })
+    .refine(email => !email.toLowerCase().endsWith('@meowrescue.org'), {
+      message: 'You cannot register with a @meowrescue.org email address'
+    }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
   confirmPassword: z.string().min(6, { message: 'Confirm password is required' }),
 }).refine((data) => data.password === data.confirmPassword, {

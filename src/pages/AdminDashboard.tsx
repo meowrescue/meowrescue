@@ -1,13 +1,26 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from './Admin';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DollarSign, Cat, Users, FileText, TrendingUp, Calendar, Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import SEO from '@/components/SEO';
 
 const AdminDashboard: React.FC = () => {
+  const [currentDate, setCurrentDate] = useState('');
+
+  useEffect(() => {
+    // Set current date in format like "April 13, 2025"
+    const now = new Date();
+    setCurrentDate(now.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    }));
+  }, []);
+
   // Get counts from Supabase
   const { data: catCount = 0, isLoading: isLoadingCats } = useQuery({
     queryKey: ['cats-count'],
@@ -46,11 +59,88 @@ const AdminDashboard: React.FC = () => {
     }
   });
 
+  // Recent events
+  const { data: events = [], isLoading: isLoadingEvents } = useQuery({
+    queryKey: ['recent-events'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .order('event_date_start', { ascending: true })
+        .limit(3);
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  // Recent applications
+  const { data: applications = [], isLoading: isLoadingApplications } = useQuery({
+    queryKey: ['recent-applications'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('adoption_applications')
+        .select('*, cats(*), profiles(*)')
+        .order('submitted_at', { ascending: false })
+        .limit(3);
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  // Recent donations
+  const { data: recentDonations = [], isLoading: isLoadingRecentDonations } = useQuery({
+    queryKey: ['recent-donations'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('donations')
+        .select('*, profiles(*)')
+        .order('donation_date', { ascending: false })
+        .limit(3);
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  // Recent adoptions
+  const { data: adoptions = [], isLoading: isLoadingAdoptions } = useQuery({
+    queryKey: ['recent-adoptions'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('success_stories')
+        .select('*, cats(*)')
+        .order('adoption_date', { ascending: false })
+        .limit(3);
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  // Recent lost & found
+  const { data: lostFoundPosts = [], isLoading: isLoadingLostFound } = useQuery({
+    queryKey: ['recent-lost-found'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('lost_found_posts')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1);
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
   return (
     <AdminLayout title="Dashboard">
+      <SEO title="Dashboard | Meow Rescue Admin" />
+      
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold">Dashboard</h1>
-        <div className="text-sm text-gray-500">Last updated: April 13, 2025</div>
+        <div className="text-sm text-gray-500">Last updated: {currentDate}</div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -118,35 +208,30 @@ const AdminDashboard: React.FC = () => {
                 <CardTitle className="text-lg font-medium">Upcoming Events</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-4">
-                    <div className="bg-gray-100 rounded p-2">
-                      <Calendar className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Adoption Day</p>
-                      <p className="text-sm text-gray-500">April 20, 2025 • 10:00 AM</p>
-                    </div>
+                {isLoadingEvents ? (
+                  <div className="flex justify-center py-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-meow-primary"></div>
                   </div>
-                  <div className="flex items-start gap-4">
-                    <div className="bg-gray-100 rounded p-2">
-                      <Calendar className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Volunteer Training</p>
-                      <p className="text-sm text-gray-500">April 25, 2025 • 2:00 PM</p>
-                    </div>
+                ) : events.length > 0 ? (
+                  <div className="space-y-4">
+                    {events.map(event => (
+                      <div key={event.id} className="flex items-start gap-4">
+                        <div className="bg-gray-100 rounded p-2">
+                          <Calendar className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{event.title}</p>
+                          <p className="text-sm text-gray-500">
+                            {new Date(event.event_date_start).toLocaleDateString()} • 
+                            {new Date(event.event_date_start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="flex items-start gap-4">
-                    <div className="bg-gray-100 rounded p-2">
-                      <Calendar className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Fundraising Gala</p>
-                      <p className="text-sm text-gray-500">May 5, 2025 • 6:30 PM</p>
-                    </div>
-                  </div>
-                </div>
+                ) : (
+                  <p className="text-center py-4 text-gray-500">No upcoming events</p>
+                )}
               </CardContent>
             </Card>
             
@@ -155,35 +240,32 @@ const AdminDashboard: React.FC = () => {
                 <CardTitle className="text-lg font-medium">Recent Applications</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-4">
-                    <div className="bg-gray-100 rounded p-2">
-                      <FileText className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Sarah Johnson</p>
-                      <p className="text-sm text-gray-500">Applied to adopt Whiskers • 2 days ago</p>
-                    </div>
+                {isLoadingApplications ? (
+                  <div className="flex justify-center py-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-meow-primary"></div>
                   </div>
-                  <div className="flex items-start gap-4">
-                    <div className="bg-gray-100 rounded p-2">
-                      <FileText className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Michael Smith</p>
-                      <p className="text-sm text-gray-500">Applied to adopt Luna • 3 days ago</p>
-                    </div>
+                ) : applications.length > 0 ? (
+                  <div className="space-y-4">
+                    {applications.map(app => (
+                      <div key={app.id} className="flex items-start gap-4">
+                        <div className="bg-gray-100 rounded p-2">
+                          <FileText className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="font-medium">
+                            {app.profiles?.first_name} {app.profiles?.last_name}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            Applied to adopt {app.cats?.name} • 
+                            {new Date(app.submitted_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="flex items-start gap-4">
-                    <div className="bg-gray-100 rounded p-2">
-                      <FileText className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Jessica Brown</p>
-                      <p className="text-sm text-gray-500">Applied to adopt Oliver • 5 days ago</p>
-                    </div>
-                  </div>
-                </div>
+                ) : (
+                  <p className="text-center py-4 text-gray-500">No adoption applications yet</p>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -195,44 +277,36 @@ const AdminDashboard: React.FC = () => {
               <CardTitle className="text-lg font-medium">Recent Donations</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="bg-green-100 text-green-600 rounded p-2">
-                      <DollarSign className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Anonymous Donor</p>
-                      <p className="text-sm text-gray-500">April 12, 2025</p>
-                    </div>
-                  </div>
-                  <div className="font-semibold">$250.00</div>
+              {isLoadingRecentDonations ? (
+                <div className="flex justify-center py-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-meow-primary"></div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="bg-green-100 text-green-600 rounded p-2">
-                      <DollarSign className="h-5 w-5" />
+              ) : recentDonations.length > 0 ? (
+                <div className="space-y-4">
+                  {recentDonations.map(donation => (
+                    <div key={donation.id} className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="bg-green-100 text-green-600 rounded p-2">
+                          <DollarSign className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="font-medium">
+                            {donation.profiles ? 
+                              `${donation.profiles.first_name || ''} ${donation.profiles.last_name || ''}`.trim() : 
+                              'Anonymous Donor'}
+                          </p>
+                          <p className="text-sm text-gray-500">{new Date(donation.donation_date).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                      <div className="font-semibold">
+                        ${parseFloat(donation.amount.toString()).toFixed(2)}
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium">John Doe</p>
-                      <p className="text-sm text-gray-500">April 10, 2025</p>
-                    </div>
-                  </div>
-                  <div className="font-semibold">$100.00</div>
+                  ))}
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="bg-green-100 text-green-600 rounded p-2">
-                      <DollarSign className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Jane Smith</p>
-                      <p className="text-sm text-gray-500">April 8, 2025</p>
-                    </div>
-                  </div>
-                  <div className="font-semibold">$75.00</div>
-                </div>
-              </div>
+              ) : (
+                <p className="text-center py-4 text-gray-500">No donations received yet</p>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -243,41 +317,33 @@ const AdminDashboard: React.FC = () => {
               <CardTitle className="text-lg font-medium">Recent Adoptions</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="bg-meow-primary/20 text-meow-primary rounded p-2">
-                      <Cat className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Mittens</p>
-                      <p className="text-sm text-gray-500">Adopted by David Wilson • April 5, 2025</p>
-                    </div>
-                  </div>
+              {isLoadingAdoptions ? (
+                <div className="flex justify-center py-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-meow-primary"></div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="bg-meow-primary/20 text-meow-primary rounded p-2">
-                      <Cat className="h-5 w-5" />
+              ) : adoptions.length > 0 ? (
+                <div className="space-y-4">
+                  {adoptions.map(adoption => (
+                    <div key={adoption.id} className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="bg-meow-primary/20 text-meow-primary rounded p-2">
+                          <Cat className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{adoption.cats?.name}</p>
+                          <p className="text-sm text-gray-500">
+                            Adopted • {adoption.adoption_date ? 
+                              new Date(adoption.adoption_date).toLocaleDateString() : 
+                              'Date not recorded'}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium">Shadow</p>
-                      <p className="text-sm text-gray-500">Adopted by Lisa Chen • April 2, 2025</p>
-                    </div>
-                  </div>
+                  ))}
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="bg-meow-primary/20 text-meow-primary rounded p-2">
-                      <Cat className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Cleo</p>
-                      <p className="text-sm text-gray-500">Adopted by Robert Johnson • March 28, 2025</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              ) : (
+                <p className="text-center py-4 text-gray-500">No adoptions recorded yet</p>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -288,55 +354,74 @@ const AdminDashboard: React.FC = () => {
               <CardTitle className="text-lg font-medium">Recent Activity</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="relative">
-                <div className="absolute left-4 top-0 bottom-0 w-px bg-gray-200"></div>
-                <div className="space-y-6">
-                  <div className="flex gap-4">
-                    <div className="relative z-10 mt-1">
-                      <div className="bg-blue-500 text-white rounded-full p-1">
-                        <Users className="h-4 w-4" />
+              {isLoadingUsers || isLoadingDonations || isLoadingLostFound ? (
+                <div className="flex justify-center py-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-meow-primary"></div>
+                </div>
+              ) : (
+                <div className="relative">
+                  <div className="absolute left-4 top-0 bottom-0 w-px bg-gray-200"></div>
+                  <div className="space-y-6">
+                    {recentDonations.length > 0 && (
+                      <div className="flex gap-4">
+                        <div className="relative z-10 mt-1">
+                          <div className="bg-green-500 text-white rounded-full p-1">
+                            <DollarSign className="h-4 w-4" />
+                          </div>
+                        </div>
+                        <div>
+                          <p className="font-medium">Donation received</p>
+                          <p className="text-sm text-gray-500">
+                            {recentDonations[0].profiles ? 
+                              `${recentDonations[0].profiles.first_name || ''} ${recentDonations[0].profiles.last_name || ''}`.trim() : 
+                              'Anonymous donor'} • 
+                            ${parseFloat(recentDonations[0].amount.toString()).toFixed(2)} • 
+                            {new Date(recentDonations[0].donation_date).toLocaleDateString()}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <p className="font-medium">New user registered</p>
-                      <p className="text-sm text-gray-500">Emily Davis joined • 3 hours ago</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="relative z-10 mt-1">
-                      <div className="bg-green-500 text-white rounded-full p-1">
-                        <DollarSign className="h-4 w-4" />
+                    )}
+                    
+                    {lostFoundPosts.length > 0 && (
+                      <div className="flex gap-4">
+                        <div className="relative z-10 mt-1">
+                          <div className="bg-amber-500 text-white rounded-full p-1">
+                            <Search className="h-4 w-4" />
+                          </div>
+                        </div>
+                        <div>
+                          <p className="font-medium">New {lostFoundPosts[0].status} pet report</p>
+                          <p className="text-sm text-gray-500">
+                            {lostFoundPosts[0].title} • {lostFoundPosts[0].location} • 
+                            {new Date(lostFoundPosts[0].created_at).toLocaleDateString()}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <p className="font-medium">Donation received</p>
-                      <p className="text-sm text-gray-500">Anonymous donor • $150 • 5 hours ago</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="relative z-10 mt-1">
-                      <div className="bg-amber-500 text-white rounded-full p-1">
-                        <Search className="h-4 w-4" />
+                    )}
+                    
+                    {applications.length > 0 && (
+                      <div className="flex gap-4">
+                        <div className="relative z-10 mt-1">
+                          <div className="bg-blue-500 text-white rounded-full p-1">
+                            <Users className="h-4 w-4" />
+                          </div>
+                        </div>
+                        <div>
+                          <p className="font-medium">New adoption application</p>
+                          <p className="text-sm text-gray-500">
+                            For {applications[0].cats?.name} • 
+                            {new Date(applications[0].submitted_at).toLocaleDateString()}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <p className="font-medium">New lost pet report</p>
-                      <p className="text-sm text-gray-500">Lost cat in Parkside neighborhood • 8 hours ago</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="relative z-10 mt-1">
-                      <div className="bg-meow-primary text-white rounded-full p-1">
-                        <Cat className="h-4 w-4" />
-                      </div>
-                    </div>
-                    <div>
-                      <p className="font-medium">New cat added</p>
-                      <p className="text-sm text-gray-500">Bella (2 years old) • 12 hours ago</p>
-                    </div>
+                    )}
+
+                    {applications.length === 0 && recentDonations.length === 0 && lostFoundPosts.length === 0 && (
+                      <p className="text-center py-4 text-gray-500">No recent activity</p>
+                    )}
                   </div>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
