@@ -1,4 +1,3 @@
-
 export interface Donation {
   id: string;
   donor_profile_id: string;

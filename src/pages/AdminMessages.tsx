@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -46,7 +47,7 @@ interface ContactMessage {
   received_at: string;
   responded_at: string | null;
   response: string | null;
-  status: 'New' | 'Read' | 'Replied' | 'Archived'; // Updated to include 'Archived'
+  status: 'New' | 'Read' | 'Replied' | 'Archived'; 
 }
 
 const AdminMessages: React.FC = () => {
