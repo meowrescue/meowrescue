@@ -1,169 +1,314 @@
 
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
-import { Menu, X, Heart, Users, Home, Info, Calendar, BookOpen, Phone, Cat, LogOut, User, Search } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { Button } from './ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { X, Menu, ChevronDown, User, Settings, LogOut } from 'lucide-react';
+import { useMobile } from '@/hooks/use-mobile';
 
 const Navbar: React.FC = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, signOut } = useAuth();
-  
+  const location = useLocation();
+  const isMobile = useMobile();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  // Handle scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 10) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Close menu on navigation
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [location.pathname]);
+
+  const isActive = (path: string) => {
+    return location.pathname === path || location.pathname.startsWith(`${path}/`);
+  };
+
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const handleLinkClick = () => {
-    // Close mobile menu when a link is clicked
-    if (isMenuOpen) {
-      setIsMenuOpen(false);
-    }
-    // Scroll to top
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
+  const handleSignOut = async () => {
+    await signOut();
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white shadow-sm">
-      <div className="container mx-auto px-4 md:px-6 py-3">
-        <div className="flex items-center justify-between">
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2" onClick={handleLinkClick}>
-            <div className="bg-meow-primary rounded-full p-1.5">
-              <Cat className="w-7 h-7 text-white" />
-            </div>
-            <div>
-              <span className="text-xl font-bold text-meow-primary">Meow</span>
-              <span className="text-xl font-bold text-meow-secondary">Rescue</span>
-            </div>
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled || isMenuOpen ? 'bg-white shadow-md' : 'bg-white/90 backdrop-blur-md'
+      }`}
+    >
+      <nav className="container mx-auto px-4 py-3 flex items-center justify-between">
+        {/* Logo */}
+        <Link to="/" className="flex items-center">
+          <img src="/logo.svg" alt="Meow Rescue" className="h-10" />
+        </Link>
+
+        {/* Desktop Navigation */}
+        <div className={`hidden md:flex items-center space-x-1`}>
+          <Link to="/cats">
+            <Button
+              variant="ghost"
+              className={isActive('/cats') ? 'text-meow-primary' : ''}
+            >
+              Cats
+            </Button>
+          </Link>
+          <Link to="/about">
+            <Button
+              variant="ghost"
+              className={isActive('/about') ? 'text-meow-primary' : ''}
+            >
+              About
+            </Button>
+          </Link>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className={`flex items-center gap-1 ${
+                  isActive('/lost-found') || isActive('/forum') ? 'text-meow-primary' : ''
+                }`}
+              >
+                Community <ChevronDown size={16} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem asChild>
+                <Link to="/lost-found" className="w-full cursor-pointer">Lost & Found</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/forum" className="w-full cursor-pointer">Forum</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/events" className="w-full cursor-pointer">Events</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className={`flex items-center gap-1 ${
+                  isActive('/volunteer') || isActive('/adopt') ? 'text-meow-primary' : ''
+                }`}
+              >
+                Get Involved <ChevronDown size={16} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem asChild>
+                <Link to="/adopt" className="w-full cursor-pointer">Adopt</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/volunteer" className="w-full cursor-pointer">Volunteer/Foster</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          <Link to="/resources">
+            <Button
+              variant="ghost"
+              className={isActive('/resources') ? 'text-meow-primary' : ''}
+            >
+              Resources
+            </Button>
+          </Link>
+          <Link to="/contact">
+            <Button
+              variant="ghost"
+              className={isActive('/contact') ? 'text-meow-primary' : ''}
+            >
+              Contact
+            </Button>
+          </Link>
+        </div>
+
+        {/* Right Side Buttons */}
+        <div className="flex items-center">
+          <Link to="/donate" className="hidden md:block mr-4">
+            <Button variant="meow">Donate</Button>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-1">
-            <NavLink to="/" icon={<Home size={16} />} onClick={handleLinkClick}>Home</NavLink>
-            <NavLink to="/about" icon={<Info size={16} />} onClick={handleLinkClick}>About Us</NavLink>
-            <NavLink to="/cats" icon={<Heart size={16} />} onClick={handleLinkClick}>Adoptable Cats</NavLink>
-            <NavLink to="/adopt" icon={<Users size={16} />} onClick={handleLinkClick}>Adopt</NavLink>
-            <NavLink to="/events" icon={<Calendar size={16} />} onClick={handleLinkClick}>Events</NavLink>
-            <NavLink to="/lost-found" icon={<Search size={16} />} onClick={handleLinkClick}>Lost & Found</NavLink>
-            <NavLink to="/resources" icon={<BookOpen size={16} />} onClick={handleLinkClick}>Resources</NavLink>
-            <NavLink to="/contact" icon={<Phone size={16} />} onClick={handleLinkClick}>Contact</NavLink>
-          </nav>
-          
-          {/* CTA Buttons */}
-          <div className="hidden md:flex items-center space-x-2">
-            {user ? (
-              <>
-                <Button asChild variant="outline" className="hover:bg-meow-primary/10 hover:text-meow-primary">
-                  <Link to="/profile" onClick={handleLinkClick}>
-                    <User size={16} className="mr-2" />
-                    Profile
-                  </Link>
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="hover:bg-meow-primary/10 hover:text-meow-primary"
-                  onClick={signOut}
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="flex items-center gap-2 rounded-full"
                 >
-                  <LogOut size={16} className="mr-2" />
-                  Logout
+                  <User size={20} />
+                  <span className="hidden md:inline-block">
+                    {user.user_metadata?.first_name || user.email?.split('@')[0]}
+                  </span>
                 </Button>
-              </>
-            ) : (
-              <Button asChild variant="outline" className="hover:bg-meow-primary/10 hover:text-meow-primary">
-                <Link to="/login" onClick={handleLinkClick}>Login</Link>
-              </Button>
-            )}
-            <Button asChild className="bg-meow-secondary hover:bg-meow-secondary/90 text-white">
-              <Link to="/donate" onClick={handleLinkClick}>Donate Now</Link>
-            </Button>
-          </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/profile" className="cursor-pointer w-full">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </Link>
+                </DropdownMenuItem>
+                
+                {/* Admin Link */}
+                {user && (user.email === 'patrick@meowrescue.org' || user.user_metadata?.role === 'admin') && (
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin" className="cursor-pointer w-full">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Admin Dashboard</span>
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Sign out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link to="/login" className="hidden md:block">
+              <Button variant="ghost">Login</Button>
+            </Link>
+          )}
 
-          {/* Mobile menu button */}
-          <button 
-            className="md:hidden p-2 rounded-md"
+          {/* Mobile Menu Button */}
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={toggleMenu}
+            className="md:hidden"
           >
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          </Button>
         </div>
-      </div>
+      </nav>
 
-      {/* Mobile Navigation */}
+      {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white border-t py-4 px-4 animate-fade-in">
-          <nav className="flex flex-col space-y-3">
-            <MobileNavLink to="/" icon={<Home size={18} />} onClick={handleLinkClick}>Home</MobileNavLink>
-            <MobileNavLink to="/about" icon={<Info size={18} />} onClick={handleLinkClick}>About Us</MobileNavLink>
-            <MobileNavLink to="/cats" icon={<Heart size={18} />} onClick={handleLinkClick}>Adoptable Cats</MobileNavLink>
-            <MobileNavLink to="/adopt" icon={<Users size={18} />} onClick={handleLinkClick}>Adopt</MobileNavLink>
-            <MobileNavLink to="/events" icon={<Calendar size={18} />} onClick={handleLinkClick}>Events</MobileNavLink>
-            <MobileNavLink to="/lost-found" icon={<Search size={18} />} onClick={handleLinkClick}>Lost & Found</MobileNavLink>
-            <MobileNavLink to="/resources" icon={<BookOpen size={18} />} onClick={handleLinkClick}>Resources</MobileNavLink>
-            <MobileNavLink to="/contact" icon={<Phone size={18} />} onClick={handleLinkClick}>Contact</MobileNavLink>
-            
-            {user ? (
-              <>
-                <MobileNavLink to="/profile" icon={<User size={18} />} onClick={handleLinkClick}>Profile</MobileNavLink>
-                <div 
-                  className="px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 flex items-center space-x-2 cursor-pointer"
-                  onClick={() => {
-                    signOut();
-                    handleLinkClick();
-                  }}
-                >
-                  <LogOut size={18} />
-                  <span>Logout</span>
-                </div>
-              </>
-            ) : (
-              <MobileNavLink to="/login" icon={<User size={18} />} onClick={handleLinkClick}>Login</MobileNavLink>
-            )}
-            
-            <div className="pt-2">
-              <Button asChild className="w-full bg-meow-secondary hover:bg-meow-secondary/90 text-white">
-                <Link to="/donate" onClick={handleLinkClick}>Donate Now</Link>
+        <div className="md:hidden bg-white border-t">
+          <div className="container mx-auto px-4 py-4 space-y-4">
+            <Link to="/cats">
+              <Button
+                variant="ghost"
+                className={`w-full justify-start ${isActive('/cats') ? 'text-meow-primary' : ''}`}
+              >
+                Cats
               </Button>
+            </Link>
+            <Link to="/about">
+              <Button
+                variant="ghost"
+                className={`w-full justify-start ${isActive('/about') ? 'text-meow-primary' : ''}`}
+              >
+                About
+              </Button>
+            </Link>
+            
+            <div className="px-3 font-medium text-sm text-gray-500">Community</div>
+            <Link to="/lost-found">
+              <Button
+                variant="ghost"
+                className={`w-full justify-start ${isActive('/lost-found') ? 'text-meow-primary' : ''}`}
+              >
+                Lost & Found
+              </Button>
+            </Link>
+            <Link to="/forum">
+              <Button
+                variant="ghost"
+                className={`w-full justify-start ${isActive('/forum') ? 'text-meow-primary' : ''}`}
+              >
+                Forum
+              </Button>
+            </Link>
+            <Link to="/events">
+              <Button
+                variant="ghost"
+                className={`w-full justify-start ${isActive('/events') ? 'text-meow-primary' : ''}`}
+              >
+                Events
+              </Button>
+            </Link>
+            
+            <div className="px-3 font-medium text-sm text-gray-500">Get Involved</div>
+            <Link to="/adopt">
+              <Button
+                variant="ghost"
+                className={`w-full justify-start ${isActive('/adopt') ? 'text-meow-primary' : ''}`}
+              >
+                Adopt
+              </Button>
+            </Link>
+            <Link to="/volunteer">
+              <Button
+                variant="ghost"
+                className={`w-full justify-start ${isActive('/volunteer') ? 'text-meow-primary' : ''}`}
+              >
+                Volunteer/Foster
+              </Button>
+            </Link>
+            
+            <Link to="/resources">
+              <Button
+                variant="ghost"
+                className={`w-full justify-start ${isActive('/resources') ? 'text-meow-primary' : ''}`}
+              >
+                Resources
+              </Button>
+            </Link>
+            <Link to="/contact">
+              <Button
+                variant="ghost"
+                className={`w-full justify-start ${isActive('/contact') ? 'text-meow-primary' : ''}`}
+              >
+                Contact
+              </Button>
+            </Link>
+            
+            <div className="border-t pt-4">
+              <Link to="/donate">
+                <Button variant="meow" className="w-full">Donate</Button>
+              </Link>
             </div>
-          </nav>
+            
+            {!user && (
+              <div className="pt-2">
+                <Link to="/login">
+                  <Button variant="outline" className="w-full">Login</Button>
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </header>
-  );
-};
-
-interface NavLinkProps {
-  to: string;
-  children: React.ReactNode;
-  icon?: React.ReactNode;
-  onClick?: () => void;
-}
-
-const NavLink: React.FC<NavLinkProps> = ({ to, children, icon, onClick }) => {
-  return (
-    <Link 
-      to={to} 
-      className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 flex items-center space-x-1 transition-colors"
-      onClick={onClick}
-    >
-      {icon && <span>{icon}</span>}
-      <span>{children}</span>
-    </Link>
-  );
-};
-
-const MobileNavLink: React.FC<NavLinkProps> = ({ to, children, icon, onClick }) => {
-  return (
-    <Link 
-      to={to} 
-      className="px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
-      onClick={onClick}
-    >
-      {icon && <span>{icon}</span>}
-      <span>{children}</span>
-    </Link>
   );
 };
 

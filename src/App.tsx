@@ -28,6 +28,11 @@ import NotFound from "./pages/NotFound";
 import LostFound from "./pages/LostFound";
 import LostFoundDetail from "./pages/LostFoundDetail";
 import LostFoundForm from "./pages/LostFoundForm";
+import Forum from "./pages/Forum";
+import ForumPost from "./pages/ForumPost";
+import ForumPostForm from "./pages/ForumPostForm";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminCats from "./pages/AdminCats";
 
 const queryClient = new QueryClient();
 
@@ -74,6 +79,33 @@ const App = () => (
                   <LostFoundForm />
                 </ProtectedRoute>
               } />
+              
+              {/* Community Forum Routes */}
+              <Route path="/forum" element={<Forum />} />
+              <Route path="/forum/:id" element={<ForumPost />} />
+              <Route path="/forum/new" element={
+                <ProtectedRoute>
+                  <ForumPostForm />
+                </ProtectedRoute>
+              } />
+              <Route path="/forum/edit/:id" element={
+                <ProtectedRoute>
+                  <ForumPostForm />
+                </ProtectedRoute>
+              } />
+              
+              {/* Admin Routes */}
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/cats" element={<AdminCats />} />
+              <Route path="/admin/users" element={<AdminDashboard />} />
+              <Route path="/admin/finance" element={<AdminDashboard />} />
+              <Route path="/admin/forum" element={<AdminDashboard />} />
+              <Route path="/admin/pages" element={<AdminDashboard />} />
+              <Route path="/admin/events" element={<AdminDashboard />} />
+              <Route path="/admin/lost-found" element={<AdminDashboard />} />
+              <Route path="/admin/analytics" element={<AdminDashboard />} />
+              <Route path="/admin/security" element={<AdminDashboard />} />
+              <Route path="/admin/settings" element={<AdminDashboard />} />
               
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

@@ -1,358 +1,447 @@
-import React, { useState, useEffect } from 'react';
-import Layout from '../components/Layout';
-import SectionHeading from '../components/ui/SectionHeading';
-import { Button } from "@/components/ui/button";
-import { Heart, DollarSign, Gift, ShoppingBag } from 'lucide-react';
-import { useToast } from "@/hooks/use-toast";
 
-const Donate: React.FC = () => {
+import React, { useState } from 'react';
+import Layout from '@/components/Layout';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Switch } from '@/components/ui/switch';
+import { Heart, DollarSign, CreditCard, Calendar, Gift, ArrowRight } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import SEO from '@/components/SEO';
+
+const DonationAmounts = [25, 50, 100, 250, 500];
+
+const DonatePage: React.FC = () => {
+  const { user } = useAuth();
   const { toast } = useToast();
-  const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
-  const [customAmount, setCustomAmount] = useState<string>('');
-  const [isMonthly, setIsMonthly] = useState(false);
-
-  // This effect ensures the Donate button is not incorrectly disabled
-  useEffect(() => {
-    // Check if there's a valid amount selected or entered
-    const hasValidAmount = (selectedAmount && selectedAmount > 0) || 
-                          (customAmount && parseFloat(customAmount) > 0);
-    
-    // Log to console for debugging
-    console.log("Donation state:", { 
-      selectedAmount, 
-      customAmount, 
-      hasCustomAmount: customAmount !== '',
-      hasValidAmount,
-      isMonthly 
-    });
-  }, [selectedAmount, customAmount, isMonthly]);
-
-  // Handler for selecting a predefined amount
-  const handleAmountSelection = (amount: number) => {
-    setSelectedAmount(amount);
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [amount, setAmount] = useState(50);
+  const [customAmount, setCustomAmount] = useState('');
+  const [isCustomAmount, setIsCustomAmount] = useState(false);
+  const [donationFrequency, setDonationFrequency] = useState('monthly');
+  const [designation, setDesignation] = useState('general');
+  const [isProcessing, setIsProcessing] = useState(false);
+  
+  const handleAmountClick = (value: number) => {
+    setAmount(value);
+    setIsCustomAmount(false);
     setCustomAmount('');
   };
-
-  // Handler for custom amount input
+  
   const handleCustomAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    // Only allow numbers and decimal point
-    if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
-      setCustomAmount(value);
-      setSelectedAmount(null);
+    const value = e.target.value.replace(/[^0-9.]/g, '');
+    setCustomAmount(value);
+    setIsCustomAmount(true);
+    
+    if (parseFloat(value) > 0) {
+      setAmount(parseFloat(value));
     }
   };
-
-  // Handler for donation button click
-  const handleDonateClick = () => {
-    const amount = selectedAmount || (customAmount ? parseFloat(customAmount) : null);
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     
-    if (!amount || amount <= 0) {
+    if (amount <= 0) {
       toast({
-        title: "Please select an amount",
-        description: "Please select or enter a valid donation amount.",
-        variant: "destructive"
+        title: "Invalid Amount",
+        description: "Please enter a valid donation amount.",
+        variant: "destructive",
       });
       return;
     }
-
-    // For now, just show a toast with the donation details
-    // This will be replaced with actual Stripe integration later
-    toast({
-      title: "Thank you for your donation!",
-      description: `You have selected to donate $${amount}${isMonthly ? ' monthly' : ''}. Stripe integration coming soon.`,
-      variant: "default"
-    });
     
-    console.log("Donation details:", { amount, isMonthly });
-  };
-
-  // Handler for donation to specific cause
-  const handleSpecificDonation = (amount: number, cause: string) => {
-    toast({
-      title: "Thank you for your donation!",
-      description: `You have selected to donate $${amount} to ${cause}. Stripe integration coming soon.`,
-      variant: "default"
-    });
+    setIsProcessing(true);
     
-    console.log("Specific donation:", { amount, cause, isMonthly: false });
+    try {
+      // For now, just record the donation intent
+      const donationData = {
+        amount,
+        is_recurring: isRecurring,
+        donation_date: new Date().toISOString(),
+        donor_profile_id: user?.id,
+        status: 'pending',
+        designation: designation,
+        payment_method: 'credit_card',
+      };
+      
+      const { data, error } = await supabase
+        .from('donations')
+        .insert([donationData])
+        .select();
+      
+      if (error) throw error;
+      
+      // Simulate payment processing
+      setTimeout(() => {
+        toast({
+          title: "Donation Successful",
+          description: "Thank you for your generous donation!",
+          variant: "default",
+        });
+        setIsProcessing(false);
+        // Reset form
+        setAmount(50);
+        setCustomAmount('');
+        setIsCustomAmount(false);
+        setIsRecurring(false);
+      }, 2000);
+      
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "There was an error processing your donation. Please try again.",
+        variant: "destructive",
+      });
+      setIsProcessing(false);
+    }
   };
-
-  // Determine if the donate button should be enabled
-  const isDonateButtonEnabled = () => {
-    return (selectedAmount !== null && selectedAmount > 0) || 
-           (customAmount !== '' && parseFloat(customAmount) > 0);
-  };
-
+  
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-12">
-        <SectionHeading 
-          title="Make a Difference" 
-          subtitle="Your support helps us save more lives"
-          centered
-        />
-        
-        <div className="max-w-3xl mx-auto text-center mb-12">
-          <p className="text-gray-700 text-lg mb-6">
-            Meow Rescue relies entirely on donations to continue our life-saving work. Your contribution directly supports the cats in our care, providing food, shelter, medical care, and love until they find their forever homes.
-          </p>
-          <p className="text-gray-700 text-lg">
-            As a home-based rescue caring for approximately 24 cats at any given time, every dollar makes a difference. We appreciate your support in any amount.
-          </p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
-          <div className="bg-white rounded-lg shadow-md p-8">
-            <div className="flex justify-center mb-6">
-              <div className="p-3 bg-meow-primary/10 rounded-full">
-                <Heart size={32} className="text-meow-primary" />
-              </div>
-            </div>
-            <h2 className="text-2xl font-bold text-center mb-6">One-Time Donation</h2>
-            
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              {[25, 50, 100, 250].map((amount) => (
-                <Button 
-                  key={amount}
-                  variant={selectedAmount === amount && !isMonthly ? "meow" : "outline"} 
-                  className={`${selectedAmount === amount && !isMonthly ? 'text-white' : 'text-meow-primary border-meow-primary hover:bg-meow-primary/10'}`}
-                  onClick={() => {
-                    handleAmountSelection(amount);
-                    setIsMonthly(false);
-                  }}
-                >
-                  ${amount}
-                </Button>
-              ))}
-            </div>
-            
-            <div className="mb-6">
-              <label htmlFor="custom-amount" className="block text-sm font-medium text-gray-700 mb-1">
-                Or enter a custom amount
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span className="text-gray-500">$</span>
-                </div>
-                <input
-                  type="text"
-                  id="custom-amount"
-                  value={customAmount}
-                  onChange={handleCustomAmountChange}
-                  className="w-full pl-7 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-meow-primary focus:border-transparent"
-                  placeholder="Other amount"
-                />
-              </div>
-            </div>
-            
-            <Button 
-              className="w-full bg-meow-secondary hover:bg-meow-secondary/90" 
-              onClick={handleDonateClick}
-              disabled={!isDonateButtonEnabled() || isMonthly}
-            >
-              Donate Now
-            </Button>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow-md p-8">
-            <div className="flex justify-center mb-6">
-              <div className="p-3 bg-meow-primary/10 rounded-full">
-                <DollarSign size={32} className="text-meow-primary" />
-              </div>
-            </div>
-            <h2 className="text-2xl font-bold text-center mb-6">Monthly Donation</h2>
-            <p className="text-gray-700 mb-6 text-center">
-              Become a sustaining supporter with a monthly donation that provides reliable, ongoing support for our cats.
+      <SEO 
+        title="Donate | Meow Rescue"
+        description="Your donation helps us care for homeless cats and kittens. Every dollar makes a difference in the lives of our feline friends."
+      />
+      
+      <div className="container mx-auto py-16 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold text-meow-primary mb-4">Make a Difference Today</h1>
+            <p className="text-lg text-gray-600 mb-8">
+              Your donation helps us provide food, shelter, medical care, and love for cats in need. 
+              It costs approximately $1,000 to rescue, care for, and find a home for each cat.
             </p>
-            
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              {[10, 20, 50, 100].map((amount) => (
-                <Button 
-                  key={amount}
-                  variant={selectedAmount === amount && isMonthly ? "meow" : "outline"} 
-                  className={`${selectedAmount === amount && isMonthly ? 'text-white' : 'text-meow-primary border-meow-primary hover:bg-meow-primary/10'}`}
-                  onClick={() => {
-                    handleAmountSelection(amount);
-                    setIsMonthly(true);
-                  }}
-                >
-                  ${amount}/mo
-                </Button>
-              ))}
-            </div>
-            
-            <Button 
-              className="w-full bg-meow-secondary hover:bg-meow-secondary/90"
-              onClick={handleDonateClick}
-              disabled={!selectedAmount || !isMonthly}
-            >
-              Become a Monthly Supporter
-            </Button>
-          </div>
-        </div>
-        
-        <div className="bg-gray-50 p-8 rounded-lg mb-16">
-          <h2 className="text-2xl font-bold text-meow-primary mb-8 text-center">Your Donation in Action</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white p-6 rounded-lg shadow-md text-center">
-              <div className="text-meow-secondary font-bold text-3xl mb-2">$15</div>
-              <p className="text-gray-700">Feeds a cat for one week</p>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow-md text-center">
-              <div className="text-meow-secondary font-bold text-3xl mb-2">$50</div>
-              <p className="text-gray-700">Provides vaccinations for one cat</p>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow-md text-center">
-              <div className="text-meow-secondary font-bold text-3xl mb-2">$150</div>
-              <p className="text-gray-700">Covers spay/neuter surgery</p>
+            <div className="flex justify-center">
+              <Heart className="text-red-500 h-12 w-12" />
             </div>
           </div>
           
-          <div className="mt-8 bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-xl font-bold text-meow-primary mb-4">Help Fluffy Heal</h3>
-            <div className="md:flex items-center">
-              <div className="md:w-1/3 mb-4 md:mb-0 md:mr-6">
-                <img 
-                  src="https://images.unsplash.com/photo-1573865526739-10659fec78a5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1915&q=80" 
-                  alt="Fluffy the cat" 
-                  className="rounded-lg w-full h-auto"
-                />
-              </div>
-              <div className="md:w-2/3">
-                <p className="text-gray-700 mb-4">
-                  Fluffy was rescued after a suspected coyote attack with severe injuries. He needs veterinary assessment, 
-                  treatment for a skin condition, neutering, and flea treatment. Your donation can help Fluffy get the medical care he needs.
-                </p>
-                <div className="flex justify-center md:justify-start">
-                  <Button 
-                    className="bg-meow-secondary hover:bg-meow-secondary/90"
-                    onClick={() => handleSpecificDonation(250, "Fluffy's Care")}
-                  >
-                    Help Fluffy - Donate $250
-                  </Button>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-8 mb-12">
+            <Card className="md:col-span-3">
+              <CardHeader>
+                <CardTitle className="text-2xl">Your Donation</CardTitle>
+                <CardDescription>
+                  Choose an amount and payment frequency
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit}>
+                  <div className="space-y-6">
+                    <div>
+                      <Label className="text-base font-medium mb-4 block">
+                        Select an amount:
+                      </Label>
+                      <div className="grid grid-cols-3 gap-3 mb-3">
+                        {DonationAmounts.map((value) => (
+                          <Button
+                            key={value}
+                            type="button"
+                            variant={amount === value && !isCustomAmount ? "meow" : "outline"}
+                            onClick={() => handleAmountClick(value)}
+                            className="h-12"
+                          >
+                            ${value}
+                          </Button>
+                        ))}
+                      </div>
+                      <div className="flex gap-3 items-center">
+                        <DollarSign className="h-5 w-5 text-gray-500" />
+                        <Input
+                          placeholder="Other amount"
+                          className={isCustomAmount ? "border-meow-primary" : ""}
+                          value={customAmount}
+                          onChange={handleCustomAmountChange}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="recurring"
+                        checked={isRecurring}
+                        onCheckedChange={setIsRecurring}
+                      />
+                      <Label htmlFor="recurring">Make this a recurring donation</Label>
+                    </div>
+                    
+                    {isRecurring && (
+                      <div>
+                        <Label className="text-base font-medium mb-2 block">
+                          Donation frequency:
+                        </Label>
+                        <RadioGroup
+                          defaultValue="monthly"
+                          value={donationFrequency}
+                          onValueChange={setDonationFrequency}
+                          className="flex gap-6"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="monthly" id="monthly" />
+                            <Label htmlFor="monthly">Monthly</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="quarterly" id="quarterly" />
+                            <Label htmlFor="quarterly">Quarterly</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="yearly" id="yearly" />
+                            <Label htmlFor="yearly">Yearly</Label>
+                          </div>
+                        </RadioGroup>
+                      </div>
+                    )}
+                    
+                    <div>
+                      <Label className="text-base font-medium mb-2 block">
+                        Designation (optional):
+                      </Label>
+                      <RadioGroup
+                        defaultValue="general"
+                        value={designation}
+                        onValueChange={setDesignation}
+                        className="grid grid-cols-1 md:grid-cols-2 gap-2"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="general" id="general" />
+                          <Label htmlFor="general">General Fund</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="medical" id="medical" />
+                          <Label htmlFor="medical">Medical Care</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="food" id="food" />
+                          <Label htmlFor="food">Food & Supplies</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="foster" id="foster" />
+                          <Label htmlFor="foster">Foster Program</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                    
+                    {/* Simple payment information form (placeholder for Stripe integration) */}
+                    <div className="border-t pt-6 mt-6">
+                      <h3 className="text-lg font-semibold mb-4">Payment Information</h3>
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="cardHolder">Cardholder Name</Label>
+                          <Input id="cardHolder" placeholder="Name on card" />
+                        </div>
+                        <div>
+                          <Label htmlFor="cardNumber">Card Number</Label>
+                          <div className="relative">
+                            <Input 
+                              id="cardNumber" 
+                              placeholder="1234 5678 9012 3456" 
+                              className="pl-10"
+                            />
+                            <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="expiry">Expiry Date</Label>
+                            <div className="relative">
+                              <Input 
+                                id="expiry" 
+                                placeholder="MM/YY" 
+                                className="pl-10"
+                              />
+                              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                            </div>
+                          </div>
+                          <div>
+                            <Label htmlFor="cvc">CVC</Label>
+                            <Input id="cvc" placeholder="123" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-8">
+                    <Button
+                      type="submit"
+                      variant="meow"
+                      className="w-full py-6 text-lg"
+                      disabled={isProcessing || amount <= 0}
+                    >
+                      {isProcessing ? (
+                        <>
+                          <span className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-2"></span>
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          Donate {isCustomAmount || !DonationAmounts.includes(amount) ? `$${amount}` : `$${amount}`}
+                          {isRecurring ? ` ${donationFrequency}` : ''}
+                        </>
+                      )}
+                    </Button>
+                    <p className="text-sm text-center mt-3 text-gray-500">
+                      Your donation is tax-deductible to the extent allowed by law.
+                    </p>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+            
+            <Card className="md:col-span-2">
+              <CardHeader>
+                <CardTitle className="text-xl">Why Your Support Matters</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex gap-3">
+                  <div className="bg-meow-secondary/10 p-2 rounded-full h-10 w-10 flex items-center justify-center">
+                    <DollarSign className="h-5 w-5 text-meow-secondary" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium">$1,000</h3>
+                    <p className="text-sm text-gray-600">Average cost to rescue, care for, and find a home for one cat</p>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16">
-          <div>
-            <div className="flex items-center mb-4">
-              <div className="p-2 bg-meow-primary/10 rounded-full mr-3">
-                <Gift size={24} className="text-meow-primary" />
-              </div>
-              <h2 className="text-2xl font-bold text-meow-primary">Other Ways to Give</h2>
-            </div>
-            
-            <div className="space-y-6">
-              <div className="bg-white p-6 rounded-lg shadow-md">
-                <h3 className="text-lg font-semibold text-meow-primary mb-2">Memorial Gifts</h3>
-                <p className="text-gray-700">
-                  Honor the memory of a loved one or beloved pet with a donation in their name. 
-                  We'll send a personalized acknowledgment card to the designated recipient.
-                </p>
-              </div>
-              
-              <div className="bg-white p-6 rounded-lg shadow-md">
-                <h3 className="text-lg font-semibold text-meow-primary mb-2">Workplace Giving</h3>
-                <p className="text-gray-700">
-                  Many employers offer matching gift programs that can double or even triple your donation. 
-                  Check with your HR department to see if your company participates.
-                </p>
-              </div>
-              
-              <div className="bg-white p-6 rounded-lg shadow-md">
-                <h3 className="text-lg font-semibold text-meow-primary mb-2">Legacy Giving</h3>
-                <p className="text-gray-700">
-                  Include Meow Rescue in your estate planning to create a lasting legacy that will help cats in need for years to come. 
-                  Contact us for more information.
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <div>
-            <div className="flex items-center mb-4">
-              <div className="p-2 bg-meow-primary/10 rounded-full mr-3">
-                <ShoppingBag size={24} className="text-meow-primary" />
-              </div>
-              <h2 className="text-2xl font-bold text-meow-primary">Wish List</h2>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <p className="text-gray-700 mb-4">
-                In addition to monetary donations, we're always in need of supplies. Here are some items that help us care for our cats:
-              </p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <h3 className="font-semibold text-meow-primary mb-2">Food & Nutrition</h3>
-                  <ul className="list-disc list-inside text-gray-700 space-y-1">
-                    <li>Purina ONE chicken dry food</li>
-                    <li>Fancy Feast canned food</li>
-                    <li>Kitten food (wet and dry)</li>
-                    <li>KMR kitten formula</li>
+                
+                <div className="flex gap-3">
+                  <div className="bg-meow-primary/10 p-2 rounded-full h-10 w-10 flex items-center justify-center">
+                    <Gift className="h-5 w-5 text-meow-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium">100%</h3>
+                    <p className="text-sm text-gray-600">Of your donation goes directly to helping cats in need</p>
+                  </div>
+                </div>
+                
+                <div className="border-t pt-4 mt-4">
+                  <p className="text-sm text-gray-600 mb-4">
+                    Your donation helps provide:
+                  </p>
+                  <ul className="text-sm space-y-2">
+                    <li className="flex items-center gap-2">
+                      <ArrowRight className="h-3 w-3 text-meow-primary" />
+                      Medical care and vaccinations
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <ArrowRight className="h-3 w-3 text-meow-primary" />
+                      Food and shelter
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <ArrowRight className="h-3 w-3 text-meow-primary" />
+                      Spay/neuter surgeries
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <ArrowRight className="h-3 w-3 text-meow-primary" />
+                      Foster care supplies
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <ArrowRight className="h-3 w-3 text-meow-primary" />
+                      Rescue operations
+                    </li>
                   </ul>
                 </div>
                 
-                <div>
-                  <h3 className="font-semibold text-meow-primary mb-2">Supplies</h3>
-                  <ul className="list-disc list-inside text-gray-700 space-y-1">
-                    <li>Clumping cat litter</li>
-                    <li>Disposable litter boxes</li>
-                    <li>Paper towels</li>
-                    <li>Bleach and cleaning supplies</li>
-                  </ul>
+                <div className="border-t pt-4 mt-4">
+                  <blockquote className="italic text-sm text-gray-600">
+                    "Every dollar makes a difference in the life of a cat in need. Thank you for your compassion and generosity."
+                  </blockquote>
+                  <p className="text-sm font-medium mt-2">— The Meow Rescue Team</p>
                 </div>
-              </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="bg-gray-50 rounded-lg p-8 text-center mb-12">
+            <h2 className="text-2xl font-bold mb-4">Other Ways to Support</h2>
+            <p className="mb-6">In addition to monetary donations, there are many other ways you can help.</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Volunteer</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm">Share your time and skills to help our organization and the cats in our care.</p>
+                </CardContent>
+                <CardFooter>
+                  <Button asChild variant="meowOutline" className="w-full">
+                    <a href="/volunteer">Learn More</a>
+                  </Button>
+                </CardFooter>
+              </Card>
               
-              <div className="mt-6">
-                <h3 className="font-semibold text-meow-primary mb-2">Comfort Items</h3>
-                <ul className="list-disc list-inside text-gray-700 space-y-1">
-                  <li>Cat beds</li>
-                  <li>Clean towels and blankets</li>
-                  <li>Cat toys</li>
-                  <li>Scratching posts</li>
-                </ul>
-              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Foster</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm">Provide a temporary home for cats and kittens waiting for their forever homes.</p>
+                </CardContent>
+                <CardFooter>
+                  <Button asChild variant="meowOutline" className="w-full">
+                    <a href="/volunteer">Apply to Foster</a>
+                  </Button>
+                </CardFooter>
+              </Card>
               
-              <div className="mt-6 text-center">
-                <Button 
-                  className="bg-meow-primary hover:bg-meow-primary/90"
-                  onClick={() => {
-                    toast({
-                      title: "Amazon Wish List",
-                      description: "You'll be redirected to our Amazon Wish List",
-                      variant: "default"
-                    });
-                    // In a real implementation, this would open the Amazon wish list in a new tab
-                    window.open('https://www.amazon.com/hz/wishlist/ls/example', '_blank');
-                  }}
-                >
-                  View Our Amazon Wish List
-                </Button>
-              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Supplies</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm">Donate food, litter, toys, and other supplies from our wishlist.</p>
+                </CardContent>
+                <CardFooter>
+                  <Button asChild variant="meowOutline" className="w-full">
+                    <a href="/contact">Contact Us</a>
+                  </Button>
+                </CardFooter>
+              </Card>
             </div>
           </div>
-        </div>
-        
-        <div className="bg-white p-8 rounded-lg shadow-md max-w-3xl mx-auto text-center">
-          <h2 className="text-2xl font-bold text-meow-primary mb-4">Thank You for Your Support!</h2>
-          <p className="text-gray-700 mb-6">
-            Meow Rescue is a home-based cat rescue. Your donations help cover the costs of food, medical care, and supplies for our cats in need.
-          </p>
-          <p className="text-gray-700">
-            If you have any questions about donating or would like to discuss other ways to support our mission, please <a href="/contact" className="text-meow-primary hover:underline">contact us</a>.
-          </p>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Donation FAQs</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <h3 className="font-medium mb-1">Is my donation tax-deductible?</h3>
+                <p className="text-sm text-gray-600">
+                  Yes, Meow Rescue is a registered nonprofit organization. Your donation is tax-deductible to the extent allowed by law.
+                </p>
+              </div>
+              
+              <div>
+                <h3 className="font-medium mb-1">Can I make a donation in memory or honor of someone?</h3>
+                <p className="text-sm text-gray-600">
+                  Yes, you can make a tribute donation. Please contact us directly to arrange this.
+                </p>
+              </div>
+              
+              <div>
+                <h3 className="font-medium mb-1">How is my donation used?</h3>
+                <p className="text-sm text-gray-600">
+                  Your donation directly supports our rescue operations, medical care, food, shelter, and adoption programs for cats in need.
+                </p>
+              </div>
+              
+              <div>
+                <h3 className="font-medium mb-1">Can I cancel my recurring donation?</h3>
+                <p className="text-sm text-gray-600">
+                  Yes, you can cancel or modify your recurring donation at any time by contacting us or logging into your account.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </Layout>
   );
 };
 
-export default Donate;
+export default DonatePage;
