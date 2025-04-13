@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
 import { Search, Mail, CheckCircle, ArrowRightCircle, ArchiveIcon } from 'lucide-react';
@@ -137,39 +137,6 @@ const AdminMessages: React.FC = () => {
     },
   });
 
-  // Create a test message mutation to help with testing if no messages are present
-  const createTestMessage = useMutation({
-    mutationFn: async () => {
-      const { data, error } = await supabase
-        .from('contact_messages')
-        .insert({
-          name: 'Test User',
-          email: 'test@example.com',
-          message: 'This is a test message to check if the contact messages feature is working correctly.',
-          status: 'New' as MessageStatus,
-          received_at: new Date().toISOString()
-        })
-        .select();
-
-      if (error) throw new Error(`Failed to create test message: ${error.message}`);
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contact-messages'] });
-      toast({
-        title: "Test Message Created",
-        description: "A test message has been created to help with testing.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Creation Failed",
-        description: `Failed to create test message: ${error.message}`,
-        variant: "destructive",
-      });
-    },
-  });
-
   // Filter messages based on search query
   const filteredMessages = messages?.filter(message =>
     message.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -206,10 +173,6 @@ const AdminMessages: React.FC = () => {
     }
   };
 
-  const handleCreateTestMessage = () => {
-    createTestMessage.mutate();
-  };
-
   return (
     <AdminLayout title="Contact Form Messages">
       <SEO title="Contact Form Messages | Meow Rescue Admin" />
@@ -217,8 +180,8 @@ const AdminMessages: React.FC = () => {
       <div className="container mx-auto py-10">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-meow-primary">Contact Form Messages</h1>
-          <Button onClick={handleCreateTestMessage}>
-            Create Test Message
+          <Button onClick={() => refetch()} variant="outline">
+            Refresh Messages
           </Button>
         </div>
 
@@ -229,13 +192,6 @@ const AdminMessages: React.FC = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="max-w-sm"
           />
-          <Button 
-            variant="outline" 
-            className="ml-2" 
-            onClick={() => refetch()}
-          >
-            Refresh
-          </Button>
         </div>
 
         {isLoading ? (
@@ -306,7 +262,7 @@ const AdminMessages: React.FC = () => {
                 {(!filteredMessages || filteredMessages.length === 0) && (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                      No messages found. You can create a test message using the button above.
+                      No messages found. Waiting for contact form submissions.
                     </TableCell>
                   </TableRow>
                 )}

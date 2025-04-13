@@ -37,140 +37,166 @@ const AdminSidebar: React.FC = () => {
   };
   
   return (
-    <div className="fixed inset-y-0 left-0 w-64 bg-slate-900 text-white p-4 flex flex-col h-screen z-10">
+    <div className="fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 text-gray-700 p-4 flex flex-col h-screen z-10">
       <div className="mb-8 mt-2">
-        <h1 className="text-xl font-bold flex items-center">
-          <Cat className="mr-2" /> Meow Rescue Admin
-        </h1>
+        <Link to="/" className="flex items-center gap-2">
+          <div className="bg-meow-primary rounded-full p-2">
+            <Cat className="h-6 w-6 text-white" />
+          </div>
+          <span className="font-bold text-xl">
+            <span className="text-meow-primary">Meow</span>
+            <span className="text-meow-secondary">Rescue</span>
+          </span>
+        </Link>
       </div>
       
-      <div className="flex-1 overflow-y-auto space-y-1">
-        <Link 
-          to="/admin"
-          className={`flex items-center p-3 rounded transition-colors ${
-            isActive('/admin') ? 'bg-slate-700' : 'hover:bg-slate-800'
-          }`}
-        >
-          <BarChart3 className="mr-3 h-5 w-5" />
-          <span>Dashboard</span>
-        </Link>
+      <div className="flex-1 overflow-y-auto space-y-5">
+        {/* Dashboard Section */}
+        <div>
+          <h3 className="font-semibold text-xs uppercase text-gray-500 mb-2 px-3">Dashboard</h3>
+          <Link 
+            to="/admin"
+            className={`flex items-center p-3 rounded transition-colors ${
+              isActive('/admin') ? 'bg-gray-100' : 'hover:bg-gray-100'
+            }`}
+          >
+            <BarChart3 className="mr-3 h-5 w-5 text-gray-600" />
+            <span>Dashboard</span>
+          </Link>
+        </div>
         
-        <Link 
-          to="/admin/users"
-          className={`flex items-center p-3 rounded transition-colors ${
-            isActive('/admin/users') ? 'bg-slate-700' : 'hover:bg-slate-800'
-          }`}
-        >
-          <Users className="mr-3 h-5 w-5" />
-          <span>Users</span>
-        </Link>
+        {/* Users & Cats Section */}
+        <div>
+          <h3 className="font-semibold text-xs uppercase text-gray-500 mb-2 px-3">Management</h3>
+          <Link 
+            to="/admin/users"
+            className={`flex items-center p-3 rounded transition-colors ${
+              isActive('/admin/users') ? 'bg-gray-100' : 'hover:bg-gray-100'
+            }`}
+          >
+            <Users className="mr-3 h-5 w-5 text-gray-600" />
+            <span>Users</span>
+          </Link>
+          
+          <Link 
+            to="/admin/cats"
+            className={`flex items-center p-3 rounded transition-colors ${
+              isActive('/admin/cats') ? 'bg-gray-100' : 'hover:bg-gray-100'
+            }`}
+          >
+            <Cat className="mr-3 h-5 w-5 text-gray-600" />
+            <span>Cats</span>
+          </Link>
+          
+          <Link 
+            to="/admin/applications"
+            className={`flex items-center p-3 rounded transition-colors ${
+              isActive('/admin/applications') ? 'bg-gray-100' : 'hover:bg-gray-100'
+            }`}
+          >
+            <FileText className="mr-3 h-5 w-5 text-gray-600" />
+            <span>Applications</span>
+          </Link>
+        </div>
         
-        <Link 
-          to="/admin/cats"
-          className={`flex items-center p-3 rounded transition-colors ${
-            isActive('/admin/cats') ? 'bg-slate-700' : 'hover:bg-slate-800'
-          }`}
-        >
-          <Cat className="mr-3 h-5 w-5" />
-          <span>Cats</span>
-        </Link>
+        {/* Content Section */}
+        <div>
+          <h3 className="font-semibold text-xs uppercase text-gray-500 mb-2 px-3">Content</h3>
+          <Link 
+            to="/admin/events"
+            className={`flex items-center p-3 rounded transition-colors ${
+              isActive('/admin/events') ? 'bg-gray-100' : 'hover:bg-gray-100'
+            }`}
+          >
+            <Calendar className="mr-3 h-5 w-5 text-gray-600" />
+            <span>Events</span>
+          </Link>
+          
+          <Link 
+            to="/admin/blog"
+            className={`flex items-center p-3 rounded transition-colors ${
+              isActive('/admin/blog') ? 'bg-gray-100' : 'hover:bg-gray-100'
+            }`}
+          >
+            <FileImage className="mr-3 h-5 w-5 text-gray-600" />
+            <span>Blog</span>
+          </Link>
+          
+          <Link 
+            to="/admin/lost-found"
+            className={`flex items-center p-3 rounded transition-colors ${
+              isActive('/admin/lost-found') ? 'bg-gray-100' : 'hover:bg-gray-100'
+            }`}
+          >
+            <Search className="mr-3 h-5 w-5 text-gray-600" />
+            <span>Lost & Found</span>
+          </Link>
+        </div>
         
-        <Link 
-          to="/admin/applications"
-          className={`flex items-center p-3 rounded transition-colors ${
-            isActive('/admin/applications') ? 'bg-slate-700' : 'hover:bg-slate-800'
-          }`}
-        >
-          <FileText className="mr-3 h-5 w-5" />
-          <span>Applications</span>
-        </Link>
+        {/* Operations Section */}
+        <div>
+          <h3 className="font-semibold text-xs uppercase text-gray-500 mb-2 px-3">Operations</h3>
+          <Link 
+            to="/admin/finance"
+            className={`flex items-center p-3 rounded transition-colors ${
+              isActive('/admin/finance') ? 'bg-gray-100' : 'hover:bg-gray-100'
+            }`}
+          >
+            <DollarSign className="mr-3 h-5 w-5 text-gray-600" />
+            <span>Finance</span>
+          </Link>
+          
+          <Link 
+            to="/admin/chat"
+            className={`flex items-center p-3 rounded transition-colors ${
+              isActive('/admin/chat') ? 'bg-gray-100' : 'hover:bg-gray-100'
+            }`}
+          >
+            <MessageCircle className="mr-3 h-5 w-5 text-gray-600" />
+            <span>Live Chat</span>
+          </Link>
+          
+          <Link 
+            to="/admin/messages"
+            className={`flex items-center p-3 rounded transition-colors ${
+              isActive('/admin/messages') ? 'bg-gray-100' : 'hover:bg-gray-100'
+            }`}
+          >
+            <Mail className="mr-3 h-5 w-5 text-gray-600" />
+            <span>Contact Messages</span>
+          </Link>
+        </div>
         
-        <Link 
-          to="/admin/events"
-          className={`flex items-center p-3 rounded transition-colors ${
-            isActive('/admin/events') ? 'bg-slate-700' : 'hover:bg-slate-800'
-          }`}
-        >
-          <Calendar className="mr-3 h-5 w-5" />
-          <span>Events</span>
-        </Link>
-        
-        <Link 
-          to="/admin/finance"
-          className={`flex items-center p-3 rounded transition-colors ${
-            isActive('/admin/finance') ? 'bg-slate-700' : 'hover:bg-slate-800'
-          }`}
-        >
-          <DollarSign className="mr-3 h-5 w-5" />
-          <span>Finance</span>
-        </Link>
-        
-        <Link 
-          to="/admin/blog"
-          className={`flex items-center p-3 rounded transition-colors ${
-            isActive('/admin/blog') ? 'bg-slate-700' : 'hover:bg-slate-800'
-          }`}
-        >
-          <FileImage className="mr-3 h-5 w-5" />
-          <span>Blog</span>
-        </Link>
-        
-        <Link 
-          to="/admin/lost-found"
-          className={`flex items-center p-3 rounded transition-colors ${
-            isActive('/admin/lost-found') ? 'bg-slate-700' : 'hover:bg-slate-800'
-          }`}
-        >
-          <Search className="mr-3 h-5 w-5" />
-          <span>Lost & Found</span>
-        </Link>
-        
-        <Link 
-          to="/admin/chat"
-          className={`flex items-center p-3 rounded transition-colors ${
-            isActive('/admin/chat') ? 'bg-slate-700' : 'hover:bg-slate-800'
-          }`}
-        >
-          <MessageCircle className="mr-3 h-5 w-5" />
-          <span>Live Chat</span>
-        </Link>
-        
-        <Link 
-          to="/admin/messages"
-          className={`flex items-center p-3 rounded transition-colors ${
-            isActive('/admin/messages') ? 'bg-slate-700' : 'hover:bg-slate-800'
-          }`}
-        >
-          <Mail className="mr-3 h-5 w-5" />
-          <span>Contact Messages</span>
-        </Link>
-        
-        <Link 
-          to="/admin/security"
-          className={`flex items-center p-3 rounded transition-colors ${
-            isActive('/admin/security') ? 'bg-slate-700' : 'hover:bg-slate-800'
-          }`}
-        >
-          <Shield className="mr-3 h-5 w-5" />
-          <span>Security</span>
-        </Link>
-        
-        <Link 
-          to="/admin/settings"
-          className={`flex items-center p-3 rounded transition-colors ${
-            isActive('/admin/settings') ? 'bg-slate-700' : 'hover:bg-slate-800'
-          }`}
-        >
-          <Settings className="mr-3 h-5 w-5" />
-          <span>Settings</span>
-        </Link>
+        {/* System Section */}
+        <div>
+          <h3 className="font-semibold text-xs uppercase text-gray-500 mb-2 px-3">System</h3>
+          <Link 
+            to="/admin/security"
+            className={`flex items-center p-3 rounded transition-colors ${
+              isActive('/admin/security') ? 'bg-gray-100' : 'hover:bg-gray-100'
+            }`}
+          >
+            <Shield className="mr-3 h-5 w-5 text-gray-600" />
+            <span>Security</span>
+          </Link>
+          
+          <Link 
+            to="/admin/settings"
+            className={`flex items-center p-3 rounded transition-colors ${
+              isActive('/admin/settings') ? 'bg-gray-100' : 'hover:bg-gray-100'
+            }`}
+          >
+            <Settings className="mr-3 h-5 w-5 text-gray-600" />
+            <span>Settings</span>
+          </Link>
+        </div>
       </div>
       
       <button 
         onClick={handleLogout}
-        className="mt-auto flex items-center p-3 rounded transition-colors hover:bg-slate-800 w-full"
+        className="mt-auto flex items-center p-3 rounded transition-colors hover:bg-gray-100 w-full text-gray-700"
       >
-        <LogOut className="mr-3 h-5 w-5" />
+        <LogOut className="mr-3 h-5 w-5 text-gray-600" />
         <span>Logout</span>
       </button>
     </div>
