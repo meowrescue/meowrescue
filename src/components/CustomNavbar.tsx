@@ -53,15 +53,39 @@ const CustomNavbar: React.FC = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
+  // Main navigation links
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'About', path: '/about' },
-    { name: 'Adopt', path: '/cats' },
-    { name: 'Lost & Found', path: '/lost-found' },
-    { name: 'Volunteer', path: '/volunteer' },
-    { name: 'Blog', path: '/blog' },
+    { 
+      name: 'Adopt', 
+      path: '/cats',
+      dropdown: [
+        { name: 'Available Cats', path: '/cats' },
+        { name: 'Adoption Process', path: '/adopt' },
+        { name: 'Success Stories', path: '/success-stories' },
+      ]
+    },
+    { 
+      name: 'Get Involved', 
+      path: '/volunteer',
+      dropdown: [
+        { name: 'Volunteer', path: '/volunteer' },
+        { name: 'Foster', path: '/foster' },
+        { name: 'Donate', path: '/donate' },
+      ]
+    },
+    { 
+      name: 'Resources', 
+      path: '/resources',
+      dropdown: [
+        { name: 'Cat Care Tips', path: '/resources' },
+        { name: 'Lost & Found', path: '/lost-found' },
+        { name: 'Forum', path: '/forum' },
+      ]
+    },
     { name: 'Events', path: '/events' },
-    { name: 'Resources', path: '/resources' },
+    { name: 'Blog', path: '/blog' },
     { name: 'Contact', path: '/contact' },
   ];
 
@@ -88,15 +112,37 @@ const CustomNavbar: React.FC = () => {
           <nav className="hidden lg:block">
             <ul className="flex space-x-6">
               {navLinks.map((link) => (
-                <li key={link.path}>
-                  <Link
-                    to={link.path}
-                    className={`font-medium transition-colors hover:text-meow-primary ${
-                      isActive(link.path) ? 'text-meow-primary' : 'text-gray-700'
-                    }`}
-                  >
-                    {link.name}
-                  </Link>
+                <li key={link.path} className="relative group">
+                  {link.dropdown ? (
+                    <div className="inline-flex items-center gap-1 cursor-pointer font-medium transition-colors hover:text-meow-primary">
+                      <span className={isActive(link.path) ? 'text-meow-primary' : 'text-gray-700'}>
+                        {link.name}
+                      </span>
+                      <ChevronDown className="h-4 w-4" />
+                      <div className="absolute left-0 top-full pt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
+                        <div className="bg-white shadow-lg rounded-md py-2 border border-gray-100">
+                          {link.dropdown.map((item) => (
+                            <Link
+                              key={item.path}
+                              to={item.path}
+                              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-meow-primary"
+                            >
+                              {item.name}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <Link
+                      to={link.path}
+                      className={`font-medium transition-colors hover:text-meow-primary ${
+                        isActive(link.path) ? 'text-meow-primary' : 'text-gray-700'
+                      }`}
+                    >
+                      {link.name}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>
@@ -121,6 +167,11 @@ const CustomNavbar: React.FC = () => {
                   <DropdownMenuItem asChild>
                     <Link to="/profile" className="w-full cursor-pointer">
                       Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/forum" className="w-full cursor-pointer">
+                      Forum
                     </Link>
                   </DropdownMenuItem>
                   {(user.user_metadata?.role === 'admin' || user.email?.endsWith('@meowrescue.org')) && (
@@ -163,15 +214,36 @@ const CustomNavbar: React.FC = () => {
             <ul className="flex flex-col space-y-4">
               {navLinks.map((link) => (
                 <li key={link.path}>
-                  <Link
-                    to={link.path}
-                    className={`block font-medium transition-colors hover:text-meow-primary ${
-                      isActive(link.path) ? 'text-meow-primary' : 'text-gray-700'
-                    }`}
-                    onClick={closeMenu}
-                  >
-                    {link.name}
-                  </Link>
+                  {link.dropdown ? (
+                    <div className="space-y-2">
+                      <div className="font-medium text-gray-700">{link.name}</div>
+                      <ul className="pl-4 space-y-2 border-l border-gray-200">
+                        {link.dropdown.map((item) => (
+                          <li key={item.path}>
+                            <Link
+                              to={item.path}
+                              className={`block transition-colors hover:text-meow-primary ${
+                                isActive(item.path) ? 'text-meow-primary' : 'text-gray-600'
+                              }`}
+                              onClick={closeMenu}
+                            >
+                              {item.name}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : (
+                    <Link
+                      to={link.path}
+                      className={`block font-medium transition-colors hover:text-meow-primary ${
+                        isActive(link.path) ? 'text-meow-primary' : 'text-gray-700'
+                      }`}
+                      onClick={closeMenu}
+                    >
+                      {link.name}
+                    </Link>
+                  )}
                 </li>
               ))}
               <li>

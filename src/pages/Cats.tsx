@@ -1,14 +1,26 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import Layout from '../components/Layout';
 import SectionHeading from '../components/ui/SectionHeading';
 import CatCard from '../components/CatCard';
-import { cats } from '../data/cats';
 import CtaSection from '../components/CtaSection';
 import SEO from '../components/SEO';
 import { Button } from '@/components/ui/button';
 import { Filter, RefreshCw } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+
+interface CatData {
+  id: string;
+  name: string;
+  age_estimate: string;
+  gender: string;
+  description: string;
+  status: string;
+  photos_urls: string[];
+  breed: string;
+}
 
 const Cats: React.FC = () => {
   // State for filters
@@ -16,8 +28,23 @@ const Cats: React.FC = () => {
   const [genderFilter, setGenderFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('Available');
   
+  // Fetch cats from database
+  const { data: catsData, isLoading, error } = useQuery({
+    queryKey: ['cats'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('cats')
+        .select('*')
+        .order('name', { ascending: true });
+      
+      if (error) throw error;
+      return data as CatData[];
+    }
+  });
+  
   // Function to determine age group based on age string
   const getAgeGroup = (age: string): string => {
+    if (!age) return 'unknown';
     if (age.toLowerCase().includes('kitten')) return 'kitten';
     if (age.toLowerCase().includes('young')) return 'young';
     if (age.toLowerCase().includes('adult')) return 'adult';
@@ -26,7 +53,7 @@ const Cats: React.FC = () => {
   };
   
   // Filter cats based on selected criteria
-  const filteredCats = cats.filter(cat => {
+  const filteredCats = catsData?.filter(cat => {
     // Status filter
     if (statusFilter !== 'all' && cat.status !== statusFilter) {
       return false;
@@ -39,7 +66,7 @@ const Cats: React.FC = () => {
     
     // Age filter
     if (ageFilter !== 'all') {
-      const ageGroup = getAgeGroup(cat.age);
+      const ageGroup = getAgeGroup(cat.age_estimate);
       if (ageFilter !== ageGroup) {
         return false;
       }
@@ -140,20 +167,28 @@ const Cats: React.FC = () => {
           
           {/* Filter results summary */}
           <div className="mt-4 text-sm text-gray-500">
-            Showing {filteredCats.length} {filteredCats.length === 1 ? 'cat' : 'cats'}
+            Showing {filteredCats?.length || 0} {filteredCats?.length === 1 ? 'cat' : 'cats'}
             {(ageFilter !== 'all' || genderFilter !== 'all' || statusFilter !== 'Available') && ' with applied filters'}
           </div>
         </div>
         
-        {filteredCats.length > 0 ? (
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <p className="text-red-500">Error loading cats. Please try again later.</p>
+          </div>
+        ) : filteredCats && filteredCats.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
             {filteredCats.map(cat => (
               <CatCard 
                 key={cat.id}
                 id={cat.id}
                 name={cat.name}
-                imageUrl={cat.imageUrl}
-                age={cat.age}
+                imageUrl={cat.photos_urls?.[0] || '/images/cat-placeholder.jpg'}
+                age={cat.age_estimate}
                 gender={cat.gender}
                 description={cat.description}
                 status={cat.status}
@@ -163,15 +198,19 @@ const Cats: React.FC = () => {
         ) : (
           <div className="text-center py-12">
             <p className="text-xl text-gray-700">
-              No cats match your current filters. Please try different filter options or check back soon.
+              {statusFilter === 'Available' ? 
+                'There are currently no cats available for adoption. Please check back soon!' : 
+                'No cats match your current filters. Please try different filter options or check back soon.'}
             </p>
-            <Button 
-              variant="meow" 
-              onClick={resetFilters} 
-              className="mt-4"
-            >
-              Reset Filters
-            </Button>
+            {statusFilter !== 'Available' && (
+              <Button 
+                variant="meow" 
+                onClick={resetFilters} 
+                className="mt-4"
+              >
+                Reset Filters
+              </Button>
+            )}
           </div>
         )}
         

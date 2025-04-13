@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -18,12 +19,10 @@ import {
   Users,
   DollarSign,
   MessageSquare,
-  FileText,
   Calendar,
   Search,
   BarChart3,
   ShieldCheck,
-  Settings,
   LogOut,
   Bell,
   PenSquare
@@ -126,14 +125,6 @@ const AdminNavbar: React.FC = () => {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild className={isActive('/admin/pages') ? 'bg-meow-primary/10 text-meow-primary font-medium' : ''}>
-                  <Link to="/admin/pages">
-                    <FileText size={18} />
-                    <span>Pages</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
                 <SidebarMenuButton asChild className={isActive('/admin/blog') ? 'bg-meow-primary/10 text-meow-primary font-medium' : ''}>
                   <Link to="/admin/blog">
                     <PenSquare size={18} />
@@ -178,14 +169,6 @@ const AdminNavbar: React.FC = () => {
                   <Link to="/admin/security">
                     <ShieldCheck size={18} />
                     <span>Security</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild className={isActive('/admin/settings') ? 'bg-meow-primary/10 text-meow-primary font-medium' : ''}>
-                  <Link to="/admin/settings">
-                    <Settings size={18} />
-                    <span>Settings</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
