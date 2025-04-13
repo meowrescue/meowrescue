@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronLeft, Upload, X, Loader2 } from "lucide-react";
+import { LostFoundPost } from "@/types/supabase";
 
 type FormData = {
   title: string;
@@ -77,7 +78,9 @@ const LostFoundForm = () => {
         throw error;
       }
 
-      if (data.profile_id !== user?.id) {
+      const postData = data as LostFoundPost;
+      
+      if (postData.profile_id !== user?.id) {
         toast({
           title: "Unauthorized",
           description: "You can only edit your own posts.",
@@ -88,21 +91,21 @@ const LostFoundForm = () => {
       }
 
       // Format the date from ISO to yyyy-mm-dd for input
-      const formattedDate = data.date_occurred ? new Date(data.date_occurred).toISOString().split("T")[0] : "";
+      const formattedDate = postData.date_occurred ? new Date(postData.date_occurred).toISOString().split("T")[0] : "";
 
       setFormData({
-        title: data.title || "",
-        description: data.description || "",
-        location: data.location || "",
-        status: data.status || "lost",
-        pet_type: data.pet_type || "",
-        pet_name: data.pet_name || "",
+        title: postData.title || "",
+        description: postData.description || "",
+        location: postData.location || "",
+        status: postData.status || "lost",
+        pet_type: postData.pet_type || "",
+        pet_name: postData.pet_name || "",
         date_occurred: formattedDate,
-        contact_info: data.contact_info || "",
+        contact_info: postData.contact_info || "",
       });
 
-      if (data.photos_urls) {
-        setExistingPhotos(data.photos_urls);
+      if (postData.photos_urls) {
+        setExistingPhotos(postData.photos_urls);
       }
     } catch (error) {
       console.error("Error fetching post:", error);

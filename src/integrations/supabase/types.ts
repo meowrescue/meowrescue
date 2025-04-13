@@ -368,6 +368,54 @@ export type Database = {
           },
         ]
       }
+      lost_found_posts: {
+        Row: {
+          contact_info: string | null
+          created_at: string
+          date_occurred: string
+          description: string
+          id: string
+          location: string
+          pet_name: string | null
+          pet_type: string
+          photos_urls: string[] | null
+          profile_id: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          contact_info?: string | null
+          created_at?: string
+          date_occurred: string
+          description: string
+          id?: string
+          location: string
+          pet_name?: string | null
+          pet_type: string
+          photos_urls?: string[] | null
+          profile_id: string
+          status: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          contact_info?: string | null
+          created_at?: string
+          date_occurred?: string
+          description?: string
+          id?: string
+          location?: string
+          pet_name?: string | null
+          pet_type?: string
+          photos_urls?: string[] | null
+          profile_id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       partners: {
         Row: {
           created_at: string
@@ -397,6 +445,38 @@ export type Database = {
           website_url?: string | null
         }
         Relationships: []
+      }
+      post_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          post_id: string
+          profile_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          post_id: string
+          profile_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "lost_found_posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

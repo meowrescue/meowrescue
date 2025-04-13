@@ -9,25 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { MapPin, CalendarDays, Search, Plus, AlertCircle, CheckCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-
-type LostFoundPost = {
-  id: string;
-  title: string;
-  description: string;
-  location: string;
-  status: "lost" | "found" | "reunited";
-  pet_type: string;
-  pet_name?: string;
-  date_occurred: string;
-  contact_info: string;
-  photos_urls?: string[];
-  created_at: string;
-  profile_id: string;
-  profiles?: {
-    first_name?: string;
-    last_name?: string;
-  };
-};
+import { LostFoundPost } from "@/types/supabase";
 
 const LostFound = () => {
   const { user } = useAuth();

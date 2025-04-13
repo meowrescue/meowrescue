@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { LostFoundPost, Comment } from "@/types/supabase";
 import {
   MapPin,
   CalendarDays,
@@ -22,38 +23,6 @@ import {
   ChevronLeft,
   Edit,
 } from "lucide-react";
-
-type LostFoundPost = {
-  id: string;
-  title: string;
-  description: string;
-  location: string;
-  status: "lost" | "found" | "reunited";
-  pet_type: string;
-  pet_name?: string;
-  date_occurred: string;
-  contact_info: string;
-  photos_urls?: string[];
-  created_at: string;
-  profile_id: string;
-  profiles?: {
-    first_name?: string;
-    last_name?: string;
-    email?: string;
-  };
-};
-
-type Comment = {
-  id: string;
-  post_id: string;
-  profile_id: string;
-  content: string;
-  created_at: string;
-  profiles?: {
-    first_name?: string;
-    last_name?: string;
-  };
-};
 
 const LostFoundDetail = () => {
   const { id } = useParams<{ id: string }>();
