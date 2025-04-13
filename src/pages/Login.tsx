@@ -90,7 +90,8 @@ const Login: React.FC = () => {
                 <span className="text-meow-secondary">Rescue</span>
               </span>
             </div>
-            <CardTitle className="text-2xl font-bold text-center">Sign In</CardTitle>
+            {/* Removed "Sign In" text */}
+            <CardTitle className="text-2xl font-bold text-center"></CardTitle>
           </CardHeader>
           <CardContent>
             <Form {...form}>
