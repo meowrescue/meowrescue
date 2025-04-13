@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -24,9 +25,9 @@ const AdminApplications: React.FC = () => {
   const { data: applications, isLoading } = useQuery({
     queryKey: ['admin-applications', filterStatus, filterType],
     queryFn: async () => {
-      // Using .from().select() instead of .rpc() for compatibility
+      // Using .from().select() for direct table query
       let query = supabase.from('applications')
-        .select('*');
+        .select('*, profiles(email, first_name, last_name)');
       
       if (filterStatus) {
         query = query.eq('status', filterStatus);
@@ -39,13 +40,13 @@ const AdminApplications: React.FC = () => {
       const { data, error } = await query.order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as Application[];
+      return data as unknown as Application[];
     }
   });
 
   const handleStatusChange = async (applicationId: string, newStatus: string, feedback: string = '') => {
     try {
-      // Using .from().update() instead of .rpc()
+      // Using .from().update() for direct table update
       await supabase
         .from('applications')
         .update({

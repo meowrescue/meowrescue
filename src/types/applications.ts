@@ -3,7 +3,7 @@ export interface Application {
   id: string;
   applicant_id: string;
   application_type: 'adoption' | 'foster' | 'volunteer' | 'volunteer+foster';
-  status: string; // Changed from specific values to any string to match our implementation
+  status: 'Submitted' | 'Under Review' | 'Approved' | 'Rejected';
   form_data: Record<string, any>;
   created_at: string;
   updated_at: string;
