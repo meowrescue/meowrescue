@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   BarChart3,
   Cat,
@@ -13,14 +13,27 @@ import {
   Mail,
   Shield,
   FileImage,
-  Search
+  Search,
+  LogOut
 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 const AdminSidebar: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
   
   const isActive = (path: string) => {
     return location.pathname === path;
+  };
+  
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
   
   return (
@@ -152,6 +165,14 @@ const AdminSidebar: React.FC = () => {
           <span>Settings</span>
         </Link>
       </div>
+      
+      <button 
+        onClick={handleLogout}
+        className="mt-auto flex items-center p-3 rounded transition-colors hover:bg-slate-800 w-full"
+      >
+        <LogOut className="mr-3 h-5 w-5" />
+        <span>Logout</span>
+      </button>
     </div>
   );
 };
