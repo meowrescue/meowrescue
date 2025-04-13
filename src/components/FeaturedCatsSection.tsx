@@ -31,8 +31,9 @@ const FeaturedCatsSection: React.FC = () => {
     });
   };
 
-  // Don't render anything if there are no available cats or if there was an error
-  if ((isLoading === false && featuredCats.length === 0) || isError) {
+  // Don't render anything if there are no available cats
+  if (isLoading === false && featuredCats.length === 0) {
+    // If we have no cats to display, don't render the section at all
     return null;
   }
 

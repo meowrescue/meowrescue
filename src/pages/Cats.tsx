@@ -62,56 +62,13 @@ const Cats: React.FC = () => {
         throw error;
       }
 
-      if (data && data.length) {
-        setCats(data as Cat[]);
-      } else {
-        // If no data in database, use mock data
-        const { cats: mockCats } = await import('@/data/cats');
-        const formattedMockCats = mockCats.map(cat => ({
-          id: cat.id,
-          name: cat.name,
-          age_estimate: cat.age,
-          breed: cat.breed,
-          gender: cat.gender,
-          status: cat.status,
-          description: cat.description,
-          photos_urls: cat.images,
-        }));
-        
-        if (selectedStatus) {
-          const filteredMockCats = formattedMockCats.filter(cat => cat.status === selectedStatus);
-          setCats(filteredMockCats as Cat[]);
-        } else {
-          setCats(formattedMockCats as Cat[]);
-        }
-      }
+      // Only use data from database, no mock data fallback
+      setCats(data || []);
     } catch (error: any) {
       setError(error.message);
       console.error("Error fetching cats:", error);
-      
-      // Fallback to mock data on error
-      try {
-        const { cats: mockCats } = await import('@/data/cats');
-        const formattedMockCats = mockCats.map(cat => ({
-          id: cat.id,
-          name: cat.name,
-          age_estimate: cat.age,
-          breed: cat.breed,
-          gender: cat.gender,
-          status: cat.status,
-          description: cat.description,
-          photos_urls: cat.images,
-        }));
-        
-        if (selectedStatus) {
-          const filteredMockCats = formattedMockCats.filter(cat => cat.status === selectedStatus);
-          setCats(filteredMockCats as Cat[]);
-        } else {
-          setCats(formattedMockCats as Cat[]);
-        }
-      } catch (mockError) {
-        console.error("Error loading mock data:", mockError);
-      }
+      // No fallback to mock data on error
+      setCats([]);
     } finally {
       setLoading(false);
     }
@@ -164,7 +121,7 @@ const Cats: React.FC = () => {
           </div>
         ) : error ? (
           <div className="text-center py-12">
-            <p className="text-red-500 mb-4">There was an issue loading the cats. Using backup data.</p>
+            <p className="text-red-500 mb-4">There was an issue loading the cats.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
               {filteredCats.map(cat => (
                 <CatCard

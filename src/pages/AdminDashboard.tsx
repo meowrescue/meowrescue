@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from './Admin';
@@ -137,19 +138,19 @@ const AdminDashboard: React.FC = () => {
     <AdminLayout title="Dashboard">
       <SEO title="Dashboard | Meow Rescue Admin" />
       
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-2">
-        <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-2">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Dashboard</h1>
         <div className="text-xs sm:text-sm text-gray-500">Last updated: {currentDate}</div>
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardHeader className="flex flex-row items-center justify-between p-3 sm:pb-2">
             <CardTitle className="text-sm font-medium">Total Donations</CardTitle>
             <DollarSign className="h-4 w-4 text-green-500" />
           </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-bold">
+          <CardContent className="p-3 pt-0">
+            <div className="text-lg sm:text-xl md:text-2xl font-bold">
               {isLoadingDonations ? (
                 <span className="text-gray-400">Loading...</span>
               ) : (
@@ -160,12 +161,12 @@ const AdminDashboard: React.FC = () => {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardHeader className="flex flex-row items-center justify-between p-3 sm:pb-2">
             <CardTitle className="text-sm font-medium">Adoptable Cats</CardTitle>
             <Cat className="h-4 w-4 text-meow-primary" />
           </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-bold">
+          <CardContent className="p-3 pt-0">
+            <div className="text-lg sm:text-xl md:text-2xl font-bold">
               {isLoadingCats ? (
                 <span className="text-gray-400">Loading...</span>
               ) : (
@@ -176,12 +177,12 @@ const AdminDashboard: React.FC = () => {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardHeader className="flex flex-row items-center justify-between p-3 sm:pb-2">
             <CardTitle className="text-sm font-medium">Registered Users</CardTitle>
             <Users className="h-4 w-4 text-blue-500" />
           </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-bold">
+          <CardContent className="p-3 pt-0">
+            <div className="text-lg sm:text-xl md:text-2xl font-bold">
               {isLoadingUsers ? (
                 <span className="text-gray-400">Loading...</span>
               ) : (
@@ -193,35 +194,35 @@ const AdminDashboard: React.FC = () => {
         </Card>
       </div>
       
-      <Tabs defaultValue="overview" className="w-full mb-8">
-        <TabsList className="w-full sm:w-auto flex overflow-x-auto pb-1 sm:pb-0 mb-2 sm:mb-0">
-          <TabsTrigger value="overview" className="flex-1 sm:flex-none">Overview</TabsTrigger>
-          <TabsTrigger value="donations" className="flex-1 sm:flex-none">Donations</TabsTrigger>
-          <TabsTrigger value="adoptions" className="flex-1 sm:flex-none">Adoptions</TabsTrigger>
-          <TabsTrigger value="activity" className="flex-1 sm:flex-none">Recent Activity</TabsTrigger>
+      <Tabs defaultValue="overview" className="w-full mb-4 sm:mb-6">
+        <TabsList className="w-full flex overflow-x-auto pb-1 mb-2 no-scrollbar">
+          <TabsTrigger value="overview" className="flex-1 text-xs sm:text-sm">Overview</TabsTrigger>
+          <TabsTrigger value="donations" className="flex-1 text-xs sm:text-sm">Donations</TabsTrigger>
+          <TabsTrigger value="adoptions" className="flex-1 text-xs sm:text-sm">Adoptions</TabsTrigger>
+          <TabsTrigger value="activity" className="flex-1 text-xs sm:text-sm">Recent Activity</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="overview" className="mt-4 sm:mt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <TabsContent value="overview" className="mt-3 sm:mt-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
             <Card className="col-span-1">
-              <CardHeader>
-                <CardTitle className="text-lg font-medium">Upcoming Events</CardTitle>
+              <CardHeader className="p-3 sm:p-4">
+                <CardTitle className="text-base sm:text-lg font-medium">Upcoming Events</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-3 sm:p-4 pt-0">
                 {isLoadingEvents ? (
                   <div className="flex justify-center py-4">
-                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-meow-primary"></div>
+                    <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-meow-primary"></div>
                   </div>
                 ) : events.length > 0 ? (
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     {events.map(event => (
-                      <div key={event.id} className="flex items-start gap-4">
-                        <div className="bg-gray-100 rounded p-2">
-                          <Calendar className="h-5 w-5" />
+                      <div key={event.id} className="flex items-start gap-3">
+                        <div className="bg-gray-100 rounded p-1 sm:p-2 flex-shrink-0">
+                          <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
                         </div>
-                        <div>
-                          <p className="font-medium">{event.title}</p>
-                          <p className="text-sm text-gray-500">
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm sm:text-base truncate">{event.title}</p>
+                          <p className="text-xs sm:text-sm text-gray-500 truncate">
                             {new Date(event.event_date_start).toLocaleDateString()} • 
                             {new Date(event.event_date_start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                           </p>
@@ -230,32 +231,32 @@ const AdminDashboard: React.FC = () => {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-center py-4 text-gray-500">No upcoming events</p>
+                  <p className="text-center py-3 text-gray-500 text-sm">No upcoming events</p>
                 )}
               </CardContent>
             </Card>
             
             <Card className="col-span-1">
-              <CardHeader>
-                <CardTitle className="text-lg font-medium">Recent Applications</CardTitle>
+              <CardHeader className="p-3 sm:p-4">
+                <CardTitle className="text-base sm:text-lg font-medium">Recent Applications</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-3 sm:p-4 pt-0">
                 {isLoadingApplications ? (
                   <div className="flex justify-center py-4">
-                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-meow-primary"></div>
+                    <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-meow-primary"></div>
                   </div>
                 ) : applications.length > 0 ? (
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     {applications.map(app => (
-                      <div key={app.id} className="flex items-start gap-4">
-                        <div className="bg-gray-100 rounded p-2">
-                          <FileText className="h-5 w-5" />
+                      <div key={app.id} className="flex items-start gap-3">
+                        <div className="bg-gray-100 rounded p-1 sm:p-2 flex-shrink-0">
+                          <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
                         </div>
-                        <div>
-                          <p className="font-medium">
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm sm:text-base truncate">
                             {app.profiles?.first_name} {app.profiles?.last_name}
                           </p>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-xs sm:text-sm text-gray-500 truncate">
                             Applied to adopt {app.cats?.name} • 
                             {new Date(app.submitted_at).toLocaleDateString()}
                           </p>
@@ -264,74 +265,74 @@ const AdminDashboard: React.FC = () => {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-center py-4 text-gray-500">No adoption applications yet</p>
+                  <p className="text-center py-3 text-gray-500 text-sm">No adoption applications yet</p>
                 )}
               </CardContent>
             </Card>
           </div>
         </TabsContent>
         
-        <TabsContent value="donations" className="mt-6">
+        <TabsContent value="donations" className="mt-3 sm:mt-4">
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-medium">Recent Donations</CardTitle>
+            <CardHeader className="p-3 sm:p-4">
+              <CardTitle className="text-base sm:text-lg font-medium">Recent Donations</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3 sm:p-4 pt-0">
               {isLoadingRecentDonations ? (
                 <div className="flex justify-center py-4">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-meow-primary"></div>
+                  <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-meow-primary"></div>
                 </div>
               ) : recentDonations.length > 0 ? (
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {recentDonations.map(donation => (
                     <div key={donation.id} className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="bg-green-100 text-green-600 rounded p-2">
-                          <DollarSign className="h-5 w-5" />
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="bg-green-100 text-green-600 rounded p-1 sm:p-2 flex-shrink-0">
+                          <DollarSign className="h-4 w-4 sm:h-5 sm:w-5" />
                         </div>
-                        <div>
-                          <p className="font-medium">
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm sm:text-base truncate">
                             {donation.profiles ? 
                               `${donation.profiles.first_name || ''} ${donation.profiles.last_name || ''}`.trim() : 
                               'Anonymous Donor'}
                           </p>
-                          <p className="text-sm text-gray-500">{new Date(donation.donation_date).toLocaleDateString()}</p>
+                          <p className="text-xs sm:text-sm text-gray-500 truncate">{new Date(donation.donation_date).toLocaleDateString()}</p>
                         </div>
                       </div>
-                      <div className="font-semibold">
+                      <div className="font-semibold text-sm sm:text-base">
                         ${parseFloat(donation.amount.toString()).toFixed(2)}
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-center py-4 text-gray-500">No donations received yet</p>
+                <p className="text-center py-3 text-gray-500 text-sm">No donations received yet</p>
               )}
             </CardContent>
           </Card>
         </TabsContent>
         
-        <TabsContent value="adoptions" className="mt-6">
+        <TabsContent value="adoptions" className="mt-3 sm:mt-4">
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-medium">Recent Adoptions</CardTitle>
+            <CardHeader className="p-3 sm:p-4">
+              <CardTitle className="text-base sm:text-lg font-medium">Recent Adoptions</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3 sm:p-4 pt-0">
               {isLoadingAdoptions ? (
                 <div className="flex justify-center py-4">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-meow-primary"></div>
+                  <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-meow-primary"></div>
                 </div>
               ) : adoptions.length > 0 ? (
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {adoptions.map(adoption => (
                     <div key={adoption.id} className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="bg-meow-primary/20 text-meow-primary rounded p-2">
-                          <Cat className="h-5 w-5" />
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="bg-meow-primary/20 text-meow-primary rounded p-1 sm:p-2 flex-shrink-0">
+                          <Cat className="h-4 w-4 sm:h-5 sm:w-5" />
                         </div>
-                        <div>
-                          <p className="font-medium">{adoption.cats?.name}</p>
-                          <p className="text-sm text-gray-500">
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm sm:text-base truncate">{adoption.cats?.name}</p>
+                          <p className="text-xs sm:text-sm text-gray-500 truncate">
                             Adopted • {adoption.adoption_date ? 
                               new Date(adoption.adoption_date).toLocaleDateString() : 
                               'Date not recorded'}
@@ -342,36 +343,36 @@ const AdminDashboard: React.FC = () => {
                   ))}
                 </div>
               ) : (
-                <p className="text-center py-4 text-gray-500">No adoptions recorded yet</p>
+                <p className="text-center py-3 text-gray-500 text-sm">No adoptions recorded yet</p>
               )}
             </CardContent>
           </Card>
         </TabsContent>
         
-        <TabsContent value="activity" className="mt-6">
+        <TabsContent value="activity" className="mt-3 sm:mt-4">
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-medium">Recent Activity</CardTitle>
+            <CardHeader className="p-3 sm:p-4">
+              <CardTitle className="text-base sm:text-lg font-medium">Recent Activity</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3 sm:p-4 pt-0">
               {isLoadingUsers || isLoadingDonations || isLoadingLostFound ? (
                 <div className="flex justify-center py-4">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-meow-primary"></div>
+                  <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-meow-primary"></div>
                 </div>
               ) : (
                 <div className="relative">
-                  <div className="absolute left-4 top-0 bottom-0 w-px bg-gray-200"></div>
-                  <div className="space-y-6">
+                  <div className="absolute left-3 sm:left-4 top-0 bottom-0 w-px bg-gray-200"></div>
+                  <div className="space-y-4 sm:space-y-6">
                     {recentDonations.length > 0 && (
-                      <div className="flex gap-4">
-                        <div className="relative z-10 mt-1">
+                      <div className="flex gap-3 sm:gap-4">
+                        <div className="relative z-10 mt-1 flex-shrink-0">
                           <div className="bg-green-500 text-white rounded-full p-1">
-                            <DollarSign className="h-4 w-4" />
+                            <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
                           </div>
                         </div>
-                        <div>
-                          <p className="font-medium">Donation received</p>
-                          <p className="text-sm text-gray-500">
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm sm:text-base">Donation received</p>
+                          <p className="text-xs sm:text-sm text-gray-500 truncate">
                             {recentDonations[0].profiles ? 
                               `${recentDonations[0].profiles.first_name || ''} ${recentDonations[0].profiles.last_name || ''}`.trim() : 
                               'Anonymous donor'} • 
@@ -383,15 +384,15 @@ const AdminDashboard: React.FC = () => {
                     )}
                     
                     {lostFoundPosts.length > 0 && (
-                      <div className="flex gap-4">
-                        <div className="relative z-10 mt-1">
+                      <div className="flex gap-3 sm:gap-4">
+                        <div className="relative z-10 mt-1 flex-shrink-0">
                           <div className="bg-amber-500 text-white rounded-full p-1">
-                            <Search className="h-4 w-4" />
+                            <Search className="h-3 w-3 sm:h-4 sm:w-4" />
                           </div>
                         </div>
-                        <div>
-                          <p className="font-medium">New {lostFoundPosts[0].status} pet report</p>
-                          <p className="text-sm text-gray-500">
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm sm:text-base">New {lostFoundPosts[0].status} pet report</p>
+                          <p className="text-xs sm:text-sm text-gray-500 truncate">
                             {lostFoundPosts[0].title} • {lostFoundPosts[0].location} • 
                             {new Date(lostFoundPosts[0].created_at).toLocaleDateString()}
                           </p>
@@ -400,15 +401,15 @@ const AdminDashboard: React.FC = () => {
                     )}
                     
                     {applications.length > 0 && (
-                      <div className="flex gap-4">
-                        <div className="relative z-10 mt-1">
+                      <div className="flex gap-3 sm:gap-4">
+                        <div className="relative z-10 mt-1 flex-shrink-0">
                           <div className="bg-blue-500 text-white rounded-full p-1">
-                            <Users className="h-4 w-4" />
+                            <Users className="h-3 w-3 sm:h-4 sm:w-4" />
                           </div>
                         </div>
-                        <div>
-                          <p className="font-medium">New adoption application</p>
-                          <p className="text-sm text-gray-500">
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm sm:text-base">New adoption application</p>
+                          <p className="text-xs sm:text-sm text-gray-500 truncate">
                             For {applications[0].cats?.name} • 
                             {new Date(applications[0].submitted_at).toLocaleDateString()}
                           </p>
@@ -417,7 +418,7 @@ const AdminDashboard: React.FC = () => {
                     )}
 
                     {applications.length === 0 && recentDonations.length === 0 && lostFoundPosts.length === 0 && (
-                      <p className="text-center py-4 text-gray-500">No recent activity</p>
+                      <p className="text-center py-3 text-gray-500 text-sm">No recent activity</p>
                     )}
                   </div>
                 </div>

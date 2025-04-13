@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -31,9 +32,6 @@ import NotFound from "./pages/NotFound";
 import LostFound from "./pages/LostFound";
 import LostFoundDetail from "./pages/LostFoundDetail";
 import LostFoundForm from "./pages/LostFoundForm";
-import Forum from "./pages/Forum";
-import ForumPost from "./pages/ForumPost";
-import ForumPostForm from "./pages/ForumPostForm";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminCats from "./pages/AdminCats";
 import AdminCatForm from "./pages/AdminCatForm";
@@ -41,7 +39,6 @@ import AdminBlog from "./pages/AdminBlog";
 import AdminBlogForm from "./pages/AdminBlogForm";
 import AdminUsers from "./pages/AdminUsers";
 import AdminFinance from "./pages/AdminFinance";
-import AdminForum from "./pages/AdminForum";
 import AdminPages from "./pages/AdminPages";
 import AdminEvents from "./pages/AdminEvents";
 import AdminLostFound from "./pages/AdminLostFound";
@@ -100,20 +97,6 @@ const App = () => (
                 </ProtectedRoute>
               } />
               
-              {/* Community Forum Routes */}
-              <Route path="/forum" element={<Forum />} />
-              <Route path="/forum/:id" element={<ForumPost />} />
-              <Route path="/forum/new" element={
-                <ProtectedRoute>
-                  <ForumPostForm />
-                </ProtectedRoute>
-              } />
-              <Route path="/forum/edit/:id" element={
-                <ProtectedRoute>
-                  <ForumPostForm />
-                </ProtectedRoute>
-              } />
-              
               {/* Admin Routes */}
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/cats" element={<AdminCats />} />
@@ -121,7 +104,6 @@ const App = () => (
               <Route path="/admin/cats/edit/:id" element={<AdminCatForm />} />
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/finance" element={<AdminFinance />} />
-              <Route path="/admin/forum" element={<AdminForum />} />
               <Route path="/admin/pages" element={<AdminPages />} />
               <Route path="/admin/blog" element={<AdminBlog />} />
               <Route path="/admin/blog/new" element={<AdminBlogForm />} />
