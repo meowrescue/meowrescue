@@ -1,133 +1,185 @@
 
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import Layout from '../components/Layout';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { 
-  Form, 
-  FormControl, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
-} from "@/components/ui/form";
-import SectionHeading from '../components/ui/SectionHeading';
-import { toast } from "@/hooks/use-toast";
+import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import Layout from '@/components/Layout';
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 
-// Create schema validation for password reset form
-const resetPasswordSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
+// Form schemas
+const requestResetSchema = z.object({
+  email: z.string().email({ message: 'Please enter a valid email address' }),
 });
 
-type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
+const confirmResetSchema = z.object({
+  password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
+  confirmPassword: z.string().min(6, { message: 'Confirm password is required' }),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
+
+type RequestResetFormValues = z.infer<typeof requestResetSchema>;
+type ConfirmResetFormValues = z.infer<typeof confirmResetSchema>;
 
 const ResetPassword: React.FC = () => {
-  const [submitted, setSubmitted] = React.useState(false);
-  
-  const form = useForm<ResetPasswordFormValues>({
-    resolver: zodResolver(resetPasswordSchema),
+  const { resetPassword, updatePassword, isLoading } = useAuth();
+  const [isResetMode, setIsResetMode] = useState(false);
+  const location = useLocation();
+
+  // Check if the URL contains the reset token
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.has('type') && searchParams.get('type') === 'recovery') {
+      setIsResetMode(true);
+    }
+  }, [location]);
+
+  const requestForm = useForm<RequestResetFormValues>({
+    resolver: zodResolver(requestResetSchema),
     defaultValues: {
       email: '',
     },
   });
 
-  const onSubmit = async (data: ResetPasswordFormValues) => {
-    try {
-      // This would be replaced with actual Supabase password reset
-      console.log('Requesting password reset for:', data);
-      
-      // In a real implementation with Supabase, you would include:
-      // const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-      //   redirectTo: 'https://yourdomain.com/update-password',
-      // });
-      // 
-      // if (error) throw error;
-      
-      // Show success message
-      toast({
-        title: "Reset Email Sent",
-        description: "If an account exists with this email, you'll receive reset instructions.",
-      });
+  const confirmForm = useForm<ConfirmResetFormValues>({
+    resolver: zodResolver(confirmResetSchema),
+    defaultValues: {
+      password: '',
+      confirmPassword: '',
+    },
+  });
 
-      setSubmitted(true);
-    } catch (error) {
-      console.error('Password reset error:', error);
-      toast({
-        title: "Request Failed",
-        description: "An error occurred. Please try again later.",
-        variant: "destructive",
-      });
-    }
+  const onRequestReset = async (values: RequestResetFormValues) => {
+    await resetPassword(values.email);
+  };
+
+  const onConfirmReset = async (values: ConfirmResetFormValues) => {
+    await updatePassword(values.password);
   };
 
   return (
     <Layout>
-      <div className="py-12 md:py-16">
-        <div className="container mx-auto px-4">
-          <SectionHeading 
-            title="Reset Your Password" 
-            subtitle="We'll send you instructions to reset your password"
-            centered
-          />
-          
-          <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
-            {submitted ? (
-              <div className="text-center">
-                <div className="mb-4 text-meow-primary">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Check Your Email</h3>
-                <p className="text-gray-600 mb-4">
-                  We've sent instructions to reset your password. Please check your email inbox.
-                </p>
-                <p className="text-sm text-gray-500">
-                  Didn't receive an email? Check your spam folder or{' '}
-                  <button 
-                    onClick={() => setSubmitted(false)} 
-                    className="text-meow-primary hover:underline"
-                  >
-                    try again
-                  </button>
-                </p>
-              </div>
-            ) : (
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input placeholder="your.email@example.com" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <Button type="submit" className="w-full bg-meow-primary hover:bg-meow-primary/90">
-                    Send Reset Instructions
-                  </Button>
-                </form>
-              </Form>
-            )}
-            
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
-                <Link to="/login" className="text-meow-primary hover:underline">
-                  Back to Login
-                </Link>
-              </p>
-            </div>
+      <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
+          <div>
+            <h1 className="text-center text-3xl font-extrabold text-meow-primary">
+              {isResetMode ? 'Set New Password' : 'Reset Your Password'}
+            </h1>
+            <p className="mt-2 text-center text-sm text-gray-600">
+              Remember your password?{' '}
+              <Link to="/login" className="font-medium text-meow-secondary hover:text-meow-secondary/80">
+                Sign in
+              </Link>
+            </p>
           </div>
+
+          {!isResetMode ? (
+            <Form {...requestForm}>
+              <form onSubmit={requestForm.handleSubmit(onRequestReset)} className="space-y-6">
+                <FormField
+                  control={requestForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="you@example.com" 
+                          {...field} 
+                          disabled={isLoading}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Button
+                  type="submit"
+                  className="w-full bg-meow-primary hover:bg-meow-primary/90"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <div className="flex items-center">
+                      <span className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                      Sending reset link...
+                    </div>
+                  ) : (
+                    'Send reset link'
+                  )}
+                </Button>
+              </form>
+            </Form>
+          ) : (
+            <Form {...confirmForm}>
+              <form onSubmit={confirmForm.handleSubmit(onConfirmReset)} className="space-y-6">
+                <FormField
+                  control={confirmForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>New Password</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="password" 
+                          placeholder="••••••••" 
+                          {...field} 
+                          disabled={isLoading}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={confirmForm.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirm New Password</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="password" 
+                          placeholder="••••••••" 
+                          {...field} 
+                          disabled={isLoading}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Button
+                  type="submit"
+                  className="w-full bg-meow-primary hover:bg-meow-primary/90"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <div className="flex items-center">
+                      <span className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                      Updating password...
+                    </div>
+                  ) : (
+                    'Update password'
+                  )}
+                </Button>
+              </form>
+            </Form>
+          )}
         </div>
       </div>
     </Layout>

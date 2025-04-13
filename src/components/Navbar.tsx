@@ -2,10 +2,12 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Menu, X, Heart, Users, Home, Info, Calendar, BookOpen, Phone, Cat } from 'lucide-react';
+import { Menu, X, Heart, Users, Home, Info, Calendar, BookOpen, Phone, Cat, LogOut, User } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, signOut } = useAuth();
   
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -51,9 +53,28 @@ const Navbar: React.FC = () => {
           
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center space-x-2">
-            <Button asChild variant="outline" className="hover:bg-meow-primary/10 hover:text-meow-primary">
-              <Link to="/login" onClick={handleLinkClick}>Login</Link>
-            </Button>
+            {user ? (
+              <>
+                <Button asChild variant="outline" className="hover:bg-meow-primary/10 hover:text-meow-primary">
+                  <Link to="/profile" onClick={handleLinkClick}>
+                    <User size={16} className="mr-2" />
+                    Profile
+                  </Link>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="hover:bg-meow-primary/10 hover:text-meow-primary"
+                  onClick={signOut}
+                >
+                  <LogOut size={16} className="mr-2" />
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <Button asChild variant="outline" className="hover:bg-meow-primary/10 hover:text-meow-primary">
+                <Link to="/login" onClick={handleLinkClick}>Login</Link>
+              </Button>
+            )}
             <Button asChild className="bg-meow-secondary hover:bg-meow-secondary/90 text-white">
               <Link to="/donate" onClick={handleLinkClick}>Donate Now</Link>
             </Button>
@@ -80,7 +101,25 @@ const Navbar: React.FC = () => {
             <MobileNavLink to="/events" icon={<Calendar size={18} />} onClick={handleLinkClick}>Events</MobileNavLink>
             <MobileNavLink to="/resources" icon={<BookOpen size={18} />} onClick={handleLinkClick}>Resources</MobileNavLink>
             <MobileNavLink to="/contact" icon={<Phone size={18} />} onClick={handleLinkClick}>Contact</MobileNavLink>
-            <MobileNavLink to="/login" icon={<Users size={18} />} onClick={handleLinkClick}>Login</MobileNavLink>
+            
+            {user ? (
+              <>
+                <MobileNavLink to="/profile" icon={<User size={18} />} onClick={handleLinkClick}>Profile</MobileNavLink>
+                <div 
+                  className="px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 flex items-center space-x-2 cursor-pointer"
+                  onClick={() => {
+                    signOut();
+                    handleLinkClick();
+                  }}
+                >
+                  <LogOut size={18} />
+                  <span>Logout</span>
+                </div>
+              </>
+            ) : (
+              <MobileNavLink to="/login" icon={<User size={18} />} onClick={handleLinkClick}>Login</MobileNavLink>
+            )}
+            
             <div className="pt-2">
               <Button asChild className="w-full bg-meow-secondary hover:bg-meow-secondary/90 text-white">
                 <Link to="/donate" onClick={handleLinkClick}>Donate Now</Link>
