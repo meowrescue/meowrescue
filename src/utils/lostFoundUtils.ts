@@ -18,11 +18,11 @@ export const getStatusBadgeClass = (status: string): string => {
 export const getStatusIcon = (status: string): React.ReactNode => {
   switch (status) {
     case "lost":
-      return <AlertCircle size={16} strokeWidth={2} />;
+      return React.createElement(AlertCircle, { size: 16, strokeWidth: 2 });
     case "found":
-      return <Search size={16} strokeWidth={2} />;
+      return React.createElement(Search, { size: 16, strokeWidth: 2 });
     case "reunited":
-      return <CheckCircle size={16} strokeWidth={2} />;
+      return React.createElement(CheckCircle, { size: 16, strokeWidth: 2 });
     default:
       return null;
   }
