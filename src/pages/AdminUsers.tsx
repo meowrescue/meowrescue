@@ -61,7 +61,7 @@ const AdminUsers: React.FC = () => {
             
             try {
               const { data: statusData, error: statusError } = await supabase
-                .rpc('get_user_status', { user_id: profile.id });
+                .rpc('get_user_status', { user_id: profile.id }) as {data: boolean | null, error: Error | null};
                 
               // If data is returned and not null, use it
               if (statusData !== null) {
@@ -119,7 +119,7 @@ const AdminUsers: React.FC = () => {
         .rpc('update_user_status', { 
           p_user_id: editingUser.id, 
           p_is_active: editingUser.is_active 
-        });
+        }) as {data: null, error: Error | null};
 
       if (statusError) {
         console.error("Error updating active status:", statusError);
@@ -149,7 +149,7 @@ const AdminUsers: React.FC = () => {
         .rpc('update_user_status', {
           p_user_id: user.id,
           p_is_active: newStatus
-        });
+        }) as {data: null, error: Error | null};
 
       if (error) throw error;
 

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -54,11 +55,11 @@ const AdminApplications: React.FC = () => {
           .rpc('get_applications', {
             p_status: statusFilter,
             p_type: typeFilter
-          });
+          }) as {data: Application[] | null, error: Error | null};
         
         if (error) throw error;
         
-        return data as Application[];
+        return (data as Application[]) || [];
       } catch (err) {
         console.error('Error fetching applications:', err);
         throw err;
@@ -83,7 +84,7 @@ const AdminApplications: React.FC = () => {
           p_application_id: viewingApplication.id,
           p_status: newStatus,
           p_feedback: feedback
-        });
+        }) as {data: null, error: Error | null};
         
       if (error) throw error;
       

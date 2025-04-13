@@ -75,7 +75,7 @@ const VolunteerForm: React.FC = () => {
           p_application_type: applicationType,
           p_status: 'pending',
           p_form_data: data
-        });
+        }) as {data: any, error: Error | null};
         
       if (error) throw error;
       
