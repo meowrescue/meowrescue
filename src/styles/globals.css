@@ -166,3 +166,14 @@ input, select, textarea {
 html {
   scroll-behavior: smooth;
 }
+
+/* Ensure dropdown menus have proper styling */
+[data-radix-popper-content-wrapper] {
+  @apply bg-white !important;
+  z-index: 50 !important;
+}
+
+/* Fix for select dropdown visibility */
+.select-content {
+  @apply bg-white border rounded-md shadow-md z-50;
+}
