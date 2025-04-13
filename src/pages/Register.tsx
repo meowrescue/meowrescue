@@ -50,7 +50,7 @@ const Register: React.FC = () => {
   });
 
   const onSubmit = async (values: RegisterFormValues) => {
-    // Pass first and last name as metadata object instead of separate parameters
+    // Pass first and last name as metadata object
     await signUp(values.email, values.password, {
       first_name: values.firstName,
       last_name: values.lastName
@@ -83,17 +83,12 @@ const Register: React.FC = () => {
                     <FormItem>
                       <FormLabel>First Name</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="John" 
-                          {...field} 
-                          disabled={isLoading}
-                        />
+                        <Input placeholder="John" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="lastName"
@@ -101,11 +96,7 @@ const Register: React.FC = () => {
                     <FormItem>
                       <FormLabel>Last Name</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="Doe" 
-                          {...field} 
-                          disabled={isLoading}
-                        />
+                        <Input placeholder="Doe" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -118,12 +109,12 @@ const Register: React.FC = () => {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Email Address</FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="you@example.com" 
+                        type="email" 
+                        placeholder="your.email@example.com" 
                         {...field} 
-                        disabled={isLoading}
                       />
                     </FormControl>
                     <FormMessage />
@@ -140,9 +131,8 @@ const Register: React.FC = () => {
                     <FormControl>
                       <Input 
                         type="password" 
-                        placeholder="••••••••" 
+                        placeholder="Create a secure password" 
                         {...field} 
-                        disabled={isLoading}
                       />
                     </FormControl>
                     <FormMessage />
@@ -159,9 +149,8 @@ const Register: React.FC = () => {
                     <FormControl>
                       <Input 
                         type="password" 
-                        placeholder="••••••••" 
+                        placeholder="Confirm your password" 
                         {...field} 
-                        disabled={isLoading}
                       />
                     </FormControl>
                     <FormMessage />
@@ -169,19 +158,12 @@ const Register: React.FC = () => {
                 )}
               />
 
-              <Button
-                type="submit"
-                className="w-full bg-meow-primary hover:bg-meow-primary/90"
+              <Button 
+                type="submit" 
+                className="w-full" 
                 disabled={isLoading}
               >
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <span className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
-                    Creating account...
-                  </div>
-                ) : (
-                  'Create account'
-                )}
+                {isLoading ? 'Registering...' : 'Register'}
               </Button>
             </form>
           </Form>

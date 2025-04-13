@@ -1,9 +1,9 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Link, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
@@ -16,13 +16,9 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
 
-// Form schemas
-const requestResetSchema = z.object({
-  email: z.string().email({ message: 'Please enter a valid email address' }),
-});
-
-const confirmResetSchema = z.object({
+const resetSchema = z.object({
   password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
   confirmPassword: z.string().min(6, { message: 'Confirm password is required' }),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -30,43 +26,38 @@ const confirmResetSchema = z.object({
   path: ["confirmPassword"],
 });
 
-type RequestResetFormValues = z.infer<typeof requestResetSchema>;
-type ConfirmResetFormValues = z.infer<typeof confirmResetSchema>;
+type ResetFormValues = z.infer<typeof resetSchema>;
 
 const ResetPassword: React.FC = () => {
-  const { resetPassword, updatePassword, isLoading } = useAuth();
-  const [isResetMode, setIsResetMode] = useState(false);
-  const location = useLocation();
+  const { updatePassword, isLoading } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
-  // Check if the URL contains the reset token
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    if (searchParams.has('type') && searchParams.get('type') === 'recovery') {
-      setIsResetMode(true);
-    }
-  }, [location]);
-
-  const requestForm = useForm<RequestResetFormValues>({
-    resolver: zodResolver(requestResetSchema),
-    defaultValues: {
-      email: '',
-    },
-  });
-
-  const confirmForm = useForm<ConfirmResetFormValues>({
-    resolver: zodResolver(confirmResetSchema),
+  const form = useForm<ResetFormValues>({
+    resolver: zodResolver(resetSchema),
     defaultValues: {
       password: '',
       confirmPassword: '',
     },
   });
 
-  const onRequestReset = async (values: RequestResetFormValues) => {
-    await resetPassword(values.email);
-  };
-
-  const onConfirmReset = async (values: ConfirmResetFormValues) => {
-    await updatePassword(values.password);
+  const onSubmit = async (values: ResetFormValues) => {
+    try {
+      await updatePassword(values.password);
+      
+      toast({
+        title: "Password updated",
+        description: "Your password has been reset successfully.",
+      });
+      
+      navigate('/login');
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to reset password",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -75,111 +66,60 @@ const ResetPassword: React.FC = () => {
         <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
           <div>
             <h1 className="text-center text-3xl font-extrabold text-meow-primary">
-              {isResetMode ? 'Set New Password' : 'Reset Your Password'}
+              Reset Your Password
             </h1>
             <p className="mt-2 text-center text-sm text-gray-600">
-              Remember your password?{' '}
-              <Link to="/login" className="font-medium text-meow-secondary hover:text-meow-secondary/80">
-                Sign in
-              </Link>
+              Enter your new password below
             </p>
           </div>
 
-          {!isResetMode ? (
-            <Form {...requestForm}>
-              <form onSubmit={requestForm.handleSubmit(onRequestReset)} className="space-y-6">
-                <FormField
-                  control={requestForm.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="you@example.com" 
-                          {...field} 
-                          disabled={isLoading}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>New Password</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="password" 
+                        placeholder="Create a new password" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <Button
-                  type="submit"
-                  className="w-full bg-meow-primary hover:bg-meow-primary/90"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <div className="flex items-center">
-                      <span className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
-                      Sending reset link...
-                    </div>
-                  ) : (
-                    'Send reset link'
-                  )}
-                </Button>
-              </form>
-            </Form>
-          ) : (
-            <Form {...confirmForm}>
-              <form onSubmit={confirmForm.handleSubmit(onConfirmReset)} className="space-y-6">
-                <FormField
-                  control={confirmForm.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>New Password</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="password" 
-                          placeholder="••••••••" 
-                          {...field} 
-                          disabled={isLoading}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm Password</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="password" 
+                        placeholder="Confirm your new password" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={confirmForm.control}
-                  name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Confirm New Password</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="password" 
-                          placeholder="••••••••" 
-                          {...field} 
-                          disabled={isLoading}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <Button
-                  type="submit"
-                  className="w-full bg-meow-primary hover:bg-meow-primary/90"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <div className="flex items-center">
-                      <span className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
-                      Updating password...
-                    </div>
-                  ) : (
-                    'Update password'
-                  )}
-                </Button>
-              </form>
-            </Form>
-          )}
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={isLoading}
+              >
+                {isLoading ? 'Updating Password...' : 'Reset Password'}
+              </Button>
+            </form>
+          </Form>
         </div>
       </div>
     </Layout>
