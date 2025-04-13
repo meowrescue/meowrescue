@@ -1,0 +1,106 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --meow-primary: #9b87f5;
+  --meow-secondary: #7E69AB;
+  --meow-tertiary: #6E59A5;
+}
+
+body {
+  background-color: #f7f8fc;
+}
+
+/* Increased spacing between sections */
+section {
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+  margin-bottom: 2rem;
+}
+
+.section-divider {
+  margin-top: 5rem;
+  margin-bottom: 5rem;
+  border-color: #e5e7eb;
+  opacity: 0.5;
+}
+
+.site-header {
+  background-color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+/* Card hover effects */
+.hover-card-effect {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-card-effect:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Consistent section heading styles */
+.section-heading {
+  margin-bottom: 3rem;
+}
+
+/* Custom button styles */
+.btn-meow {
+  @apply bg-gradient-to-r from-meow-primary to-meow-secondary text-white;
+}
+
+/* Admin layout styles */
+.admin-layout {
+  min-height: 100vh;
+  display: flex;
+}
+
+.admin-sidebar {
+  width: 260px;
+  transition: width 0.3s ease;
+}
+
+.admin-sidebar.collapsed {
+  width: 80px;
+}
+
+.admin-main {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Custom map styles for contact page */
+#google-map {
+  border-radius: 0 0 0.5rem 0.5rem;
+}
+
+/* Custom spacing for card sections */
+.card-section + .card-section {
+  margin-top: 3rem;
+}
+
+/* Consistent card styles */
+.custom-card {
+  @apply rounded-lg shadow-md overflow-hidden bg-white border border-gray-100;
+}
+
+/* Override styles for Mobile */
+@media (max-width: 768px) {
+  section {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .section-divider {
+    margin-top: 3rem;
+    margin-bottom: 3rem;
+  }
+  
+  .section-heading {
+    margin-bottom: 2rem;
+  }
+}

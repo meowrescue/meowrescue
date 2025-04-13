@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import Layout from '@/components/Layout';
@@ -67,14 +68,16 @@ const VolunteerForm: React.FC = () => {
         applicationType = 'volunteer+foster';
       }
       
-      // Save the application to the database using raw SQL insert
-      // This is because the "applications" table might not be in the TypeScript types yet
-      const { error } = await supabase.rpc('insert_application', {
-        p_applicant_id: user?.id,
-        p_application_type: applicationType,
-        p_form_data: data,
-        p_status: 'pending'
-      });
+      // Use the stored procedure to insert the application
+      const { data: newId, error } = await supabase.rpc(
+        'insert_application',
+        {
+          p_applicant_id: user?.id,
+          p_application_type: applicationType,
+          p_form_data: data,
+          p_status: 'pending'
+        }
+      );
       
       if (error) {
         // Fallback method if RPC is not available
@@ -83,7 +86,7 @@ const VolunteerForm: React.FC = () => {
           application_type: applicationType,
           form_data: data,
           status: 'pending'
-        } as any);
+        });
         
         if (insertError) throw insertError;
       }

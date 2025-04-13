@@ -1,5 +1,5 @@
 
--- Stored procedure to insert application
+-- Update the stored procedure to properly insert applications
 CREATE OR REPLACE FUNCTION public.insert_application(
   p_applicant_id UUID,
   p_application_type TEXT,

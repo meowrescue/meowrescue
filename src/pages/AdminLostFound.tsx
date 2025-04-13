@@ -55,11 +55,25 @@ const AdminLostFound: React.FC = () => {
       try {
         const { data, error } = await supabase
           .from('lost_found_posts')
-          .select('*, profiles(*)')
+          .select(`
+            *,
+            profiles(email, first_name, last_name)
+          `)
           .order('created_at', { ascending: false });
           
         if (error) throw error;
-        return data as LostFoundPost[];
+        
+        // Check if we got a valid result and convert to appropriate type
+        const typedData = data?.map(post => ({
+          ...post,
+          profiles: post.profiles || {
+            email: 'Unknown',
+            first_name: null,
+            last_name: null
+          }
+        })) as LostFoundPost[];
+        
+        return typedData;
       } catch (err: any) {
         console.error("Error fetching lost and found posts:", err);
         toast({

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -34,24 +33,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Search, Filter, Eye, CheckCircle, XCircle } from 'lucide-react';
-
-interface Application {
-  id: string;
-  applicant_id: string;
-  application_type: 'adoption' | 'foster' | 'volunteer';
-  status: 'pending' | 'approved' | 'denied';
-  form_data: any;
-  created_at: string;
-  updated_at: string;
-  reviewed_at: string | null;
-  reviewer_id: string | null;
-  feedback: string | null;
-  profiles?: {
-    email: string;
-    first_name: string | null;
-    last_name: string | null;
-  };
-}
+import { Application } from '@/types/applications';
 
 const AdminApplications: React.FC = () => {
   const { toast } = useToast();
@@ -67,11 +49,14 @@ const AdminApplications: React.FC = () => {
     queryKey: ['applications', statusFilter, typeFilter],
     queryFn: async () => {
       try {
-        let query = supabase
-          .from('applications')
-          .select('*, profiles:applicant_id(*)')
-          .order('created_at', { ascending: false });
-          
+        let query = supabase.from('applications');
+        
+        // Add select with join to get applicant information
+        query = query.select(`
+          *,
+          profiles:applicant_id(email, first_name, last_name)
+        `);
+        
         if (statusFilter) {
           query = query.eq('status', statusFilter);
         }
@@ -80,14 +65,13 @@ const AdminApplications: React.FC = () => {
           query = query.eq('application_type', typeFilter);
         }
         
+        query = query.order('created_at', { ascending: false });
+        
         const { data, error } = await query;
         
         if (error) throw error;
         
-        return (data as any[]).map(app => ({
-          ...app,
-          profiles: app.profiles
-        })) as Application[];
+        return data as Application[];
       } catch (err) {
         console.error('Error fetching applications:', err);
         throw err;
@@ -142,7 +126,7 @@ const AdminApplications: React.FC = () => {
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-      case 'approved': return 'default'; // Changed from 'success' to 'default'
+      case 'approved': return 'default';
       case 'denied': return 'destructive';
       default: return 'secondary';
     }

@@ -1,265 +1,156 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Search, Edit, UserCog, Shield, UserX, Check } from 'lucide-react';
+import { 
+  Table, 
+  TableBody, 
+  TableCaption, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { 
   Dialog, 
   DialogContent, 
   DialogDescription, 
   DialogFooter, 
   DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
+  DialogTitle,
+  DialogClose
 } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
-import { CheckCheck, User, UserPlus, UserRoundCog, LockIcon, UnlockIcon } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import SEO from '@/components/SEO';
-import { Switch } from '@/components/ui/switch';
-
-interface User {
-  id: string;
-  email: string;
-  first_name: string | null;
-  last_name: string | null;
-  role: "user" | "admin" | "volunteer" | "foster";
-  created_at: string;
-  updated_at: string;
-  is_active: boolean;
-}
+import { User } from '@/types/users';
 
 const AdminUsers: React.FC = () => {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [isCreateUserOpen, setIsCreateUserOpen] = useState(false);
-  const [newUserEmail, setNewUserEmail] = useState('');
-  const [newUserRole, setNewUserRole] = useState<'user' | 'admin' | 'volunteer' | 'foster'>('user');
-  
-  // Fetch users
-  const { data: users, isLoading, error, refetch: refetchUsers } = useQuery({
+  const [newRole, setNewRole] = useState<string>('');
+  const [newEmail, setNewEmail] = useState<string>('');
+
+  // Query to get users from profiles table
+  const { data: users, isLoading, error, refetch } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('*')
-          .order('created_at', { ascending: false });
+          .select('*');
         
         if (error) throw error;
-        return data as User[];
-      } catch (error) {
-        console.error("Error fetching users:", error);
-        return [];
+        
+        // Cast the data to include is_active with a default of true if it doesn't exist
+        return data.map(user => ({
+          ...user,
+          is_active: user.is_active !== undefined ? user.is_active : true
+        })) as User[];
+      } catch (err: any) {
+        console.error("Error fetching users:", err);
+        throw err;
       }
     }
   });
-  
+
   // Filter users based on search query
-  const filteredUsers = users?.filter(user =>
+  const filteredUsers = users?.filter(user => 
     user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (user.first_name && user.first_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (user.last_name && user.last_name.toLowerCase().includes(searchQuery.toLowerCase()))
   );
-  
-  // Handle edit user
+
   const handleEditUser = (user: User) => {
     setEditingUser(user);
+    setNewRole(user.role);
+    setNewEmail(user.email);
   };
-  
-  // Handle cancel edit
-  const handleCancelEdit = () => {
-    setEditingUser(null);
-  };
-  
-  // Handle toggle user active state
-  const handleToggleUserActive = async (user: User) => {
+
+  const handleUpdateUser = async () => {
+    if (!editingUser) return;
+
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ is_active: !user.is_active })
-        .eq('id', user.id);
-        
+        .update({ 
+          role: newRole,
+          email: newEmail
+        })
+        .eq('id', editingUser.id);
+
       if (error) throw error;
-      
+
       toast({
-        title: user.is_active ? 'User Disabled' : 'User Enabled',
-        description: user.is_active ? 
-          'User has been disabled and can no longer log in.' : 
-          'User has been enabled and can now log in.'
+        title: "User Updated",
+        description: `User role has been updated to ${newRole}.`,
       });
-      
-      refetchUsers();
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to update user status.',
-        variant: 'destructive'
-      });
-    }
-  };
-  
-  // Modify the handleUpdateUser function to ensure type safety
-  const handleUpdateUser = async (user: Partial<User>) => {
-    try {
-      // Ensure role is properly typed
-      const userToUpdate = { 
-        ...user, 
-        role: user.role as "user" | "admin" | "volunteer" | "foster" 
-      };
-      
-      const { error } = await supabase
-        .from('profiles')
-        .update(userToUpdate)
-        .eq('id', user.id as string);
-        
-      if (error) throw error;
-      
-      toast({
-        title: 'User Updated',
-        description: 'User information has been updated successfully.'
-      });
-      
+
+      refetch();
       setEditingUser(null);
-      refetchUsers();
-    } catch (error: any) {
+    } catch (err: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to update user.',
-        variant: 'destructive'
+        title: "Error",
+        description: err.message || "Failed to update user role.",
+        variant: "destructive",
       });
     }
   };
-  
-  // Handle create user
-  const handleCreateUser = async () => {
+
+  const toggleUserStatus = async (user: User) => {
     try {
-      // Create user in Supabase Auth
-      const { data, error } = await supabase.auth.signUp({
-        email: newUserEmail,
-        password: 'defaultpassword', // You might want to generate a random password
-        options: {
-          data: {
-            role: newUserRole,
-          }
-        }
-      });
+      const newStatus = !user.is_active;
       
-      if (error) throw error;
-      
-      // Create user profile in 'profiles' table
-      const { error: profileError } = await supabase
+      const { error } = await supabase
         .from('profiles')
-        .insert([
-          { 
-            id: data.user?.id,
-            email: newUserEmail, 
-            role: newUserRole,
-            is_active: true
-          }
-        ]);
-      
-      if (profileError) throw profileError;
-      
+        .update({ is_active: newStatus })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
       toast({
-        title: 'User Created',
-        description: 'New user has been created successfully.'
+        title: newStatus ? "User Enabled" : "User Disabled",
+        description: `User has been ${newStatus ? "enabled" : "disabled"} successfully.`,
       });
-      
-      setIsCreateUserOpen(false);
-      setNewUserEmail('');
-      setNewUserRole('user');
-      refetchUsers();
-    } catch (error: any) {
+
+      refetch();
+    } catch (err: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to create user.',
-        variant: 'destructive'
+        title: "Error",
+        description: err.message || "Failed to update user status.",
+        variant: "destructive",
       });
     }
   };
 
   return (
-    <AdminLayout title="Users">
-      <SEO title="Users | Meow Rescue Admin" />
+    <AdminLayout title="User Management">
+      <SEO title="User Management | Meow Rescue Admin" />
       
       <div className="container mx-auto py-10">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-meow-primary">Users</h1>
-          <Dialog open={isCreateUserOpen} onOpenChange={setIsCreateUserOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <UserPlus className="mr-2 h-4 w-4" />
-                Create User
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Create New User</DialogTitle>
-                <DialogDescription>
-                  Create a new user account and assign a role.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="email" className="text-right">
-                    Email
-                  </Label>
-                  <Input 
-                    type="email" 
-                    id="email" 
-                    value={newUserEmail}
-                    onChange={(e) => setNewUserEmail(e.target.value)}
-                    className="col-span-3" 
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="role" className="text-right">
-                    Role
-                  </Label>
-                  <Select value={newUserRole} onValueChange={value => setNewUserRole(value as "user" | "admin" | "volunteer" | "foster")}>
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Select a role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="user">User</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                      <SelectItem value="volunteer">Volunteer</SelectItem>
-                      <SelectItem value="foster">Foster</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsCreateUserOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleCreateUser}>Create</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
-        
-        <div className="mb-6">
-          <Input
-            placeholder="Search users..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="max-w-sm"
-          />
+        <div className="flex flex-col md:flex-row items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold text-meow-primary mb-4 md:mb-0">User Management</h1>
+          <div className="relative w-full md:w-auto">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search users..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 w-full md:w-64"
+            />
+          </div>
         </div>
         
         {isLoading ? (
@@ -269,212 +160,145 @@ const AdminUsers: React.FC = () => {
         ) : error ? (
           <div className="text-center py-12">
             <p className="text-red-500">Error loading users. Please try again later.</p>
+            <Button 
+              variant="outline" 
+              className="mt-4"
+              onClick={() => refetch()}
+            >
+              Try Again
+            </Button>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
+        ) : filteredUsers && filteredUsers.length > 0 ? (
+          <div className="bg-white rounded-lg shadow overflow-hidden">
             <Table>
-              <TableCaption>A list of all users in the system.</TableCaption>
+              <TableCaption>List of all users in the system.</TableCaption>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>First Name</TableHead>
-                  <TableHead>Last Name</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Created At</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers?.map((user) => (
+                {filteredUsers.map((user) => (
                   <TableRow key={user.id} className={!user.is_active ? "opacity-60" : ""}>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>{user.first_name || '-'}</TableCell>
-                    <TableCell>{user.last_name || '-'}</TableCell>
                     <TableCell>
-                      <Badge className="bg-gray-100 text-gray-800">
-                        {user.role}
+                      {user.first_name || user.last_name 
+                        ? `${user.first_name || ''} ${user.last_name || ''}`.trim()
+                        : 'Unnamed User'
+                      }
+                    </TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          user.role === 'admin' ? 'default' :
+                          user.role === 'volunteer' ? 'secondary' :
+                          user.role === 'foster' ? 'outline' :
+                          'secondary'
+                        }
+                      >
+                        {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge className={user.is_active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
+                      <Badge variant={user.is_active ? 'default' : 'destructive'}>
                         {user.is_active ? 'Active' : 'Disabled'}
                       </Badge>
                     </TableCell>
-                    <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
                     <TableCell className="text-right">
-                      <div className="flex items-center justify-end space-x-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleToggleUserActive(user)}
-                        >
-                          {user.is_active ? (
-                            <>
-                              <LockIcon className="h-4 w-4 mr-2" />
-                              Disable
-                            </>
-                          ) : (
-                            <>
-                              <UnlockIcon className="h-4 w-4 mr-2" />
-                              Enable
-                            </>
-                          )}
-                        </Button>
-                        {editingUser?.id === user.id ? (
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleEditUser(user)}
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => toggleUserStatus(user)}
+                        className={user.is_active ? "text-red-500 hover:text-red-700" : "text-green-500 hover:text-green-700"}
+                      >
+                        {user.is_active ? (
                           <>
-                            <Button 
-                              variant="secondary" 
-                              size="sm"
-                              onClick={() => handleUpdateUser({ 
-                                id: user.id,
-                                email: editingUser.email,
-                                first_name: editingUser.first_name,
-                                last_name: editingUser.last_name,
-                                role: editingUser.role,
-                                is_active: editingUser.is_active
-                              })}
-                            >
-                              <CheckCheck className="h-4 w-4 mr-2" />
-                              Save
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={handleCancelEdit}
-                            >
-                              Cancel
-                            </Button>
+                            <UserX className="h-4 w-4 mr-2" />
+                            Disable
                           </>
                         ) : (
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleEditUser(user)}
-                          >
-                            <UserRoundCog className="h-4 w-4 mr-2" />
-                            Edit
-                          </Button>
+                          <>
+                            <Check className="h-4 w-4 mr-2" />
+                            Enable
+                          </>
                         )}
-                      </div>
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
-                {filteredUsers?.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                      No users found.
-                    </TableCell>
-                  </TableRow>
-                )}
               </TableBody>
             </Table>
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-gray-500">No users found.</p>
           </div>
         )}
       </div>
       
-      {/* Edit User Dialog (Conditionally rendered) */}
-      {editingUser && (
-        <Dialog open={!!editingUser} onOpenChange={() => setEditingUser(null)}>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Edit User</DialogTitle>
-              <DialogDescription>
-                Make changes to the user's information.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="email" className="text-right">
-                  Email
-                </Label>
-                <Input 
-                  type="email" 
-                  id="email" 
-                  value={editingUser.email}
-                  onChange={(e) => setEditingUser({ ...editingUser, email: e.target.value })}
-                  className="col-span-3" 
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="first_name" className="text-right">
-                  First Name
-                </Label>
-                <Input 
-                  type="text" 
-                  id="first_name" 
-                  value={editingUser.first_name || ''}
-                  onChange={(e) => setEditingUser({ ...editingUser, first_name: e.target.value })}
-                  className="col-span-3" 
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="last_name" className="text-right">
-                  Last Name
-                </Label>
-                <Input 
-                  type="text" 
-                  id="last_name" 
-                  value={editingUser.last_name || ''}
-                  onChange={(e) => setEditingUser({ ...editingUser, last_name: e.target.value })}
-                  className="col-span-3" 
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="role" className="text-right">
-                  Role
-                </Label>
-                <Select 
-                  value={editingUser?.role} 
-                  onValueChange={(value) => {
-                    // Type assertion to ensure only valid roles are accepted
-                    const validRole = value as "user" | "admin" | "volunteer" | "foster";
-                    setEditingUser(prev => prev ? { ...prev, role: validRole } : null);
-                  }}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select a role" />
+      {/* Edit User Dialog */}
+      <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+            <DialogDescription>
+              Change the role or email of this user. Be careful with admin privileges.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="email" className="text-right text-sm">
+                Email
+              </label>
+              <Input
+                id="email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="role" className="text-right text-sm">
+                Role
+              </label>
+              <div className="col-span-3">
+                <Select value={newRole} onValueChange={setNewRole}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select role" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="user">User</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
                     <SelectItem value="volunteer">Volunteer</SelectItem>
                     <SelectItem value="foster">Foster</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="is_active" className="text-right">
-                  Status
-                </Label>
-                <div className="flex items-center space-x-2 col-span-3">
-                  <Switch 
-                    id="is_active" 
-                    checked={editingUser.is_active}
-                    onCheckedChange={(checked) => setEditingUser({ ...editingUser, is_active: checked })}
-                  />
-                  <Label htmlFor="is_active">
-                    {editingUser.is_active ? 'Active' : 'Disabled'}
-                  </Label>
-                </div>
-              </div>
             </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={handleCancelEdit}>
-                Cancel
-              </Button>
-              <Button onClick={() => handleUpdateUser({ 
-                id: editingUser.id,
-                email: editingUser.email,
-                first_name: editingUser.first_name,
-                last_name: editingUser.last_name,
-                role: editingUser.role,
-                is_active: editingUser.is_active
-              })}>Save</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+          </div>
+          
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button onClick={handleUpdateUser}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 };
