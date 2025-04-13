@@ -16,8 +16,8 @@ import {
 
 export interface DatePickerProps {
   mode?: "single" | "multiple" | "range";
-  selected?: Date | Date[] | undefined;
-  onSelect?: (date: Date | Date[] | undefined) => void;
+  selected?: Date | Date[] | { from: Date; to?: Date } | undefined;
+  onSelect?: (date: Date | Date[] | { from: Date; to?: Date } | undefined) => void;
   placeholder?: string;
   className?: string;
   disabled?: boolean | ((date: Date) => boolean);
@@ -74,10 +74,7 @@ export function DatePicker({
         {mode === "range" && (
           <Calendar
             mode="range"
-            selected={selected as {
-              from: Date;
-              to?: Date;
-            }}
+            selected={selected as { from: Date; to?: Date }}
             onSelect={onSelect as (date: { from: Date; to?: Date } | undefined) => void}
             disabled={disabled}
             initialFocus

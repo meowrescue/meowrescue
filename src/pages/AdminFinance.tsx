@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -154,8 +153,14 @@ const AdminFinance: React.FC = () => {
   };
 
   // Custom handler for date picker
-  const handleDateChange = (date: Date | undefined) => {
-    setNewDonationDate(date);
+  const handleDateChange = (date: Date | Date[] | { from: Date; to?: Date } | undefined) => {
+    if (date instanceof Date) {
+      setNewDonationDate(date);
+    } else if (Array.isArray(date) && date.length > 0) {
+      setNewDonationDate(date[0]);
+    } else if (date && 'from' in date) {
+      setNewDonationDate(date.from);
+    }
   };
 
   return (
