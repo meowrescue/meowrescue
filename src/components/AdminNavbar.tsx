@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -48,7 +47,7 @@ const AdminNavbar: React.FC = () => {
   };
 
   return (
-    <Sidebar defaultCollapsed={false} collapsible="none">
+    <Sidebar>
       <SidebarHeader className="border-b mb-0 pb-0">
         <div className="flex items-center p-4">
           <Link to="/" className="flex items-center gap-2">

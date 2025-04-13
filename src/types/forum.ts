@@ -11,6 +11,9 @@ export interface ForumPost {
   location?: string;
   status?: string;
   pet_type?: string;
+  category?: string;
+  is_pinned?: boolean;
+  is_locked?: boolean;
   photos_urls?: string[];
   date_occurred?: string;
   profiles?: {
