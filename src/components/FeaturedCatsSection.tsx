@@ -46,7 +46,7 @@ const FeaturedCatsSection: React.FC = () => {
         <div className="mt-12 text-center">
           <Button 
             asChild
-            className="bg-meow-primary hover:bg-meow-primary/90 px-8"
+            variant="meow"
           >
             <Link to="/cats" onClick={scrollToTop}>See All Cats</Link>
           </Button>

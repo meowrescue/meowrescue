@@ -10,6 +10,7 @@ import { MapPin, CalendarDays, Search, Plus, AlertCircle, CheckCircle } from "lu
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { LostFoundPost } from "@/types/supabase";
+import SEO from "@/components/SEO";
 
 const LostFound = () => {
   const { user } = useAuth();
@@ -94,6 +95,11 @@ const LostFound = () => {
 
   return (
     <Layout>
+      <SEO 
+        title="Lost & Found Pets" 
+        description="Help reunite lost pets with their families. Report lost or found pets in our community."
+      />
+      
       <div className="container mx-auto px-4 py-8">
         <SectionHeading
           title="Lost & Found Pets"
@@ -101,7 +107,8 @@ const LostFound = () => {
           centered
         />
 
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
+        <div className="flex flex-col gap-6 mb-8">
+          {/* Filter buttons row - always visible */}
           <div className="flex flex-wrap gap-2">
             <Button
               variant={filter === "all" ? "default" : "outline"}
@@ -133,18 +140,19 @@ const LostFound = () => {
             </Button>
           </div>
 
-          <div className="flex gap-2">
-            <div className="relative w-full md:w-auto">
+          {/* Search and new post row */}
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+            <div className="relative w-full sm:w-auto flex-grow max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
               <Input
                 type="text"
                 placeholder="Search posts..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 min-w-[200px]"
+                className="pl-9 w-full"
               />
             </div>
-            <Button asChild variant="meow">
+            <Button asChild variant="meow" className="whitespace-nowrap">
               <Link to="/lost-found/new">
                 <Plus className="mr-1" size={16} /> New Post
               </Link>

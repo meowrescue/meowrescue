@@ -1,487 +1,223 @@
 
-import React from 'react';
-import { Helmet } from 'react-helmet-async';
-import Layout from '../components/Layout';
-import SectionHeading from '../components/ui/SectionHeading';
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle, 
-  CardDescription 
-} from "@/components/ui/card";
+import React from "react";
+import Layout from "../components/Layout";
+import SectionHeading from "@/components/ui/SectionHeading";
 import { Button } from "@/components/ui/button";
-import { Link } from 'react-router-dom';
-import { 
-  Check, 
-  Heart, 
-  Home, 
-  Calendar, 
-  Camera, 
-  Car, 
-  ShoppingBag, 
-  Paintbrush, 
-  Wrench, 
-  Users
-} from 'lucide-react';
+import { Link } from "react-router-dom";
+import SEO from "@/components/SEO";
 
-const Volunteer: React.FC = () => {
-  const scrollToForm = () => {
-    const formElement = document.getElementById('volunteer-form');
-    if (formElement) {
-      formElement.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
+const Volunteer = () => {
   return (
     <Layout>
-      <Helmet>
-        <title>Volunteer with Meow Rescue | Help Cats in Need</title>
-        <meta name="description" content="Volunteer with Meow Rescue and make a difference in the lives of cats. Foster, transport, help at events, or contribute your skills to support our mission." />
-      </Helmet>
-
+      <SEO 
+        title="Volunteer & Foster" 
+        description="Discover how you can make a difference by volunteering or fostering with Meow Rescue. Join our team of passionate cat advocates."
+      />
+      
       <div className="container mx-auto px-4 py-12">
+        {/* Hero Section */}
+        <div className="bg-meow-secondary/10 rounded-xl p-8 md:p-16 mb-16">
+          <div className="max-w-3xl mx-auto text-center">
+            <h1 className="text-4xl md:text-5xl font-bold text-meow-primary mb-6">
+              Make a Difference in Their Lives
+            </h1>
+            <p className="text-lg text-gray-700 mb-8">
+              Our volunteers and foster families are the heart of Meow Rescue. Join our community of cat lovers and help us save more lives!
+            </p>
+            <Button asChild variant="meow" size="lg">
+              <Link to="/volunteer#application">Apply Now</Link>
+            </Button>
+          </div>
+        </div>
+
+        {/* Volunteer Opportunities */}
         <SectionHeading 
-          title="Volunteer with Meow Rescue" 
-          subtitle="Share your time and talents to help cats in need"
+          title="Volunteer Opportunities" 
+          subtitle="Share your time and talents"
           centered
         />
         
-        <div className="max-w-3xl mx-auto mb-16">
-          <p className="text-center text-lg mb-8">
-            Volunteers are the backbone of Meow Rescue. There are many ways to get involved, whether you have a little time or a lot. Every contribution makes a difference in the lives of the cats in our care.
-          </p>
-          
-          <div className="flex justify-center">
-            <Button 
-              variant="meow" 
-              size="lg" 
-              onClick={scrollToForm}
-              className="mr-4"
-            >
-              Apply to Volunteer
-            </Button>
-            
-            <Button 
-              variant="meowOutline" 
-              size="lg" 
-              onClick={scrollToForm}
-            >
-              Become a Foster
-            </Button>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-          <Card className="hover:shadow-lg transition-shadow duration-300">
-            <CardHeader className="pb-4">
-              <div className="w-12 h-12 rounded-full bg-meow-primary/10 flex items-center justify-center mb-2">
-                <Home className="h-6 w-6 text-meow-primary" />
-              </div>
-              <CardTitle className="text-meow-primary">Foster</CardTitle>
-              <CardDescription>Provide temporary care in your home</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-700 mb-4">
-                Open your home and heart to a cat in need. Fostering saves lives by giving cats a safe place to stay until they find their forever home.
-              </p>
-              <ul className="space-y-2">
-                <li className="flex items-start">
-                  <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                  <span>Care for mothers with kittens</span>
-                </li>
-                <li className="flex items-start">
-                  <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                  <span>Help socialize shy cats</span>
-                </li>
-                <li className="flex items-start">
-                  <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                  <span>Provide medical recovery care</span>
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
-          
-          <Card className="hover:shadow-lg transition-shadow duration-300">
-            <CardHeader className="pb-4">
-              <div className="w-12 h-12 rounded-full bg-meow-primary/10 flex items-center justify-center mb-2">
-                <Calendar className="h-6 w-6 text-meow-primary" />
-              </div>
-              <CardTitle className="text-meow-primary">Events</CardTitle>
-              <CardDescription>Help at adoption events & fundraisers</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-700 mb-4">
-                Assist at our adoption events, fundraisers, and community outreach activities to help connect cats with potential adopters.
-              </p>
-              <ul className="space-y-2">
-                <li className="flex items-start">
-                  <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                  <span>Set up and manage adoption booths</span>
-                </li>
-                <li className="flex items-start">
-                  <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                  <span>Help with fundraising activities</span>
-                </li>
-                <li className="flex items-start">
-                  <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                  <span>Educate the public about cat care</span>
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
-          
-          <Card className="hover:shadow-lg transition-shadow duration-300">
-            <CardHeader className="pb-4">
-              <div className="w-12 h-12 rounded-full bg-meow-primary/10 flex items-center justify-center mb-2">
-                <Car className="h-6 w-6 text-meow-primary" />
-              </div>
-              <CardTitle className="text-meow-primary">Transport</CardTitle>
-              <CardDescription>Help with cat transportation needs</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-700 mb-4">
-                Provide crucial transportation for cats to veterinary appointments, adoption events, or between foster homes.
-              </p>
-              <ul className="space-y-2">
-                <li className="flex items-start">
-                  <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                  <span>Drive cats to vet appointments</span>
-                </li>
-                <li className="flex items-start">
-                  <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                  <span>Transport to/from adoption events</span>
-                </li>
-                <li className="flex items-start">
-                  <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                  <span>Help with rescue pickups</span>
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
-          
-          <Card className="hover:shadow-lg transition-shadow duration-300">
-            <CardHeader className="pb-4">
-              <div className="w-12 h-12 rounded-full bg-meow-primary/10 flex items-center justify-center mb-2">
-                <Camera className="h-6 w-6 text-meow-primary" />
-              </div>
-              <CardTitle className="text-meow-primary">Photography</CardTitle>
-              <CardDescription>Capture compelling photos of our cats</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-700 mb-4">
-                Help our cats find homes by taking beautiful photos that showcase their personalities and charm for adoption listings.
-              </p>
-              <ul className="space-y-2">
-                <li className="flex items-start">
-                  <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                  <span>Take adoption profile photos</span>
-                </li>
-                <li className="flex items-start">
-                  <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                  <span>Document events and activities</span>
-                </li>
-                <li className="flex items-start">
-                  <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                  <span>Create content for social media</span>
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
-          
-          <Card className="hover:shadow-lg transition-shadow duration-300">
-            <CardHeader className="pb-4">
-              <div className="w-12 h-12 rounded-full bg-meow-primary/10 flex items-center justify-center mb-2">
-                <ShoppingBag className="h-6 w-6 text-meow-primary" />
-              </div>
-              <CardTitle className="text-meow-primary">Supply Collection</CardTitle>
-              <CardDescription>Gather donations of food and supplies</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-700 mb-4">
-                Help collect and organize donations of food, litter, and other supplies needed to care for our cats.
-              </p>
-              <ul className="space-y-2">
-                <li className="flex items-start">
-                  <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                  <span>Organize donation drives</span>
-                </li>
-                <li className="flex items-start">
-                  <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                  <span>Coordinate with local businesses</span>
-                </li>
-                <li className="flex items-start">
-                  <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                  <span>Deliver supplies to foster homes</span>
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
-          
-          <Card className="hover:shadow-lg transition-shadow duration-300">
-            <CardHeader className="pb-4">
-              <div className="w-12 h-12 rounded-full bg-meow-primary/10 flex items-center justify-center mb-2">
-                <Heart className="h-6 w-6 text-meow-primary" />
-              </div>
-              <CardTitle className="text-meow-primary">Special Skills</CardTitle>
-              <CardDescription>Share your unique talents</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-700 mb-4">
-                We welcome volunteers with special skills in areas like web design, grant writing, marketing, social media, or fundraising.
-              </p>
-              <ul className="space-y-2">
-                <li className="flex items-start">
-                  <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                  <span>Help with website maintenance</span>
-                </li>
-                <li className="flex items-start">
-                  <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                  <span>Assist with social media & marketing</span>
-                </li>
-                <li className="flex items-start">
-                  <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                  <span>Write grants or fundraising materials</span>
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
-        </div>
-        
-        <div className="bg-gray-50 p-8 rounded-lg mb-16">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-meow-primary mb-4">Foster Program</h2>
-            <p className="text-gray-700 max-w-4xl mx-auto">
-              Our foster program is the heart of Meow Rescue. As a foster-based rescue without a facility, we rely entirely on volunteers who open their homes to cats in need. Fostering is flexible - you can foster for a few weeks or months depending on your availability.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-meow-primary">What Fostering Involves</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                    <span>Providing a safe, indoor home environment</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                    <span>Basic daily care (feeding, cleaning)</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                    <span>Socializing and playing with cats</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                    <span>Transporting to vet appointments when needed</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                    <span>Helping with adoption by providing updates and photos</span>
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-meow-primary">We Provide</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                    <span>Food, litter, and basic supplies</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                    <span>All veterinary care expenses</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                    <span>Training and ongoing support</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                    <span>Assistance with finding adopters</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                    <span>Emergency support when needed</span>
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-        
-        <div id="volunteer-form" className="max-w-3xl mx-auto bg-white p-8 rounded-lg shadow-md scroll-mt-24">
-          <SectionHeading 
-            title="Volunteer & Foster Application" 
-            subtitle="Share your information and interests"
-            centered
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12 mb-20">
+          <VolunteerCard 
+            title="Cat Care & Socialization"
+            description="Help care for our rescue cats by providing daily care, playtime, and socialization to prepare them for adoption."
+            commitment="2-4 hours weekly"
+            imageUrl="https://images.unsplash.com/photo-1495360010541-f48722b34f7d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
           />
           
-          <form className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">First Name</label>
-                <input
-                  type="text"
-                  id="firstName"
-                  name="firstName"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-meow-primary focus:border-transparent"
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">Last Name</label>
-                <input
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-meow-primary focus:border-transparent"
-                  required
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-meow-primary focus:border-transparent"
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label>
-              <input
-                type="tel"
-                id="phone"
-                name="phone"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-meow-primary focus:border-transparent"
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="address" className="block text-sm font-medium text-gray-700">Address</label>
-              <input
-                type="text"
-                id="address"
-                name="address"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-meow-primary focus:border-transparent"
-                required
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-2">
-                <label htmlFor="city" className="block text-sm font-medium text-gray-700">City</label>
-                <input
-                  type="text"
-                  id="city"
-                  name="city"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-meow-primary focus:border-transparent"
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <label htmlFor="state" className="block text-sm font-medium text-gray-700">State</label>
-                <input
-                  type="text"
-                  id="state"
-                  name="state"
-                  defaultValue="Florida"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-meow-primary focus:border-transparent"
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <label htmlFor="zip" className="block text-sm font-medium text-gray-700">ZIP</label>
-                <input
-                  type="text"
-                  id="zip"
-                  name="zip"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-meow-primary focus:border-transparent"
-                  required
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">I'm interested in (select all that apply):</label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                <label className="flex items-center space-x-2">
-                  <input type="checkbox" name="interests" value="fostering" className="rounded text-meow-primary focus:ring-meow-primary" />
-                  <span>Fostering</span>
-                </label>
-                <label className="flex items-center space-x-2">
-                  <input type="checkbox" name="interests" value="events" className="rounded text-meow-primary focus:ring-meow-primary" />
-                  <span>Events</span>
-                </label>
-                <label className="flex items-center space-x-2">
-                  <input type="checkbox" name="interests" value="transport" className="rounded text-meow-primary focus:ring-meow-primary" />
-                  <span>Transport</span>
-                </label>
-                <label className="flex items-center space-x-2">
-                  <input type="checkbox" name="interests" value="photography" className="rounded text-meow-primary focus:ring-meow-primary" />
-                  <span>Photography</span>
-                </label>
-                <label className="flex items-center space-x-2">
-                  <input type="checkbox" name="interests" value="supplies" className="rounded text-meow-primary focus:ring-meow-primary" />
-                  <span>Supply Collection</span>
-                </label>
-                <label className="flex items-center space-x-2">
-                  <input type="checkbox" name="interests" value="specialSkills" className="rounded text-meow-primary focus:ring-meow-primary" />
-                  <span>Special Skills</span>
-                </label>
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="experience" className="block text-sm font-medium text-gray-700">Please share any relevant experience with cats:</label>
-              <textarea
-                id="experience"
-                name="experience"
-                rows={4}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-meow-primary focus:border-transparent"
-              ></textarea>
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="availability" className="block text-sm font-medium text-gray-700">Please share your general availability:</label>
-              <textarea
-                id="availability"
-                name="availability"
-                rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-meow-primary focus:border-transparent"
-              ></textarea>
-            </div>
-            
-            <div className="pt-4">
-              <Button type="submit" variant="meow" size="lg" className="w-full">
-                Submit Application
-              </Button>
-              <p className="text-center text-sm text-gray-500 mt-4">
-                Thank you for your interest in volunteering with Meow Rescue. We'll contact you within 3-5 business days.
-              </p>
-            </div>
-          </form>
+          <VolunteerCard 
+            title="Transportation Team"
+            description="Transport cats to/from veterinary appointments, rescue partners, adoption events, and new foster homes."
+            commitment="Flexible schedule"
+            imageUrl="https://images.unsplash.com/photo-1548366086-7f1b76106622?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+          />
+          
+          <VolunteerCard 
+            title="Adoption Events"
+            description="Help showcase our cats at adoption events, assist potential adopters, and process adoption paperwork."
+            commitment="1-2 events monthly"
+            imageUrl="https://images.unsplash.com/photo-1526336024174-e58f5cdd8e13?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+          />
+          
+          <VolunteerCard 
+            title="Photography & Social Media"
+            description="Take quality photos/videos of our cats and help manage our social media presence to increase adoptions."
+            commitment="2-3 hours weekly"
+            imageUrl="https://images.unsplash.com/photo-1574144113084-b6f450cc5e0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+          />
+          
+          <VolunteerCard 
+            title="Fundraising & Events"
+            description="Help plan and execute fundraising campaigns and special events to support our rescue mission."
+            commitment="Variable"
+            imageUrl="https://images.unsplash.com/photo-1488740304459-45c4277e7daf?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+          />
+          
+          <VolunteerCard 
+            title="Administrative Support"
+            description="Assist with paperwork, data entry, phone calls, and other administrative tasks to keep our rescue running smoothly."
+            commitment="2-4 hours weekly"
+            imageUrl="https://images.unsplash.com/photo-1533738363-b7f9aef128ce?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+          />
+        </div>
+        
+        {/* Foster Program */}
+        <SectionHeading 
+          title="Foster Program" 
+          subtitle="Open your home and heart"
+          centered
+        />
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-12 mb-16">
+          <div className="bg-white p-8 rounded-lg shadow-md">
+            <h3 className="text-2xl font-bold text-meow-primary mb-4">Why Foster?</h3>
+            <ul className="space-y-4 text-gray-700">
+              <li className="flex items-start">
+                <div className="bg-meow-primary/10 rounded-full p-1 mr-3 mt-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-meow-primary" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <span>Save more lives by increasing our capacity to help cats in need</span>
+              </li>
+              <li className="flex items-start">
+                <div className="bg-meow-primary/10 rounded-full p-1 mr-3 mt-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-meow-primary" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <span>Help cats recover from illness, surgery, or trauma in a comfortable home environment</span>
+              </li>
+              <li className="flex items-start">
+                <div className="bg-meow-primary/10 rounded-full p-1 mr-3 mt-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-meow-primary" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <span>Socialize cats and kittens, helping them develop into well-adjusted pets</span>
+              </li>
+              <li className="flex items-start">
+                <div className="bg-meow-primary/10 rounded-full p-1 mr-3 mt-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-meow-primary" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <span>Experience the joy of having a cat companion without the long-term commitment</span>
+              </li>
+              <li className="flex items-start">
+                <div className="bg-meow-primary/10 rounded-full p-1 mr-3 mt-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-meow-primary" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <span>Learn more about cats and gain experience in animal care</span>
+              </li>
+            </ul>
+          </div>
+          
+          <div className="bg-white p-8 rounded-lg shadow-md">
+            <h3 className="text-2xl font-bold text-meow-primary mb-4">What We Provide</h3>
+            <ul className="space-y-4 text-gray-700">
+              <li className="flex items-start">
+                <div className="bg-meow-primary/10 rounded-full p-1 mr-3 mt-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-meow-primary" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <span>All necessary supplies (food, litter, bedding, toys, etc.)</span>
+              </li>
+              <li className="flex items-start">
+                <div className="bg-meow-primary/10 rounded-full p-1 mr-3 mt-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-meow-primary" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <span>Complete veterinary care for your foster cats</span>
+              </li>
+              <li className="flex items-start">
+                <div className="bg-meow-primary/10 rounded-full p-1 mr-3 mt-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-meow-primary" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <span>Training and ongoing support from our experienced team</span>
+              </li>
+              <li className="flex items-start">
+                <div className="bg-meow-primary/10 rounded-full p-1 mr-3 mt-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-meow-primary" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <span>24/7 emergency contact for urgent situations</span>
+              </li>
+              <li className="flex items-start">
+                <div className="bg-meow-primary/10 rounded-full p-1 mr-3 mt-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-meow-primary" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <span>Flexibility to choose foster assignments that fit your lifestyle</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+        
+        {/* Apply Now */}
+        <div id="application" className="bg-meow-primary/10 rounded-xl p-8 md:p-16 text-center">
+          <h2 className="text-3xl font-bold text-meow-primary mb-4">Ready to Join Our Team?</h2>
+          <p className="text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
+            Whether you're interested in volunteering, fostering, or both, we'd love to have you join our team. Complete our quick application to get started!
+          </p>
+          <Button asChild variant="meow" size="lg">
+            <Link to="/contact">Apply Now</Link>
+          </Button>
         </div>
       </div>
     </Layout>
+  );
+};
+
+interface VolunteerCardProps {
+  title: string;
+  description: string;
+  commitment: string;
+  imageUrl: string;
+}
+
+const VolunteerCard: React.FC<VolunteerCardProps> = ({ title, description, commitment, imageUrl }) => {
+  return (
+    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      <div className="h-48 overflow-hidden">
+        <img src={imageUrl} alt={title} className="w-full h-full object-cover transition-transform duration-300 hover:scale-105" />
+      </div>
+      <div className="p-6">
+        <h3 className="text-xl font-bold text-meow-primary mb-2">{title}</h3>
+        <p className="text-gray-700 mb-4">{description}</p>
+        <div className="bg-meow-primary/10 text-meow-primary text-sm font-medium py-1 px-3 rounded-full inline-block">
+          Time Commitment: {commitment}
+        </div>
+      </div>
+    </div>
   );
 };
 
