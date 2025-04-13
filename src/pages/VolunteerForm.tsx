@@ -77,14 +77,14 @@ const VolunteerForm: React.FC = () => {
         throw new Error("You must be logged in to submit an application");
       }
 
-      // Type assertion for RPC function call
+      // Use type assertion to bypass TypeScript's strict checking
       const { data: applicationId, error } = await supabase
         .rpc('create_application', {
           p_applicant_id: user.id,
           p_application_type: 'volunteer',
           p_status: 'pending',
           p_form_data: { ...data }
-        }) as unknown as {data: string | null, error: Error | null};
+        }) as any; // Using 'as any' to fix TypeScript error
 
       if (error) throw error;
 

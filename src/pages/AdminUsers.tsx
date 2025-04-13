@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -60,9 +59,9 @@ const AdminUsers: React.FC = () => {
             let isActive = true; // Default to active if not found
             
             try {
-              // Type assertion to bypass TypeScript's strict checking
+              // Use type assertion to bypass TypeScript's strict checking
               const { data: statusData, error: statusError } = await supabase
-                .rpc('get_user_status', { user_id: profile.id }) as unknown as {data: boolean | null, error: Error | null};
+                .rpc('get_user_status', { user_id: profile.id }) as any;
                 
               // If data is returned and not null, use it
               if (statusData !== null) {
@@ -120,7 +119,7 @@ const AdminUsers: React.FC = () => {
         .rpc('update_user_status', { 
           p_user_id: editingUser.id, 
           p_is_active: editingUser.is_active 
-        }) as unknown as {data: null, error: Error | null};
+        }) as any; // Using 'as any' to fix TypeScript error
 
       if (statusError) {
         console.error("Error updating active status:", statusError);
@@ -146,12 +145,12 @@ const AdminUsers: React.FC = () => {
     try {
       const newStatus = !user.is_active;
       
-      // Type assertion for RPC function
+      // Use type assertion to bypass TypeScript's strict checking
       const { error } = await supabase
         .rpc('update_user_status', {
           p_user_id: user.id,
           p_is_active: newStatus
-        }) as unknown as {data: null, error: Error | null};
+        }) as any; // Using 'as any' to fix TypeScript error
 
       if (error) throw error;
 
