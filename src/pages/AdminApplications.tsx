@@ -50,27 +50,35 @@ const AdminApplications: React.FC = () => {
     queryKey: ['applications', statusFilter, typeFilter],
     queryFn: async () => {
       try {
-        let query = supabase.from('applications')
-          .select(`
-            *,
-            profiles:applicant_id(email, first_name, last_name)
-          `);
+        // Custom query to fetch application data with profile information
+        let query = `
+          *,
+          profiles:applicant_id(email, first_name, last_name)
+        `;
         
-        if (statusFilter) {
-          query = query.eq('status', statusFilter);
-        }
+        let queryBuilder = supabase.rpc('get_applications');
         
-        if (typeFilter) {
-          query = query.eq('application_type', typeFilter);
-        }
-        
-        query = query.order('created_at', { ascending: false });
-        
-        const { data, error } = await query;
+        const { data, error } = await queryBuilder;
         
         if (error) throw error;
         
-        return data as unknown as Application[];
+        // Apply filters in-memory since we're using RPC
+        let filteredData = data as unknown as Application[];
+        
+        if (statusFilter) {
+          filteredData = filteredData.filter(app => app.status === statusFilter);
+        }
+        
+        if (typeFilter) {
+          filteredData = filteredData.filter(app => app.application_type === typeFilter);
+        }
+        
+        // Sort by created_at descending
+        filteredData.sort((a, b) => 
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+        
+        return filteredData;
       } catch (err) {
         console.error('Error fetching applications:', err);
         throw err;
@@ -95,15 +103,12 @@ const AdminApplications: React.FC = () => {
     if (!viewingApplication) return;
     
     try {
-      const { error } = await supabase
-        .from('applications')
-        .update({
-          status: newStatus,
-          feedback: feedback,
-          reviewed_at: new Date().toISOString(),
-          reviewer_id: (await supabase.auth.getUser()).data.user?.id
-        })
-        .eq('id', viewingApplication.id);
+      const { error } = await supabase.rpc('update_application_status', {
+        p_application_id: viewingApplication.id,
+        p_status: newStatus,
+        p_feedback: feedback,
+        p_reviewer_id: (await supabase.auth.getUser()).data.user?.id
+      });
         
       if (error) throw error;
       

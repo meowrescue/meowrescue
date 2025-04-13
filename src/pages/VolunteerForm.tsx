@@ -68,17 +68,12 @@ const VolunteerForm: React.FC = () => {
         applicationType = 'volunteer+foster';
       }
       
-      // Insert application directly
-      const { error } = await supabase
-        .from('applications')
-        .insert({
-          applicant_id: user?.id,
-          application_type: applicationType,
-          form_data: data,
-          status: 'pending',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        });
+      // Insert application using RPC 
+      const { error } = await supabase.rpc('submit_application', {
+        p_applicant_id: user?.id,
+        p_application_type: applicationType,
+        p_form_data: data
+      });
         
       if (error) throw error;
       

@@ -22,18 +22,20 @@ const formSchema = z.object({
 });
 
 // Define types for Google Maps
-declare global {
-  interface Window {
-    initMap?: () => void;
-    google?: {
-      maps: {
-        Map: new (element: HTMLElement, options: any) => google.maps.Map;
-        Marker: new (options: any) => google.maps.Marker;
-        LatLng: new (lat: number, lng: number) => google.maps.LatLng;
-      }
-    }
+interface GoogleMap {
+  Map: new (element: HTMLElement, options: any) => any;
+  Marker: new (options: any) => any;
+  LatLng: new (lat: number, lng: number) => any;
+}
+
+interface GoogleMapsWindow extends Window {
+  initMap?: () => void;
+  google?: {
+    maps: GoogleMap;
   }
 }
+
+declare let window: GoogleMapsWindow;
 
 const Contact = () => {
   const { toast } = useToast();
@@ -41,7 +43,8 @@ const Contact = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<google.maps.Map | null>(null);
+  const mapInstanceRef = useRef<any | null>(null);
+  const scriptLoadedRef = useRef<boolean>(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -55,7 +58,7 @@ const Contact = () => {
   useEffect(() => {
     // Define the map initialization function
     const initMapFunction = () => {
-      if (mapRef.current && !mapInstanceRef.current) {
+      if (mapRef.current && !mapInstanceRef.current && window.google?.maps) {
         const newPortRicheyLocation = { lat: 28.2442, lng: -82.7190 };
         
         try {
@@ -82,11 +85,12 @@ const Contact = () => {
     // Set up the global callback
     window.initMap = initMapFunction;
 
-    // Create script only if it doesn't exist
-    if (!document.getElementById('google-maps-script')) {
+    // Create script only if it doesn't exist and hasn't been loaded before
+    if (!document.getElementById('google-maps-script') && !scriptLoadedRef.current) {
+      scriptLoadedRef.current = true;
       const script = document.createElement('script');
       script.id = 'google-maps-script';
-      script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBLkQbdtq_eR3-jLjOYMYICN0NLaWO74jo&callback=initMap&loading=async`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBLkQbdtq_eR3-jLjOYMYICN0NLaWO74jo&callback=initMap`;
       script.async = true;
       script.defer = true;
       document.head.appendChild(script);
@@ -97,13 +101,9 @@ const Contact = () => {
 
     // Clean up
     return () => {
-      // Remove the global callback without removing the script
       if (window.initMap === initMapFunction) {
         window.initMap = undefined;
       }
-      
-      // Reset map instance reference
-      mapInstanceRef.current = null;
     };
   }, []);
 

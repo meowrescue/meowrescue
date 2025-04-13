@@ -48,7 +48,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { CatFood, CatFeedingRecord } from '@/types/finance';
+import { CatFood, CatFeedingRecord } from '@/types/applications';
 import { catFoodApi } from '@/services/catFoodService';
 
 // Form schemas

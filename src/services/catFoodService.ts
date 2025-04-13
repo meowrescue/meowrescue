@@ -1,108 +1,67 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { CatFood, CatFeedingRecord, CatFoodAPI } from '@/types/finance';
+import { CatFood, CatFeedingRecord, Cat } from '@/types/applications';
 
-// Helper function to call Supabase RPC functions with proper type handling
-const callRpcFunction = async <T>(functionName: string, params: any = {}): Promise<T[]> => {
-  try {
-    // Use type assertion to avoid TypeScript errors with RPC function names
-    const { data, error } = await supabase.rpc(functionName as any, params);
+export const catFoodApi = {
+  async getCatFood(): Promise<CatFood[]> {
+    const { data, error } = await supabase
+      .from('cat_food')
+      .select('*')
+      .order('purchase_date', { ascending: false });
+      
+    if (error) throw error;
+    return data || [];
+  },
+  
+  async addCatFood(food: Omit<CatFood, 'id' | 'created_at'>): Promise<CatFood> {
+    const { data, error } = await supabase
+      .from('cat_food')
+      .insert([food])
+      .select()
+      .single();
+      
+    if (error) throw error;
+    return data;
+  },
+  
+  async getCatFeedingRecords(): Promise<CatFeedingRecord[]> {
+    const { data, error } = await supabase
+      .from('cat_feeding_records')
+      .select(`
+        *,
+        cats(name),
+        cat_food(brand, type)
+      `)
+      .order('feeding_date', { ascending: false });
+      
+    if (error) throw error;
     
-    if (error) {
-      console.error(`Error calling RPC function ${functionName}:`, error);
-      return [];
-    }
-    
-    // Use type assertion to ensure we return the correct type
-    return (data as T[]) || [];
-  } catch (error) {
-    console.error(`Error in RPC function ${functionName}:`, error);
-    return [];
-  }
-};
-
-export const catFoodApi: CatFoodAPI = {
-  getCatFood: async () => {
-    try {
-      // Use RPC function to get cat food
-      const data = await callRpcFunction<CatFood>('get_cat_food');
-      return data;
-    } catch (error) {
-      console.error('Error in getCatFood:', error);
-      return [];
-    }
+    return (data || []).map(record => ({
+      ...record,
+      cat_name: record.cats?.name || 'Unknown Cat',
+      food_brand: record.cat_food?.brand || 'Unknown Brand',
+      food_type: record.cat_food?.type || 'Unknown Type'
+    }));
   },
   
-  addCatFood: async (food) => {
-    try {
-      // Use type assertion to bypass TypeScript checking for RPC function name
-      const { data, error } = await supabase.rpc('add_cat_food' as any, {
-        p_brand: food.brand,
-        p_type: food.type,
-        p_quantity: food.quantity,
-        p_units: food.units,
-        p_cost_per_unit: food.cost_per_unit,
-        p_purchase_date: food.purchase_date
-      });
+  async addCatFeedingRecord(record: Omit<CatFeedingRecord, 'id' | 'created_at' | 'cat_name' | 'food_brand' | 'food_type'>): Promise<CatFeedingRecord> {
+    const { data, error } = await supabase
+      .from('cat_feeding_records')
+      .insert([record])
+      .select()
+      .single();
       
-      if (error) {
-        console.error('Error adding cat food:', error);
-        throw error;
-      }
-    } catch (error) {
-      console.error('Error in addCatFood:', error);
-      throw error;
-    }
+    if (error) throw error;
+    return data;
   },
   
-  getCatFeedingRecords: async () => {
-    try {
-      // Use RPC function to get feeding records
-      const data = await callRpcFunction<CatFeedingRecord>('get_cat_feeding_records');
-      return data;
-    } catch (error) {
-      console.error('Error in getCatFeedingRecords:', error);
-      return [];
-    }
-  },
-  
-  addCatFeedingRecord: async (record) => {
-    try {
-      // Use type assertion to bypass TypeScript checking for RPC function name
-      const { data, error } = await supabase.rpc('add_cat_feeding_record' as any, {
-        p_cat_id: record.cat_id,
-        p_cat_food_id: record.cat_food_id,
-        p_amount: record.amount,
-        p_feeding_date: record.feeding_date
-      });
+  async getCats(): Promise<Cat[]> {
+    const { data, error } = await supabase
+      .from('cats')
+      .select('id, name')
+      .order('name');
       
-      if (error) {
-        console.error('Error recording feeding:', error);
-        throw error;
-      }
-    } catch (error) {
-      console.error('Error in addCatFeedingRecord:', error);
-      throw error;
-    }
-  },
-  
-  getCats: async () => {
-    try {
-      // This function directly accesses the cats table which is in the type definitions
-      const { data, error } = await supabase
-        .from('cats')
-        .select('id, name')
-        .order('name', { ascending: true });
-        
-      if (error) {
-        console.error('Error fetching cats:', error);
-        return [];
-      }
-      
-      return data as {id: string; name: string}[];
-    } catch (error) {
-      console.error('Error in getCats:', error);
-      return [];
-    }
+    if (error) throw error;
+    return data || [];
   }
 };

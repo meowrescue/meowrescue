@@ -48,17 +48,11 @@ const AdminUsers: React.FC = () => {
     queryKey: ['users'],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*');
+        const { data, error } = await supabase.rpc('get_users_with_status');
         
         if (error) throw error;
         
-        // Cast the data to include is_active with a default of true if it doesn't exist
-        return data.map(user => ({
-          ...user,
-          is_active: user.is_active !== undefined ? user.is_active : true
-        })) as User[];
+        return data as User[];
       } catch (err: any) {
         console.error("Error fetching users:", err);
         throw err;
@@ -83,13 +77,12 @@ const AdminUsers: React.FC = () => {
     if (!editingUser) return;
 
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ 
-          role: newRole as 'user' | 'volunteer' | 'foster' | 'admin',
-          email: newEmail
-        })
-        .eq('id', editingUser.id);
+      const { error } = await supabase.rpc('update_user', {
+        p_user_id: editingUser.id,
+        p_role: newRole as 'user' | 'volunteer' | 'foster' | 'admin',
+        p_email: newEmail,
+        p_is_active: editingUser.is_active
+      });
 
       if (error) throw error;
 
@@ -113,10 +106,10 @@ const AdminUsers: React.FC = () => {
     try {
       const newStatus = !user.is_active;
       
-      const { error } = await supabase
-        .from('profiles')
-        .update({ is_active: newStatus })
-        .eq('id', user.id);
+      const { error } = await supabase.rpc('toggle_user_status', {
+        p_user_id: user.id,
+        p_is_active: newStatus
+      });
 
       if (error) throw error;
 
