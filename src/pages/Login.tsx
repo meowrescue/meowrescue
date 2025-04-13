@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import Layout from '@/components/Layout';
 import SEO from '@/components/SEO';
+import { Cat } from 'lucide-react';
 
 const formSchema = z.object({
   email: z.string().email({
@@ -49,8 +50,12 @@ const Login: React.FC = () => {
       
       console.log("Login successful", data);
       
-      // Redirect to admin dashboard after successful login
-      navigate('/admin');
+      // Redirect after successful login
+      if (data.user.email?.endsWith('@meowrescue.org')) {
+        navigate('/admin');
+      } else {
+        navigate('/profile');
+      }
       
       toast({
         title: "Login Successful",
@@ -72,11 +77,20 @@ const Login: React.FC = () => {
 
   return (
     <Layout>
-      <SEO title="Login | Meow Rescue Admin" />
+      <SEO title="Login | Meow Rescue" />
       <div className="flex items-center justify-center h-screen bg-gray-100">
         <Card className="w-full max-w-md p-4">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold text-center">Admin Login</CardTitle>
+          <CardHeader className="space-y-4">
+            <div className="flex flex-col items-center">
+              <div className="bg-meow-primary rounded-full p-2 mb-2">
+                <Cat className="h-6 w-6 text-white" />
+              </div>
+              <span className="font-bold text-xl">
+                <span className="text-meow-primary">Meow</span>
+                <span className="text-meow-secondary">Rescue</span>
+              </span>
+            </div>
+            <CardTitle className="text-2xl font-bold text-center">Sign In</CardTitle>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -88,7 +102,7 @@ const Login: React.FC = () => {
                     <FormItem>
                       <Label>Email</Label>
                       <FormControl>
-                        <Input placeholder="admin@example.com" {...field} type="email" />
+                        <Input placeholder="your.email@example.com" {...field} type="email" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -108,7 +122,7 @@ const Login: React.FC = () => {
                   )}
                 />
                 <Button disabled={isLoading} className="w-full" type="submit">
-                  {isLoading ? "Logging in..." : "Login"}
+                  {isLoading ? "Signing in..." : "Sign In"}
                 </Button>
               </form>
             </Form>
