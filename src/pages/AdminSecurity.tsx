@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -43,7 +44,7 @@ const AdminSecurity: React.FC = () => {
           .order('created_at', { ascending: false })
           .range((page - 1) * pageSize, page * pageSize - 1);
           
-        if (activityFilter) {
+        if (activityFilter && activityFilter !== 'all') {
           query = query.eq('activity_type', activityFilter);
         }
         
@@ -100,8 +101,8 @@ const AdminSecurity: React.FC = () => {
             </div>
             
             <Select
-              value={activityFilter || undefined}
-              onValueChange={(value) => setActivityFilter(value || null)}
+              value={activityFilter || 'all'}
+              onValueChange={(value) => setActivityFilter(value === 'all' ? null : value)}
             >
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="All activities" />

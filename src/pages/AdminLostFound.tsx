@@ -131,6 +131,7 @@ const AdminLostFound: React.FC = () => {
                   <TableHead>Title</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Location</TableHead>
+                  <TableHead>Posted By</TableHead>
                   <TableHead>Date Posted</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -149,6 +150,11 @@ const AdminLostFound: React.FC = () => {
                       </Badge>
                     </TableCell>
                     <TableCell>{post.location}</TableCell>
+                    <TableCell>
+                      {post.profiles ? 
+                        `${post.profiles.first_name || ''} ${post.profiles.last_name || ''}`.trim() || post.profiles.email : 
+                        'Unknown User'}
+                    </TableCell>
                     <TableCell>{new Date(post.created_at).toLocaleDateString()}</TableCell>
                     <TableCell className="text-right">
                       <Link to={`/lost-found/${post.id}`}>

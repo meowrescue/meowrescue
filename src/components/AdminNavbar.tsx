@@ -1,206 +1,174 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  Sidebar, 
-  SidebarContent, 
-  SidebarHeader, 
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton
-} from '@/components/ui/sidebar';
-import { 
-  Home,
-  Cat,
-  Users,
-  DollarSign,
-  MessageSquare,
-  Calendar,
-  Search,
-  BarChart3,
-  ShieldCheck,
-  LogOut,
-  Mail,
-  PenSquare
-} from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from './ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useSidebarContext } from '@/components/ui/sidebar';
+import {
+  CatIcon,
+  ClipboardCheck,
+  DollarSign,
+  FileEditIcon,
+  HomeIcon,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  MessageCircle,
+  Search,
+  Settings,
+  ShieldCheck,
+  Users,
+  UserCircle,
+  PawPrint,
+  CalendarDays,
+  FormInput,
+} from 'lucide-react';
 
-const AdminNavbar: React.FC = () => {
+const AdminNavbar = () => {
   const { user, signOut } = useAuth();
   const location = useLocation();
-  
-  const getInitials = () => {
-    const firstName = user?.user_metadata?.first_name || '';
-    const lastName = user?.user_metadata?.last_name || '';
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`;
-  };
+  const { isSidebarOpen, toggleSidebar } = useSidebarContext();
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const isActive = (path: string) => {
-    return location.pathname.startsWith(path);
+    return location.pathname === path || location.pathname.startsWith(`${path}/`);
   };
-
-  return (
-    <Sidebar>
-      <SidebarHeader className="border-b mb-0 pb-0">
-        <div className="flex items-center p-4">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="bg-meow-primary rounded-full p-2">
-              <Cat className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <span className="font-bold text-xl">
-                <span className="text-meow-primary">Meow</span>
-                <span className="text-meow-secondary">Rescue</span>
+  
+  const navLinks = [
+    { name: 'Dashboard', href: '/admin', icon: <LayoutDashboard size={18} /> },
+    { name: 'Cats', href: '/admin/cats', icon: <CatIcon size={18} /> },
+    { name: 'Applications', href: '/admin/applications', icon: <FormInput size={18} /> },
+    { name: 'Blog', href: '/admin/blog', icon: <FileEditIcon size={18} /> },
+    { name: 'Users', href: '/admin/users', icon: <Users size={18} /> },
+    { name: 'Finance', href: '/admin/finance', icon: <DollarSign size={18} /> },
+    { name: 'Events', href: '/admin/events', icon: <CalendarDays size={18} /> },
+    { name: 'Lost & Found', href: '/admin/lost-found', icon: <Search size={18} /> },
+    { name: 'Messages', href: '/admin/messages', icon: <MessageCircle size={18} /> },
+    { name: 'Content', href: '/admin/pages', icon: <ClipboardCheck size={18} /> },
+    { name: 'Security', href: '/admin/security', icon: <ShieldCheck size={18} /> },
+    { name: 'Settings', href: '/admin/settings', icon: <Settings size={18} /> },
+  ];
+  
+  const navContent = (
+    <>
+      <div className="flex items-center justify-center p-6">
+        <Link to="/" className="flex items-center">
+          <PawPrint className="h-8 w-8 text-meow-primary" />
+          <span className="ml-2 text-lg font-semibold">Meow Rescue</span>
+        </Link>
+      </div>
+      <ScrollArea className="flex-1 px-3">
+        <div className="space-y-1">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              to={link.href}
+              onClick={() => setIsSheetOpen(false)}
+              className={`group flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                isActive(link.href)
+                  ? 'bg-meow-primary text-white'
+                  : 'hover:bg-meow-primary/10 text-gray-800 hover:text-black'
+              }`}
+            >
+              <span className={`mr-2 ${isActive(link.href) ? 'text-white' : 'text-meow-primary'}`}>
+                {link.icon}
               </span>
-              <span className="text-xs block text-gray-500">Admin Dashboard</span>
-            </div>
-          </Link>
+              {link.name}
+            </Link>
+          ))}
         </div>
-      </SidebarHeader>
-
-      <SidebarContent className="px-2 py-4">
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild className={isActive('/admin') && location.pathname === '/admin' ? 'bg-meow-primary/10 text-meow-primary font-medium' : ''}>
-                  <Link to="/admin">
-                    <Home size={18} />
-                    <span>Dashboard</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Main</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild className={isActive('/admin/cats') ? 'bg-meow-primary/10 text-meow-primary font-medium' : ''}>
-                  <Link to="/admin/cats">
-                    <Cat size={18} />
-                    <span>Cats</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild className={isActive('/admin/users') ? 'bg-meow-primary/10 text-meow-primary font-medium' : ''}>
-                  <Link to="/admin/users">
-                    <Users size={18} />
-                    <span>Users</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild className={isActive('/admin/finance') ? 'bg-meow-primary/10 text-meow-primary font-medium' : ''}>
-                  <Link to="/admin/finance">
-                    <DollarSign size={18} />
-                    <span>Finance</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild className={isActive('/admin/messages') ? 'bg-meow-primary/10 text-meow-primary font-medium' : ''}>
-                  <Link to="/admin/messages">
-                    <Mail size={18} />
-                    <span>Messages</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Content</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild className={isActive('/admin/blog') ? 'bg-meow-primary/10 text-meow-primary font-medium' : ''}>
-                  <Link to="/admin/blog">
-                    <PenSquare size={18} />
-                    <span>Blog</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild className={isActive('/admin/events') ? 'bg-meow-primary/10 text-meow-primary font-medium' : ''}>
-                  <Link to="/admin/events">
-                    <Calendar size={18} />
-                    <span>Events</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild className={isActive('/admin/lost-found') ? 'bg-meow-primary/10 text-meow-primary font-medium' : ''}>
-                  <Link to="/admin/lost-found">
-                    <Search size={18} />
-                    <span>Lost & Found</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild className={isActive('/admin/forum') ? 'bg-meow-primary/10 text-meow-primary font-medium' : ''}>
-                  <Link to="/admin/forum">
-                    <MessageSquare size={18} />
-                    <span>Forum</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>System</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild className={isActive('/admin/security') ? 'bg-meow-primary/10 text-meow-primary font-medium' : ''}>
-                  <Link to="/admin/security">
-                    <ShieldCheck size={18} />
-                    <span>Security</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-
-      <SidebarFooter className="border-t mt-auto">
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <Avatar>
-                <AvatarFallback>{getInitials()}</AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="text-sm font-medium">{user?.user_metadata?.first_name || user?.email}</p>
-                <p className="text-xs text-gray-500">Admin</p>
-              </div>
-            </div>
+      </ScrollArea>
+      <div className="p-4 border-t">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <UserCircle className="h-5 w-5 mr-2 text-meow-primary" />
+            <span className="text-sm font-medium">{user?.email}</span>
           </div>
-          <Button 
-            variant="outline" 
-            className="w-full flex items-center justify-center gap-2"
-            onClick={() => signOut()}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={signOut}
+            className="hover:bg-red-100 hover:text-red-600"
           >
-            <LogOut size={16} />
-            Sign Out
+            <LogOut className="h-5 w-5" />
           </Button>
         </div>
-      </SidebarFooter>
-    </Sidebar>
+      </div>
+    </>
+  );
+  
+  return (
+    <>
+      {/* Mobile Sidebar */}
+      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+        <SheetTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden fixed top-4 left-4 z-40"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="p-0 w-64">
+          {navContent}
+        </SheetContent>
+      </Sheet>
+      
+      {/* Desktop Sidebar */}
+      <div 
+        className={`hidden md:flex flex-col h-screen border-r transition-all duration-300 ${
+          isSidebarOpen ? 'w-64' : 'w-20'
+        }`}
+      >
+        {isSidebarOpen ? (
+          navContent
+        ) : (
+          <div className="flex flex-col items-center py-6 h-full">
+            <Link to="/" className="mb-6">
+              <PawPrint className="h-8 w-8 text-meow-primary" />
+            </Link>
+            <div className="flex-1 flex flex-col items-center space-y-4 py-4">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  to={link.href}
+                  className={`p-2 rounded-md transition-colors tooltip-right ${
+                    isActive(link.href)
+                      ? 'bg-meow-primary text-white'
+                      : 'hover:bg-meow-primary/10 text-gray-800 hover:text-black'
+                  }`}
+                  data-tooltip={link.name}
+                >
+                  {link.icon}
+                </Link>
+              ))}
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={signOut}
+              className="mt-auto mb-6 hover:bg-red-100 hover:text-red-600 tooltip-right"
+              data-tooltip="Logout"
+            >
+              <LogOut className="h-5 w-5" />
+            </Button>
+          </div>
+        )}
+        
+        {/* Toggle Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleSidebar}
+          className="absolute top-4 right-0 translate-x-1/2 bg-white border rounded-full transform"
+        >
+          <Menu className="h-4 w-4" />
+        </Button>
+      </div>
+    </>
   );
 };
 

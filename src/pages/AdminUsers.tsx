@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -23,10 +24,11 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { CheckCheck, Copy, User, UserPlus, UserRoundCog } from 'lucide-react';
+import { CheckCheck, User, UserPlus, UserRoundCog, LockIcon, UnlockIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import SEO from '@/components/SEO';
+import { Switch } from '@/components/ui/switch';
 
 interface User {
   id: string;
@@ -36,6 +38,7 @@ interface User {
   role: "user" | "admin" | "volunteer" | "foster";
   created_at: string;
   updated_at: string;
+  is_active: boolean;
 }
 
 const AdminUsers: React.FC = () => {
@@ -80,6 +83,33 @@ const AdminUsers: React.FC = () => {
   // Handle cancel edit
   const handleCancelEdit = () => {
     setEditingUser(null);
+  };
+  
+  // Handle toggle user active state
+  const handleToggleUserActive = async (user: User) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_active: !user.is_active })
+        .eq('id', user.id);
+        
+      if (error) throw error;
+      
+      toast({
+        title: user.is_active ? 'User Disabled' : 'User Enabled',
+        description: user.is_active ? 
+          'User has been disabled and can no longer log in.' : 
+          'User has been enabled and can now log in.'
+      });
+      
+      refetchUsers();
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update user status.',
+        variant: 'destructive'
+      });
+    }
   };
   
   // Modify the handleUpdateUser function to ensure type safety
@@ -159,15 +189,6 @@ const AdminUsers: React.FC = () => {
         variant: 'destructive'
       });
     }
-  };
-  
-  // Handle copy user ID
-  const handleCopyUserId = (userId: string) => {
-    navigator.clipboard.writeText(userId);
-    toast({
-      title: 'User ID Copied',
-      description: 'User ID has been copied to clipboard.'
-    });
   };
 
   return (
@@ -258,13 +279,14 @@ const AdminUsers: React.FC = () => {
                   <TableHead>First Name</TableHead>
                   <TableHead>Last Name</TableHead>
                   <TableHead>Role</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Created At</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredUsers?.map((user) => (
-                  <TableRow key={user.id}>
+                  <TableRow key={user.id} className={!user.is_active ? "opacity-60" : ""}>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{user.first_name || '-'}</TableCell>
                     <TableCell>{user.last_name || '-'}</TableCell>
@@ -273,16 +295,30 @@ const AdminUsers: React.FC = () => {
                         {user.role}
                       </Badge>
                     </TableCell>
+                    <TableCell>
+                      <Badge className={user.is_active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
+                        {user.is_active ? 'Active' : 'Disabled'}
+                      </Badge>
+                    </TableCell>
                     <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end space-x-2">
                         <Button 
                           variant="ghost" 
                           size="sm"
-                          onClick={() => handleCopyUserId(user.id)}
+                          onClick={() => handleToggleUserActive(user)}
                         >
-                          <Copy className="h-4 w-4 mr-2" />
-                          Copy ID
+                          {user.is_active ? (
+                            <>
+                              <LockIcon className="h-4 w-4 mr-2" />
+                              Disable
+                            </>
+                          ) : (
+                            <>
+                              <UnlockIcon className="h-4 w-4 mr-2" />
+                              Enable
+                            </>
+                          )}
                         </Button>
                         {editingUser?.id === user.id ? (
                           <>
@@ -291,6 +327,7 @@ const AdminUsers: React.FC = () => {
                               size="sm"
                               onClick={() => handleUpdateUser({ 
                                 id: user.id,
+                                email: editingUser.email,
                                 first_name: editingUser.first_name,
                                 last_name: editingUser.last_name,
                                 role: editingUser.role
@@ -323,7 +360,7 @@ const AdminUsers: React.FC = () => {
                 ))}
                 {filteredUsers?.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                    <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                       No users found.
                     </TableCell>
                   </TableRow>
@@ -352,8 +389,8 @@ const AdminUsers: React.FC = () => {
                 <Input 
                   type="email" 
                   id="email" 
-                  defaultValue={editingUser.email} 
-                  disabled
+                  value={editingUser.email}
+                  onChange={(e) => setEditingUser({ ...editingUser, email: e.target.value })}
                   className="col-span-3" 
                 />
               </div>
@@ -404,6 +441,21 @@ const AdminUsers: React.FC = () => {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="is_active" className="text-right">
+                  Status
+                </Label>
+                <div className="flex items-center space-x-2 col-span-3">
+                  <Switch 
+                    id="is_active" 
+                    checked={editingUser.is_active}
+                    onCheckedChange={(checked) => setEditingUser({ ...editingUser, is_active: checked })}
+                  />
+                  <Label htmlFor="is_active">
+                    {editingUser.is_active ? 'Active' : 'Disabled'}
+                  </Label>
+                </div>
+              </div>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={handleCancelEdit}>
@@ -411,9 +463,11 @@ const AdminUsers: React.FC = () => {
               </Button>
               <Button onClick={() => handleUpdateUser({ 
                 id: editingUser.id,
+                email: editingUser.email,
                 first_name: editingUser.first_name,
                 last_name: editingUser.last_name,
-                role: editingUser.role
+                role: editingUser.role,
+                is_active: editingUser.is_active
               })}>Save</Button>
             </DialogFooter>
           </DialogContent>

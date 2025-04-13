@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -49,6 +48,7 @@ import AdminLostFound from "./pages/AdminLostFound";
 import AdminMessages from "./pages/AdminMessages";
 import AdminSecurity from "./pages/AdminSecurity";
 import AdminSettings from "./pages/AdminSettings";
+import AdminApplications from "./pages/AdminApplications";
 
 const queryClient = new QueryClient();
 
@@ -131,6 +131,7 @@ const App = () => (
               <Route path="/admin/messages" element={<AdminMessages />} />
               <Route path="/admin/security" element={<AdminSecurity />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
+              <Route path="/admin/applications" element={<AdminApplications />} />
               
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

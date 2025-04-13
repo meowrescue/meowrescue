@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import Layout from '@/components/Layout';
 import SectionHeading from '@/components/ui/SectionHeading';
@@ -11,15 +11,37 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import SEO from '@/components/SEO';
+
+interface VolunteerFormValues {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  interestType: string;
+  availability: string[];
+  experience: string;
+  petInfo: string;
+  housingType: string;
+  agreement: boolean;
+}
 
 const VolunteerForm: React.FC = () => {
   const { toast } = useToast();
-  const form = useForm({
+  const { user } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const form = useForm<VolunteerFormValues>({
     defaultValues: {
       firstName: '',
       lastName: '',
-      email: '',
+      email: user?.email || '',
       phone: '',
       address: '',
       city: '',
@@ -34,10 +56,29 @@ const VolunteerForm: React.FC = () => {
     },
   });
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: VolunteerFormValues) => {
     try {
-      // This would normally submit to a backend API
-      console.log('Form data:', data);
+      setIsSubmitting(true);
+      
+      // Determine application type based on interest
+      let applicationType = 'volunteer';
+      if (data.interestType === 'foster') {
+        applicationType = 'foster';
+      } else if (data.interestType === 'both') {
+        applicationType = 'volunteer+foster';
+      }
+      
+      // Save the application to the database
+      const { error } = await supabase
+        .from('applications')
+        .insert({
+          applicant_id: user?.id,
+          application_type: applicationType,
+          form_data: data,
+          status: 'pending'
+        });
+      
+      if (error) throw error;
       
       // Show success message
       toast({
@@ -47,12 +88,14 @@ const VolunteerForm: React.FC = () => {
       
       // Reset the form
       form.reset();
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Submission Error",
-        description: "There was an error submitting your application. Please try again.",
+        description: error.message || "There was an error submitting your application. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -375,7 +418,9 @@ const VolunteerForm: React.FC = () => {
                 />
               </div>
               
-              <Button type="submit" variant="meow" size="lg">Submit Application</Button>
+              <Button type="submit" variant="meow" size="lg" disabled={isSubmitting}>
+                {isSubmitting ? 'Submitting...' : 'Submit Application'}
+              </Button>
             </form>
           </Form>
         </div>
