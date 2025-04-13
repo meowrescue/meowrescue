@@ -15,7 +15,7 @@ export const getStatusBadgeClass = (status: string) => {
   }
 };
 
-export const getStatusIcon = (status: string) => {
+export const getStatusIcon = (status: string): React.ReactNode => {
   switch (status) {
     case "lost":
       return <AlertCircle className="w-4 h-4" />;
