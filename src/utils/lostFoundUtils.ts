@@ -1,3 +1,4 @@
+
 import React from "react";
 import { AlertCircle, Search, CheckCircle } from "lucide-react";
 
@@ -19,7 +20,6 @@ export const getStatusBadgeClass = (status: string | null | undefined): string =
 export const getStatusIcon = (status: string | null | undefined): React.ReactNode => {
   switch (status?.toLowerCase()) {
     case "lost":
-      // Using correct props for Lucide React Icons with self-closing tag
       return <AlertCircle size={16} strokeWidth={2} />;
     case "found":
       return <Search size={16} strokeWidth={2} />;
