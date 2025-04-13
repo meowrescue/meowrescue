@@ -24,8 +24,8 @@ const About = () => {
         return [] as TeamMember[];
       }
       
-      // Fix the type conversion issue by explicitly casting to TeamMember[]
-      return (data || []) as TeamMember[];
+      // Cast the data to TeamMember[] to resolve type issues
+      return (data as any || []) as TeamMember[];
     }
   });
 
