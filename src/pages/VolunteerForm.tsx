@@ -383,7 +383,7 @@ const VolunteerForm: React.FC = () => {
                             <SelectItem value="apartment">Apartment/Condo</SelectItem>
                             <SelectItem value="mobile">Mobile Home</SelectItem>
                             <SelectItem value="other">Other</SelectItem>
-                          </FormControl>
+                          </SelectContent>
                         </Select>
                         <FormMessage />
                       </FormItem>
