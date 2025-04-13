@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,7 +24,7 @@ const About = () => {
         return [] as TeamMember[];
       }
       
-      // Use type assertion to resolve the type issue
+      // Fix the type conversion issue by explicitly casting to TeamMember[]
       return (data || []) as TeamMember[];
     }
   });
