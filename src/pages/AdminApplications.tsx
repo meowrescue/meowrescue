@@ -20,28 +20,43 @@ const AdminApplications = () => {
   const { data: applications, isLoading } = useQuery({
     queryKey: ['admin-applications'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('applications')
-        .select(`
-          id, applicant_id, application_type, 
-          status, form_data, created_at, 
-          updated_at, reviewed_at, reviewer_id, feedback,
-          profiles:applicant_id(email, first_name, last_name)
-        `)
-        .order('created_at', { ascending: false });
+      try {
+        // Check if applications table exists
+        const { data: tableExists, error: tableError } = await supabase
+          .from('applications')
+          .select('id')
+          .limit(1);
+          
+        if (tableError) {
+          console.error("Error checking applications table:", tableError);
+          return [] as Application[];
+        }
         
-      if (error) {
-        console.error("Error fetching applications:", error);
+        const { data, error } = await supabase
+          .from('applications')
+          .select(`
+            id, applicant_id, application_type, 
+            status, form_data, created_at, 
+            updated_at, reviewed_at, reviewer_id, feedback
+          `)
+          .order('created_at', { ascending: false });
+          
+        if (error) {
+          console.error("Error fetching applications:", error);
+          return [] as Application[];
+        }
+        
+        // Map the returned data to match the Application interface
+        const mappedData = data.map(app => ({
+          ...app,
+          user_id: app.applicant_id // Map applicant_id to user_id to match the interface
+        })) as Application[];
+        
+        return mappedData;
+      } catch (error: any) {
+        console.error("Error in applications query:", error);
         return [] as Application[];
       }
-      
-      // Map the returned data to match the Application interface
-      const mappedData = data.map(app => ({
-        ...app,
-        user_id: app.applicant_id // Map applicant_id to user_id to match the interface
-      })) as Application[];
-      
-      return mappedData;
     }
   });
 
