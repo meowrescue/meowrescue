@@ -14,5 +14,5 @@ export interface User {
   state: string | null;
   zip: string | null;
   bio: string | null;
-  is_active: boolean;
+  is_active?: boolean; // Added as optional for backward compatibility
 }

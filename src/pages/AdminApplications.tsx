@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -49,11 +50,17 @@ const AdminApplications: React.FC = () => {
     queryKey: ['applications', statusFilter, typeFilter],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase.rpc('get_applications');
+        const { data, error } = await supabase
+          .from('applications')
+          .select(`
+            *,
+            profiles (email, first_name, last_name)
+          `)
+          .order('created_at', { ascending: false });
         
         if (error) throw error;
         
-        // Apply filters in-memory since we're using RPC
+        // Apply filters in-memory 
         let filteredData = data as Application[];
         
         if (statusFilter) {
@@ -63,11 +70,6 @@ const AdminApplications: React.FC = () => {
         if (typeFilter) {
           filteredData = filteredData.filter(app => app.application_type === typeFilter);
         }
-        
-        // Sort by created_at descending
-        filteredData.sort((a, b) => 
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        );
         
         return filteredData;
       } catch (err) {
@@ -88,12 +90,15 @@ const AdminApplications: React.FC = () => {
     if (!viewingApplication) return;
     
     try {
-      const { error } = await supabase.rpc('update_application_status', {
-        p_application_id: viewingApplication.id,
-        p_status: newStatus,
-        p_feedback: feedback,
-        p_reviewer_id: (await supabase.auth.getUser()).data.user?.id
-      });
+      const { error } = await supabase
+        .from('applications')
+        .update({
+          status: newStatus,
+          feedback: feedback,
+          reviewed_at: new Date().toISOString(),
+          reviewer_id: (await supabase.auth.getUser()).data.user?.id
+        })
+        .eq('id', viewingApplication.id);
         
       if (error) throw error;
       
