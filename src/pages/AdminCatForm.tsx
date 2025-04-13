@@ -202,11 +202,11 @@ const AdminCatForm: React.FC = () => {
     <AdminLayout title={isEditing ? "Edit Cat" : "Add Cat"}>
       <SEO title={`${isEditing ? "Edit" : "Add"} Cat | Meow Rescue Admin`} />
       
-      <div className="container mx-auto py-6">
+      <div className="w-full mx-auto py-4 sm:py-6">
         <Button 
           variant="outline" 
           onClick={() => navigate('/admin/cats')} 
-          className="mb-6 flex items-center gap-2"
+          className="mb-4 sm:mb-6 flex items-center gap-2"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Cats
@@ -214,19 +214,19 @@ const AdminCatForm: React.FC = () => {
         
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl font-bold">
+            <CardTitle className="text-xl sm:text-2xl font-bold">
               {isEditing ? `Edit ${cat?.name || 'Cat'}` : 'Add New Cat'}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {isCatLoading ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="animate-spin h-12 w-12 text-meow-primary" />
+              <div className="flex justify-center py-8 sm:py-12">
+                <Loader2 className="animate-spin h-8 sm:h-12 w-8 sm:w-12 text-meow-primary" />
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                  <div className="space-y-3 sm:space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="name">Name *</Label>
                       <Input 
@@ -283,7 +283,7 @@ const AdminCatForm: React.FC = () => {
                     </div>
                   </div>
                   
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="description">Description</Label>
                       <Textarea 
@@ -308,7 +308,7 @@ const AdminCatForm: React.FC = () => {
                   </div>
                 </div>
                 
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   <div>
                     <Label htmlFor="photos">Photos</Label>
                     <div className="mt-2">
@@ -380,16 +380,21 @@ const AdminCatForm: React.FC = () => {
                   </div>
                 </div>
                 
-                <CardFooter className="flex justify-end gap-4 px-0 pt-4">
+                <CardFooter className="flex flex-col sm:flex-row sm:justify-end gap-3 sm:gap-4 px-0 pt-4 pb-0">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => navigate('/admin/cats')}
                     disabled={isLoading}
+                    className="w-full sm:w-auto"
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={isLoading}>
+                  <Button 
+                    type="submit" 
+                    disabled={isLoading}
+                    className="w-full sm:w-auto"
+                  >
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     {isEditing ? 'Update Cat' : 'Add Cat'}
                   </Button>

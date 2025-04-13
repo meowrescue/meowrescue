@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from './Admin';
@@ -138,19 +137,19 @@ const AdminDashboard: React.FC = () => {
     <AdminLayout title="Dashboard">
       <SEO title="Dashboard | Meow Rescue Admin" />
       
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <div className="text-sm text-gray-500">Last updated: {currentDate}</div>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-2">
+        <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
+        <div className="text-xs sm:text-sm text-gray-500">Last updated: {currentDate}</div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Donations</CardTitle>
             <DollarSign className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-xl sm:text-2xl font-bold">
               {isLoadingDonations ? (
                 <span className="text-gray-400">Loading...</span>
               ) : (
@@ -166,7 +165,7 @@ const AdminDashboard: React.FC = () => {
             <Cat className="h-4 w-4 text-meow-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-xl sm:text-2xl font-bold">
               {isLoadingCats ? (
                 <span className="text-gray-400">Loading...</span>
               ) : (
@@ -182,7 +181,7 @@ const AdminDashboard: React.FC = () => {
             <Users className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-xl sm:text-2xl font-bold">
               {isLoadingUsers ? (
                 <span className="text-gray-400">Loading...</span>
               ) : (
@@ -195,14 +194,15 @@ const AdminDashboard: React.FC = () => {
       </div>
       
       <Tabs defaultValue="overview" className="w-full mb-8">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="donations">Donations</TabsTrigger>
-          <TabsTrigger value="adoptions">Adoptions</TabsTrigger>
-          <TabsTrigger value="activity">Recent Activity</TabsTrigger>
+        <TabsList className="w-full sm:w-auto flex overflow-x-auto pb-1 sm:pb-0 mb-2 sm:mb-0">
+          <TabsTrigger value="overview" className="flex-1 sm:flex-none">Overview</TabsTrigger>
+          <TabsTrigger value="donations" className="flex-1 sm:flex-none">Donations</TabsTrigger>
+          <TabsTrigger value="adoptions" className="flex-1 sm:flex-none">Adoptions</TabsTrigger>
+          <TabsTrigger value="activity" className="flex-1 sm:flex-none">Recent Activity</TabsTrigger>
         </TabsList>
-        <TabsContent value="overview" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <TabsContent value="overview" className="mt-4 sm:mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             <Card className="col-span-1">
               <CardHeader>
                 <CardTitle className="text-lg font-medium">Upcoming Events</CardTitle>
