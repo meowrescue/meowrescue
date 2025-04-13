@@ -1,6 +1,11 @@
 
 import React, { useState } from 'react';
-import { Application } from '@/types/applications';
+import { Application } from '@/types/supabase';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Dialog,
   DialogContent,
@@ -9,223 +14,147 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 
 interface ApplicationViewProps {
   application: Application;
   onClose: () => void;
 }
 
-const ApplicationView: React.FC<ApplicationViewProps> = ({
-  application,
-  onClose,
-}) => {
+const ApplicationView: React.FC<ApplicationViewProps> = ({ application, onClose }) => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [feedback, setFeedback] = useState(application.feedback || '');
-  const [status, setStatus] = useState(application.status);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleStatusChange = async (newStatus: string) => {
-    setStatus(newStatus);
-  };
-
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
-    try {
-      const { error } = await supabase
+  const updateApplicationStatus = useMutation({
+    mutationFn: async ({ id, status, feedback }: { id: string; status: string; feedback: string }) => {
+      const { data, error } = await supabase
         .from('applications')
-        .update({
+        .update({ 
           status,
           feedback,
           reviewed_at: new Date().toISOString(),
-          reviewer_id: (await supabase.auth.getUser()).data.user?.id,
+          reviewer_id: (await supabase.auth.getUser()).data.user?.id
         })
-        .eq('id', application.id);
+        .eq('id', id)
+        .select();
 
       if (error) throw error;
-
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-applications'] });
       toast({
-        title: 'Application Updated',
-        description: 'The application has been successfully updated.',
+        title: "Application Updated",
+        description: "The application status has been updated successfully."
       });
       onClose();
-    } catch (error) {
-      console.error('Error updating application:', error);
+    },
+    onError: (error: any) => {
       toast({
-        title: 'Update Failed',
-        description: 'Failed to update the application. Please try again.',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to update application",
+        variant: "destructive"
       });
-    } finally {
-      setIsSubmitting(false);
     }
+  });
+
+  const handleUpdateStatus = (status: string) => {
+    updateApplicationStatus.mutate({ id: application.id, status, feedback });
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+  const renderFormData = () => {
+    return Object.entries(application.form_data).map(([key, value]) => {
+      // Skip internal fields or empty values
+      if (key.startsWith('_') || value === null || value === '') return null;
+      
+      // Format the key for display
+      const formattedKey = key
+        .replace(/([A-Z])/g, ' $1') // Add space before capital letters
+        .replace(/^./, str => str.toUpperCase()); // Capitalize first letter
+      
+      return (
+        <div key={key} className="mb-4">
+          <h4 className="text-sm font-medium text-gray-700">{formattedKey}</h4>
+          <p className="mt-1 text-sm text-gray-900">{value as string}</p>
+        </div>
+      );
     });
   };
 
-  // Helper to render form data sections
-  const renderFormSection = (title: string, data: Record<string, any>) => {
-    return (
-      <Card className="mb-4">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg">{title}</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <dl className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {Object.entries(data).map(([key, value]) => {
-              // Skip internal fields or empty values
-              if (key.startsWith('_') || !value) return null;
-              
-              // Format the key for display
-              const formattedKey = key
-                .replace(/([A-Z])/g, ' $1')
-                .replace(/^./, (str) => str.toUpperCase());
-              
-              return (
-                <div key={key} className="py-1">
-                  <dt className="text-sm font-medium text-gray-500">{formattedKey}</dt>
-                  <dd className="text-sm text-gray-900">{value}</dd>
-                </div>
-              );
-            })}
-          </dl>
-        </CardContent>
-      </Card>
-    );
-  };
-
   return (
-    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {application.application_type} Application
-          </DialogTitle>
+          <DialogTitle>{application.application_type.toUpperCase()} Application</DialogTitle>
           <DialogDescription>
-            Submitted on {formatDate(application.created_at)}
+            Submitted on {new Date(application.created_at).toLocaleDateString()} by {application.form_data.firstName} {application.form_data.lastName}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 my-4">
-          {/* Applicant Information */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle>Applicant Information</CardTitle>
-              <CardDescription>
-                Contact information for the applicant
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Name</p>
-                  <p className="text-gray-900">
-                    {application.form_data.firstName} {application.form_data.lastName}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Email</p>
-                  <p className="text-gray-900">{application.form_data.email}</p>
-                </div>
-                {application.form_data.phone && (
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Phone</p>
-                    <p className="text-gray-900">{application.form_data.phone}</p>
-                  </div>
-                )}
-                {application.form_data.address && (
-                  <div className="col-span-1 md:col-span-2">
-                    <p className="text-sm font-medium text-gray-500">Address</p>
-                    <p className="text-gray-900">
-                      {application.form_data.address}
-                      {application.form_data.city && `, ${application.form_data.city}`}
-                      {application.form_data.state && `, ${application.form_data.state}`}
-                      {application.form_data.zip && ` ${application.form_data.zip}`}
-                    </p>
-                  </div>
-                )}
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Applicant Information</h3>
+              {renderFormData()}
+            </div>
+            
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Application Review</h3>
+              <div className="mb-4">
+                <h4 className="text-sm font-medium text-gray-700">Current Status</h4>
+                <p className="mt-1 text-sm font-medium">
+                  <span className={`px-2 py-1 rounded-full text-xs ${
+                    application.status === 'approved' ? 'bg-green-100 text-green-800' :
+                    application.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                    application.status === 'in-review' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-blue-100 text-blue-800'
+                  }`}>
+                    {application.status.toUpperCase()}
+                  </span>
+                </p>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Application Details */}
-          {application.form_data && renderFormSection('Application Details', application.form_data)}
-
-          {/* Admin Feedback */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle>Admin Feedback</CardTitle>
-              <CardDescription>
-                Add notes and change application status
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label
-                    htmlFor="status"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Status
-                  </label>
-                  <select
-                    id="status"
-                    value={status}
-                    onChange={(e) => handleStatusChange(e.target.value)}
-                    className="w-full rounded-md border border-gray-300 p-2"
-                  >
-                    <option value="Submitted">Submitted</option>
-                    <option value="Under Review">Under Review</option>
-                    <option value="Approved">Approved</option>
-                    <option value="Rejected">Rejected</option>
-                    <option value="On Hold">On Hold</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label
-                    htmlFor="feedback"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Feedback/Notes
-                  </label>
-                  <Textarea
-                    id="feedback"
-                    value={feedback}
-                    onChange={(e) => setFeedback(e.target.value)}
-                    rows={4}
-                    placeholder="Add any feedback or notes about this application..."
-                  />
-                </div>
+              
+              <div className="mb-4">
+                <h4 className="text-sm font-medium text-gray-700">Feedback</h4>
+                <Textarea
+                  className="mt-1"
+                  placeholder="Enter feedback or notes about this application"
+                  value={feedback}
+                  onChange={(e) => setFeedback(e.target.value)}
+                  rows={5}
+                />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="flex-col sm:flex-row gap-2">
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={isSubmitting}>
-            {isSubmitting ? 'Saving...' : 'Save Changes'}
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="destructive" 
+              onClick={() => handleUpdateStatus('rejected')}
+              disabled={application.status === 'rejected'}
+            >
+              Reject
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => handleUpdateStatus('in-review')}
+              disabled={application.status === 'in-review'}
+            >
+              Mark as In Review
+            </Button>
+            <Button 
+              variant="default"
+              onClick={() => handleUpdateStatus('approved')}
+              disabled={application.status === 'approved'}
+            >
+              Approve
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
