@@ -19,7 +19,7 @@ const CountUp: React.FC<CountUpProps> = ({
   const [hasAnimated, setHasAnimated] = useState(false);
 
   useEffect(() => {
-    const handleIntersection = (entries: IntersectionObserverEntry[]) => {
+    const handleIntersection = (entries: IntersectionObseratorEntry[]) => {
       const [entry] = entries;
       if (entry.isIntersecting && !hasAnimated) {
         setHasAnimated(true);
