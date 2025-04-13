@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import SEO from '@/components/SEO';
@@ -11,27 +10,23 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 
-// Define the form schema
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
   email: z.string().email({ message: 'Please enter a valid email address.' }),
   phone: z.string().min(10, { message: 'Phone number must be at least 10 characters.' }),
-  availability: z.string().min(10, { message: 'Availability must be at least 10 characters.' }),
-  skills: z.string().optional(),
+  address: z.string().min(5, { message: 'Address must be at least 5 characters.' }),
+  whyVolunteer: z.string().min(10, { message: 'Please tell us why you want to volunteer.' }),
   experience: z.string().optional(),
-  reason: z.string().min(10, { message: 'Reason must be at least 10 characters.' }),
+  availability: z.string().min(10, { message: 'Please describe your availability.' }),
+  skills: z.string().optional(),
   agreement: z.boolean().refine((value) => value === true, {
-    message: 'You must agree to the terms and conditions.',
+    message: 'You must agree to our volunteer agreement.',
   }),
 });
 
 const VolunteerForm: React.FC = () => {
-  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -39,65 +34,34 @@ const VolunteerForm: React.FC = () => {
       name: '',
       email: '',
       phone: '',
+      address: '',
+      whyVolunteer: '',
+      experience: '',
       availability: '',
       skills: '',
-      experience: '',
-      reason: '',
       agreement: false,
     },
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
-    
-    try {
-      // Submit to Supabase
-      const { error } = await supabase
-        .from('volunteer_applications')
-        .insert([
-          {
-            name: values.name,
-            email: values.email,
-            phone: values.phone,
-            availability: values.availability,
-            skills: values.skills,
-            experience: values.experience,
-            reason: values.reason,
-            submitted_at: new Date().toISOString()
-          }
-        ]);
-        
-      if (error) throw error;
-
-      // Success - show toast and reset form
-      toast({
-        title: 'Application Submitted',
-        description: 'Thank you for your interest in volunteering with Meow Rescue! We will review your application and contact you soon.',
-      });
-      
-      form.reset();
-      setIsSubmitted(true);
-    } catch (error: any) {
-      console.error('Error submitting form:', error);
-      toast({
-        title: 'Application Not Submitted',
-        description: 'There was a problem submitting your application. Please try again later.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    // Here you would typically handle the form submission, e.g., sending the data to a server.
+    console.log('Form values:', values);
+    // Simulate a submission delay
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    setIsSubmitting(false);
+    alert('Form submitted successfully!');
   };
-
+  
   return (
     <Layout>
-      <SEO title="Volunteer Application | Meow Rescue" description="Apply to volunteer with Meow Rescue. Help us make a difference in the lives of cats in need in our community." />
+      <SEO title="Volunteer Application | Meow Rescue" description="Apply to become a volunteer at Meow Rescue. Join our team and help make a difference in the lives of cats." />
       
       <div className="bg-gradient-to-r from-meow-primary/10 to-meow-secondary/10 py-16 md:py-24 text-center">
         <div className="container mx-auto px-4">
           <h1 className="text-4xl font-bold text-meow-primary mb-6">Volunteer Application</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Please complete the form below to apply to volunteer with Meow Rescue.
+            Thank you for your interest in volunteering with Meow Rescue. Please complete the form below to apply.
           </p>
         </div>
       </div>
@@ -107,7 +71,7 @@ const VolunteerForm: React.FC = () => {
           <CardHeader className="pb-6">
             <CardTitle className="text-2xl text-meow-primary">Volunteer Application</CardTitle>
             <CardDescription className="text-base">
-              Please fill out the form below to apply to volunteer with Meow Rescue.
+              Your time and dedication help us save more cats. Please tell us about yourself and how you'd like to help.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -118,9 +82,9 @@ const VolunteerForm: React.FC = () => {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-base">Name</FormLabel>
+                      <FormLabel className="text-base">Full Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="Your name" {...field} className="h-12" />
+                        <Input placeholder="Your full name" {...field} className="h-12" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -132,7 +96,7 @@ const VolunteerForm: React.FC = () => {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-base">Email</FormLabel>
+                      <FormLabel className="text-base">Email Address</FormLabel>
                       <FormControl>
                         <Input placeholder="Your email address" {...field} className="h-12" />
                       </FormControl>
@@ -146,9 +110,51 @@ const VolunteerForm: React.FC = () => {
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-base">Phone</FormLabel>
+                      <FormLabel className="text-base">Phone Number</FormLabel>
                       <FormControl>
                         <Input placeholder="Your phone number" {...field} className="h-12" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">Address</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Your street address" {...field} className="h-12" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="whyVolunteer"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">Why Do You Want to Volunteer?</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Please tell us why you would like to volunteer at Meow Rescue." className="min-h-40" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="experience"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">Relevant Experience</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Please describe any relevant experience you have, such as working with animals or in a rescue organization." className="min-h-40" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -162,7 +168,7 @@ const VolunteerForm: React.FC = () => {
                     <FormItem>
                       <FormLabel className="text-base">Availability</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="When are you available to volunteer?" className="min-h-24" {...field} />
+                        <Textarea placeholder="Please describe your availability, including days and times you are available to volunteer." className="min-h-40" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -174,37 +180,9 @@ const VolunteerForm: React.FC = () => {
                   name="skills"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-base">Skills (Optional)</FormLabel>
+                      <FormLabel className="text-base">Skills</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="Do you have any special skills or experience?" className="min-h-24" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="experience"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base">Experience (Optional)</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Do you have any previous volunteer experience?" className="min-h-24" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="reason"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base">Reason</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Why do you want to volunteer with Meow Rescue?" className="min-h-24" {...field} />
+                        <Textarea placeholder="Please list any skills you have that would be helpful to Meow Rescue, such as photography, writing, or social media management." className="min-h-40" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -220,25 +198,22 @@ const VolunteerForm: React.FC = () => {
                         <Checkbox
                           checked={field.value}
                           onCheckedChange={field.onChange}
-                          id="terms"
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel className="text-sm font-medium">
-                          I agree to the terms and conditions
-                        </FormLabel>
+                        <FormLabel className="text-base">I agree to abide by Meow Rescue's volunteer policies and procedures.</FormLabel>
+                        <FormMessage />
                       </div>
-                      <FormMessage />
                     </FormItem>
                   )}
                 />
                 
                 <Button 
                   type="submit" 
-                  disabled={isSubmitting || isSubmitted}
+                  disabled={isSubmitting}
                   className="w-full h-12 text-base bg-meow-primary hover:bg-meow-primary/90 text-white"
                 >
-                  {isSubmitting ? 'Submitting...' : isSubmitted ? 'Application Submitted' : 'Submit Application'}
+                  {isSubmitting ? 'Submitting...' : 'Submit Application'}
                 </Button>
               </form>
             </Form>

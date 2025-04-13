@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
-import { Search, Edit, UserCog, Shield, UserX, Check, Filter } from 'lucide-react';
+import { Search, Edit, UserCog, Shield, UserX, Check, Filter, Mail, Phone, MapPin, Calendar } from 'lucide-react';
 import { 
   Table, 
   TableBody, 
@@ -43,7 +43,10 @@ const AdminUsers: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [editingUser, setEditingUser] = useState<ExtendedUser | null>(null);
   const [newRole, setNewRole] = useState<string>('');
+  const [newFirstName, setNewFirstName] = useState<string>('');
+  const [newLastName, setNewLastName] = useState<string>('');
   const [newEmail, setNewEmail] = useState<string>('');
+  const [newPhone, setNewPhone] = useState<string>('');
 
   // Query to get users from profiles table with enhanced filtering
   const { data: users, isLoading, error, refetch } = useQuery({
@@ -106,6 +109,10 @@ const AdminUsers: React.FC = () => {
   const handleEditUser = (user: ExtendedUser) => {
     setEditingUser(user);
     setNewRole(user.role);
+    setNewFirstName(user.first_name || '');
+    setNewLastName(user.last_name || '');
+    setNewEmail(user.email);
+    setNewPhone(user.phone || '');
   };
 
   const handleUpdateUser = async () => {
@@ -116,7 +123,12 @@ const AdminUsers: React.FC = () => {
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
-          role: newRole as 'user' | 'volunteer' | 'foster' | 'admin'
+          role: newRole as 'user' | 'volunteer' | 'foster' | 'admin',
+          first_name: newFirstName,
+          last_name: newLastName,
+          email: newEmail,
+          phone: newPhone,
+          updated_at: new Date().toISOString()
         })
         .eq('id', editingUser.id);
 
@@ -124,7 +136,7 @@ const AdminUsers: React.FC = () => {
 
       toast({
         title: "User Updated",
-        description: `User role has been updated to ${newRole}.`,
+        description: `User details have been updated successfully.`,
       });
 
       refetch();
@@ -132,7 +144,7 @@ const AdminUsers: React.FC = () => {
     } catch (err: any) {
       toast({
         title: "Error",
-        description: err.message || "Failed to update user role.",
+        description: err.message || "Failed to update user details.",
         variant: "destructive",
       });
     }
@@ -166,6 +178,20 @@ const AdminUsers: React.FC = () => {
     }
   };
 
+  // Get role badge color
+  const getRoleBadgeVariant = (role: string) => {
+    switch(role) {
+      case 'admin':
+        return "destructive";
+      case 'volunteer':
+        return "secondary";
+      case 'foster':
+        return "default";
+      default:
+        return "outline";
+    }
+  };
+
   return (
     <AdminLayout title="User Management">
       <SEO title="User Management | Meow Rescue Admin" />
@@ -175,6 +201,16 @@ const AdminUsers: React.FC = () => {
           <h1 className="text-3xl font-bold text-meow-primary mb-4 md:mb-0">User Management</h1>
           
           <div className="flex gap-2 items-center">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search users..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 w-full md:w-64"
+              />
+            </div>
+            
             <Select 
               value={roleFilter} 
               onValueChange={setRoleFilter}
@@ -183,7 +219,7 @@ const AdminUsers: React.FC = () => {
                 <SelectValue placeholder="Filter by Role" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Roles</SelectItem>
+                <SelectItem value="">All Roles</SelectItem>
                 <SelectItem value="user">User</SelectItem>
                 <SelectItem value="volunteer">Volunteer</SelectItem>
                 <SelectItem value="foster">Foster</SelectItem>
@@ -199,7 +235,7 @@ const AdminUsers: React.FC = () => {
                 <SelectValue placeholder="Filter by Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="">All Statuses</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="disabled">Disabled</SelectItem>
               </SelectContent>
@@ -246,14 +282,7 @@ const AdminUsers: React.FC = () => {
                     </TableCell>
                     <TableCell className="break-all md:break-normal">{user.email}</TableCell>
                     <TableCell>
-                      <Badge
-                        variant={
-                          user.role === 'admin' ? 'default' :
-                          user.role === 'volunteer' ? 'secondary' :
-                          user.role === 'foster' ? 'outline' :
-                          'secondary'
-                        }
-                      >
+                      <Badge variant={getRoleBadgeVariant(user.role)}>
                         {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                       </Badge>
                     </TableCell>
@@ -308,13 +337,71 @@ const AdminUsers: React.FC = () => {
       <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
         <DialogContent className="max-w-md mx-auto">
           <DialogHeader>
-            <DialogTitle>Edit User</DialogTitle>
+            <DialogTitle>Edit User Details</DialogTitle>
             <DialogDescription>
-              Change the role of this user. Be careful with admin privileges.
+              Update user information and permissions. Be careful with admin privileges.
             </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="firstName" className="text-right text-sm">
+                First Name
+              </label>
+              <div className="col-span-3">
+                <Input
+                  id="firstName"
+                  value={newFirstName}
+                  onChange={(e) => setNewFirstName(e.target.value)}
+                  placeholder="First Name"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="lastName" className="text-right text-sm">
+                Last Name
+              </label>
+              <div className="col-span-3">
+                <Input
+                  id="lastName"
+                  value={newLastName}
+                  onChange={(e) => setNewLastName(e.target.value)}
+                  placeholder="Last Name"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="email" className="text-right text-sm">
+                Email
+              </label>
+              <div className="col-span-3">
+                <Input
+                  id="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  placeholder="Email Address"
+                  type="email"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="phone" className="text-right text-sm">
+                Phone
+              </label>
+              <div className="col-span-3">
+                <Input
+                  id="phone"
+                  value={newPhone}
+                  onChange={(e) => setNewPhone(e.target.value)}
+                  placeholder="Phone Number"
+                  type="tel"
+                />
+              </div>
+            </div>
+            
             <div className="grid grid-cols-4 items-center gap-4">
               <label htmlFor="role" className="text-right text-sm">
                 Role

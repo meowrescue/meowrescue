@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
@@ -6,23 +7,19 @@ import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
+  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { PenSquare, Trash2, MoreHorizontal, Plus, Search, ExternalLink, Eye, EyeOff } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 const AdminBlog: React.FC = () => {
   const navigate = useNavigate();
@@ -129,121 +126,119 @@ const AdminBlog: React.FC = () => {
 
   return (
     <AdminLayout title="Blog Management">
-      <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
-        <div className="w-full md:w-auto">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search blog posts..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full md:w-80 pl-10"
-            />
+      <SEO title="Blog Management | Meow Rescue Admin" />
+      
+      <div className="container mx-auto py-10">
+        <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
+          <h1 className="text-3xl font-bold text-meow-primary">Blog Posts</h1>
+          <div className="flex items-center gap-4 w-full md:w-auto">
+            <div className="relative w-full md:w-auto">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search blog posts..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 w-full md:w-64"
+              />
+            </div>
+            <Button onClick={() => navigate('/admin/blog/new')} className="w-full md:w-auto">
+              <Plus className="h-4 w-4 mr-2" /> Create New Post
+            </Button>
           </div>
         </div>
-        <Button onClick={() => navigate('/admin/blog/new')} className="w-full md:w-auto">
-          <Plus className="h-4 w-4 mr-2" /> Create New Post
-        </Button>
-      </div>
 
-      {isLoading ? (
-        <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
-        </div>
-      ) : filteredPosts.length > 0 ? (
-        <div className="bg-white rounded-md shadow overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredPosts.map((post) => (
-                <TableRow key={post.id}>
-                  <TableCell className="font-medium">{post.title}</TableCell>
-                  <TableCell>
-                    <Badge variant={post.is_published ? "default" : "outline"} className={post.is_published ? "bg-green-500 hover:bg-green-600" : ""}>
-                      {post.is_published ? 'Published' : 'Draft'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {post.is_published && post.published_at
-                      ? new Date(post.published_at).toLocaleDateString()
-                      : new Date(post.created_at).toLocaleDateString() + ' (Created)'}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => togglePublishStatus(post.id, post.is_published)}
-                        title={post.is_published ? "Unpublish" : "Publish"}
-                      >
-                        {post.is_published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </Button>
-                      
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => navigate(`/admin/blog/edit/${post.id}`)}
-                        title="Edit post"
-                      >
-                        <PenSquare className="h-4 w-4" />
-                      </Button>
-                      
-                      {post.is_published && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          asChild
-                          title="View on site"
-                        >
-                          <Link to={`/blog/${post.slug}`} target="_blank">
-                            <ExternalLink className="h-4 w-4" />
-                          </Link>
-                        </Button>
-                      )}
-                      
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem 
-                            onClick={() => {
-                              setPostToDelete(post.id);
-                              setIsDeleteAlertOpen(true);
-                            }}
-                            className="text-red-600 focus:text-red-600"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </TableCell>
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
+          </div>
+        ) : filteredPosts.length > 0 ? (
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <Table>
+              <TableCaption>All blog posts.</TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      ) : (
-        <div className="bg-white rounded-md shadow p-8 text-center">
-          <p className="text-gray-500 mb-4">
-            {searchTerm ? 'No blog posts matching your search' : 'No blog posts yet'}
-          </p>
-          <Button onClick={() => navigate('/admin/blog/new')}>
-            <Plus className="h-4 w-4 mr-2" /> Create Your First Post
-          </Button>
-        </div>
-      )}
+              </TableHeader>
+              <TableBody>
+                {filteredPosts.map((post) => (
+                  <TableRow key={post.id}>
+                    <TableCell className="font-medium">{post.title}</TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={post.is_published ? "default" : "outline"} 
+                        className={post.is_published ? "bg-green-500 hover:bg-green-600" : ""}
+                      >
+                        {post.is_published ? 'Published' : 'Draft'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {post.is_published && post.published_at
+                        ? new Date(post.published_at).toLocaleDateString()
+                        : new Date(post.created_at).toLocaleDateString() + ' (Created)'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => togglePublishStatus(post.id, post.is_published)}
+                        >
+                          {post.is_published ? 
+                            <><EyeOff className="h-4 w-4 mr-2" /> Unpublish</> : 
+                            <><Eye className="h-4 w-4 mr-2" /> Publish</>
+                          }
+                        </Button>
+                        
+                        <Link to={`/admin/blog/edit/${post.id}`}>
+                          <Button variant="ghost" size="sm">
+                            <PenSquare className="h-4 w-4 mr-2" /> Edit
+                          </Button>
+                        </Link>
+                        
+                        {post.is_published && (
+                          <Link to={`/blog/${post.slug}`} target="_blank">
+                            <Button variant="ghost" size="sm">
+                              <ExternalLink className="h-4 w-4 mr-2" /> View
+                            </Button>
+                          </Link>
+                        )}
+                        
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-red-500 hover:text-red-700"
+                          onClick={() => {
+                            setPostToDelete(post.id);
+                            setIsDeleteAlertOpen(true);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" /> Delete
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        ) : (
+          <div className="bg-white p-6 rounded-lg shadow">
+            <div className="text-center py-12">
+              <h2 className="text-2xl font-semibold text-gray-700 mb-4">No Blog Posts</h2>
+              <p className="text-gray-500 mb-8">
+                There are no blog posts in the database yet. Create your first post to get started.
+              </p>
+              <Button onClick={() => navigate('/admin/blog/new')}>
+                <Plus className="h-4 w-4 mr-2" /> Create Your First Post
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
 
       <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
         <AlertDialogContent>

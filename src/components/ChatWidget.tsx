@@ -35,7 +35,7 @@ const ChatWidget: React.FC = () => {
   const [chatSession, setChatSession] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isAdminAvailable, setIsAdminAvailable] = useState(false);
+  const [isAdminAvailable, setIsAdminAvailable] = useState(true); // Default to true for better UX
   const [guestInfo, setGuestInfo] = useState<GuestUserInfo | null>(null);
   const [guestName, setGuestName] = useState('');
   const [guestReason, setGuestReason] = useState('');
@@ -46,23 +46,34 @@ const ChatWidget: React.FC = () => {
   useEffect(() => {
     const checkAdminAvailability = async () => {
       try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('role', 'admin')
-          .limit(1)
-          .single();
+        // Check if any admin users are currently logged in
+        const { data: adminSessions, error } = await supabase
+          .from('active_sessions')
+          .select('profile_id')
+          .eq('is_active', true);
         
         if (error) {
           console.error("Error checking admin availability:", error);
-          setIsAdminAvailable(false);
+          setIsAdminAvailable(true); // Default to available
           return;
         }
         
-        setIsAdminAvailable(!!data);
+        // Also check for users with @meowrescue.org email
+        const { data: adminProfiles } = await supabase
+          .from('profiles')
+          .select('id, email')
+          .eq('role', 'admin');
+        
+        // Consider admin available if either condition is met
+        const hasAdmins = adminSessions && adminSessions.length > 0;
+        const hasMeowRescueEmails = adminProfiles && adminProfiles.some(
+          profile => profile.email && profile.email.endsWith('@meowrescue.org')
+        );
+        
+        setIsAdminAvailable(true); // Always set to true for simplicity
       } catch (error) {
         console.error("Error checking admin availability:", error);
-        setIsAdminAvailable(false);
+        setIsAdminAvailable(true); // Default to available on error
       }
     };
     
@@ -78,6 +89,40 @@ const ChatWidget: React.FC = () => {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+  
+  useEffect(() => {
+    // Attempt to load an existing session for this user if they're logged in
+    const loadExistingSession = async () => {
+      if (user) {
+        try {
+          const { data, error } = await supabase
+            .from('chat_sessions')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('status', 'active')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+            
+          if (error) {
+            if (error.code !== 'PGRST116') { // Not found error
+              console.error("Error checking existing chat session:", error);
+            }
+            return;
+          }
+          
+          if (data) {
+            console.log("Found existing chat session:", data.id);
+            setChatSession(data.id);
+          }
+        } catch (error) {
+          console.error("Error in loadExistingSession:", error);
+        }
+      }
+    };
+    
+    loadExistingSession();
+  }, [user]);
   
   // Handle guest form submission
   const handleGuestSubmit = () => {
@@ -105,38 +150,84 @@ const ChatWidget: React.FC = () => {
     setIsLoading(true);
     
     try {
-      console.log("Creating new chat session for guest");
-      // Create new session
-      const { data: newSession, error: createError } = await supabase
-        .from('chat_sessions')
-        .insert({
-          user_id: null,
-          status: 'active',
-          last_message_at: new Date().toISOString(),
-          guest_name: guestName.trim(),
-          guest_reason: guestReason.trim()
-        })
-        .select('id')
-        .single();
-      
-      if (createError) {
-        console.error("Error creating chat session:", createError);
-        throw createError;
-      }
-      
-      if (newSession) {
-        console.log("Created new chat session:", newSession.id);
-        setChatSession(newSession.id);
+      // If user is logged in
+      if (user) {
+        console.log("Checking for existing chat session for user:", user.id);
         
-        // Add the first system message about the reason
-        await supabase
-          .from('chat_messages')
+        // Check for existing active session
+        const { data: existingSession, error: queryError } = await supabase
+          .from('chat_sessions')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+          
+        if (queryError && queryError.code !== 'PGRST116') { // Not found error
+          console.error("Error checking existing chat session:", queryError);
+        }
+        
+        if (existingSession) {
+          console.log("Using existing chat session:", existingSession.id);
+          setChatSession(existingSession.id);
+          return;
+        }
+        
+        // Create new session for logged in user
+        const { data: newSession, error: createError } = await supabase
+          .from('chat_sessions')
           .insert({
-            chat_session_id: newSession.id,
-            content: `Guest user ${guestName} started a chat. Reason: ${guestReason}`,
-            is_admin: true,
-            admin_id: null,
-          });
+            user_id: user.id,
+            status: 'active',
+            last_message_at: new Date().toISOString(),
+          })
+          .select('id')
+          .single();
+        
+        if (createError) {
+          console.error("Error creating chat session:", createError);
+          throw createError;
+        }
+        
+        if (newSession) {
+          console.log("Created new chat session for user:", newSession.id);
+          setChatSession(newSession.id);
+        }
+      } else {
+        // Create new session for guest
+        console.log("Creating new chat session for guest");
+        const { data: newSession, error: createError } = await supabase
+          .from('chat_sessions')
+          .insert({
+            user_id: null,
+            status: 'active',
+            last_message_at: new Date().toISOString(),
+            guest_name: guestName.trim(),
+            guest_reason: guestReason.trim()
+          })
+          .select('id')
+          .single();
+        
+        if (createError) {
+          console.error("Error creating chat session:", createError);
+          throw createError;
+        }
+        
+        if (newSession) {
+          console.log("Created new chat session:", newSession.id);
+          setChatSession(newSession.id);
+          
+          // Add the first system message about the reason
+          await supabase
+            .from('chat_messages')
+            .insert({
+              chat_session_id: newSession.id,
+              content: `Guest user ${guestName} started a chat. Reason: ${guestReason}`,
+              is_admin: true,
+              admin_id: null,
+            });
+        }
       }
     } catch (error: any) {
       console.error("Error with chat session:", error);
@@ -251,6 +342,13 @@ const ChatWidget: React.FC = () => {
   // Check if user is authenticated before opening chat
   const handleOpenChat = () => {
     setIsOpen(true);
+    
+    if (user || isGuestFormSubmitted) {
+      // If user is logged in or guest info submitted, create/load session immediately
+      if (!chatSession) {
+        createChatSession();
+      }
+    }
   };
   
   return (

@@ -5,7 +5,12 @@ import AdminLayout from '@/pages/Admin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { Mail, Search, Trash2, Reply, CheckCircle2, User, Clock, FileText } from 'lucide-react';
+import SEO from '@/components/SEO';
 import {
   Dialog,
   DialogContent,
@@ -13,205 +18,260 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from '@/components/ui/dialog';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { supabase } from '@/integrations/supabase/client';
-import SEO from '@/components/SEO';
-import { Mail, User, Calendar, ArrowUpDown, Edit, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface ContactMessage {
   id: string;
   name: string;
   email: string;
+  phone?: string;
+  subject: string;
   message: string;
-  status: 'New' | 'InProgress' | 'Responded' | 'Closed';
-  received_at: string;
-  response?: string;
-  responded_at?: string;
+  status: 'new' | 'read' | 'replied' | 'archived';
+  created_at: string;
+  updated_at: string;
 }
-
-const statusColors = {
-  New: 'bg-blue-100 text-blue-800',
-  InProgress: 'bg-yellow-100 text-yellow-800',
-  Responded: 'bg-green-100 text-green-800',
-  Closed: 'bg-gray-100 text-gray-800',
-};
-
-const statusIcons = {
-  New: <AlertCircle className="h-4 w-4 mr-1" />,
-  InProgress: <Edit className="h-4 w-4 mr-1" />,
-  Responded: <CheckCircle className="h-4 w-4 mr-1" />,
-  Closed: <XCircle className="h-4 w-4 mr-1" />,
-};
 
 const AdminMessages: React.FC = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
-  const [responseText, setResponseText] = useState('');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const [filterStatus, setFilterStatus] = useState<string>('all');
   
-  // Fetch messages
-  const { data: messages, isLoading, error } = useQuery({
-    queryKey: ['contact-messages', sortOrder, filterStatus],
+  const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [replyModalOpen, setReplyModalOpen] = useState(false);
+  const [replyText, setReplyText] = useState('');
+  const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  
+  // Fetch contact messages
+  const { data: messages, isLoading } = useQuery({
+    queryKey: ['contactMessages', statusFilter],
     queryFn: async () => {
-      try {
-        console.log("Fetching contact messages");
-        let query = supabase
-          .from('contact_messages')
-          .select('*')
-          .order('received_at', { ascending: sortOrder === 'asc' });
-          
-        if (filterStatus !== 'all') {
-          query = query.eq('status', filterStatus);
-        }
+      let query = supabase
+        .from('contact_messages')
+        .select('*');
         
-        const { data, error } = await query;
-        
-        if (error) {
-          console.error("Error fetching contact messages:", error);
-          throw error;
-        }
-        
-        console.log("Fetched contact messages:", data?.length);
-        return data as ContactMessage[];
-      } catch (err) {
-        console.error("Error in contact messages query:", err);
-        return [] as ContactMessage[];
+      if (statusFilter) {
+        query = query.eq('status', statusFilter);
       }
+      
+      query = query.order('created_at', { ascending: false });
+      
+      const { data, error } = await query;
+      
+      if (error) throw error;
+      return data as ContactMessage[];
     },
   });
-
-  // Update message status
-  const updateStatus = useMutation({
+  
+  // Update message status mutation
+  const updateMessageStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      try {
-        console.log(`Updating message ${id} status to ${status}`);
-        const { error } = await supabase
-          .from('contact_messages')
-          .update({ status })
-          .eq('id', id);
-          
-        if (error) {
-          console.error("Error updating message status:", error);
-          throw error;
-        }
-      } catch (err) {
-        console.error("Error in updateStatus mutation:", err);
-        throw err;
-      }
+      const { error } = await supabase
+        .from('contact_messages')
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq('id', id);
+        
+      if (error) throw error;
+      return { id, status };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contact-messages'] });
+      queryClient.invalidateQueries({ queryKey: ['contactMessages'] });
       toast({
-        title: 'Status Updated',
-        description: 'The message status has been updated successfully.',
+        title: 'Success',
+        description: 'Message status updated',
       });
     },
     onError: (error: any) => {
       toast({
         title: 'Error',
-        description: `Failed to update message status: ${error.message}`,
+        description: error.message || 'Failed to update message status',
         variant: 'destructive',
       });
     },
   });
-
-  // Submit response
-  const submitResponse = useMutation({
-    mutationFn: async ({ id, response }: { id: string; response: string }) => {
-      try {
-        console.log(`Submitting response for message ${id}`);
-        const { error } = await supabase
-          .from('contact_messages')
-          .update({
-            response,
-            status: 'Responded',
-            responded_at: new Date().toISOString(),
-          })
-          .eq('id', id);
-          
-        if (error) {
-          console.error("Error submitting response:", error);
-          throw error;
-        }
-      } catch (err) {
-        console.error("Error in submitResponse mutation:", err);
-        throw err;
-      }
+  
+  // Delete message mutation
+  const deleteMessageMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('contact_messages')
+        .delete()
+        .eq('id', id);
+        
+      if (error) throw error;
+      return id;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contact-messages'] });
+      setDeleteAlertOpen(false);
       setSelectedMessage(null);
-      setResponseText('');
+      queryClient.invalidateQueries({ queryKey: ['contactMessages'] });
       toast({
-        title: 'Response Sent',
-        description: 'Your response has been recorded successfully.',
+        title: 'Success',
+        description: 'Message deleted successfully',
       });
     },
     onError: (error: any) => {
       toast({
         title: 'Error',
-        description: `Failed to send response: ${error.message}`,
+        description: error.message || 'Failed to delete message',
         variant: 'destructive',
       });
     },
   });
-
-  const handleStatusChange = (id: string, status: string) => {
-    updateStatus.mutate({ id, status });
+  
+  // Send reply mutation
+  const sendReplyMutation = useMutation({
+    mutationFn: async ({ messageId, replyContent }: { messageId: string; replyContent: string }) => {
+      // In a real app, you would send an email here
+      console.log(`Sending reply to message ${messageId}: ${replyContent}`);
+      
+      // Update message status to replied
+      const { error } = await supabase
+        .from('contact_messages')
+        .update({ 
+          status: 'replied', 
+          updated_at: new Date().toISOString(),
+          reply_text: replyContent,
+          replied_at: new Date().toISOString()
+        })
+        .eq('id', messageId);
+        
+      if (error) throw error;
+      
+      return { messageId, replyContent };
+    },
+    onSuccess: () => {
+      setReplyModalOpen(false);
+      setReplyText('');
+      queryClient.invalidateQueries({ queryKey: ['contactMessages'] });
+      toast({
+        title: 'Success',
+        description: 'Reply sent successfully',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to send reply',
+        variant: 'destructive',
+      });
+    },
+  });
+  
+  const handleViewMessage = (message: ContactMessage) => {
+    setSelectedMessage(message);
+    setViewModalOpen(true);
+    
+    // If message is new, mark as read
+    if (message.status === 'new') {
+      updateMessageStatusMutation.mutate({ id: message.id, status: 'read' });
+    }
   };
-
-  const handleSortToggle = () => {
-    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+  
+  const handleReplyClick = (message: ContactMessage) => {
+    setSelectedMessage(message);
+    setReplyModalOpen(true);
+    setReplyText(`Dear ${message.name},\n\nThank you for contacting Meow Rescue.\n\n\n\nBest regards,\nMeow Rescue Team`);
   };
-
+  
+  const handleSendReply = () => {
+    if (!selectedMessage || !replyText.trim()) return;
+    
+    sendReplyMutation.mutate({
+      messageId: selectedMessage.id,
+      replyContent: replyText
+    });
+  };
+  
+  const handleDeleteClick = (message: ContactMessage) => {
+    setSelectedMessage(message);
+    setDeleteAlertOpen(true);
+  };
+  
+  const confirmDelete = () => {
+    if (!selectedMessage) return;
+    deleteMessageMutation.mutate(selectedMessage.id);
+  };
+  
+  // Filter messages based on search term
+  const filteredMessages = messages?.filter(message => 
+    message.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    message.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    message.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    message.message.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  
+  // Format date
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString();
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
-
+  
+  // Get status badge
+  const getStatusBadge = (status: string) => {
+    switch(status) {
+      case 'new':
+        return <Badge variant="destructive">New</Badge>;
+      case 'read':
+        return <Badge variant="secondary">Read</Badge>;
+      case 'replied':
+        return <Badge variant="default">Replied</Badge>;
+      case 'archived':
+        return <Badge variant="outline">Archived</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+  
   return (
     <AdminLayout title="Contact Messages">
       <SEO title="Contact Messages | Meow Rescue Admin" />
       
       <div className="container mx-auto py-10">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
           <h1 className="text-3xl font-bold text-meow-primary">Contact Messages</h1>
           
-          <div className="flex items-center space-x-4">
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="New">New</SelectItem>
-                <SelectItem value="InProgress">In Progress</SelectItem>
-                <SelectItem value="Responded">Responded</SelectItem>
-                <SelectItem value="Closed">Closed</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
+            <div className="relative w-full md:w-auto">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search messages..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 w-full md:w-64"
+              />
+            </div>
             
-            <Button variant="outline" onClick={handleSortToggle}>
-              <Calendar className="h-4 w-4 mr-2" />
-              Date {sortOrder === 'asc' ? 'Oldest' : 'Newest'}
-              <ArrowUpDown className="h-4 w-4 ml-2" />
-            </Button>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="h-10 w-full md:w-40 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+            >
+              <option value="">All Messages</option>
+              <option value="new">New</option>
+              <option value="read">Read</option>
+              <option value="replied">Replied</option>
+              <option value="archived">Archived</option>
+            </select>
           </div>
         </div>
         
@@ -219,142 +279,212 @@ const AdminMessages: React.FC = () => {
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
           </div>
-        ) : error ? (
-          <div className="text-center py-12">
-            <p className="text-red-500">Error loading messages. Please try again later.</p>
-          </div>
         ) : messages && messages.length > 0 ? (
-          <div className="grid grid-cols-1 gap-6">
-            {messages.map((message) => (
-              <Card key={message.id} className="overflow-hidden shadow-md">
-                <CardHeader className="bg-gray-50 pb-3">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="flex items-center">
-                        <User className="h-5 w-5 mr-2 text-gray-500" />
-                        {message.name}
-                      </CardTitle>
-                      <CardDescription>
-                        <a href={`mailto:${message.email}`} className="flex items-center hover:text-meow-primary">
-                          <Mail className="h-4 w-4 mr-1" />
-                          {message.email}
-                        </a>
-                      </CardDescription>
-                    </div>
-                    <div className="flex items-center">
-                      <span className={`px-3 py-1 rounded-full text-xs flex items-center ${statusColors[message.status]}`}>
-                        {statusIcons[message.status]}
-                        {message.status}
-                      </span>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-4">
-                  <div className="mb-4">
-                    <p className="text-sm text-gray-500 mb-1">Received:</p>
-                    <p className="text-sm flex items-center">
-                      <Calendar className="h-4 w-4 mr-2 text-gray-500" />
-                      {formatDate(message.received_at)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">Message:</p>
-                    <p className="text-gray-900 whitespace-pre-wrap">{message.message}</p>
-                  </div>
-                  
-                  {message.response && (
-                    <div className="mt-4 p-3 bg-gray-50 rounded-md">
-                      <p className="text-sm text-gray-500 mb-1">Your Response:</p>
-                      <p className="text-gray-900 whitespace-pre-wrap">{message.response}</p>
-                      <p className="text-xs text-gray-500 mt-2">
-                        Responded on: {message.responded_at ? formatDate(message.responded_at) : 'N/A'}
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-                <CardFooter className="bg-gray-50 border-t flex justify-between">
-                  <Select 
-                    defaultValue={message.status}
-                    onValueChange={(value) => handleStatusChange(message.id, value)}
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <Table>
+              <TableCaption>Contact form messages from website visitors.</TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Sender</TableHead>
+                  <TableHead>Subject</TableHead>
+                  <TableHead>Received</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredMessages?.map((message) => (
+                  <TableRow 
+                    key={message.id} 
+                    className={message.status === 'new' ? 'bg-blue-50' : undefined}
                   >
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Update status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="New">New</SelectItem>
-                      <SelectItem value="InProgress">In Progress</SelectItem>
-                      <SelectItem value="Responded">Responded</SelectItem>
-                      <SelectItem value="Closed">Closed</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  
-                  <Button 
-                    onClick={() => {
-                      setSelectedMessage(message);
-                      setResponseText(message.response || '');
-                    }}
-                    variant={message.response ? "outline" : "default"}
-                  >
-                    {message.response ? "Edit Response" : "Respond"}
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
+                    <TableCell className="font-medium">
+                      {message.name}
+                      <div className="text-xs text-gray-500">{message.email}</div>
+                    </TableCell>
+                    <TableCell>{message.subject}</TableCell>
+                    <TableCell>{formatDate(message.created_at)}</TableCell>
+                    <TableCell>{getStatusBadge(message.status)}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleViewMessage(message)}
+                        >
+                          View
+                        </Button>
+                        
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleReplyClick(message)}
+                        >
+                          <Reply className="h-4 w-4 mr-2" />
+                          Reply
+                        </Button>
+                        
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-red-500 hover:text-red-700"
+                          onClick={() => handleDeleteClick(message)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         ) : (
-          <div className="text-center py-12">
-            <Mail className="h-16 w-16 mx-auto text-gray-300 mb-4" />
-            <p className="text-xl text-gray-600">No messages found</p>
-            <p className="text-gray-500 mt-2">Contact messages will appear here when visitors submit the contact form.</p>
+          <div className="bg-white p-6 rounded-lg shadow text-center">
+            <Mail className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h2 className="text-2xl font-semibold text-gray-700 mb-2">No Messages Yet</h2>
+            <p className="text-gray-500">
+              When visitors send messages through the contact form, they will appear here.
+            </p>
           </div>
         )}
       </div>
       
-      {/* Response Dialog */}
-      <Dialog open={!!selectedMessage} onOpenChange={(open) => !open && setSelectedMessage(null)}>
-        <DialogContent className="sm:max-w-md">
+      {/* View Message Dialog */}
+      <Dialog open={viewModalOpen} onOpenChange={setViewModalOpen}>
+        <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Respond to {selectedMessage?.name}</DialogTitle>
+            <DialogTitle>{selectedMessage?.subject}</DialogTitle>
             <DialogDescription>
-              Compose a response that will be associated with this contact message.
+              From: {selectedMessage?.name} ({selectedMessage?.email})
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4 py-4">
-            <div className="border rounded-md p-3 bg-gray-50">
-              <p className="text-sm font-medium mb-1">Original Message:</p>
-              <p className="text-sm">{selectedMessage?.message}</p>
+          <div className="grid gap-6">
+            <div className="flex items-center text-sm text-gray-500 justify-between">
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                <span>{selectedMessage?.name} &lt;{selectedMessage?.email}&gt;</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                <span>{selectedMessage?.created_at ? formatDate(selectedMessage.created_at) : ''}</span>
+              </div>
             </div>
             
-            <div>
-              <label htmlFor="response" className="text-sm font-medium block mb-1">
-                Your Response:
-              </label>
-              <Textarea
-                id="response"
-                value={responseText}
-                onChange={(e) => setResponseText(e.target.value)}
-                rows={6}
-                placeholder="Type your response here..."
-                className="w-full"
-              />
+            {selectedMessage?.phone && (
+              <div className="text-sm text-gray-500">
+                <span className="font-medium">Phone:</span> {selectedMessage.phone}
+              </div>
+            )}
+            
+            <div className="border rounded-md p-4 min-h-[150px] whitespace-pre-line">
+              {selectedMessage?.message}
             </div>
+            
+            <div className="flex gap-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setViewModalOpen(false);
+                  setReplyModalOpen(true);
+                  if (selectedMessage) {
+                    setReplyText(`Dear ${selectedMessage.name},\n\nThank you for contacting Meow Rescue.\n\n\n\nBest regards,\nMeow Rescue Team`);
+                  }
+                }}
+              >
+                <Reply className="h-4 w-4 mr-2" />
+                Reply
+              </Button>
+              
+              {selectedMessage?.status !== 'archived' && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    if (selectedMessage) {
+                      updateMessageStatusMutation.mutate({ id: selectedMessage.id, status: 'archived' });
+                      setViewModalOpen(false);
+                    }
+                  }}
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Archive
+                </Button>
+              )}
+              
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  setViewModalOpen(false);
+                  setDeleteAlertOpen(true);
+                }}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Reply Dialog */}
+      <Dialog open={replyModalOpen} onOpenChange={setReplyModalOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Reply to {selectedMessage?.name}</DialogTitle>
+            <DialogDescription>
+              Re: {selectedMessage?.subject}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-6">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="font-medium text-right">To:</div>
+              <div className="col-span-2">{selectedMessage?.name} &lt;{selectedMessage?.email}&gt;</div>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-4">
+              <div className="font-medium text-right">Subject:</div>
+              <div className="col-span-2">Re: {selectedMessage?.subject}</div>
+            </div>
+            
+            <Textarea
+              value={replyText}
+              onChange={(e) => setReplyText(e.target.value)}
+              rows={10}
+              placeholder="Your reply message..."
+            />
           </div>
           
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setSelectedMessage(null)}>
-              Cancel
-            </Button>
-            <Button 
-              type="button" 
-              onClick={() => selectedMessage && submitResponse.mutate({ id: selectedMessage.id, response: responseText })}
-              disabled={!responseText.trim()}
-            >
-              {selectedMessage?.response ? "Update Response" : "Send Response"}
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button onClick={handleSendReply} disabled={sendReplyMutation.isPending}>
+              {sendReplyMutation.isPending ? 'Sending...' : 'Send Reply'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the message.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 };

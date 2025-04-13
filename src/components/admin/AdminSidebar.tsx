@@ -13,9 +13,11 @@ import {
   Shield,
   FileImage,
   Search,
-  LogOut
+  LogOut,
+  Bell
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { Badge } from '@/components/ui/badge';
 
 const AdminSidebar: React.FC = () => {
   const location = useLocation();
@@ -37,7 +39,7 @@ const AdminSidebar: React.FC = () => {
   
   return (
     <div className="fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 text-gray-700 p-4 flex flex-col h-screen z-10 overflow-auto">
-      <div className="mb-8 mt-2">
+      <div className="mb-12 mt-2">
         <Link to="/" className="flex items-center gap-2">
           <div className="bg-meow-primary rounded-full p-2">
             <Cat className="h-6 w-6 text-white" />
@@ -49,7 +51,7 @@ const AdminSidebar: React.FC = () => {
         </Link>
       </div>
       
-      <div className="flex-1 space-y-2">
+      <div className="flex-1 space-y-6">
         {/* Dashboard Section */}
         <div>
           <h3 className="font-semibold text-xs uppercase text-gray-500 mb-2 px-3">Dashboard</h3>
@@ -147,22 +149,41 @@ const AdminSidebar: React.FC = () => {
           
           <Link 
             to="/admin/chat"
-            className={`flex items-center p-2 rounded transition-colors ${
+            className={`flex items-center justify-between p-2 rounded transition-colors ${
               isActive('/admin/chat') ? 'bg-gray-100' : 'hover:bg-gray-100'
             }`}
           >
-            <MessageCircle className="mr-3 h-5 w-5 text-gray-600" />
-            <span>Live Chat</span>
+            <div className="flex items-center">
+              <MessageCircle className="mr-3 h-5 w-5 text-gray-600" />
+              <span>Live Chat</span>
+            </div>
+            <Badge variant="default" className="bg-meow-secondary">3</Badge>
           </Link>
           
           <Link 
             to="/admin/messages"
-            className={`flex items-center p-2 rounded transition-colors ${
+            className={`flex items-center justify-between p-2 rounded transition-colors ${
               isActive('/admin/messages') ? 'bg-gray-100' : 'hover:bg-gray-100'
             }`}
           >
-            <Mail className="mr-3 h-5 w-5 text-gray-600" />
-            <span>Contact Messages</span>
+            <div className="flex items-center">
+              <Mail className="mr-3 h-5 w-5 text-gray-600" />
+              <span>Contact Messages</span>
+            </div>
+            <Badge variant="default" className="bg-meow-secondary">5</Badge>
+          </Link>
+          
+          <Link 
+            to="/admin/notifications"
+            className={`flex items-center justify-between p-2 rounded transition-colors ${
+              isActive('/admin/notifications') ? 'bg-gray-100' : 'hover:bg-gray-100'
+            }`}
+          >
+            <div className="flex items-center">
+              <Bell className="mr-3 h-5 w-5 text-gray-600" />
+              <span>Notifications</span>
+            </div>
+            <Badge variant="default" className="bg-meow-secondary">2</Badge>
           </Link>
         </div>
         

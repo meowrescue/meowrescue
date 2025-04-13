@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import SEO from '@/components/SEO';
@@ -70,7 +69,7 @@ const AdoptionForm: React.FC = () => {
       <div className="container mx-auto py-16">
         <Card className="bg-white shadow-lg border-none max-w-3xl mx-auto">
           <CardHeader className="pb-6">
-            <CardTitle className="text-2xl text-meow-primary">Tell Us About Yourself</CardTitle>
+            <CardTitle className="text-2xl text-meow-primary">Adoption Application</CardTitle>
             <CardDescription className="text-base">
               We want to ensure our cats find the best homes. Please provide as much detail as possible.
             </CardDescription>

@@ -29,34 +29,16 @@
     <loc>https://meowrescue.org/volunteer</loc>
     <lastmod>2025-04-13</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://meowrescue.org/volunteer/apply</loc>
-    <lastmod>2025-04-13</lastmod>
-    <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://meowrescue.org/foster</loc>
     <lastmod>2025-04-13</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://meowrescue.org/foster/apply</loc>
-    <lastmod>2025-04-13</lastmod>
-    <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://meowrescue.org/donate</loc>
-    <lastmod>2025-04-13</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://meowrescue.org/contact</loc>
     <lastmod>2025-04-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -71,7 +53,7 @@
     <loc>https://meowrescue.org/blog</loc>
     <lastmod>2025-04-13</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://meowrescue.org/resources</loc>
@@ -86,33 +68,15 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://meowrescue.org/success-stories</loc>
+    <loc>https://meowrescue.org/contact</loc>
     <lastmod>2025-04-13</lastmod>
-    <changefreq>weekly</changefreq>
+    <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://meowrescue.org/privacy-policy</loc>
+    <loc>https://meowrescue.org/success-stories</loc>
     <lastmod>2025-04-13</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
-  </url>
-  <url>
-    <loc>https://meowrescue.org/terms-of-service</loc>
-    <lastmod>2025-04-13</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
-  </url>
-  <url>
-    <loc>https://meowrescue.org/login</loc>
-    <lastmod>2025-04-13</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://meowrescue.org/register</loc>
-    <lastmod>2025-04-13</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
   </url>
 </urlset>
