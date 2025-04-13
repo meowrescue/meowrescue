@@ -14,11 +14,14 @@ import { Mail, Phone, MapPin, MessageSquare } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import SectionHeading from '@/components/ui/SectionHeading';
+import { scrollToElement } from '@/utils/scrollUtils';
 
 // Define the form schema
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
   email: z.string().email({ message: 'Please enter a valid email address.' }),
+  phone: z.string().optional(),
+  subject: z.string().min(2, { message: 'Subject must be at least 2 characters.' }),
   message: z.string().min(10, { message: 'Message must be at least 10 characters.' })
 });
 
@@ -47,6 +50,8 @@ const Contact = () => {
     defaultValues: {
       name: '',
       email: '',
+      phone: '',
+      subject: '',
       message: ''
     }
   });
@@ -175,11 +180,12 @@ const Contact = () => {
             name: values.name,
             email: values.email,
             message: values.message,
+            subject: values.subject,
+            phone: values.phone || null,
             status: 'New',
             received_at: new Date().toISOString()
           }
-        ])
-        .select();
+        ]);
         
       if (error) {
         console.error("Error submitting contact form:", error);
@@ -269,6 +275,34 @@ const Contact = () => {
                     
                     <FormField
                       control={form.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-base">Phone (Optional)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Your phone number" {...field} className="h-12" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="subject"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-base">Subject</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Message subject" {...field} className="h-12" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
                       name="message"
                       render={({ field }) => (
                         <FormItem>
@@ -335,11 +369,16 @@ const Contact = () => {
                   </div>
                   <div>
                     <h3 className="font-medium text-lg mb-1">Address</h3>
-                    <p className="text-white/90 text-base">
+                    <a 
+                      href="https://maps.google.com/?q=7726+US+Highway+19,+New+Port+Richey,+FL+34652" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-white/90 hover:text-white text-base block"
+                    >
                       7726 US Highway 19<br />
                       New Port Richey, FL 34652<br />
                       <span className="text-white/75 text-sm mt-1 inline-block">(Inside Sunshine Plaza)</span>
-                    </p>
+                    </a>
                   </div>
                 </div>
                 

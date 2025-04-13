@@ -177,3 +177,30 @@ html {
 .select-content {
   @apply bg-white border rounded-md shadow-md z-50;
 }
+
+/* Fix for map container and link styling */
+.map-container {
+  height: 100%;
+  width: 100%;
+}
+
+.address-link {
+  @apply text-meow-primary underline hover:text-meow-primary/80 transition;
+}
+
+/* Improved form field styling */
+.form-field-container {
+  @apply mb-4;
+}
+
+.form-label {
+  @apply block text-sm font-medium text-gray-700 mb-1;
+}
+
+.form-input {
+  @apply w-full border-gray-300 rounded-md shadow-sm focus:border-meow-primary focus:ring focus:ring-meow-primary/20 focus:ring-opacity-50;
+}
+
+.form-error {
+  @apply mt-1 text-sm text-red-600;
+}

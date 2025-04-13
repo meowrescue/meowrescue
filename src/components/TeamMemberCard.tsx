@@ -56,6 +56,11 @@ const TeamMemberCard: React.FC<TeamMemberCardProps> = ({ member }) => {
         {member.bio && (
           <p className="text-gray-700 mt-2">{member.bio}</p>
         )}
+        {member.show_in_team && (
+          <div className="mt-4 flex gap-2">
+            <Badge variant="outline" className="bg-meow-primary/5">Team Member</Badge>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

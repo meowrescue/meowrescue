@@ -29,7 +29,7 @@ const TeamMember: React.FC<TeamMemberProps> = ({ name, role, image, bio }) => {
 };
 
 const TeamSection: React.FC = () => {
-  // Placeholder team members data
+  // Team members data with more diverse placeholder images and updated roles
   const teamMembers = [
     {
       name: "Emily Johnson",
@@ -66,6 +66,24 @@ const TeamSection: React.FC = () => {
       role: "Community Outreach",
       image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=crop&w=634&q=80",
       bio: "Marcus coordinates community events and education programs, spreading awareness about cat welfare and responsible pet ownership."
+    },
+    {
+      name: "Sarah Johnson",
+      role: "Social Media Manager",
+      image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-1.2.1&auto=format&fit=crop&w=634&q=80",
+      bio: "Sarah manages our online presence, sharing heartwarming stories about our cats and keeping our community updated on events."
+    },
+    {
+      name: "David Park",
+      role: "Fundraising Specialist",
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=634&q=80",
+      bio: "David develops creative fundraising campaigns to support our rescue efforts and ensure we can provide quality care to every cat."
+    },
+    {
+      name: "Lisa Martinez",
+      role: "Education Coordinator",
+      image: "https://images.unsplash.com/photo-1548142813-c348350df52b?ixlib=rb-1.2.1&auto=format&fit=crop&w=634&q=80",
+      bio: "Lisa leads our educational programs, teaching the community about responsible pet ownership and the importance of spay/neuter."
     }
   ];
 
