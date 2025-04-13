@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import Layout from '@/components/Layout';
@@ -69,13 +68,14 @@ const VolunteerForm: React.FC = () => {
       }
       
       // Use RPC function to create application
-      const { error } = await supabase
+      // Use 'any' to bypass type checking for the RPC function name
+      const { error } = await (supabase
         .rpc('create_application', {
           p_applicant_id: user?.id,
           p_application_type: applicationType,
           p_status: 'pending',
           p_form_data: data
-        }) as {data: any, error: Error | null};
+        }) as any) as {data: any, error: Error | null};
         
       if (error) throw error;
       
@@ -98,6 +98,7 @@ const VolunteerForm: React.FC = () => {
     }
   };
 
+  
   return (
     <Layout>
       <SEO

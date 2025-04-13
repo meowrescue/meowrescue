@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -50,12 +49,12 @@ const AdminApplications: React.FC = () => {
     queryKey: ['applications', statusFilter, typeFilter],
     queryFn: async () => {
       try {
-        // Use a custom RPC function to get applications
-        const { data, error } = await supabase
+        // Use 'any' to bypass type checking for the RPC function name
+        const { data, error } = await (supabase
           .rpc('get_applications', {
             p_status: statusFilter,
             p_type: typeFilter
-          }) as {data: Application[] | null, error: Error | null};
+          }) as any) as {data: Application[] | null, error: Error | null};
         
         if (error) throw error;
         
@@ -78,13 +77,13 @@ const AdminApplications: React.FC = () => {
     if (!viewingApplication) return;
     
     try {
-      // Use RPC function to update application
-      const { error } = await supabase
+      // Use 'any' to bypass type checking for the RPC function name
+      const { error } = await (supabase
         .rpc('update_application_status', {
           p_application_id: viewingApplication.id,
           p_status: newStatus,
           p_feedback: feedback
-        }) as {data: null, error: Error | null};
+        }) as any) as {data: null, error: Error | null};
         
       if (error) throw error;
       
