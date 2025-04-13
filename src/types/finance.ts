@@ -9,7 +9,7 @@ export interface Donation {
   notes: string;
   payment_gateway_id: string;
   status: string;
-  income_type: string; // Added this property
+  income_type: string;
   donor_name?: string;
   donor_email?: string;
 }
@@ -25,7 +25,6 @@ export interface Expense {
   receipt_url?: string;
   status: string;
   expense_type: string;
-  // Additional properties needed based on error messages
   description: string;
   payment_method: string;
   donation_id?: string;

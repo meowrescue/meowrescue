@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import Layout from '@/components/Layout';
 import SEO from '@/components/SEO';
@@ -30,7 +31,6 @@ declare global {
       maps: {
         Map: new (element: HTMLElement, options: any) => any;
         Marker: new (options: any) => any;
-        SymbolPath?: any; // Make SymbolPath optional since it might not exist
       }
     };
   }
@@ -116,12 +116,11 @@ const Contact = () => {
             ]
           });
           
-          // Fix for SymbolPath issue
+          // Use a simpler marker configuration that doesn't depend on SymbolPath
           new window.google.maps.Marker({
             position: newPortRicheyLocation,
             map: map,
             title: "Meow Rescue Center",
-            // Use a simple object for the icon instead of SymbolPath
             icon: {
               path: 0, // Simple circle path
               scale: 10,

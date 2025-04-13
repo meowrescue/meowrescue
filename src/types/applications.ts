@@ -1,7 +1,8 @@
 
 export interface Application {
   id: string;
-  user_id: string; // This is required according to the error
+  user_id: string;
+  applicant_id?: string;
   application_type: string;
   form_data: {
     firstName?: string;
@@ -32,6 +33,4 @@ export interface Application {
     first_name?: string;
     last_name?: string;
   };
-  // Add additional field from database schema
-  applicant_id?: string;
 }

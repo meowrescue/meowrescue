@@ -12,7 +12,9 @@ export interface User {
   bio?: string;
   avatar_url?: string;
   role?: 'user' | 'volunteer' | 'foster' | 'admin';
-  role_title?: string; // Added this property
+  role_title?: string;
+  show_in_team?: boolean;
+  is_active?: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -21,4 +23,5 @@ export interface User {
 export interface ExtendedUser extends User {
   application_count?: number;
   donation_count?: number;
+  is_active?: boolean;
 }
