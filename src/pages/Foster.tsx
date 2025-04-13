@@ -1,11 +1,10 @@
-
 import React from 'react';
 import Layout from '@/components/Layout';
 import SEO from '@/components/SEO';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Heart, Home, Paw, Calendar, ArrowRight } from 'lucide-react';
+import { Heart, Home, Calendar, ArrowRight } from 'lucide-react';
 
 const Foster: React.FC = () => {
   return (
@@ -61,7 +60,7 @@ const Foster: React.FC = () => {
           <Card className="bg-white shadow-md hover:shadow-lg transition-shadow border-none">
             <CardHeader className="pb-4">
               <div className="bg-meow-primary/10 p-3 rounded-full w-12 h-12 flex items-center justify-center mb-4">
-                <Paw className="text-meow-primary" />
+                <Heart className="text-meow-primary" />
               </div>
               <CardTitle className="text-xl">Help Special Cases</CardTitle>
             </CardHeader>

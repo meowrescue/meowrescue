@@ -24,10 +24,19 @@ const AdminApplications: React.FC = () => {
   const { data: applications, isLoading } = useQuery({
     queryKey: ['admin-applications', filterStatus, filterType],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_applications', {
-        p_status: filterStatus,
-        p_type: filterType
-      });
+      // Using .from().select() instead of .rpc() for compatibility
+      let query = supabase.from('applications')
+        .select('*');
+      
+      if (filterStatus) {
+        query = query.eq('status', filterStatus);
+      }
+      
+      if (filterType) {
+        query = query.eq('application_type', filterType);
+      }
+      
+      const { data, error } = await query.order('created_at', { ascending: false });
       
       if (error) throw error;
       return data as Application[];
@@ -36,11 +45,16 @@ const AdminApplications: React.FC = () => {
 
   const handleStatusChange = async (applicationId: string, newStatus: string, feedback: string = '') => {
     try {
-      await supabase.rpc('update_application_status', {
-        p_application_id: applicationId,
-        p_status: newStatus,
-        p_feedback: feedback
-      });
+      // Using .from().update() instead of .rpc()
+      await supabase
+        .from('applications')
+        .update({
+          status: newStatus,
+          feedback: feedback,
+          reviewed_at: new Date().toISOString(),
+          reviewer_id: (await supabase.auth.getUser()).data.user?.id
+        })
+        .eq('id', applicationId);
       
       // Refetch applications after status update
       // This will be automatic with React Query
@@ -54,7 +68,7 @@ const AdminApplications: React.FC = () => {
   };
 
   const filteredApplications = applications?.filter(app => {
-    const searchMatch = app.applicant_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const searchMatch = app.applicant_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       app.application_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
       JSON.stringify(app.form_data).toLowerCase().includes(searchTerm.toLowerCase());
     
@@ -62,13 +76,13 @@ const AdminApplications: React.FC = () => {
   });
 
   // Function to determine badge color based on status
-  const getStatusBadgeVariant = (status: string) => {
+  const getStatusBadgeVariant = (status: string): "default" | "outline" | "secondary" | "destructive" => {
     switch(status) {
       case 'Submitted': return 'default';
-      case 'Under Review': return 'warning';
-      case 'Approved': return 'success';
+      case 'Under Review': return 'secondary';
+      case 'Approved': return 'outline';
       case 'Rejected': return 'destructive';
-      default: return 'secondary';
+      default: return 'default';
     }
   };
 
