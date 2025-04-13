@@ -1,88 +1,111 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import { CatFood, CatFeedingRecord, Cat, CatFoodAPI } from '@/types/finance';
 
-export const catFoodApi: CatFoodAPI = {
-  async getCatFood(): Promise<CatFood[]> {
-    try {
-      // Use 'any' to bypass type checking for the RPC function name
-      const { data, error } = await (supabase
-        .rpc('get_cat_food') as any) as {data: CatFood[] | null, error: Error | null};
-        
-      if (error) throw error;
-      return data as CatFood[] || [];
-    } catch (err) {
-      console.error('Error fetching cat food:', err);
-      return [];
+export interface CatFood {
+  id: string;
+  brand: string;
+  type: string;
+  quantity: number;
+  units: string;
+  cost_per_unit: number;
+  purchase_date: string;
+}
+
+export interface CatFeedingRecord {
+  id: string;
+  cat_id: string;
+  cat_food_id: string;
+  amount: number;
+  feeding_date: string;
+}
+
+export async function getCatFood() {
+  try {
+    // Type assertion for RPC function
+    const { data, error } = await supabase
+      .rpc('get_cat_food') as unknown as {data: CatFood[] | null, error: Error | null};
+      
+    if (error) {
+      throw error;
     }
-  },
-  
-  async addCatFood(food: Omit<CatFood, 'id' | 'created_at'>): Promise<CatFood> {
-    try {
-      // Use 'any' to bypass type checking for the RPC function name
-      const { data, error } = await (supabase
-        .rpc('add_cat_food', {
-          p_brand: food.brand,
-          p_type: food.type,
-          p_quantity: food.quantity,
-          p_units: food.units,
-          p_cost_per_unit: food.cost_per_unit,
-          p_purchase_date: food.purchase_date
-        }) as any) as {data: CatFood | null, error: Error | null};
-        
-      if (error) throw error;
-      return data as CatFood;
-    } catch (err) {
-      console.error('Error adding cat food:', err);
-      throw err;
-    }
-  },
-  
-  async getCatFeedingRecords(): Promise<CatFeedingRecord[]> {
-    try {
-      // Use 'any' to bypass type checking for the RPC function name
-      const { data, error } = await (supabase
-        .rpc('get_cat_feeding_records') as any) as {data: CatFeedingRecord[] | null, error: Error | null};
-        
-      if (error) throw error;
-      return data as CatFeedingRecord[] || [];
-    } catch (err) {
-      console.error('Error fetching cat feeding records:', err);
-      return [];
-    }
-  },
-  
-  async addCatFeedingRecord(record: Omit<CatFeedingRecord, 'id' | 'created_at' | 'cat_name' | 'food_brand' | 'food_type'>): Promise<CatFeedingRecord> {
-    try {
-      // Use 'any' to bypass type checking for the RPC function name
-      const { data, error } = await (supabase
-        .rpc('add_cat_feeding_record', {
-          p_cat_id: record.cat_id,
-          p_cat_food_id: record.cat_food_id,
-          p_amount: record.amount,
-          p_feeding_date: record.feeding_date
-        }) as any) as {data: CatFeedingRecord | null, error: Error | null};
-        
-      if (error) throw error;
-      return data as CatFeedingRecord;
-    } catch (err) {
-      console.error('Error adding cat feeding record:', err);
-      throw err;
-    }
-  },
-  
-  async getCats(): Promise<Cat[]> {
-    try {
-      const { data, error } = await supabase
-        .from('cats')
-        .select('id, name')
-        .order('name');
-        
-      if (error) throw error;
-      return data || [];
-    } catch (err) {
-      console.error('Error fetching cats:', err);
-      return [];
-    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error fetching cat food:', error);
+    throw error;
   }
-};
+}
+
+export async function addCatFood(
+  brand: string,
+  type: string,
+  quantity: number,
+  units: string,
+  costPerUnit: number,
+  purchaseDate: Date
+) {
+  try {
+    // Type assertion for RPC function
+    const { data, error } = await supabase
+      .rpc('add_cat_food', {
+        p_brand: brand,
+        p_type: type,
+        p_quantity: quantity,
+        p_units: units,
+        p_cost_per_unit: costPerUnit,
+        p_purchase_date: purchaseDate.toISOString()
+      }) as unknown as {data: CatFood | null, error: Error | null};
+      
+    if (error) {
+      throw error;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error adding cat food:', error);
+    throw error;
+  }
+}
+
+export async function getCatFeedingRecords() {
+  try {
+    // Type assertion for RPC function
+    const { data, error } = await supabase
+      .rpc('get_cat_feeding_records') as unknown as {data: CatFeedingRecord[] | null, error: Error | null};
+      
+    if (error) {
+      throw error;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error fetching cat feeding records:', error);
+    throw error;
+  }
+}
+
+export async function addCatFeedingRecord(
+  catId: string,
+  catFoodId: string,
+  amount: number,
+  feedingDate: Date
+) {
+  try {
+    // Type assertion for RPC function
+    const { data, error } = await supabase
+      .rpc('add_cat_feeding_record', {
+        p_cat_id: catId,
+        p_cat_food_id: catFoodId,
+        p_amount: amount,
+        p_feeding_date: feedingDate.toISOString()
+      }) as unknown as {data: CatFeedingRecord | null, error: Error | null};
+      
+    if (error) {
+      throw error;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error adding cat feeding record:', error);
+    throw error;
+  }
+}

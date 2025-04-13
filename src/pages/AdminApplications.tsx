@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -44,17 +45,16 @@ const AdminApplications: React.FC = () => {
   const [feedback, setFeedback] = useState('');
   const [newStatus, setNewStatus] = useState<'pending' | 'approved' | 'denied'>('pending');
 
-  // Fetch applications using RPC
+  // Fetch applications using RPC with type assertion
   const { data: applications, isLoading, error, refetch } = useQuery({
     queryKey: ['applications', statusFilter, typeFilter],
     queryFn: async () => {
       try {
-        // Use 'any' to bypass type checking for the RPC function name
-        const { data, error } = await (supabase
+        const { data, error } = await supabase
           .rpc('get_applications', {
             p_status: statusFilter,
             p_type: typeFilter
-          }) as any) as {data: Application[] | null, error: Error | null};
+          }) as unknown as {data: Application[] | null, error: Error | null};
         
         if (error) throw error;
         
@@ -77,13 +77,13 @@ const AdminApplications: React.FC = () => {
     if (!viewingApplication) return;
     
     try {
-      // Use 'any' to bypass type checking for the RPC function name
-      const { error } = await (supabase
+      // Type assertion for RPC function call
+      const { error } = await supabase
         .rpc('update_application_status', {
           p_application_id: viewingApplication.id,
           p_status: newStatus,
           p_feedback: feedback
-        }) as any) as {data: null, error: Error | null};
+        }) as unknown as {data: null, error: Error | null};
         
       if (error) throw error;
       
@@ -134,7 +134,7 @@ const AdminApplications: React.FC = () => {
         <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
           <h1 className="text-3xl font-bold text-meow-primary">Applications</h1>
           
-          <div className="flex items-center gap-4 w-full md:w-auto">
+          <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
             <div className="relative w-full md:w-auto">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
@@ -145,35 +145,37 @@ const AdminApplications: React.FC = () => {
               />
             </div>
             
-            <Select
-              value={statusFilter || 'all'}
-              onValueChange={(value) => setStatusFilter(value === 'all' ? null : value)}
-            >
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="All statuses" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="denied">Denied</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Select
-              value={typeFilter || 'all'}
-              onValueChange={(value) => setTypeFilter(value === 'all' ? null : value)}
-            >
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="All types" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All types</SelectItem>
-                <SelectItem value="adoption">Adoption</SelectItem>
-                <SelectItem value="foster">Foster</SelectItem>
-                <SelectItem value="volunteer">Volunteer</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2 w-full md:w-auto">
+              <Select
+                value={statusFilter || 'all'}
+                onValueChange={(value) => setStatusFilter(value === 'all' ? null : value)}
+              >
+                <SelectTrigger className="w-full md:w-40">
+                  <SelectValue placeholder="All statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All statuses</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="denied">Denied</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Select
+                value={typeFilter || 'all'}
+                onValueChange={(value) => setTypeFilter(value === 'all' ? null : value)}
+              >
+                <SelectTrigger className="w-full md:w-40">
+                  <SelectValue placeholder="All types" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All types</SelectItem>
+                  <SelectItem value="adoption">Adoption</SelectItem>
+                  <SelectItem value="foster">Foster</SelectItem>
+                  <SelectItem value="volunteer">Volunteer</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
         
@@ -193,7 +195,7 @@ const AdminApplications: React.FC = () => {
             </Button>
           </div>
         ) : filteredApplications && filteredApplications.length > 0 ? (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-white rounded-lg shadow overflow-x-auto">
             <Table>
               <TableCaption>List of all applications.</TableCaption>
               <TableHeader>
@@ -215,7 +217,7 @@ const AdminApplications: React.FC = () => {
                           app.profiles.email : 
                           'Unknown User'}
                       </div>
-                      <div className="text-sm text-gray-500">{app.profiles?.email}</div>
+                      <div className="text-sm text-gray-500 break-all md:break-normal">{app.profiles?.email}</div>
                     </TableCell>
                     <TableCell>
                       <Badge className={getApplicationTypeBadge(app.application_type).color}>
@@ -258,7 +260,7 @@ const AdminApplications: React.FC = () => {
       {/* Application View Dialog */}
       {viewingApplication && (
         <Dialog open={!!viewingApplication} onOpenChange={(open) => !open && setViewingApplication(null)}>
-          <DialogContent className="sm:max-w-[700px]">
+          <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Application Details</DialogTitle>
               <DialogDescription>
@@ -267,7 +269,7 @@ const AdminApplications: React.FC = () => {
             </DialogHeader>
             
             <div className="grid gap-6 py-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <h3 className="font-semibold mb-2">Applicant Information</h3>
                   <p><span className="text-gray-500">Name:</span> {viewingApplication.profiles ? 
@@ -303,7 +305,7 @@ const AdminApplications: React.FC = () => {
               
               <div>
                 <h3 className="font-semibold mb-2">Update Status</h3>
-                <div className="flex gap-4 mb-4">
+                <div className="flex flex-wrap gap-2 mb-4">
                   <Button 
                     variant={newStatus === 'approved' ? 'default' : 'outline'} 
                     className={newStatus === 'approved' ? 'bg-green-600 hover:bg-green-700' : ''}

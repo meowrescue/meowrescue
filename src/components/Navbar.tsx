@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -241,7 +240,7 @@ const Navbar: React.FC = () => {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="lg:hidden bg-white border-t border-gray-200">
+        <div className="lg:hidden bg-white border-t border-gray-200 fixed top-16 left-0 right-0 z-50 max-h-[calc(100vh-4rem)] overflow-y-auto">
           <div className="container mx-auto px-4 py-4">
             <ul className="flex flex-col space-y-4">
               <li>

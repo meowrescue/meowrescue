@@ -46,7 +46,7 @@ const AdminNavbar: React.FC = () => {
     <aside 
       className={`bg-white border-r border-gray-200 ${
         isSidebarOpen ? 'w-64' : 'w-20'
-      } transition-all duration-300 h-screen sticky top-0 z-50`}
+      } transition-all duration-300 h-screen sticky top-0 z-40 overflow-y-auto`}
     >
       <div className="flex flex-col h-full">
         <div className="p-4 border-b border-gray-200 flex items-center justify-between">
@@ -56,7 +56,21 @@ const AdminNavbar: React.FC = () => {
               !isSidebarOpen && 'justify-center'
             }`}
           >
-            {isSidebarOpen ? 'Meow Rescue' : 'MR'}
+            {isSidebarOpen ? (
+              <div className="flex items-center gap-2">
+                <div className="bg-meow-primary rounded-full p-1">
+                  <Cat className="h-5 w-5 text-white" />
+                </div>
+                <span>
+                  <span className="text-meow-primary">Meow</span>
+                  <span className="text-meow-secondary">Rescue</span>
+                </span>
+              </div>
+            ) : (
+              <div className="bg-meow-primary rounded-full p-1">
+                <Cat className="h-5 w-5 text-white" />
+              </div>
+            )}
           </Link>
           <Button variant="ghost" size="sm" onClick={toggleSidebar} className="p-0 h-8 w-8">
             <Menu size={20} />

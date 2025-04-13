@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -59,9 +60,9 @@ const AdminUsers: React.FC = () => {
             let isActive = true; // Default to active if not found
             
             try {
-              // Use 'any' to bypass type checking for the RPC function name
-              const { data: statusData, error: statusError } = await (supabase
-                .rpc('get_user_status', { user_id: profile.id }) as any) as {data: boolean | null, error: Error | null};
+              // Type assertion to bypass TypeScript's strict checking
+              const { data: statusData, error: statusError } = await supabase
+                .rpc('get_user_status', { user_id: profile.id }) as unknown as {data: boolean | null, error: Error | null};
                 
               // If data is returned and not null, use it
               if (statusData !== null) {
@@ -114,13 +115,12 @@ const AdminUsers: React.FC = () => {
 
       if (profileError) throw profileError;
 
-      // Update user status using RPC function
-      // Use 'any' to bypass type checking for the RPC function name
-      const { error: statusError } = await (supabase
+      // Update user status using RPC function with type assertion
+      const { error: statusError } = await supabase
         .rpc('update_user_status', { 
           p_user_id: editingUser.id, 
           p_is_active: editingUser.is_active 
-        }) as any) as {data: null, error: Error | null};
+        }) as unknown as {data: null, error: Error | null};
 
       if (statusError) {
         console.error("Error updating active status:", statusError);
@@ -146,12 +146,12 @@ const AdminUsers: React.FC = () => {
     try {
       const newStatus = !user.is_active;
       
-      // Use 'any' to bypass type checking for the RPC function name
-      const { error } = await (supabase
+      // Type assertion for RPC function
+      const { error } = await supabase
         .rpc('update_user_status', {
           p_user_id: user.id,
           p_is_active: newStatus
-        }) as any) as {data: null, error: Error | null};
+        }) as unknown as {data: null, error: Error | null};
 
       if (error) throw error;
 
@@ -204,7 +204,7 @@ const AdminUsers: React.FC = () => {
             </Button>
           </div>
         ) : filteredUsers && filteredUsers.length > 0 ? (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-white rounded-lg shadow overflow-x-auto">
             <Table>
               <TableCaption>List of all users in the system.</TableCaption>
               <TableHeader>
@@ -225,7 +225,7 @@ const AdminUsers: React.FC = () => {
                         : 'Unnamed User'
                       }
                     </TableCell>
-                    <TableCell>{user.email}</TableCell>
+                    <TableCell className="break-all md:break-normal">{user.email}</TableCell>
                     <TableCell>
                       <Badge
                         variant={
@@ -244,32 +244,34 @@ const AdminUsers: React.FC = () => {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleEditUser(user)}
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Edit
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => toggleUserStatus(user)}
-                        className={user.is_active ? "text-red-500 hover:text-red-700" : "text-green-500 hover:text-green-700"}
-                      >
-                        {user.is_active ? (
-                          <>
-                            <UserX className="h-4 w-4 mr-2" />
-                            Disable
-                          </>
-                        ) : (
-                          <>
-                            <Check className="h-4 w-4 mr-2" />
-                            Enable
-                          </>
-                        )}
-                      </Button>
+                      <div className="flex flex-col md:flex-row gap-2 md:justify-end">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleEditUser(user)}
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => toggleUserStatus(user)}
+                          className={user.is_active ? "text-red-500 hover:text-red-700" : "text-green-500 hover:text-green-700"}
+                        >
+                          {user.is_active ? (
+                            <>
+                              <UserX className="h-4 w-4 mr-2" />
+                              Disable
+                            </>
+                          ) : (
+                            <>
+                              <Check className="h-4 w-4 mr-2" />
+                              Enable
+                            </>
+                          )}
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -285,7 +287,7 @@ const AdminUsers: React.FC = () => {
       
       {/* Edit User Dialog */}
       <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
-        <DialogContent>
+        <DialogContent className="max-w-md mx-auto">
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
             <DialogDescription>
