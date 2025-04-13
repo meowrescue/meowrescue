@@ -1,7 +1,9 @@
 
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import Layout from '../components/Layout';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,16 +19,25 @@ import {
 import SectionHeading from '../components/ui/SectionHeading';
 import { toast } from "@/hooks/use-toast";
 
-interface RegisterFormValues {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-}
+// Create schema validation for registration form
+const registerSchema = z.object({
+  firstName: z.string().min(2, "First name must be at least 2 characters"),
+  lastName: z.string().min(2, "Last name must be at least 2 characters"),
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: z.string().min(8, "Please confirm your password"),
+}).refine(data => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
+type RegisterFormValues = z.infer<typeof registerSchema>;
 
 const Register: React.FC = () => {
+  const navigate = useNavigate();
+  
   const form = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
     defaultValues: {
       firstName: '',
       lastName: '',
@@ -41,13 +52,28 @@ const Register: React.FC = () => {
       // This would be replaced with actual Supabase registration
       console.log('Registering with:', data);
       
+      // In a real implementation with Supabase, you would include:
+      // const { data: authData, error } = await supabase.auth.signUp({
+      //   email: data.email,
+      //   password: data.password,
+      //   options: {
+      //     data: {
+      //       first_name: data.firstName,
+      //       last_name: data.lastName,
+      //     },
+      //   },
+      // });
+      // 
+      // if (error) throw error;
+      
       // Show success message
       toast({
         title: "Registration Successful",
         description: "Welcome to Meow Rescue! You can now log in.",
       });
 
-      // In a real implementation, this would redirect to login or home
+      // In a real implementation, this would redirect to login or verification page
+      navigate('/login');
     } catch (error) {
       console.error('Registration error:', error);
       toast({

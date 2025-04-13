@@ -1,7 +1,9 @@
 
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import Layout from '../components/Layout';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,13 +18,19 @@ import {
 import SectionHeading from '../components/ui/SectionHeading';
 import { toast } from "@/hooks/use-toast";
 
-interface LoginFormValues {
-  email: string;
-  password: string;
-}
+// Create schema validation for login form
+const loginSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+type LoginFormValues = z.infer<typeof loginSchema>;
 
 const Login: React.FC = () => {
+  const navigate = useNavigate();
+  
   const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       email: '',
       password: '',
@@ -34,6 +42,14 @@ const Login: React.FC = () => {
       // This would be replaced with actual Supabase authentication
       console.log('Logging in with:', data);
       
+      // In a real implementation with Supabase, you would include:
+      // const { data: authData, error } = await supabase.auth.signInWithPassword({
+      //   email: data.email,
+      //   password: data.password,
+      // });
+      // 
+      // if (error) throw error;
+      
       // Show success message
       toast({
         title: "Login Successful",
@@ -41,6 +57,7 @@ const Login: React.FC = () => {
       });
 
       // In a real implementation, this would redirect to dashboard or home
+      navigate('/');
     } catch (error) {
       console.error('Login error:', error);
       toast({
