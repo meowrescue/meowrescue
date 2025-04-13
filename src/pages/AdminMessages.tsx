@@ -35,7 +35,7 @@ interface ContactMessage {
   received_at: string;
   responded_at: string | null;
   response: string | null;
-  status: 'New' | 'Read' | 'Replied' | 'Archived';
+  status: 'New' | 'Read' | 'Replied' | 'Archived'; // Update the type to include 'Archived'
 }
 
 const AdminMessages: React.FC = () => {

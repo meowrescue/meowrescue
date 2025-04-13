@@ -95,7 +95,9 @@ const AdminFinance: React.FC = () => {
               return {
                 ...donation,
                 donor_name: `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || 'Anonymous',
-                donor_email: profileData.email
+                donor_email: profileData.email,
+                // Set default income_type if it doesn't exist
+                income_type: donation.income_type || 'donation'
               };
             }
           }
@@ -103,11 +105,14 @@ const AdminFinance: React.FC = () => {
           return {
             ...donation,
             donor_name: 'Anonymous',
-            donor_email: ''
+            donor_email: '',
+            // Set default income_type if it doesn't exist
+            income_type: donation.income_type || 'donation'
           };
         })
       );
       
+      // Explicitly cast to Donation[] to resolve type issues
       return donationsWithDonorInfo as Donation[];
     }
   });
@@ -227,7 +232,8 @@ const AdminFinance: React.FC = () => {
           donor_email: donationFormData.donor_email,
           is_recurring: donationFormData.is_recurring,
           notes: donationFormData.notes,
-          status: 'completed'
+          status: 'completed',
+          income_type: 'donation' // Add default income_type
         }]);
       
       if (error) throw error;

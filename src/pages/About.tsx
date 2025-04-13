@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Layout from '@/components/Layout';
@@ -14,14 +15,21 @@ const About = () => {
   const { data: teamMembers, isLoading } = useQuery({
     queryKey: ['teamMembers'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, first_name, last_name, avatar_url, role, role_title, show_in_team, email')
-        .eq('show_in_team', true)
-        .order('created_at', { ascending: true });
-      
-      if (error) throw error;
-      return data as TeamMember[] || [];
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, avatar_url, role, role_title, show_in_team, email')
+          .eq('show_in_team', true)
+          .order('created_at', { ascending: true });
+        
+        if (error) throw error;
+        
+        // Explicitly cast the data to TeamMember[] to fix the type error
+        return (data || []) as TeamMember[];
+      } catch (error) {
+        console.error("Error fetching team members:", error);
+        return [] as TeamMember[];
+      }
     }
   });
 
