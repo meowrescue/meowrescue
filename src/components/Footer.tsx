@@ -2,27 +2,22 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Cat, Heart, Mail, Phone, MapPin, Facebook, Instagram, Twitter } from 'lucide-react';
+import { scrollToTop } from '@/utils/scrollUtils';
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
   const lastUpdated = new Date().toISOString(); // For SEO content freshness
 
-  // Split quick links into two columns
-  const quickLinksColumn1 = [
+  // Quick links in a single collection but displayed in three columns
+  const quickLinks = [
     { path: "/", label: "Home" },
     { path: "/about", label: "About Us" },
     { path: "/cats", label: "Available Cats" },
     { path: "/adopt", label: "Adoption Process" },
-  ];
-  
-  const quickLinksColumn2 = [
     { path: "/success-stories", label: "Success Stories" },
     { path: "/volunteer", label: "Volunteer" },
     { path: "/foster", label: "Foster" },
     { path: "/donate", label: "Donate" },
-  ];
-
-  const quickLinksColumn3 = [
     { path: "/events", label: "Events" },
     { path: "/blog", label: "Blog" },
     { path: "/lost-found", label: "Lost & Found" },
@@ -79,36 +74,48 @@ const Footer: React.FC = () => {
           </div>
           
           {/* Quick Links Section */}
-          <div>
+          <div className="md:col-span-2">
             <h3 className="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Quick Links</h3>
             <div className="grid grid-cols-3 gap-4">
-              {/* Column 1 */}
+              {/* First column of links */}
               <ul className="space-y-2">
-                {quickLinksColumn1.map((link, index) => (
+                {quickLinks.slice(0, 4).map((link, index) => (
                   <li key={index}>
-                    <Link to={link.path} className="text-white/80 hover:text-white transition-colors">
+                    <Link 
+                      to={link.path} 
+                      className="text-white/80 hover:text-white transition-colors"
+                      onClick={scrollToTop}
+                    >
                       {link.label}
                     </Link>
                   </li>
                 ))}
               </ul>
               
-              {/* Column 2 */}
+              {/* Second column of links */}
               <ul className="space-y-2">
-                {quickLinksColumn2.map((link, index) => (
-                  <li key={index}>
-                    <Link to={link.path} className="text-white/80 hover:text-white transition-colors">
+                {quickLinks.slice(4, 8).map((link, index) => (
+                  <li key={index + 4}>
+                    <Link 
+                      to={link.path} 
+                      className="text-white/80 hover:text-white transition-colors"
+                      onClick={scrollToTop}
+                    >
                       {link.label}
                     </Link>
                   </li>
                 ))}
               </ul>
               
-              {/* Column 3 */}
+              {/* Third column of links */}
               <ul className="space-y-2">
-                {quickLinksColumn3.map((link, index) => (
-                  <li key={index}>
-                    <Link to={link.path} className="text-white/80 hover:text-white transition-colors">
+                {quickLinks.slice(8, 12).map((link, index) => (
+                  <li key={index + 8}>
+                    <Link 
+                      to={link.path} 
+                      className="text-white/80 hover:text-white transition-colors"
+                      onClick={scrollToTop}
+                    >
                       {link.label}
                     </Link>
                   </li>
@@ -141,20 +148,16 @@ const Footer: React.FC = () => {
                 </a>
               </li>
             </ul>
-          </div>
-          
-          {/* Newsletter/Support */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Support Our Mission</h3>
-            <p className="text-white/80 mb-4">
-              Your donations help us save more cats and provide them with the medical care, food, and love they need.
-            </p>
-            <Link to="/donate">
-              <button className="bg-meow-secondary px-4 py-2 rounded flex items-center text-white hover:bg-meow-secondary/90 transition-colors">
-                <Heart className="h-5 w-5 mr-2" />
-                <span>Donate Now</span>
-              </button>
-            </Link>
+
+            <div className="mt-6">
+              <h4 className="font-semibold mb-2">Support Our Mission</h4>
+              <Link to="/donate" onClick={scrollToTop}>
+                <button className="bg-meow-secondary px-4 py-2 rounded flex items-center text-white hover:bg-meow-secondary/90 transition-colors">
+                  <Heart className="h-5 w-5 mr-2" />
+                  <span>Donate Now</span>
+                </button>
+              </Link>
+            </div>
           </div>
         </div>
         
@@ -169,10 +172,10 @@ const Footer: React.FC = () => {
               </p>
             </div>
             <div className="flex space-x-4">
-              <Link to="/privacy-policy" className="text-white/80 hover:text-white transition-colors">
+              <Link to="/privacy-policy" onClick={scrollToTop} className="text-white/80 hover:text-white transition-colors">
                 Privacy Policy
               </Link>
-              <Link to="/terms-of-service" className="text-white/80 hover:text-white transition-colors">
+              <Link to="/terms-of-service" onClick={scrollToTop} className="text-white/80 hover:text-white transition-colors">
                 Terms of Service
               </Link>
             </div>

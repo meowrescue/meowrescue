@@ -17,6 +17,7 @@ import {
   ChevronRight 
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { scrollToTop } from '@/utils/scrollUtils';
 
 const Volunteer = () => {
   return (
@@ -26,15 +27,15 @@ const Volunteer = () => {
         description="Volunteer opportunities at Meow Rescue. Make a difference in the lives of cats in need." 
       />
       
-      <div className="bg-meow-primary/10 py-16 md:py-24 text-center">
+      <div className="bg-gradient-to-r from-meow-primary/10 to-meow-secondary/10 py-16 md:py-24 text-center">
         <div className="container mx-auto px-4">
           <h1 className="text-4xl font-bold text-meow-primary mb-6">Volunteer With Us</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Join our dedicated team of volunteers and make a real difference in the lives of cats in need.
           </p>
           <div className="mt-8">
-            <Button asChild variant="meow" size="lg">
-              <Link to="/volunteer/apply">Apply to Volunteer</Link>
+            <Button asChild size="lg" className="bg-meow-primary text-white hover:bg-meow-primary/90">
+              <Link to="/volunteer/apply" onClick={scrollToTop}>Apply to Volunteer</Link>
             </Button>
           </div>
         </div>
@@ -52,7 +53,7 @@ const Volunteer = () => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-          <Card className="bg-white shadow-md h-full">
+          <Card className="bg-white shadow-md hover:shadow-lg transition-shadow h-full hover-card-effect">
             <CardHeader className="pb-4">
               <div className="mb-4 text-meow-primary">
                 <HandHeart className="h-10 w-10" />
@@ -69,7 +70,7 @@ const Volunteer = () => {
             </CardContent>
           </Card>
           
-          <Card className="bg-white shadow-md h-full">
+          <Card className="bg-white shadow-md hover:shadow-lg transition-shadow h-full hover-card-effect">
             <CardHeader className="pb-4">
               <div className="mb-4 text-meow-primary">
                 <HeartHandshake className="h-10 w-10" />
@@ -86,7 +87,7 @@ const Volunteer = () => {
             </CardContent>
           </Card>
           
-          <Card className="bg-white shadow-md h-full">
+          <Card className="bg-white shadow-md hover:shadow-lg transition-shadow h-full hover-card-effect">
             <CardHeader className="pb-4">
               <div className="mb-4 text-meow-primary">
                 <CalendarClock className="h-10 w-10" />
@@ -196,8 +197,8 @@ const Volunteer = () => {
               </div>
             </div>
             
-            <Button asChild variant="meow" size="lg">
-              <Link to="/volunteer/apply" className="flex items-center">
+            <Button asChild size="lg" className="bg-meow-primary text-white hover:bg-meow-primary/90">
+              <Link to="/volunteer/apply" onClick={scrollToTop} className="flex items-center">
                 Apply Now <ChevronRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
@@ -210,8 +211,8 @@ const Volunteer = () => {
             <p className="text-gray-600 mb-6">
               If you have any questions about volunteering with Meow Rescue, please don't hesitate to reach out to us.
             </p>
-            <Button asChild variant="outline">
-              <Link to="/contact">Contact Us</Link>
+            <Button asChild variant="outline" className="border-meow-primary text-meow-primary hover:bg-meow-primary/10">
+              <Link to="/contact" onClick={scrollToTop}>Contact Us</Link>
             </Button>
           </div>
         </div>

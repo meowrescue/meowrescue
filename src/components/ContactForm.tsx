@@ -174,7 +174,7 @@ export default function ContactForm() {
         <Button
           type="submit"
           disabled={isSubmitting}
-          className="w-full md:w-auto px-8 py-3 text-base font-medium"
+          className="w-full md:w-auto px-8 py-3 text-base font-medium bg-meow-primary hover:bg-meow-primary/90 text-white"
         >
           {isSubmitting ? 'Sending...' : 'Send Message'}
         </Button>

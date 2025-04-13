@@ -438,6 +438,7 @@ const AdminChat: React.FC = () => {
                           type="button" 
                           onClick={handleSendMessage}
                           className="self-end"
+                          disabled={sendMessage.isPending}
                         >
                           <Send size={16} />
                         </Button>

@@ -48,35 +48,6 @@ const ChatWidget: React.FC = () => {
       try {
         // We'll assume admins are available for simplicity
         setIsAdminAvailable(true);
-        
-        // If we have a proper active_sessions table, we can use this code:
-        /*
-        // Check if any admin users are currently logged in
-        const { data: adminSessions, error } = await supabase
-          .from('active_sessions')
-          .select('profile_id')
-          .eq('is_active', true);
-        
-        if (error) {
-          console.error("Error checking admin availability:", error);
-          setIsAdminAvailable(true); // Default to available
-          return;
-        }
-        
-        // Also check for users with @meowrescue.org email
-        const { data: adminProfiles } = await supabase
-          .from('profiles')
-          .select('id, email')
-          .eq('role', 'admin');
-        
-        // Consider admin available if either condition is met
-        const hasAdmins = adminSessions && adminSessions.length > 0;
-        const hasMeowRescueEmails = adminProfiles && adminProfiles.some(
-          profile => profile.email && profile.email.endsWith('@meowrescue.org')
-        );
-        
-        setIsAdminAvailable(hasAdmins || hasMeowRescueEmails);
-        */
       } catch (error) {
         console.error("Error checking admin availability:", error);
         setIsAdminAvailable(true); // Default to available on error
