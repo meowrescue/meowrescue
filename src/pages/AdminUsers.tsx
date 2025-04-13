@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -33,7 +34,7 @@ interface User {
   email: string;
   first_name: string | null;
   last_name: string | null;
-  role: string;
+  role: "user" | "admin" | "volunteer" | "foster";
   created_at: string;
   updated_at: string;
 }

@@ -68,8 +68,8 @@ const Cats: React.FC = () => {
   };
 
   const handleStatusChange = (status: string) => {
-    const typedStatus = status as "Available" | "Pending" | "Adopted";
-    setSelectedStatus(typedStatus);
+    // Cast to the correct type when setting the status
+    setSelectedStatus(status as "Available" | "Pending" | "Adopted");
   };
 
   const filteredCats = cats.filter(cat =>
