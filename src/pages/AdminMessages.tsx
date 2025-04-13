@@ -1,57 +1,49 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Search, Mail, CheckCircle, ArrowRightCircle, ArchiveIcon } from 'lucide-react';
+import { 
+  Table, 
+  TableBody, 
+  TableCaption, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Mail, CheckCircle, Send, Archive, RefreshCcw } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import SEO from '@/components/SEO';
-import {
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle,
+  DialogClose
+} from '@/components/ui/dialog';
+import { 
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter
-} from "@/components/ui/dialog"
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/dropdown-menu";
 import { Textarea } from '@/components/ui/textarea';
-
-// Define the type for messages
-interface Message {
-  id: string;
-  created_at: string;
-  sender_id: string;
-  sender_name: string;
-  sender_email: string;
-  message_subject: string;
-  message_body: string;
-  message_status: MessageStatus;
-  source: 'contact_form' | 'direct_message';
-}
-
-// Update the status type to include 'Archived'
-type MessageStatus = 'New' | 'Read' | 'Replied' | 'Archived';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import SEO from '@/components/SEO';
+import { MessageStatus } from '@/types/users';
 
 const AdminMessages: React.FC = () => {
   const { toast } = useToast();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [replyDialogOpen, setReplyDialogOpen] = useState(false);
-  const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
-  const [replyText, setReplyText] = useState('');
   const queryClient = useQueryClient();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [openMessageId, setOpenMessageId] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState('');
+  const [messageStatus, setMessageStatus] = useState<MessageStatus>("New");
 
   // Fetch messages from Supabase
   const { data: messages, isLoading, error, refetch } = useQuery({
@@ -60,112 +52,91 @@ const AdminMessages: React.FC = () => {
       const { data, error } = await supabase
         .from('contact_messages')
         .select('*')
-        .order('received_at', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-      
-      // Transform the data to match our Message interface
-      const transformedData = data.map(msg => ({
-        id: msg.id,
-        created_at: msg.received_at,
-        sender_id: msg.id, // Using message id as sender_id since contact_messages might not have this
-        sender_name: msg.name,
-        sender_email: msg.email,
-        message_subject: 'Contact Form Message', // Default subject
-        message_body: msg.message,
-        message_status: msg.status as MessageStatus,
-        source: 'contact_form' as const
-      }));
-      
-      return transformedData as Message[];
+      return data;
     },
   });
-
-  useEffect(() => {
-    refetch(); // Refresh messages on component mount
-  }, [refetch]);
 
   // Mutation to update message status
-  const updateMessageStatus = useMutation({
-    mutationFn: async ({ messageId, newStatus }: { messageId: string; newStatus: MessageStatus }) => {
-      const { error } = await supabase
+  const updateMessageStatus = useMutation(
+    async ({ id, status }: { id: string; status: MessageStatus }) => {
+      const { data, error } = await supabase
         .from('contact_messages')
-        .update({ status: newStatus })
-        .eq('id', messageId);
+        .update({ status })
+        .eq('id', id)
+        .select();
 
-      if (error) throw error;
+      if (error) throw new Error(`Failed to update message status: ${error.message}`);
+      return data;
     },
-    onSuccess: () => {
-      // Invalidate the query to refetch messages
-      queryClient.invalidateQueries({ queryKey: ['messages'] });
-      toast({
-        title: "Status Updated",
-        description: "Message status updated successfully.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Update Failed",
-        description: `Failed to update message status: ${error.message}`,
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Filter messages based on search query
-  const filteredMessages = messages?.filter((message) =>
-    message.sender_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    message.sender_email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    message.message_subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    message.message_body.toLowerCase().includes(searchQuery.toLowerCase())
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['messages'] });
+        toast({
+          title: "Message Updated",
+          description: "Message status updated successfully.",
+        });
+      },
+      onError: (error: any) => {
+        toast({
+          title: "Update Failed",
+          description: `Failed to update message status: ${error.message}`,
+          variant: "destructive",
+        });
+      },
+    }
   );
 
-  // Handle opening the reply dialog
-  const handleReplyClick = (message: Message) => {
-    setSelectedMessage(message);
-    setReplyDialogOpen(true);
+  // Mutation to send a reply
+  const sendReply = useMutation(
+    async ({ id, reply }: { id: string; reply: string }) => {
+      // Simulate sending a reply (replace with actual implementation)
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      return { id, reply };
+    },
+    {
+      onSuccess: () => {
+        toast({
+          title: "Reply Sent",
+          description: "Reply sent successfully.",
+        });
+        setReplyText('');
+        setOpenMessageId(null);
+      },
+      onError: () => {
+        toast({
+          title: "Reply Failed",
+          description: "Failed to send reply.",
+          variant: "destructive",
+        });
+      },
+    }
+  );
+
+  // Filter messages based on search query
+  const filteredMessages = messages?.filter(message =>
+    message.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    message.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    message.message.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleStatusChange = (id: string, status: MessageStatus) => {
+    updateMessageStatus.mutate({ id, status });
   };
 
-  // Handle sending a reply (mock implementation)
-  const handleSendReply = async () => {
-    if (!selectedMessage) return;
-
-    // Here you would typically send the reply and update the message status
-    try {
-      await updateMessageStatus.mutateAsync({ 
-        messageId: selectedMessage.id, 
-        newStatus: 'Replied' 
-      });
-      setReplyDialogOpen(false);
-      setSelectedMessage(null);
-      setReplyText('');
-      toast({
-        title: "Reply Sent",
-        description: "Reply sent and message status updated.",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Reply Failed",
-        description: `Failed to send reply: ${error.message}`,
-        variant: "destructive",
-      });
-    }
+  const handleOpenMessage = (id: string) => {
+    setOpenMessageId(id);
   };
 
-  // Function to handle status change
-  const handleStatusChange = async (messageId: string, newStatus: MessageStatus) => {
-    try {
-      await updateMessageStatus.mutateAsync({ 
-        messageId, 
-        newStatus 
-      });
-    } catch (error: any) {
-      toast({
-        title: "Status Update Failed",
-        description: `Failed to update status: ${error.message}`,
-        variant: "destructive",
-      });
-    }
+  const handleCloseMessage = () => {
+    setOpenMessageId(null);
+    setReplyText('');
+  };
+
+  const handleSendReply = (id: string) => {
+    sendReply.mutate({ id, reply: replyText });
   };
 
   return (
@@ -193,18 +164,17 @@ const AdminMessages: React.FC = () => {
         ) : error ? (
           <div className="text-center py-12">
             <p className="text-red-500">Error loading messages. Please try again later.</p>
+            <Button onClick={() => refetch()}>Try Again</Button>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <Table>
-              <TableCaption>A list of all messages received.</TableCaption>
+              <TableCaption>A list of all contact messages received.</TableCaption>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Sender</TableHead>
+                  <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Subject</TableHead>
-                  <TableHead>Source</TableHead>
+                  <TableHead>Message</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -212,28 +182,17 @@ const AdminMessages: React.FC = () => {
               <TableBody>
                 {filteredMessages?.map((message) => (
                   <TableRow key={message.id}>
-                    <TableCell>{new Date(message.created_at).toLocaleDateString()}</TableCell>
-                    <TableCell>{message.sender_name}</TableCell>
-                    <TableCell>{message.sender_email}</TableCell>
-                    <TableCell>{message.message_subject}</TableCell>
+                    <TableCell>{message.name}</TableCell>
+                    <TableCell>{message.email}</TableCell>
+                    <TableCell>{message.message.substring(0, 50)}{message.message.length > 50 ? '...' : ''}</TableCell>
                     <TableCell>
-                      <Badge className={message.source === 'contact_form' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}>
-                        {message.source === 'contact_form' ? 'Contact Form' : 'Direct Message'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        className={
-                          message.message_status === 'New'
-                            ? 'bg-blue-100 text-blue-800'
-                            : message.message_status === 'Read'
-                              ? 'bg-gray-100 text-gray-800'
-                              : message.message_status === 'Replied'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-red-100 text-red-800' // Archived
-                        }
-                      >
-                        {message.message_status}
+                      <Badge variant={
+                        message.status === 'New' ? 'secondary' :
+                        message.status === 'Read' ? 'default' :
+                        message.status === 'Replied' ? 'outline' :
+                        'destructive'
+                      }>
+                        {message.status}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
@@ -246,21 +205,20 @@ const AdminMessages: React.FC = () => {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Message Actions</DropdownMenuLabel>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => handleReplyClick(message)}>
-                            <Send className="mr-2 h-4 w-4" />
-                            <span>Reply</span>
+                          <DropdownMenuItem onClick={() => handleOpenMessage(message.id)}>
+                            View Message
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleStatusChange(message.id, 'Read')}>
-                            <CheckCircle className="mr-2 h-4 w-4" />
-                            <span>Mark as Read</span>
+                          <DropdownMenuItem onClick={() => handleStatusChange(message.id, "Read")}>
+                            Mark as Read
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleStatusChange(message.id, 'Archived')}>
-                            <Archive className="mr-2 h-4 w-4" />
-                            <span>Archive</span>
+                          <DropdownMenuItem onClick={() => handleStatusChange(message.id, "Replied")}>
+                            Mark as Replied
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleStatusChange(message.id, "Archived")}>
+                            Archive Message
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => refetch()}>
-                            <RefreshCcw className="mr-2 h-4 w-4" />
-                            <span>Refresh</span>
+                            Refresh
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -269,7 +227,7 @@ const AdminMessages: React.FC = () => {
                 ))}
                 {filteredMessages?.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                    <TableCell colSpan={6} className="text-center py-8 text-gray-500">
                       No messages found.
                     </TableCell>
                   </TableRow>
@@ -279,39 +237,40 @@ const AdminMessages: React.FC = () => {
           </div>
         )}
 
-        {/* Reply Dialog */}
-        <Dialog open={replyDialogOpen} onOpenChange={setReplyDialogOpen}>
+        {/* View Message Dialog */}
+        <Dialog open={openMessageId !== null} onOpenChange={() => handleCloseMessage()}>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Reply to Message</DialogTitle>
+              <DialogTitle>View Message</DialogTitle>
               <DialogDescription>
-                Write your reply to the message.
+                View the complete message and send a reply.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              {selectedMessage && (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="subject">Subject</Label>
-                    <Input id="subject" value={`RE: ${selectedMessage.message_subject}`} readOnly />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="message">Message</Label>
-                    <Textarea
-                      id="message"
-                      placeholder="Enter your reply here"
-                      value={replyText}
-                      onChange={(e) => setReplyText(e.target.value)}
-                    />
-                  </div>
-                </>
-              )}
-            </div>
+            {messages?.find(message => message.id === openMessageId) && (
+              <div className="grid gap-4 py-4">
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold">Message Details</h3>
+                  <p><strong>Name:</strong> {messages?.find(message => message.id === openMessageId)?.name}</p>
+                  <p><strong>Email:</strong> {messages?.find(message => message.id === openMessageId)?.email}</p>
+                  <p><strong>Message:</strong></p>
+                  <p className="whitespace-pre-line">{messages?.find(message => message.id === openMessageId)?.message}</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="reply">Reply</Label>
+                  <Textarea
+                    id="reply"
+                    placeholder="Enter your reply"
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
             <DialogFooter>
-              <Button variant="outline" onClick={() => setReplyDialogOpen(false)}>
+              <Button variant="outline" onClick={() => handleCloseMessage()}>
                 Cancel
               </Button>
-              <Button onClick={handleSendReply}>Send Reply</Button>
+              <Button onClick={() => handleSendReply(openMessageId || '')}>Send Reply</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
