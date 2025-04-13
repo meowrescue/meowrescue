@@ -25,6 +25,14 @@ export function capitalizeWords(string: string): string {
     .join(' ');
 }
 
+export function capitalizeFirstLetterOfEachWord(string: string): string {
+  if (!string) return '';
+  return string
+    .split(' ')
+    .map(word => capitalizeFirstLetter(word))
+    .join(' ');
+}
+
 export function formatApplicationType(type: string): string {
   if (!type) return '';
   return capitalizeWords(type.replace(/-/g, ' '));
