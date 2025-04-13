@@ -29,7 +29,7 @@ const LostFound = () => {
     try {
       let query = supabase
         .from("lost_found_posts")
-        .select("*, profiles(first_name, last_name)")
+        .select("*")
         .order("created_at", { ascending: false });
 
       if (filter !== "all") {

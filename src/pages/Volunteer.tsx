@@ -1,4 +1,3 @@
-
 import React from "react";
 import Layout from "../components/Layout";
 import SectionHeading from "@/components/ui/SectionHeading";
@@ -25,7 +24,7 @@ const Volunteer = () => {
               Our volunteers and foster families are the heart of Meow Rescue. Join our community of cat lovers and help us save more lives!
             </p>
             <Button asChild variant="meow" size="lg">
-              <Link to="/volunteer#application">Apply Now</Link>
+              <Link to="/contact">Apply Now</Link>
             </Button>
           </div>
         </div>
@@ -38,6 +37,7 @@ const Volunteer = () => {
         />
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12 mb-20">
+          
           <VolunteerCard 
             title="Cat Care & Socialization"
             description="Help care for our rescue cats by providing daily care, playtime, and socialization to prepare them for adoption."
@@ -87,6 +87,7 @@ const Volunteer = () => {
           subtitle="Open your home and heart"
           centered
         />
+        
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-12 mb-16">
           <div className="bg-white p-8 rounded-lg shadow-md">
@@ -182,7 +183,7 @@ const Volunteer = () => {
           </div>
         </div>
         
-        {/* Apply Now */}
+        {/* Apply Now - Update the link to point to contact page */}
         <div id="application" className="bg-meow-primary/10 rounded-xl p-8 md:p-16 text-center">
           <h2 className="text-3xl font-bold text-meow-primary mb-4">Ready to Join Our Team?</h2>
           <p className="text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
