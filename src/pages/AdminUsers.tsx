@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -83,16 +82,14 @@ const AdminUsers: React.FC = () => {
     setEditingUser(null);
   };
   
-  // Handle update user
+  // Modify the handleUpdateUser function to ensure type safety
   const handleUpdateUser = async (user: Partial<User>) => {
     try {
-      // Make sure role is properly typed as a valid app_role
-      let userToUpdate = { ...user };
-      
-      if (userToUpdate.role) {
-        // Cast the role to one of the allowed values
-        userToUpdate.role = userToUpdate.role as "user" | "admin" | "volunteer" | "foster";
-      }
+      // Ensure role is properly typed
+      const userToUpdate = { 
+        ...user, 
+        role: user.role as "user" | "admin" | "volunteer" | "foster" 
+      };
       
       const { error } = await supabase
         .from('profiles')
@@ -388,7 +385,14 @@ const AdminUsers: React.FC = () => {
                 <Label htmlFor="role" className="text-right">
                   Role
                 </Label>
-                <Select value={editingUser.role} onValueChange={value => setEditingUser({ ...editingUser, role: value })}>
+                <Select 
+                  value={editingUser?.role} 
+                  onValueChange={(value) => {
+                    // Type assertion to ensure only valid roles are accepted
+                    const validRole = value as "user" | "admin" | "volunteer" | "foster";
+                    setEditingUser(prev => prev ? { ...prev, role: validRole } : null);
+                  }}
+                >
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select a role" />
                   </SelectTrigger>
