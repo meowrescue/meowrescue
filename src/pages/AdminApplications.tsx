@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -26,58 +25,29 @@ const AdminApplications: React.FC = () => {
     queryKey: ['admin-applications', filterStatus, filterType],
     queryFn: async () => {
       try {
-        // Using a direct query approach since the table isn't recognized in TypeScript
-        let query = `
-          SELECT a.*, p.email, p.first_name, p.last_name
-          FROM applications a
-          LEFT JOIN profiles p ON a.applicant_id = p.id
-          WHERE 1=1
-        `;
-        
-        const params: any[] = [];
-        let paramIndex = 1;
+        let query = supabase.from('applications')
+          .select(`
+            *,
+            profiles:applicant_id(
+              email,
+              first_name,
+              last_name
+            )
+          `);
         
         if (filterStatus) {
-          query += ` AND a.status = $${paramIndex}`;
-          params.push(filterStatus);
-          paramIndex++;
+          query = query.eq('status', filterStatus);
         }
         
         if (filterType) {
-          query += ` AND a.application_type = $${paramIndex}`;
-          params.push(filterType);
-          paramIndex++;
+          query = query.eq('application_type', filterType);
         }
         
-        query += ` ORDER BY a.created_at DESC`;
-        
-        const { data, error } = await supabase.rpc('execute_sql', { 
-          sql_query: query,
-          params: params
-        });
+        const { data, error } = await query.order('created_at', { ascending: false });
         
         if (error) throw error;
         
-        // Transform the data to match the Application interface
-        const transformedData = data.map((item: any) => ({
-          id: item.id,
-          applicant_id: item.applicant_id,
-          application_type: item.application_type,
-          status: item.status,
-          form_data: item.form_data,
-          created_at: item.created_at,
-          updated_at: item.updated_at,
-          reviewed_at: item.reviewed_at,
-          reviewer_id: item.reviewer_id,
-          feedback: item.feedback,
-          profiles: {
-            email: item.email,
-            first_name: item.first_name,
-            last_name: item.last_name
-          }
-        }));
-        
-        return transformedData as Application[];
+        return data as unknown as Application[];
       } catch (error) {
         console.error('Error fetching applications:', error);
         return [] as Application[];
@@ -87,12 +57,16 @@ const AdminApplications: React.FC = () => {
 
   const handleStatusChange = async (applicationId: string, newStatus: string, feedback: string = '') => {
     try {
-      // Using a direct query since the table isn't recognized in TypeScript
-      const { error } = await supabase.rpc('update_application_status', { 
-        p_application_id: applicationId,
-        p_status: newStatus,
-        p_feedback: feedback
-      });
+      const { error } = await supabase
+        .from('applications')
+        .update({ 
+          status: newStatus,
+          feedback: feedback,
+          reviewed_at: new Date().toISOString(),
+          reviewer_id: supabase.auth.getUser() ? (await supabase.auth.getUser()).data.user?.id : null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', applicationId);
       
       if (error) throw error;
       
