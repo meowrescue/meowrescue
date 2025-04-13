@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Clock, User, Shield, Activity } from 'lucide-react';
+import { Search, Clock, User, Shield, Activity, Filter } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -13,9 +13,18 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
 import { ActivityLog } from '@/types/activity';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuCheckboxItem,
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
 
 const AdminSecurity: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [activityTypeFilter, setActivityTypeFilter] = useState<string>('');
+  const [userFilter, setUserFilter] = useState<string>('');
   const { toast } = useToast();
 
   // Fetch activity logs
@@ -58,12 +67,62 @@ const AdminSecurity: React.FC = () => {
     }
   });
 
-  // Filter logs based on search query
-  const filteredLogs = activityLogs?.filter(log =>
-    log.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    log.activity_type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    log.profiles?.email?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Fetch unique users for filter dropdown
+  const { data: uniqueUsers } = useQuery({
+    queryKey: ['activity-log-users'],
+    queryFn: async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, email, first_name, last_name')
+          .order('email', { ascending: true });
+          
+        if (error) throw error;
+        return data;
+      } catch (err) {
+        console.error("Error fetching users:", err);
+        return [];
+      }
+    }
+  });
+
+  // Get unique activity types from logs
+  const uniqueActivityTypes = React.useMemo(() => {
+    if (!activityLogs) return [];
+    
+    const types = new Set<string>();
+    activityLogs.forEach(log => {
+      if (log.activity_type) {
+        types.add(log.activity_type.toLowerCase());
+      }
+    });
+    
+    return Array.from(types).sort();
+  }, [activityLogs]);
+
+  // Filter logs based on all criteria
+  const filteredLogs = React.useMemo(() => {
+    if (!activityLogs) return [];
+    
+    return activityLogs.filter(log => {
+      // Text search filter
+      const matchesSearch = searchQuery === '' || 
+        log.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        log.activity_type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        log.profiles?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (log.profiles?.first_name && log.profiles?.last_name && 
+          `${log.profiles.first_name} ${log.profiles.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()));
+      
+      // Activity type filter
+      const matchesType = activityTypeFilter === '' || 
+        log.activity_type.toLowerCase() === activityTypeFilter.toLowerCase();
+      
+      // User filter
+      const matchesUser = userFilter === '' || log.user_id === userFilter;
+      
+      return matchesSearch && matchesType && matchesUser;
+    });
+  }, [activityLogs, searchQuery, activityTypeFilter, userFilter]);
 
   const getActivityTypeColor = (type: string) => {
     switch (type.toLowerCase()) {
@@ -72,6 +131,8 @@ const AdminSecurity: React.FC = () => {
       case 'update': return 'bg-blue-100 text-blue-800';
       case 'delete': return 'bg-red-100 text-red-800';
       case 'create': return 'bg-purple-100 text-purple-800';
+      case 'chat': return 'bg-indigo-100 text-indigo-800';
+      case 'message': return 'bg-teal-100 text-teal-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -88,14 +149,21 @@ const AdminSecurity: React.FC = () => {
     log.activity_type.toLowerCase() === 'login'
   ).slice(0, 5);
 
+  // Reset all filters
+  const resetFilters = () => {
+    setSearchQuery('');
+    setActivityTypeFilter('');
+    setUserFilter('');
+  };
+
   return (
     <AdminLayout title="Security & Logs">
       <SEO title="Security & Logs | Meow Rescue Admin" />
       
-      <div className="container mx-auto py-10">
-        <div className="flex flex-col md:flex-row items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-meow-primary">Security & Activity Logs</h1>
-          <div className="flex items-center gap-4 w-full md:w-auto mt-4 md:mt-0">
+      <div className="container mx-auto py-6">
+        <div className="flex flex-col md:flex-row items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-meow-primary">Security & Activity Logs</h1>
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto mt-4 md:mt-0">
             <div className="relative w-full md:w-auto">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
@@ -105,46 +173,92 @@ const AdminSecurity: React.FC = () => {
                 className="pl-10 w-full md:w-64"
               />
             </div>
+            <Button variant="outline" size="sm" onClick={resetFilters}>
+              Clear Filters
+            </Button>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+          <div className="w-full sm:w-auto">
+            <Select 
+              value={activityTypeFilter} 
+              onValueChange={setActivityTypeFilter}
+            >
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Filter by type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Activity Types</SelectItem>
+                {uniqueActivityTypes.map(type => (
+                  <SelectItem key={type} value={type}>
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="w-full sm:w-auto">
+            <Select 
+              value={userFilter} 
+              onValueChange={setUserFilter}
+            >
+              <SelectTrigger className="w-full sm:w-[250px]">
+                <SelectValue placeholder="Filter by user" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Users</SelectItem>
+                {uniqueUsers?.map(user => (
+                  <SelectItem key={user.id} value={user.id}>
+                    {user.first_name && user.last_name 
+                      ? `${user.first_name} ${user.last_name} (${user.email})`
+                      : user.email}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
         {/* Activity Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg font-medium flex items-center">
-                <Activity className="mr-2 h-5 w-5 text-meow-primary" />
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center">
+                <Activity className="mr-2 h-4 w-4 text-meow-primary" />
                 Total Activities
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{activityLogs?.length || 0}</div>
-              <p className="text-sm text-gray-500 mt-1">All recorded actions</p>
+              <div className="text-2xl font-bold">{activityLogs?.length || 0}</div>
+              <p className="text-xs text-gray-500 mt-1">All recorded actions</p>
             </CardContent>
           </Card>
           
           <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg font-medium flex items-center">
-                <User className="mr-2 h-5 w-5 text-meow-primary" />
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center">
+                <User className="mr-2 h-4 w-4 text-meow-primary" />
                 Login Activities
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{countByType['login'] || 0}</div>
-              <p className="text-sm text-gray-500 mt-1">User sign-ins</p>
+              <div className="text-2xl font-bold">{countByType['login'] || 0}</div>
+              <p className="text-xs text-gray-500 mt-1">User sign-ins</p>
             </CardContent>
           </Card>
           
           <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg font-medium flex items-center">
-                <Clock className="mr-2 h-5 w-5 text-meow-primary" />
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center">
+                <Clock className="mr-2 h-4 w-4 text-meow-primary" />
                 Last 24 Hours
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">
+              <div className="text-2xl font-bold">
                 {activityLogs?.filter(log => {
                   const logDate = new Date(log.created_at);
                   const yesterday = new Date();
@@ -152,14 +266,29 @@ const AdminSecurity: React.FC = () => {
                   return logDate > yesterday;
                 }).length || 0}
               </div>
-              <p className="text-sm text-gray-500 mt-1">Recent activities</p>
+              <p className="text-xs text-gray-500 mt-1">Recent activities</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center">
+                <Shield className="mr-2 h-4 w-4 text-meow-primary" />
+                Security Events
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {(countByType['login'] || 0) + (countByType['logout'] || 0)}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Login/logout events</p>
             </CardContent>
           </Card>
         </div>
         
         {/* Recent Logins */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Recent Logins</h2>
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold mb-3">Recent Logins</h2>
           {recentLogins && recentLogins.length > 0 ? (
             <div className="bg-white rounded-lg shadow overflow-hidden">
               <Table>
@@ -201,68 +330,75 @@ const AdminSecurity: React.FC = () => {
         </div>
         
         {/* All Activity Logs */}
-        <h2 className="text-xl font-semibold mb-4">All Activity Logs</h2>
-        
-        {isLoading ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold">All Activity Logs</h2>
+            <Badge variant="outline">{filteredLogs.length} records</Badge>
           </div>
-        ) : error ? (
-          <div className="text-center py-12">
-            <p className="text-red-500">Error loading activity logs. Please try again later.</p>
-            <Button 
-              variant="outline" 
-              className="mt-4"
-              onClick={() => refetch()}
-            >
-              Try Again
-            </Button>
-          </div>
-        ) : filteredLogs && filteredLogs.length > 0 ? (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <Table>
-              <TableCaption>Comprehensive history of system activities.</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Activity</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>User</TableHead>
-                  <TableHead>Date & Time</TableHead>
-                  <TableHead>IP Address</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredLogs.map((log) => (
-                  <TableRow key={log.id}>
-                    <TableCell className="font-medium">{log.description}</TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getActivityTypeColor(log.activity_type)}`}>
-                        {log.activity_type}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      {log.profiles ? 
-                        `${log.profiles.first_name || ''} ${log.profiles.last_name || ''}`.trim() || 
-                        log.profiles.email : 
-                        'Unknown User'}
-                    </TableCell>
-                    <TableCell>{format(new Date(log.created_at), 'MMM d, yyyy h:mm:ss a')}</TableCell>
-                    <TableCell>{log.ip_address || 'N/A'}</TableCell>
+          
+          {isLoading ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-meow-primary"></div>
+            </div>
+          ) : error ? (
+            <div className="text-center py-8">
+              <p className="text-red-500">Error loading activity logs. Please try again later.</p>
+              <Button 
+                variant="outline" 
+                className="mt-4"
+                onClick={() => refetch()}
+              >
+                Try Again
+              </Button>
+            </div>
+          ) : filteredLogs.length > 0 ? (
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <Table>
+                <TableCaption>Comprehensive history of system activities</TableCaption>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Activity Type</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>User</TableHead>
+                    <TableHead>Date & Time</TableHead>
+                    <TableHead>IP Address</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        ) : (
-          <Card>
-            <CardContent className="py-6 text-center">
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">No Activity Logs Found</h3>
-              <p className="text-gray-500">
-                There are no activity logs matching your search criteria.
-              </p>
-            </CardContent>
-          </Card>
-        )}
+                </TableHeader>
+                <TableBody>
+                  {filteredLogs.map((log) => (
+                    <TableRow key={log.id}>
+                      <TableCell>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getActivityTypeColor(log.activity_type)}`}>
+                          {log.activity_type}
+                        </span>
+                      </TableCell>
+                      <TableCell className="font-medium max-w-[300px] truncate" title={log.description}>
+                        {log.description}
+                      </TableCell>
+                      <TableCell>
+                        {log.profiles ? 
+                          `${log.profiles.first_name || ''} ${log.profiles.last_name || ''}`.trim() || 
+                          log.profiles.email : 
+                          'Unknown User'}
+                      </TableCell>
+                      <TableCell>{format(new Date(log.created_at), 'MMM d, yyyy h:mm:ss a')}</TableCell>
+                      <TableCell>{log.ip_address || 'N/A'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="py-6 text-center">
+                <h3 className="text-lg font-semibold text-gray-700 mb-2">No Activity Logs Found</h3>
+                <p className="text-gray-500">
+                  There are no activity logs matching your search criteria.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
     </AdminLayout>
   );
