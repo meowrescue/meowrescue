@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -34,10 +33,10 @@ const VolunteerForm: React.FC = () => {
   };
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+    const { name, value, type } = e.target;
     
-    // Handle checkbox separately
-    if (e.target instanceof HTMLInputElement && e.target.type === 'checkbox') {
+    // Type guard to ensure we have an HTMLInputElement for checkbox
+    if (type === 'checkbox' && e.target instanceof HTMLInputElement) {
       setFormData(prev => ({
         ...prev,
         [name]: e.target.checked
