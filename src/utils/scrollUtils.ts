@@ -16,5 +16,21 @@ export const scrollToElement = (elementId: string, offset: number = 80) => {
       top: offsetPosition,
       behavior: 'smooth'
     });
+  } else {
+    // If no element is found, scroll to top
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
   }
+};
+
+/**
+ * Scroll to top of the page
+ */
+export const scrollToTop = () => {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  });
 };

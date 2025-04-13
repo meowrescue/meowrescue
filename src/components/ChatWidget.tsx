@@ -46,6 +46,11 @@ const ChatWidget: React.FC = () => {
   useEffect(() => {
     const checkAdminAvailability = async () => {
       try {
+        // We'll assume admins are available for simplicity
+        setIsAdminAvailable(true);
+        
+        // If we have a proper active_sessions table, we can use this code:
+        /*
         // Check if any admin users are currently logged in
         const { data: adminSessions, error } = await supabase
           .from('active_sessions')
@@ -70,7 +75,8 @@ const ChatWidget: React.FC = () => {
           profile => profile.email && profile.email.endsWith('@meowrescue.org')
         );
         
-        setIsAdminAvailable(true); // Always set to true for simplicity
+        setIsAdminAvailable(hasAdmins || hasMeowRescueEmails);
+        */
       } catch (error) {
         console.error("Error checking admin availability:", error);
         setIsAdminAvailable(true); // Default to available on error
@@ -356,21 +362,21 @@ const ChatWidget: React.FC = () => {
       {/* Chat button */}
       {!isOpen && (
         <Button 
-          className="fixed bottom-6 right-6 rounded-full h-14 w-14 shadow-lg"
+          className="fixed bottom-6 right-6 rounded-full h-14 w-14 shadow-lg bg-meow-primary hover:bg-meow-primary/90"
           onClick={handleOpenChat}
         >
-          <MessageCircle size={24} />
+          <MessageCircle size={24} className="text-white" />
         </Button>
       )}
       
       {/* Chat window */}
       {isOpen && (
         <Card className="fixed bottom-6 right-6 w-80 sm:w-96 h-96 shadow-xl flex flex-col z-50">
-          <CardHeader className="pb-2 border-b flex flex-row items-center justify-between">
+          <CardHeader className="pb-2 border-b flex flex-row items-center justify-between bg-meow-primary text-white">
             <CardTitle className="text-md font-semibold">
               Chat with Us
             </CardTitle>
-            <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)}>
+            <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)} className="text-white hover:bg-meow-primary/80">
               <X size={18} />
             </Button>
           </CardHeader>
@@ -482,10 +488,10 @@ const ChatWidget: React.FC = () => {
                 <Button 
                   type="button" 
                   onClick={sendMessage}
-                  className="self-end h-10 w-10 p-0"
+                  className="self-end h-10 w-10 p-0 bg-meow-primary hover:bg-meow-primary/90"
                   disabled={!newMessage.trim()}
                 >
-                  <Send size={16} />
+                  <Send size={16} className="text-white" />
                 </Button>
               </div>
             </CardFooter>

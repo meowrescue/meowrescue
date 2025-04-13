@@ -68,28 +68,40 @@ const AdminChat: React.FC = () => {
           throw sessionsError;
         }
         
+        if (!sessionsData || sessionsData.length === 0) {
+          return [] as ChatSession[];
+        }
+        
         // Then get user profiles separately for sessions with user_id
         const sessionsWithProfiles = await Promise.all(
-          (sessionsData || []).map(async (session) => {
+          sessionsData.map(async (session) => {
             if (session.user_id) {
-              const { data: profileData, error: profileError } = await supabase
-                .from('profiles')
-                .select('id, first_name, last_name, email')
-                .eq('id', session.user_id)
-                .single();
+              try {
+                const { data: profileData, error: profileError } = await supabase
+                  .from('profiles')
+                  .select('id, first_name, last_name, email')
+                  .eq('id', session.user_id)
+                  .single();
+                  
+                if (profileError) {
+                  console.error("Error fetching user profile:", profileError);
+                  return {
+                    ...session,
+                    user_profile: undefined
+                  };
+                }
                 
-              if (profileError) {
-                console.error("Error fetching user profile:", profileError);
+                return {
+                  ...session,
+                  user_profile: profileData
+                };
+              } catch (err) {
+                console.error("Error fetching profile for user:", session.user_id, err);
                 return {
                   ...session,
                   user_profile: undefined
                 };
               }
-              
-              return {
-                ...session,
-                user_profile: profileData
-              };
             }
             
             return session;

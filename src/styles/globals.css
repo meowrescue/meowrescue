@@ -61,6 +61,24 @@ section {
   @apply bg-gradient-to-r from-meow-primary to-meow-secondary text-white;
 }
 
+/* Standard card styling */
+.meow-card {
+  @apply bg-white rounded-lg shadow-md overflow-hidden border border-gray-100 transition-shadow hover:shadow-lg;
+}
+
+/* Standard button styling */
+.meow-button {
+  @apply bg-meow-primary hover:bg-meow-primary/90 text-white font-medium py-2 px-4 rounded transition-colors;
+}
+
+.meow-button-secondary {
+  @apply bg-meow-secondary hover:bg-meow-secondary/90 text-white font-medium py-2 px-4 rounded transition-colors;
+}
+
+.meow-button-outline {
+  @apply border border-meow-primary text-meow-primary hover:bg-meow-primary/10 font-medium py-2 px-4 rounded transition-colors;
+}
+
 /* Admin layout styles */
 .admin-layout {
   min-height: 100vh;
@@ -116,4 +134,20 @@ section {
   .card-section + .card-section {
     margin-top: 6rem;
   }
+}
+
+/* Consistency overrides for shadcn/ui */
+.btn-primary,
+.btn-primary:not(.btn-outline) {
+  @apply bg-meow-primary hover:bg-meow-primary/90 text-white;
+}
+
+.btn-secondary,
+.btn-secondary:not(.btn-outline) {
+  @apply bg-meow-secondary hover:bg-meow-secondary/90 text-white;
+}
+
+/* Form elements consistency */
+input, select, textarea {
+  @apply border-gray-300 focus:border-meow-primary focus:ring-1 focus:ring-meow-primary;
 }

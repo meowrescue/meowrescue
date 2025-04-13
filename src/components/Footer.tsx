@@ -13,24 +13,26 @@ const Footer: React.FC = () => {
     { path: "/about", label: "About Us" },
     { path: "/cats", label: "Available Cats" },
     { path: "/adopt", label: "Adoption Process" },
-    { path: "/success-stories", label: "Success Stories" },
-    { path: "/volunteer", label: "Volunteer" },
-    { path: "/foster", label: "Foster" }
   ];
   
   const quickLinksColumn2 = [
+    { path: "/success-stories", label: "Success Stories" },
+    { path: "/volunteer", label: "Volunteer" },
+    { path: "/foster", label: "Foster" },
     { path: "/donate", label: "Donate" },
+  ];
+
+  const quickLinksColumn3 = [
     { path: "/events", label: "Events" },
     { path: "/blog", label: "Blog" },
     { path: "/lost-found", label: "Lost & Found" },
-    { path: "/resources", label: "Resources" },
-    { path: "/contact", label: "Contact" }
+    { path: "/contact", label: "Contact" },
   ];
 
   return (
     <footer className="bg-meow-primary text-white">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* About Section */}
           <div>
             <div className="flex items-center mb-4">
@@ -76,32 +78,43 @@ const Footer: React.FC = () => {
             </div>
           </div>
           
-          {/* Quick Links - Column 1 */}
+          {/* Quick Links Section */}
           <div>
             <h3 className="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Quick Links</h3>
-            <ul className="space-y-2">
-              {quickLinksColumn1.map((link, index) => (
-                <li key={index}>
-                  <Link to={link.path} className="text-white/80 hover:text-white transition-colors">
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-          
-          {/* Quick Links - Column 2 */}
-          <div className="lg:col-start-3 md:col-start-2 lg:col-auto">
-            <h3 className="text-lg font-semibold mb-4 border-b border-white/20 pb-2 lg:invisible lg:h-0 md:visible md:h-auto">Quick Links</h3>
-            <ul className="space-y-2">
-              {quickLinksColumn2.map((link, index) => (
-                <li key={index}>
-                  <Link to={link.path} className="text-white/80 hover:text-white transition-colors">
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <div className="grid grid-cols-3 gap-4">
+              {/* Column 1 */}
+              <ul className="space-y-2">
+                {quickLinksColumn1.map((link, index) => (
+                  <li key={index}>
+                    <Link to={link.path} className="text-white/80 hover:text-white transition-colors">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              
+              {/* Column 2 */}
+              <ul className="space-y-2">
+                {quickLinksColumn2.map((link, index) => (
+                  <li key={index}>
+                    <Link to={link.path} className="text-white/80 hover:text-white transition-colors">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              
+              {/* Column 3 */}
+              <ul className="space-y-2">
+                {quickLinksColumn3.map((link, index) => (
+                  <li key={index}>
+                    <Link to={link.path} className="text-white/80 hover:text-white transition-colors">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
           
           {/* Contact Info */}
@@ -131,7 +144,7 @@ const Footer: React.FC = () => {
           </div>
           
           {/* Newsletter/Support */}
-          <div className="md:col-span-2 lg:col-span-1">
+          <div>
             <h3 className="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Support Our Mission</h3>
             <p className="text-white/80 mb-4">
               Your donations help us save more cats and provide them with the medical care, food, and love they need.
