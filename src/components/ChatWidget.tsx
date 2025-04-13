@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,7 @@ import { Send, X, MessageCircle, Mail } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
+import { scrollToBottom, autoScrollChatToBottom } from '@/utils/scrollUtils';
 
 interface ChatMessage {
   id: string;
@@ -63,9 +63,11 @@ const ChatWidget: React.FC = () => {
   }, []);
 
   // Scroll to bottom of messages
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  useEffect(() => {
+    if (messages.length > 0 && messagesEndRef.current) {
+      scrollToBottom(messagesEndRef.current.parentElement);
+    }
+  }, [messages]);
   
   useEffect(() => {
     // Attempt to load an existing session for this user if they're logged in
@@ -292,7 +294,13 @@ const ChatWidget: React.FC = () => {
       
       setMessages(prevMessages => [...prevMessages, tempMessage]);
       setNewMessage('');
-      setTimeout(scrollToBottom, 50);
+      
+      // Scroll to bottom immediately after adding the message
+      setTimeout(() => {
+        if (messagesEndRef.current) {
+          scrollToBottom(messagesEndRef.current.parentElement);
+        }
+      }, 50);
       
       // Then send to database
       const { error } = await supabase
@@ -377,7 +385,7 @@ const ChatWidget: React.FC = () => {
             ) : isAdminAvailable ? (
               user || isGuestFormSubmitted ? (
                 messages.length > 0 ? (
-                  <ScrollArea className="h-full py-2 pr-2">
+                  <ScrollArea className="h-full py-2 pr-2" id="chat-messages-container">
                     <div className="space-y-3">
                       {messages.map((message) => (
                         <div 

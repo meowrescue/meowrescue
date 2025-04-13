@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -10,40 +9,50 @@ import SEO from '@/components/SEO';
 import { Calendar, ArrowLeft, MapPin, User, Phone, Mail, Tag, Info } from 'lucide-react';
 import NotFound from './NotFound';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
+import { scrollToTop } from '@/utils/scrollUtils';
 
 const LostFoundDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   
-  const { data: post, isLoading, error } = useQuery({
+  const { data: post, isLoading, error, refetch } = useQuery({
     queryKey: ['lostFoundPost', id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('lost_found_posts')
-        .select(`
-          *,
-          profiles:profile_id (
-            email,
-            first_name,
-            last_name,
-            phone
-          )
-        `)
-        .eq('id', id)
-        .single();
-      
-      if (error) {
-        console.error("Error fetching lost & found post:", error);
-        if (error.code === 'PGRST116') {
-          return null; // Not found
+      try {
+        console.log("Fetching lost & found post with ID:", id);
+        
+        const { data, error } = await supabase
+          .from('lost_found_posts')
+          .select(`
+            *,
+            profiles:profile_id (
+              email,
+              first_name,
+              last_name,
+              phone
+            )
+          `)
+          .eq('id', id)
+          .single();
+        
+        if (error) {
+          console.error("Error fetching lost & found post:", error);
+          if (error.code === 'PGRST116') {
+            return null; // Not found
+          }
+          throw error;
         }
-        throw error;
+        
+        console.log("Post retrieved:", data);
+        return data;
+      } catch (err) {
+        console.error("Error in lostFoundPost query:", err);
+        throw err;
       }
-      return data;
     }
   });
   
-  // If post not found
+  // If post not found or not published
   if (!isLoading && !post && !error) {
     return <NotFound />;
   }
@@ -66,7 +75,10 @@ const LostFoundDetail: React.FC = () => {
         <div className="container mx-auto px-4 py-16">
           <div className="text-center py-12">
             <p className="text-red-500">Error loading post details. Please try again later.</p>
-            <Button variant="outline" className="mt-4" onClick={() => navigate('/lost-found')}>
+            <Button variant="outline" className="mt-4" onClick={() => refetch()}>
+              Try Again
+            </Button>
+            <Button variant="outline" className="mt-4 ml-2" onClick={() => navigate('/lost-found')}>
               Return to Lost & Found
             </Button>
           </div>
@@ -188,7 +200,16 @@ const LostFoundDetail: React.FC = () => {
                         <MapPin className="h-5 w-5 mr-3 text-meow-primary" />
                         <div>
                           <p className="text-sm text-gray-500">Location</p>
-                          <p className="font-medium">{post.location}</p>
+                          <p className="font-medium">
+                            <a 
+                              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(post.location)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="hover:underline text-meow-primary"
+                            >
+                              {post.location}
+                            </a>
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -224,7 +245,11 @@ const LostFoundDetail: React.FC = () => {
                           <Phone className="h-5 w-5 mr-3 text-meow-primary" />
                           <div>
                             <p className="text-sm text-gray-500">Phone</p>
-                            <p className="font-medium">{post.contact_info}</p>
+                            <p className="font-medium">
+                              <a href={`tel:${post.contact_info}`} className="hover:underline text-meow-primary">
+                                {post.contact_info}
+                              </a>
+                            </p>
                           </div>
                         </div>
                       )}
@@ -234,17 +259,25 @@ const LostFoundDetail: React.FC = () => {
                           <Mail className="h-5 w-5 mr-3 text-meow-primary" />
                           <div>
                             <p className="text-sm text-gray-500">Email</p>
-                            <p className="font-medium">{post.profiles.email}</p>
+                            <p className="font-medium">
+                              <a href={`mailto:${post.profiles.email}`} className="hover:underline text-meow-primary">
+                                {post.profiles.email}
+                              </a>
+                            </p>
                           </div>
                         </div>
                       )}
                     </div>
                     
                     <div className="mt-6">
-                      <Button className="w-full">
-                        <Mail className="mr-2 h-4 w-4" />
-                        Contact
-                      </Button>
+                      {post.profiles && post.profiles.email && (
+                        <Button className="w-full" asChild>
+                          <a href={`mailto:${post.profiles.email}?subject=Regarding your ${post.status} pet post: ${post.title}`}>
+                            <Mail className="mr-2 h-4 w-4" />
+                            Contact
+                          </a>
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -261,8 +294,11 @@ const LostFoundDetail: React.FC = () => {
                     <p className="text-gray-700 mb-4">
                       Share this post on social media to increase visibility.
                     </p>
-                    <Button variant="outline" className="w-full">
-                      Share This Post
+                    <Button variant="outline" className="w-full" onClick={() => {
+                      navigator.clipboard.writeText(window.location.href);
+                      alert('Link copied to clipboard! Share it with others to help.');
+                    }}>
+                      Copy Link to Share
                     </Button>
                   </CardContent>
                 </Card>

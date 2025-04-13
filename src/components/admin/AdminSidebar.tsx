@@ -13,8 +13,7 @@ import {
   Shield,
   FileImage,
   Search,
-  LogOut,
-  Bell
+  LogOut
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
@@ -171,19 +170,6 @@ const AdminSidebar: React.FC = () => {
               <span>Contact Messages</span>
             </div>
             <Badge variant="default" className="bg-meow-secondary">5</Badge>
-          </Link>
-          
-          <Link 
-            to="/admin/notifications"
-            className={`flex items-center justify-between p-2 rounded transition-colors ${
-              isActive('/admin/notifications') ? 'bg-gray-100' : 'hover:bg-gray-100'
-            }`}
-          >
-            <div className="flex items-center">
-              <Bell className="mr-3 h-5 w-5 text-gray-600" />
-              <span>Notifications</span>
-            </div>
-            <Badge variant="default" className="bg-meow-secondary">2</Badge>
           </Link>
         </div>
         

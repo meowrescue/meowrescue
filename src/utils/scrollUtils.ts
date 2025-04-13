@@ -39,3 +39,18 @@ export const initSmoothScroll = () => {
     });
   });
 };
+
+// Function to scroll to the bottom of an element
+export const scrollToBottom = (element: HTMLElement | null) => {
+  if (element) {
+    element.scrollTop = element.scrollHeight;
+  }
+};
+
+// Auto scroll chat messages container to bottom
+export const autoScrollChatToBottom = (containerSelector: string) => {
+  const container = document.querySelector(containerSelector) as HTMLElement;
+  if (container) {
+    container.scrollTop = container.scrollHeight;
+  }
+};

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -21,20 +22,11 @@ const AdminApplications = () => {
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
 
   // Fetch applications from Supabase
-  const { data: applications, isLoading } = useQuery({
+  const { data: applications, isLoading, error } = useQuery({
     queryKey: ['admin-applications'],
     queryFn: async () => {
       try {
-        // Check if applications table exists
-        const { data: tableExists, error: tableError } = await supabase
-          .from('applications')
-          .select('id')
-          .limit(1);
-          
-        if (tableError) {
-          console.error("Error checking applications table:", tableError);
-          return [] as Application[];
-        }
+        console.log("Fetching applications from Supabase");
         
         const { data, error } = await supabase
           .from('applications')
@@ -47,8 +39,10 @@ const AdminApplications = () => {
           
         if (error) {
           console.error("Error fetching applications:", error);
-          return [] as Application[];
+          throw error;
         }
+        
+        console.log("Applications fetched:", data?.length);
         
         // Map the returned data to match the Application interface
         const mappedData = data.map(app => ({
@@ -95,6 +89,11 @@ const AdminApplications = () => {
         {isLoading ? (
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <p className="text-red-500">Error loading applications. Please try again later.</p>
+            <pre className="mt-4 text-xs text-gray-500">{JSON.stringify(error, null, 2)}</pre>
           </div>
         ) : filteredApplications && filteredApplications.length > 0 ? (
           <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -145,7 +144,7 @@ const AdminApplications = () => {
             <div className="text-center py-12">
               <h2 className="text-2xl font-semibold text-gray-700 mb-4">No Applications</h2>
               <p className="text-gray-500 mb-8">
-                There are no applications in the database yet.
+                There are no applications in the database matching your search criteria.
               </p>
             </div>
           </div>
