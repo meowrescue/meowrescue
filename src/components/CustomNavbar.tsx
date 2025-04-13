@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -81,7 +80,6 @@ const CustomNavbar: React.FC = () => {
       dropdown: [
         { name: 'Cat Care Tips', path: '/resources' },
         { name: 'Lost & Found', path: '/lost-found' },
-        { name: 'Forum', path: '/forum' },
       ]
     },
     { name: 'Events', path: '/events' },

@@ -40,6 +40,7 @@ const Contact = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [mapError, setMapError] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any | null>(null);
   const scriptLoadedRef = useRef<boolean>(false);
@@ -80,8 +81,10 @@ const Contact = () => {
           });
           
           setMapLoaded(true);
+          setMapError(false);
         } catch (error) {
           console.error("Error initializing Google Map:", error);
+          setMapError(true);
         }
       }
     };
@@ -103,6 +106,7 @@ const Contact = () => {
         if (!isMounted) return;
         console.error("Error loading Google Maps script");
         scriptLoadedRef.current = false;
+        setMapError(true);
       };
       
       document.head.appendChild(script);
@@ -336,9 +340,18 @@ const Contact = () => {
                 id="google-map" 
                 className="h-96 w-full bg-gray-100 relative"
               >
-                {!mapLoaded && (
+                {!mapLoaded && !mapError && (
                   <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
                     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
+                  </div>
+                )}
+                
+                {mapError && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                    <div className="text-center p-4">
+                      <p className="text-red-500 mb-2">Unable to load the map</p>
+                      <p className="text-sm text-gray-600">Please check your connection or try again later</p>
+                    </div>
                   </div>
                 )}
               </div>

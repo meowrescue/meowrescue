@@ -1,248 +1,284 @@
-
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { supabase } from '@/integrations/supabase/client';
+import Layout from '@/components/Layout';
 import SEO from '@/components/SEO';
-
-const formSchema = z.object({
-  firstName: z.string().min(2, {
-    message: "First name must be at least 2 characters.",
-  }),
-  lastName: z.string().min(2, {
-    message: "Last name must be at least 2 characters.",
-  }),
-  email: z.string().email({
-    message: "Please enter a valid email address.",
-  }),
-  phone: z.string().min(10, {
-    message: "Please enter a valid phone number.",
-  }),
-  address: z.string().min(5, {
-    message: "Please enter a valid address.",
-  }),
-  experience: z.string().optional(),
-  availability: z.string().min(10, {
-    message: "Please describe your availability.",
-  }),
-  motivation: z.string().min(20, {
-    message: "Please describe your motivation for volunteering.",
-  }),
-});
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { ArrowLeft } from 'lucide-react';
 
 const VolunteerForm: React.FC = () => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [open, setOpen] = React.useState(false);
-  const navigate = useNavigate();
-  const { user } = useAuth();
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: "",
-      address: "",
-      experience: "",
-      availability: "",
-      motivation: "",
-    },
-    mode: "onChange",
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    address: '',
+    city: '',
+    state: '',
+    zip: '',
+    availability: '',
+    interests: '',
+    skills: '',
+    experience: '',
+    references: '',
+    agreement: false,
   });
-
-  const { reset } = form;
-
-  const handleSubmit = async (data: z.infer<typeof formSchema>) => {
-    setIsSubmitting(true);
-
-    try {
-      if (!user) {
-        throw new Error("You must be logged in to submit an application");
-      }
-
-      // Use type assertion to bypass TypeScript's strict checking
-      const { data: applicationId, error } = await supabase
-        .rpc('create_application' as any, {
-          p_applicant_id: user.id,
-          p_application_type: 'volunteer',
-          p_status: 'pending',
-          p_form_data: { ...data }
-        }) as { data: string | null, error: Error | null };
-
-      if (error) throw error;
-
-      setSuccess(true);
-      setOpen(true);
-      reset();
-    } catch (error: any) {
-      console.error("Error submitting application:", error);
-      setErrorMessage(error.message || "An error occurred while submitting your application");
-      setError(true);
-      setOpen(true);
-    } finally {
-      setIsSubmitting(false);
-    }
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  
+  const goBack = () => {
+    navigate(-1);
+  };
+  
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.agreement) {
+      toast({
+        title: "Agreement Required",
+        description: "Please agree to the terms and conditions.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Simulate form submission
+    toast({
+      title: "Application Submitted",
+      description: "Thank you for your application! We will be in touch soon.",
+    });
+  };
+  
   return (
-    <div className="container mx-auto py-12">
-      <SEO title="Volunteer Application | Meow Rescue" />
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{success ? "Application Submitted" : "Error"}</DialogTitle>
-            <DialogDescription>
-              {success ? "Thank you for your interest in volunteering! We will review your application and contact you soon." : errorMessage}
-            </DialogDescription>
-          </DialogHeader>
-          <Button onClick={() => { setOpen(false); success && navigate('/') }}>
-            Close
+    <Layout>
+      <SEO title="Volunteer Application | Meow Rescue" description="Apply to become a volunteer at Meow Rescue and help make a difference in the lives of cats in need." />
+      
+      <div className="container mx-auto py-16 px-4">
+        <div className="mb-6">
+          <Button 
+            variant="ghost" 
+            onClick={goBack} 
+            className="mb-4 flex items-center text-gray-600 hover:text-meow-primary"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
           </Button>
-        </DialogContent>
-      </Dialog>
-      <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-8">
-        <h1 className="text-3xl font-semibold text-center text-gray-800 mb-6">Volunteer Application</h1>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <h1 className="text-3xl font-bold text-meow-primary">Volunteer Application</h1>
+          <p className="text-gray-600 mt-2">
+            Thank you for your interest in volunteering with Meow Rescue! Please complete the form below.
+          </p>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <Label htmlFor="firstName" className="block text-gray-700 text-sm font-bold mb-2">
-              First Name
-            </Label>
-            <Input
+            <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">First Name</label>
+            <input
+              type="text"
               id="firstName"
-              type="text"
-              {...form.register("firstName")}
-              placeholder="Enter your first name"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-meow-primary focus:ring-meow-primary sm:text-sm"
+              required
             />
-            {form.formState.errors.firstName && (
-              <p className="text-red-500 text-xs italic">{form.formState.errors.firstName.message}</p>
-            )}
           </div>
+          
           <div>
-            <Label htmlFor="lastName" className="block text-gray-700 text-sm font-bold mb-2">
-              Last Name
-            </Label>
-            <Input
+            <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">Last Name</label>
+            <input
+              type="text"
               id="lastName"
-              type="text"
-              {...form.register("lastName")}
-              placeholder="Enter your last name"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              name="lastName"
+              value={formData.lastName}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-meow-primary focus:ring-meow-primary sm:text-sm"
+              required
             />
-            {form.formState.errors.lastName && (
-              <p className="text-red-500 text-xs italic">{form.formState.errors.lastName.message}</p>
-            )}
           </div>
+          
           <div>
-            <Label htmlFor="email" className="block text-gray-700 text-sm font-bold mb-2">
-              Email
-            </Label>
-            <Input
-              id="email"
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+            <input
               type="email"
-              {...form.register("email")}
-              placeholder="Enter your email"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-meow-primary focus:ring-meow-primary sm:text-sm"
+              required
             />
-            {form.formState.errors.email && (
-              <p className="text-red-500 text-xs italic">{form.formState.errors.email.message}</p>
-            )}
           </div>
+          
           <div>
-            <Label htmlFor="phone" className="block text-gray-700 text-sm font-bold mb-2">
-              Phone Number
-            </Label>
-            <Input
-              id="phone"
+            <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label>
+            <input
               type="tel"
-              {...form.register("phone")}
-              placeholder="Enter your phone number"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="phone"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-meow-primary focus:ring-meow-primary sm:text-sm"
+              required
             />
-            {form.formState.errors.phone && (
-              <p className="text-red-500 text-xs italic">{form.formState.errors.phone.message}</p>
-            )}
           </div>
+          
           <div>
-            <Label htmlFor="address" className="block text-gray-700 text-sm font-bold mb-2">
-              Address
-            </Label>
-            <Input
-              id="address"
+            <label htmlFor="address" className="block text-sm font-medium text-gray-700">Address</label>
+            <input
               type="text"
-              {...form.register("address")}
-              placeholder="Enter your address"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            />
-            {form.formState.errors.address && (
-              <p className="text-red-500 text-xs italic">{form.formState.errors.address.message}</p>
-            )}
-          </div>
-          <div>
-            <Label htmlFor="experience" className="block text-gray-700 text-sm font-bold mb-2">
-              Previous Experience (Optional)
-            </Label>
-            <Textarea
-              id="experience"
-              {...form.register("experience")}
-              placeholder="Describe any previous volunteer experience"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="address"
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-meow-primary focus:ring-meow-primary sm:text-sm"
+              required
             />
           </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label htmlFor="city" className="block text-sm font-medium text-gray-700">City</label>
+              <input
+                type="text"
+                id="city"
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-meow-primary focus:ring-meow-primary sm:text-sm"
+                required
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="state" className="block text-sm font-medium text-gray-700">State</label>
+              <input
+                type="text"
+                id="state"
+                name="state"
+                value={formData.state}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-meow-primary focus:ring-meow-primary sm:text-sm"
+                required
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="zip" className="block text-sm font-medium text-gray-700">Zip</label>
+              <input
+                type="text"
+                id="zip"
+                name="zip"
+                value={formData.zip}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-meow-primary focus:ring-meow-primary sm:text-sm"
+                required
+              />
+            </div>
+          </div>
+          
           <div>
-            <Label htmlFor="availability" className="block text-gray-700 text-sm font-bold mb-2">
-              Availability
-            </Label>
-            <Textarea
+            <label htmlFor="availability" className="block text-sm font-medium text-gray-700">Availability</label>
+            <textarea
               id="availability"
-              {...form.register("availability")}
-              placeholder="Describe your availability for volunteering"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              name="availability"
+              value={formData.availability}
+              onChange={handleChange}
+              rows={3}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-meow-primary focus:ring-meow-primary sm:text-sm"
+              required
             />
-            {form.formState.errors.availability && (
-              <p className="text-red-500 text-xs italic">{form.formState.errors.availability.message}</p>
-            )}
           </div>
+          
           <div>
-            <Label htmlFor="motivation" className="block text-gray-700 text-sm font-bold mb-2">
-              Motivation
-            </Label>
-            <Textarea
-              id="motivation"
-              {...form.register("motivation")}
-              placeholder="Why do you want to volunteer at Meow Rescue?"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            <label htmlFor="interests" className="block text-sm font-medium text-gray-700">Interests</label>
+            <textarea
+              id="interests"
+              name="interests"
+              value={formData.interests}
+              onChange={handleChange}
+              rows={3}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-meow-primary focus:ring-meow-primary sm:text-sm"
+              required
             />
-            {form.formState.errors.motivation && (
-              <p className="text-red-500 text-xs italic">{form.formState.errors.motivation.message}</p>
-            )}
           </div>
+          
           <div>
-            <Button disabled={isSubmitting} type="submit" className="w-full">
-              {isSubmitting ? "Submitting..." : "Submit Application"}
-            </Button>
+            <label htmlFor="skills" className="block text-sm font-medium text-gray-700">Skills</label>
+            <textarea
+              id="skills"
+              name="skills"
+              value={formData.skills}
+              onChange={handleChange}
+              rows={3}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-meow-primary focus:ring-meow-primary sm:text-sm"
+              required
+            />
+          </div>
+          
+          <div>
+            <label htmlFor="experience" className="block text-sm font-medium text-gray-700">Experience</label>
+            <textarea
+              id="experience"
+              name="experience"
+              value={formData.experience}
+              onChange={handleChange}
+              rows={3}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-meow-primary focus:ring-meow-primary sm:text-sm"
+              required
+            />
+          </div>
+          
+          <div>
+            <label htmlFor="references" className="block text-sm font-medium text-gray-700">References</label>
+            <textarea
+              id="references"
+              name="references"
+              value={formData.references}
+              onChange={handleChange}
+              rows={3}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-meow-primary focus:ring-meow-primary sm:text-sm"
+              required
+            />
+          </div>
+          
+          <div className="flex items-start">
+            <div className="flex items-center h-5">
+              <input
+                id="agreement"
+                name="agreement"
+                type="checkbox"
+                checked={formData.agreement}
+                onChange={handleChange}
+                className="focus:ring-meow-primary h-4 w-4 text-meow-primary border-gray-300 rounded"
+                required
+              />
+            </div>
+            <div className="ml-3 text-sm">
+              <label htmlFor="agreement" className="font-medium text-gray-700">
+                I agree to the terms and conditions
+              </label>
+              <p className="text-gray-500">
+                Please read our <a href="/terms-of-service" className="text-meow-primary hover:underline">terms of service</a> and <a href="/privacy-policy" className="text-meow-primary hover:underline">privacy policy</a>.
+              </p>
+            </div>
+          </div>
+          
+          <div>
+            <Button type="submit" className="w-full">Submit Application</Button>
           </div>
         </form>
       </div>
-    </div>
+    </Layout>
   );
 };
 

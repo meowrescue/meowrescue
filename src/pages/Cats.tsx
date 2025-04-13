@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Filter } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Select,
@@ -34,9 +34,12 @@ interface Cat {
 const Cats: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<"Available" | "Pending" | "Adopted" | null>("Available");
+  const [selectedAge, setSelectedAge] = useState<string | null>(null);
+  const [selectedGender, setSelectedGender] = useState<string | null>(null);
   const [cats, setCats] = useState<Cat[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     fetchCats();
@@ -79,9 +82,38 @@ const Cats: React.FC = () => {
     setSelectedStatus(status as "Available" | "Pending" | "Adopted" | null);
   };
 
-  const filteredCats = cats.filter(cat =>
-    cat.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handleAgeChange = (age: string) => {
+    setSelectedAge(age === "all" ? null : age);
+  };
+
+  const handleGenderChange = (gender: string) => {
+    setSelectedGender(gender === "all" ? null : gender);
+  };
+
+  const toggleFilters = () => {
+    setShowFilters(!showFilters);
+  };
+
+  const resetFilters = () => {
+    setSelectedAge(null);
+    setSelectedGender(null);
+    setSelectedStatus("Available");
+    setSearchQuery('');
+  };
+
+  // Filter cats based on all criteria
+  const filteredCats = cats.filter(cat => {
+    // Name search filter
+    const nameMatch = cat.name.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // Age filter
+    const ageMatch = !selectedAge || (cat.age_estimate && cat.age_estimate.toLowerCase().includes(selectedAge.toLowerCase()));
+    
+    // Gender filter
+    const genderMatch = !selectedGender || (cat.gender && cat.gender.toLowerCase() === selectedGender.toLowerCase());
+    
+    return nameMatch && ageMatch && genderMatch;
+  });
 
   return (
     <Layout>
@@ -90,30 +122,84 @@ const Cats: React.FC = () => {
       <div className="container mx-auto py-10">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-meow-primary mb-4 md:mb-0">Adoptable Cats</h1>
-          <div className="w-full md:w-auto flex flex-col md:flex-row gap-4">
-            <div className="w-full md:w-auto">
-              <Input
-                type="text"
-                placeholder="Search cats..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full"
-              />
-            </div>
-            <div className="w-full md:w-auto">
-              <Select value={selectedStatus || ''} onValueChange={handleStatusChange}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="All Statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Available">Available</SelectItem>
-                  <SelectItem value="Pending">Pending</SelectItem>
-                  <SelectItem value="Adopted">Adopted</SelectItem>
-                </SelectContent>
-              </Select>
+          <div className="w-full md:w-auto">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="w-full">
+                <Input
+                  type="text"
+                  placeholder="Search cats..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              <Button 
+                variant="outline" 
+                onClick={toggleFilters}
+                className="whitespace-nowrap"
+              >
+                <Filter className="h-4 w-4 mr-2" />
+                {showFilters ? "Hide Filters" : "Show Filters"}
+              </Button>
             </div>
           </div>
         </div>
+
+        {showFilters && (
+          <div className="bg-gray-50 p-4 rounded-lg mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="status-filter">Status</Label>
+                <Select value={selectedStatus || ''} onValueChange={handleStatusChange}>
+                  <SelectTrigger id="status-filter" className="w-full">
+                    <SelectValue placeholder="All Statuses" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Available">Available</SelectItem>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="Adopted">Adopted</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="age-filter">Age</Label>
+                <Select value={selectedAge || 'all'} onValueChange={handleAgeChange}>
+                  <SelectTrigger id="age-filter" className="w-full">
+                    <SelectValue placeholder="All Ages" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Ages</SelectItem>
+                    <SelectItem value="kitten">Kitten</SelectItem>
+                    <SelectItem value="young">Young</SelectItem>
+                    <SelectItem value="adult">Adult</SelectItem>
+                    <SelectItem value="senior">Senior</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="gender-filter">Gender</Label>
+                <Select value={selectedGender || 'all'} onValueChange={handleGenderChange}>
+                  <SelectTrigger id="gender-filter" className="w-full">
+                    <SelectValue placeholder="All Genders" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Genders</SelectItem>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="mt-4 flex justify-end">
+              <Button variant="outline" onClick={resetFilters} size="sm">
+                Reset Filters
+              </Button>
+            </div>
+          </div>
+        )}
 
         {loading ? (
           <div className="flex justify-center py-12">

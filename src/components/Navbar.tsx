@@ -141,8 +141,8 @@ const Navbar: React.FC = () => {
                       <ListItem href="/donate" title="Donate">
                         Support our mission with a donation
                       </ListItem>
-                      <ListItem href="/forum" title="Community Forum">
-                        Connect with other cat lovers
+                      <ListItem href="/foster" title="Foster">
+                        Help us care for cats in your home
                       </ListItem>
                       <ListItem href="/events" title="Events">
                         Participate in our upcoming events
@@ -166,9 +166,6 @@ const Navbar: React.FC = () => {
                       </ListItem>
                       <ListItem href="/resources" title="Cat Care Resources">
                         Guides for new and experienced cat owners
-                      </ListItem>
-                      <ListItem href="/forum" title="Community Forum">
-                        Ask questions and share experiences
                       </ListItem>
                     </ul>
                   </NavigationMenuContent>
@@ -289,13 +286,13 @@ const Navbar: React.FC = () => {
               </li>
               <li>
                 <Link
-                  to="/forum"
+                  to="/foster"
                   className={`block font-medium transition-colors hover:text-meow-primary ${
-                    isActive('/forum') ? 'text-meow-primary' : 'text-gray-700'
+                    isActive('/foster') ? 'text-meow-primary' : 'text-gray-700'
                   }`}
                   onClick={closeMenu}
                 >
-                  Forum
+                  Foster
                 </Link>
               </li>
               <li>
