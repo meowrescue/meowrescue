@@ -138,8 +138,8 @@ const Donate: React.FC = () => {
                   treatment for a skin condition, neutering, and flea treatment. Your donation can help Fluffy get the medical care he needs.
                 </p>
                 <div className="flex justify-center md:justify-start">
-                  <Button className="bg-meow-secondary hover:bg-meow-secondary/90">
-                    Help Fluffy - Donate $250
+                  <Button asChild className="bg-meow-secondary hover:bg-meow-secondary/90">
+                    <a href="/donate?amount=250&cause=fluffys-care">Help Fluffy - Donate $250</a>
                   </Button>
                 </div>
               </div>
@@ -240,7 +240,7 @@ const Donate: React.FC = () => {
         <div className="bg-white p-8 rounded-lg shadow-md max-w-3xl mx-auto text-center">
           <h2 className="text-2xl font-bold text-meow-primary mb-4">Thank You for Your Support!</h2>
           <p className="text-gray-700 mb-6">
-            Meow Rescue is a registered 501(c)(3) nonprofit organization. All donations are tax-deductible to the extent allowed by law.
+            Meow Rescue is a home-based cat rescue. Your donations help cover the costs of food, medical care, and supplies for our cats in need.
           </p>
           <p className="text-gray-700">
             If you have any questions about donating or would like to discuss other ways to support our mission, please <a href="/contact" className="text-meow-primary hover:underline">contact us</a>.

@@ -11,16 +11,18 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
-        secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         meow: "bg-meow-primary text-white hover:bg-meow-primary/90",
-        meowSecondary: "bg-meow-secondary text-white hover:bg-meow-secondary/90"
+        meowSecondary: "bg-meow-secondary text-white hover:bg-meow-secondary/90", 
+        meowOutline: "border-2 border-meow-primary text-meow-primary bg-transparent hover:bg-meow-primary/10",
+        meowSecondaryOutline: "border-2 border-meow-secondary text-meow-secondary bg-transparent hover:bg-meow-secondary/10",
+        success: "bg-green-600 text-white hover:bg-green-700",
+        info: "bg-blue-600 text-white hover:bg-blue-700",
+        warning: "bg-amber-500 text-white hover:bg-amber-600"
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -28,7 +30,8 @@ const buttonVariants = cva(
         lg: "h-11 rounded-md px-8",
         xl: "h-12 rounded-md px-10 py-6 text-lg",
         icon: "h-10 w-10",
-        full: "h-10 w-full px-4 py-2"
+        full: "h-10 w-full px-4 py-2",
+        auto: "h-auto px-4 py-2"
       },
       align: {
         default: "inline-flex",

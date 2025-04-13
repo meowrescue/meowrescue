@@ -1,11 +1,74 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import Layout from '../components/Layout';
 import SectionHeading from '../components/ui/SectionHeading';
 import { Button } from "@/components/ui/button";
 import { Mail, Phone, MapPin, Instagram, Facebook, Twitter } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
 
 const Contact: React.FC = () => {
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      // Create FormData object for Netlify
+      const formDataObj = new FormData();
+      formDataObj.append('form-name', 'contact');
+      Object.entries(formData).forEach(([key, value]) => {
+        formDataObj.append(key, value);
+      });
+
+      // Submit the form data to Netlify
+      const response = await fetch('/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(formDataObj as any).toString()
+      });
+
+      if (response.ok) {
+        // Reset form
+        setFormData({
+          name: '',
+          email: '',
+          subject: '',
+          message: ''
+        });
+        
+        toast({
+          title: "Message Sent!",
+          description: "We'll get back to you as soon as possible.",
+          variant: "default",
+        });
+      } else {
+        throw new Error('Form submission failed');
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast({
+        title: "Something went wrong",
+        description: "Please try again or contact us directly via email.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12">
@@ -46,8 +109,8 @@ const Contact: React.FC = () => {
                 <Phone size={20} className="text-meow-primary mt-1 mr-3 flex-shrink-0" />
                 <div>
                   <h3 className="font-medium">Phone</h3>
-                  <a href="tel:+1234567890" className="text-gray-700 hover:text-meow-primary">
-                    (123) 456-7890
+                  <a href="tel:7272570037" className="text-gray-700 hover:text-meow-primary">
+                    (727) 257-0037
                   </a>
                 </div>
               </div>
@@ -70,7 +133,16 @@ const Contact: React.FC = () => {
           </div>
           
           <div>
-            <form className="bg-white p-8 rounded-lg shadow-md">
+            <form 
+              name="contact" 
+              method="POST" 
+              data-netlify="true"
+              onSubmit={handleSubmit}
+              className="bg-white p-8 rounded-lg shadow-md"
+            >
+              {/* Hidden Netlify form input */}
+              <input type="hidden" name="form-name" value="contact" />
+              
               <div className="space-y-4">
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
@@ -79,6 +151,9 @@ const Contact: React.FC = () => {
                   <input
                     type="text"
                     id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-meow-primary focus:border-transparent"
                     placeholder="John Smith"
                     required
@@ -92,6 +167,9 @@ const Contact: React.FC = () => {
                   <input
                     type="email"
                     id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-meow-primary focus:border-transparent"
                     placeholder="john@example.com"
                     required
@@ -105,6 +183,9 @@ const Contact: React.FC = () => {
                   <input
                     type="text"
                     id="subject"
+                    name="subject"
+                    value={formData.subject}
+                    onChange={handleChange}
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-meow-primary focus:border-transparent"
                     placeholder="Adoption Inquiry"
                     required
@@ -117,6 +198,9 @@ const Contact: React.FC = () => {
                   </label>
                   <textarea
                     id="message"
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
                     rows={5}
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-meow-primary focus:border-transparent"
                     placeholder="Your message here..."
@@ -124,8 +208,13 @@ const Contact: React.FC = () => {
                   ></textarea>
                 </div>
                 
-                <Button className="w-full bg-meow-primary hover:bg-meow-primary/90">
-                  Send Message
+                <Button 
+                  type="submit" 
+                  variant="meow" 
+                  size="full"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Sending...' : 'Send Message'}
                 </Button>
               </div>
             </form>
