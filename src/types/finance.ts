@@ -30,13 +30,14 @@ export interface Expense {
   created_by?: string;
 }
 
-// Add missing Cat interface
+// Add Cat interface
 export interface Cat {
   id: string;
   name: string;
+  status?: string;
 }
 
-// Add missing CatFood interface
+// Add CatFood interface
 export interface CatFood {
   id: string;
   brand: string;
@@ -48,7 +49,7 @@ export interface CatFood {
   created_at?: string;
 }
 
-// Add missing CatFeedingRecord interface
+// Add CatFeedingRecord interface
 export interface CatFeedingRecord {
   id: string;
   cat_id: string;
@@ -61,7 +62,7 @@ export interface CatFeedingRecord {
   food_type?: string;
 }
 
-// Add missing CatFoodAPI interface
+// Add CatFoodAPI interface
 export interface CatFoodAPI {
   getCatFood: () => Promise<CatFood[]>;
   addCatFood: (food: Partial<CatFood>) => Promise<CatFood>;

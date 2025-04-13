@@ -4,9 +4,8 @@ import { CatFoodAPI, CatFood, CatFeedingRecord, Cat } from '@/types/finance';
 
 export async function getCatFood(): Promise<CatFood[]> {
   try {
-    // Using type assertion to bypass TypeScript's strict checking
     const { data, error } = await supabase
-      .rpc('get_cat_food' as any) as { data: CatFood[] | null, error: Error | null };
+      .rpc('get_cat_food');
       
     if (error) {
       throw error;
@@ -28,16 +27,15 @@ export async function addCatFood(
   purchaseDate: Date
 ): Promise<CatFood> {
   try {
-    // Using type assertion to bypass TypeScript's strict checking
     const { data, error } = await supabase
-      .rpc('add_cat_food' as any, {
+      .rpc('add_cat_food', {
         p_brand: brand,
         p_type: type,
         p_quantity: quantity,
         p_units: units,
         p_cost_per_unit: costPerUnit,
         p_purchase_date: purchaseDate.toISOString()
-      }) as { data: CatFood | null, error: Error | null };
+      });
       
     if (error) {
       throw error;
@@ -52,9 +50,8 @@ export async function addCatFood(
 
 export async function getCatFeedingRecords(): Promise<CatFeedingRecord[]> {
   try {
-    // Using type assertion to bypass TypeScript's strict checking
     const { data, error } = await supabase
-      .rpc('get_cat_feeding_records' as any) as { data: CatFeedingRecord[] | null, error: Error | null };
+      .rpc('get_cat_feeding_records');
       
     if (error) {
       throw error;
@@ -74,14 +71,13 @@ export async function addCatFeedingRecord(
   feedingDate: Date
 ): Promise<CatFeedingRecord> {
   try {
-    // Using type assertion to bypass TypeScript's strict checking
     const { data, error } = await supabase
-      .rpc('add_cat_feeding_record' as any, {
+      .rpc('add_cat_feeding_record', {
         p_cat_id: catId,
         p_cat_food_id: catFoodId,
         p_amount: amount,
         p_feeding_date: feedingDate.toISOString()
-      }) as { data: CatFeedingRecord | null, error: Error | null };
+      });
       
     if (error) {
       throw error;
@@ -94,12 +90,12 @@ export async function addCatFeedingRecord(
   }
 }
 
-// Mock function to get cats - replace with actual implementation when available
 export async function getCats(): Promise<Cat[]> {
   try {
     const { data, error } = await supabase
       .from('cats')
-      .select('id, name');
+      .select('id, name, status')
+      .eq('status', 'Available');
       
     if (error) {
       throw error;
@@ -116,19 +112,19 @@ export async function getCats(): Promise<Cat[]> {
 export const catFoodApi: CatFoodAPI = {
   getCatFood,
   addCatFood: (food) => addCatFood(
-    food.brand,
-    food.type,
-    food.quantity,
-    food.units,
-    food.cost_per_unit,
-    new Date(food.purchase_date)
+    food.brand || '',
+    food.type || '',
+    food.quantity || 0,
+    food.units || '',
+    food.cost_per_unit || 0,
+    new Date(food.purchase_date || new Date())
   ),
   getCatFeedingRecords,
   addCatFeedingRecord: (record) => addCatFeedingRecord(
-    record.cat_id,
-    record.cat_food_id,
-    record.amount,
-    new Date(record.feeding_date)
+    record.cat_id || '',
+    record.cat_food_id || '',
+    record.amount || 0,
+    new Date(record.feeding_date || new Date())
   ),
   getCats
 };

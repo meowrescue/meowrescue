@@ -16,6 +16,7 @@ interface BusinessHoursSettings {
 
 interface BusinessHoursContextType {
   isBusinessHours: boolean;
+  isAdminOnline: boolean;
   businessHoursSettings: BusinessHoursSettings;
   updateBusinessHours: (settings: BusinessHoursSettings) => Promise<void>;
 }
@@ -35,6 +36,7 @@ const defaultBusinessHours: BusinessHoursSettings = {
 // Create context with default value
 const BusinessHoursContext = createContext<BusinessHoursContextType>({
   isBusinessHours: false,
+  isAdminOnline: false,
   businessHoursSettings: defaultBusinessHours,
   updateBusinessHours: async () => {}, // Placeholder function
 });
@@ -162,12 +164,13 @@ export const BusinessHoursProvider: React.FC<BusinessHoursProviderProps> = ({ ch
     checkIfAdmin();
   }, [user]);
   
-  // Chat is available if either it's during business hours OR an admin is online
-  const isAvailableForChat = checkBusinessHours() || isAdminOnline;
+  // Updated to consider both business hours and admin status
+  const isWithinBusinessHours = checkBusinessHours();
   
   return (
     <BusinessHoursContext.Provider value={{ 
-      isBusinessHours: isAvailableForChat, 
+      isBusinessHours: isWithinBusinessHours,
+      isAdminOnline, 
       businessHoursSettings,
       updateBusinessHours 
     }}>

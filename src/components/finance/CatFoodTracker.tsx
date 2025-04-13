@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
@@ -24,7 +25,6 @@ import * as z from 'zod';
 import { 
   Table, 
   TableBody, 
-  TableCaption, 
   TableCell, 
   TableHead, 
   TableHeader, 
@@ -46,7 +46,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { CatFood, CatFeedingRecord } from '@/types/finance';
+import { Checkbox } from "@/components/ui/checkbox";
+import { CatFood, CatFeedingRecord, Cat } from '@/types/finance';
 import { catFoodApi } from '@/services/catFoodService';
 
 // Form schemas
@@ -60,16 +61,18 @@ const catFoodSchema = z.object({
 });
 
 const feedingSchema = z.object({
-  cat_id: z.string().min(1, { message: 'Cat is required' }),
+  cat_ids: z.array(z.string()).min(1, { message: 'At least one cat must be selected' }),
   cat_food_id: z.string().min(1, { message: 'Food type is required' }),
   amount: z.coerce.number().positive({ message: 'Amount must be a positive number' }),
   feeding_date: z.string().min(1, { message: 'Feeding date is required' }),
+  num_cans: z.coerce.number().positive({ message: 'Number of cans must be a positive number' }).default(1),
 });
 
 const CatFoodTracker: React.FC = () => {
   const { toast } = useToast();
   const [foodDialogOpen, setFoodDialogOpen] = useState(false);
   const [feedingDialogOpen, setFeedingDialogOpen] = useState(false);
+  const [selectedCats, setSelectedCats] = useState<string[]>([]);
 
   // Set up forms
   const foodForm = useForm<z.infer<typeof catFoodSchema>>({
@@ -87,10 +90,11 @@ const CatFoodTracker: React.FC = () => {
   const feedingForm = useForm<z.infer<typeof feedingSchema>>({
     resolver: zodResolver(feedingSchema),
     defaultValues: {
-      cat_id: '',
+      cat_ids: [],
       cat_food_id: '',
-      amount: 0,
+      amount: 0.25,
       feeding_date: new Date().toISOString().split('T')[0],
+      num_cans: 1,
     },
   });
 
@@ -144,22 +148,40 @@ const CatFoodTracker: React.FC = () => {
     }
   };
 
+  // Handle cat selection
+  const onCatSelect = (catId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedCats([...selectedCats, catId]);
+      feedingForm.setValue('cat_ids', [...selectedCats, catId]);
+    } else {
+      const filtered = selectedCats.filter(id => id !== catId);
+      setSelectedCats(filtered);
+      feedingForm.setValue('cat_ids', filtered);
+    }
+  };
+
   // Handle feeding form submission
   const onSubmitFeeding = async (values: z.infer<typeof feedingSchema>) => {
     try {
-      await catFoodApi.addCatFeedingRecord({
-        cat_id: values.cat_id,
-        cat_food_id: values.cat_food_id,
-        amount: values.amount,
-        feeding_date: values.feeding_date,
-      });
+      // For each selected cat, create a feeding record
+      const promises = values.cat_ids.map(catId => 
+        catFoodApi.addCatFeedingRecord({
+          cat_id: catId,
+          cat_food_id: values.cat_food_id,
+          amount: values.amount,
+          feeding_date: values.feeding_date,
+        })
+      );
+      
+      await Promise.all(promises);
       
       toast({
         title: "Feeding Recorded",
-        description: "Cat feeding record has been saved.",
+        description: `${values.cat_ids.length} cat feeding records have been saved.`,
       });
       
       feedingForm.reset();
+      setSelectedCats([]);
       setFeedingDialogOpen(false);
       refetchFeedings();
       
@@ -319,42 +341,16 @@ const CatFoodTracker: React.FC = () => {
             <DialogTrigger asChild>
               <Button variant="outline">Record Feeding</Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Record Cat Feeding</DialogTitle>
                 <DialogDescription>
-                  Log food given to a cat.
+                  Log food given to cats.
                 </DialogDescription>
               </DialogHeader>
               
               <Form {...feedingForm}>
                 <form onSubmit={feedingForm.handleSubmit(onSubmitFeeding)} className="space-y-4">
-                  <FormField
-                    control={feedingForm.control}
-                    name="cat_id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Cat</FormLabel>
-                        <Select 
-                          onValueChange={field.onChange} 
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select cat" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {cats.map(cat => (
-                              <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
                   <FormField
                     control={feedingForm.control}
                     name="cat_food_id"
@@ -383,13 +379,59 @@ const CatFoodTracker: React.FC = () => {
                     )}
                   />
                   
+                  <FormField
+                    control={feedingForm.control}
+                    name="num_cans"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Number of Cans Opened</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            min="1" 
+                            step="1" 
+                            placeholder="1" 
+                            {...field}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={feedingForm.control}
+                    name="cat_ids"
+                    render={() => (
+                      <FormItem>
+                        <FormLabel>Cats Fed</FormLabel>
+                        <div className="border rounded-md p-4 space-y-2">
+                          {cats.map(cat => (
+                            <div key={cat.id} className="flex items-center space-x-2">
+                              <Checkbox 
+                                id={`cat-${cat.id}`} 
+                                checked={selectedCats.includes(cat.id)}
+                                onCheckedChange={(checked) => onCatSelect(cat.id, checked === true)}
+                              />
+                              <label htmlFor={`cat-${cat.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                {cat.name}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={feedingForm.control}
                       name="amount"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Amount (in portions of 1/4 can)</FormLabel>
+                          <FormLabel>Amount Per Cat (in portions of 1/4 can)</FormLabel>
                           <Select 
                             onValueChange={(value) => field.onChange(parseFloat(value))} 
                             value={field.value.toString()}

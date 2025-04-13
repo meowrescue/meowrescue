@@ -22,3 +22,7 @@ export function capitalizeWords(string: string): string {
     .map(word => capitalizeFirstLetter(word))
     .join(' ');
 }
+
+export function formatApplicationType(type: string): string {
+  return capitalizeWords(type);
+}

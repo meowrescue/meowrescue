@@ -14,7 +14,8 @@ import {
   Shield,
   FileImage,
   Search,
-  LogOut
+  LogOut,
+  Home
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -62,6 +63,13 @@ const AdminSidebar: React.FC = () => {
           >
             <BarChart3 className="mr-3 h-5 w-5 text-gray-600" />
             <span>Dashboard</span>
+          </Link>
+          <Link 
+            to="/"
+            className={`flex items-center p-2 rounded transition-colors hover:bg-gray-100`}
+          >
+            <Home className="mr-3 h-5 w-5 text-gray-600" />
+            <span>Visit Site</span>
           </Link>
         </div>
         
