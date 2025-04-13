@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -39,25 +40,26 @@ const Login: React.FC = () => {
     setIsLoading(true);
     
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: values.email,
         password: values.password,
       });
       
       if (error) throw error;
       
-      // Log activity
-      await supabase.from('activity_logs').insert({
-        user_id: (await supabase.auth.getUser()).data.user?.id,
-        activity_type: 'Login',
-        description: 'User logged in',
-        ip_address: '127.0.0.1', // This would ideally be the actual IP
-      });
+      console.log("Login successful", data);
       
       // Redirect to admin dashboard after successful login
       navigate('/admin');
       
+      toast({
+        title: "Login Successful",
+        description: "You have been logged in successfully.",
+      });
+      
     } catch (error: any) {
+      console.error("Login error:", error);
+      
       toast({
         title: "Login Failed",
         description: error.message || "There was a problem with your login.",
