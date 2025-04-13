@@ -47,7 +47,7 @@ const LostFound = () => {
         return;
       }
 
-      setPosts(data as LostFoundPost[]);
+      setPosts(data as unknown as LostFoundPost[]);
     } catch (error) {
       console.error("Unexpected error:", error);
     } finally {

@@ -64,7 +64,7 @@ const LostFoundDetail = () => {
         return;
       }
 
-      setPost(postData as LostFoundPost);
+      setPost(postData as unknown as LostFoundPost);
 
       // Fetch comments
       const { data: commentsData, error: commentsError } = await supabase
@@ -83,7 +83,7 @@ const LostFoundDetail = () => {
         return;
       }
 
-      setComments(commentsData as Comment[]);
+      setComments(commentsData as unknown as Comment[]);
     } catch (error) {
       console.error("Unexpected error:", error);
     } finally {
@@ -129,7 +129,7 @@ const LostFoundDetail = () => {
       }
 
       // Add the newly created comment to the list
-      const newCommentData = data[0] as Comment;
+      const newCommentData = data[0] as unknown as Comment;
       
       // Get the user's profile info
       const { data: profileData } = await supabase

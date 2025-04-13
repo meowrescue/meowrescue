@@ -78,7 +78,7 @@ const LostFoundForm = () => {
         throw error;
       }
 
-      const postData = data as LostFoundPost;
+      const postData = data as unknown as LostFoundPost;
       
       if (postData.profile_id !== user?.id) {
         toast({
