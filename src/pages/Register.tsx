@@ -1,9 +1,9 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
 
 // Form schema
 const registerSchema = z.object({
@@ -37,6 +38,9 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 const Register: React.FC = () => {
   const { signUp, isLoading } = useAuth();
+  const [registerLoading, setRegisterLoading] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -50,11 +54,34 @@ const Register: React.FC = () => {
   });
 
   const onSubmit = async (values: RegisterFormValues) => {
-    // Pass first and last name as user metadata
-    await signUp(values.email, values.password, {
-      first_name: values.firstName,
-      last_name: values.lastName
-    });
+    console.log("Registration attempt with email:", values.email);
+    setRegisterLoading(true);
+    
+    try {
+      // Pass first and last name as user metadata
+      await signUp(values.email, values.password, {
+        first_name: values.firstName,
+        last_name: values.lastName
+      });
+      
+      toast({
+        title: "Registration Successful",
+        description: "Your account has been created. You can now sign in.",
+      });
+      
+      // Redirect to login page after successful registration
+      navigate('/login');
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      
+      toast({
+        title: "Registration Failed",
+        description: error.message || "There was a problem with your registration.",
+        variant: "destructive",
+      });
+    } finally {
+      setRegisterLoading(false);
+    }
   };
 
   return (
@@ -161,9 +188,9 @@ const Register: React.FC = () => {
               <Button 
                 type="submit" 
                 className="w-full" 
-                disabled={isLoading}
+                disabled={registerLoading || isLoading}
               >
-                {isLoading ? 'Registering...' : 'Register'}
+                {registerLoading ? 'Registering...' : 'Register'}
               </Button>
             </form>
           </Form>

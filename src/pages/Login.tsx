@@ -43,16 +43,19 @@ const Login: React.FC = () => {
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
+      console.log("User is logged in, redirecting", user);
       const redirectTo = location.state?.from || (user.email?.endsWith('@meowrescue.org') ? '/admin' : '/profile');
       navigate(redirectTo);
     }
   }, [user, navigate, location.state]);
 
   const handleLogin = async (values: z.infer<typeof formSchema>) => {
+    console.log("Login attempt with email:", values.email);
     setIsLoading(true);
     
     try {
-      await signIn(values.email, values.password);
+      const result = await signIn(values.email, values.password);
+      console.log("Sign in result:", result);
       
       toast({
         title: "Login Successful",
