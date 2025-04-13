@@ -68,7 +68,7 @@ export type Database = {
           description: string;
           location: string;
           status: string;
-          pet_type: string;
+          pet_type?: string;
           pet_name?: string | null;
           date_occurred: string;
           contact_info?: string | null;
@@ -713,6 +713,98 @@ export type Database = {
           },
         ]
       }
+      expenses: {
+        Row: {
+          id: string;
+          amount: number;
+          expense_date: string;
+          description: string;
+          category: string;
+          vendor: string;
+          payment_method: string;
+          receipt_url: string | null;
+          donation_id: string | null;
+          created_at: string;
+          created_by: string;
+        };
+        Insert: {
+          id?: string;
+          amount: number;
+          expense_date?: string;
+          description: string;
+          category: string;
+          vendor: string;
+          payment_method: string;
+          receipt_url?: string | null;
+          donation_id?: string | null;
+          created_at?: string;
+          created_by: string;
+        };
+        Update: {
+          id?: string;
+          amount?: number;
+          expense_date?: string;
+          description?: string;
+          category?: string;
+          vendor?: string;
+          payment_method?: string;
+          receipt_url?: string | null;
+          donation_id?: string | null;
+          created_at?: string;
+          created_by?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "expenses_donation_id_fkey";
+            columns: ["donation_id"];
+            referencedRelation: "donations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "expenses_created_by_fkey";
+            columns: ["created_by"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      activity_logs: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          activity_type: string;
+          description: string;
+          ip_address: string | null;
+          created_at: string;
+          metadata: any | null;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          activity_type: string;
+          description: string;
+          ip_address?: string | null;
+          created_at?: string;
+          metadata?: any | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          activity_type?: string;
+          description?: string;
+          ip_address?: string | null;
+          created_at?: string;
+          metadata?: any | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "activity_logs_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     }
     Views: {
       [_ in never]: never

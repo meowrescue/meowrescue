@@ -9,6 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      activity_logs: {
+        Row: {
+          activity_type: string
+          created_at: string
+          description: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          description: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          description?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       adoption_applications: {
         Row: {
           applicant_details: Json
@@ -319,6 +349,56 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      expenses: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string
+          donation_id: string | null
+          expense_date: string
+          id: string
+          payment_method: string
+          receipt_url: string | null
+          vendor: string
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string
+          created_by?: string | null
+          description: string
+          donation_id?: string | null
+          expense_date?: string
+          id?: string
+          payment_method: string
+          receipt_url?: string | null
+          vendor: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          donation_id?: string | null
+          expense_date?: string
+          id?: string
+          payment_method?: string
+          receipt_url?: string | null
+          vendor?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_donation_id_fkey"
+            columns: ["donation_id"]
+            isOneToOne: false
+            referencedRelation: "donations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       foster_assignments: {
         Row: {
