@@ -79,6 +79,11 @@ export interface CatFeedingRecord {
   food_type?: string;
 }
 
+export interface Cat {
+  id: string;
+  name: string;
+}
+
 export interface CatFoodAPI {
   getCatFood: () => Promise<CatFood[]>;
   addCatFood: (food: Partial<CatFood>) => Promise<CatFood>;

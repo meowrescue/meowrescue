@@ -15,7 +15,7 @@ const About = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, first_name, last_name, avatar_url, role, role_title, bio, show_in_team')
+        .select('id, first_name, last_name, avatar_url, role, role_title, bio, show_in_team, created_at')
         .eq('show_in_team', true)
         .order('created_at');
         

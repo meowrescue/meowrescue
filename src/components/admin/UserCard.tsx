@@ -28,7 +28,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types/users';
 
 interface UserCardProps {
-  user: any;
+  user: User;
   onRoleChange: (userId: string, newRole: string) => Promise<void>;
   onUserStatusChange: (userId: string, isActive: boolean) => Promise<void>;
   refetchUsers: () => void;

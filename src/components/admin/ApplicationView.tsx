@@ -48,7 +48,7 @@ const ApplicationView: React.FC<ApplicationViewProps> = ({
           status,
           feedback,
           reviewed_at: new Date().toISOString(),
-          reviewer_id: supabase.auth.getUser()?.data?.user?.id,
+          reviewer_id: (await supabase.auth.getUser()).data.user?.id,
         })
         .eq('id', application.id);
 
