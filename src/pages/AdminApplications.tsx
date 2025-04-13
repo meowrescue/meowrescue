@@ -22,7 +22,7 @@ const AdminApplications = () => {
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
 
   // Fetch applications from Supabase
-  const { data: applications, isLoading, error } = useQuery({
+  const { data: applications, isLoading, error, refetch } = useQuery({
     queryKey: ['admin-applications'],
     queryFn: async () => {
       try {
@@ -65,6 +65,17 @@ const AdminApplications = () => {
     application.form_data.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     application.application_type?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  
+  // Handle application selection for viewing/editing
+  const handleSelectApplication = (application: Application) => {
+    setSelectedApplication(application);
+  };
+  
+  // Handle closing the application view dialog
+  const handleCloseApplication = () => {
+    setSelectedApplication(null);
+    refetch(); // Refetch to ensure we have the latest data after updates
+  };
 
   return (
     <AdminLayout title="Applications">
@@ -129,7 +140,7 @@ const AdminApplications = () => {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => setSelectedApplication(application)}
+                        onClick={() => handleSelectApplication(application)}
                       >
                         View
                       </Button>
@@ -154,7 +165,7 @@ const AdminApplications = () => {
       {selectedApplication && (
         <ApplicationView 
           application={selectedApplication} 
-          onClose={() => setSelectedApplication(null)} 
+          onClose={handleCloseApplication} 
         />
       )}
     </AdminLayout>

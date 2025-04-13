@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Application } from '@/types/applications';
 import { Button } from '@/components/ui/button';
@@ -28,34 +29,42 @@ const ApplicationView: React.FC<ApplicationViewProps> = ({ application, onClose 
     mutationFn: async ({ id, status, feedback }: { id: string; status: string; feedback: string }) => {
       console.log(`Updating application ${id} to status: ${status} with feedback: ${feedback}`);
       
-      const { data, error } = await supabase
-        .rpc('update_application_status', {
-          p_application_id: id,
-          p_status: status,
-          p_feedback: feedback
-        });
-
-      if (error) {
-        console.error('Error updating application status with RPC:', error);
-        
-        // Fallback to direct update if RPC fails
-        const { data: updateData, error: updateError } = await supabase
-          .from('applications')
-          .update({ 
-            status,
-            feedback,
-            reviewed_at: new Date().toISOString(),
-            reviewer_id: (await supabase.auth.getUser()).data.user?.id,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', id)
-          .select();
-          
-        if (updateError) throw updateError;
-        return updateData;
-      }
+      // Ensure status values match database enum values (lowercase)
+      const formattedStatus = status.toLowerCase();
       
-      return data;
+      try {
+        const { data, error } = await supabase
+          .rpc('update_application_status', {
+            p_application_id: id,
+            p_status: formattedStatus,
+            p_feedback: feedback
+          });
+
+        if (error) {
+          console.error('Error updating application status with RPC:', error);
+          
+          // Fallback to direct update if RPC fails
+          const { data: updateData, error: updateError } = await supabase
+            .from('applications')
+            .update({ 
+              status: formattedStatus,
+              feedback,
+              reviewed_at: new Date().toISOString(),
+              reviewer_id: (await supabase.auth.getUser()).data.user?.id,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', id)
+            .select();
+            
+          if (updateError) throw updateError;
+          return updateData;
+        }
+        
+        return data;
+      } catch (error) {
+        console.error('Error in application status update:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-applications'] });
