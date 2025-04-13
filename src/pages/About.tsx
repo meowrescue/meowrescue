@@ -30,19 +30,50 @@ const About = () => {
 
   return (
     <Layout>
-      <SEO title="About Us | Meow Rescue" description="Learn about Meow Rescue, our mission, and the team behind our cat rescue efforts." />
+      <SEO 
+        title="About Us | Meow Rescue" 
+        description="Learn about Meow Rescue's mission to save and improve the lives of cats in need." 
+      />
       
       <div className="bg-gradient-to-r from-meow-primary/10 to-meow-secondary/10 py-16 md:py-24 text-center">
         <div className="container mx-auto px-4">
-          <h1 className="text-4xl font-bold text-meow-primary mb-6">About Us</h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Meow Rescue is dedicated to rescuing, rehabilitating, and rehoming cats in need.
-            Learn more about our mission and the team that makes it all possible.
-          </p>
+          <SectionHeading
+            title="About Meow Rescue"
+            subtitle="Our mission, our story, and our vision"
+            centered
+          />
         </div>
       </div>
       
       <div className="container mx-auto py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16">
+          <div>
+            <img
+              src="https://images.unsplash.com/photo-1595433707802-6b2626ef1c91"
+              alt="Founder with rescued cat"
+              className="rounded-lg shadow-xl w-full h-auto object-cover"
+            />
+          </div>
+          
+          <div>
+            <h2 className="text-2xl font-bold text-meow-primary mb-4">Our Founder's Story</h2>
+            <p className="text-gray-700 mb-4">
+              Patrick has had a deep connection with animals since childhood, often feeling a special ability to understand them when others couldn't. After years in IT, he decided to follow his true passion for animal welfare—realizing this brings genuine happiness and allows him to use his unique gift.
+            </p>
+            <p className="text-gray-700 mb-4">
+              His long-term dream is to open a dedicated animal sanctuary for all kinds of animals in need. While skilled in IT, Patrick acknowledges the learning curve in running a rescue operation but is committed to his dream despite the challenges.
+            </p>
+            <p className="text-gray-700 mb-4">
+              The catalyst for Meow Rescue came when Patrick moved to Pasco County (near Moon Lake) about three years ago and observed a significant stray cat population. Cats in distress—injured, starving—began appearing at his home, seemingly sensing it was a safe place.
+            </p>
+            <p className="text-gray-700">
+              What started as personally funding vet care and feeding for these animals has now formalized into "Meow Rescue," as Patrick seeks community support to continue and expand this vital work.
+            </p>
+          </div>
+        </div>
+        
+        <hr className="section-divider mb-16" />
+        
         <section>
           <SectionHeading 
             title="Our Mission" 
@@ -56,35 +87,7 @@ const About = () => {
           </div>
         </section>
         
-        <hr className="section-divider" />
-        
-        <section>
-          <SectionHeading 
-            title="Our Founder's Story" 
-            subtitle="How Meow Rescue came to be" 
-            centered={true}
-          />
-          <div className="max-w-3xl mx-auto text-center text-lg text-gray-700 leading-relaxed">
-            <p className="mb-4">
-              Meow Rescue began in 2015 when our founder, Patrick, discovered a colony of feral cats living 
-              behind his office building. Concerned for their welfare, he began feeding them daily and 
-              sought help from local animal rescue organizations.
-            </p>
-            <p className="mb-4">
-              When he learned that most shelters were overcrowded and couldn't accommodate more cats, 
-              Patrick decided to take matters into his own hands. He educated himself on TNR (Trap-Neuter-Return) 
-              techniques and began working with a local veterinarian to provide medical care for the colony.
-            </p>
-            <p>
-              What started as a compassionate effort to help a few cats quickly evolved into a full-fledged rescue operation. 
-              In 2017, Patrick officially established Meow Rescue as a non-profit organization. Today, we've rescued over 
-              500 cats and continue to grow our network of volunteers, foster homes, and supporters who share our passion 
-              for feline welfare.
-            </p>
-          </div>
-        </section>
-        
-        <hr className="section-divider" />
+        <hr className="section-divider my-16" />
         
         <section>
           <SectionHeading 
