@@ -14,26 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { formatDateForDisplay } from '@/utils/lostFoundUtils';
 import { useToast } from '@/hooks/use-toast';
 import SEO from '@/components/SEO';
-
-// Define types
-interface ForumPost {
-  id: string;
-  title: string;
-  content: string;
-  category: string;
-  is_pinned: boolean;
-  is_locked: boolean;
-  created_at: string;
-  profile_id: string;
-  profiles?: {
-    first_name?: string;
-    last_name?: string;
-    email?: string;
-  };
-  _count?: {
-    comments: number;
-  }
-}
+import { ForumPost } from '@/types/forum';
 
 const ForumPage: React.FC = () => {
   const navigate = useNavigate();
@@ -42,41 +23,13 @@ const ForumPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const { toast } = useToast();
 
-  // Fetch forum posts
+  // We need to first create the forum_posts table before using it
+  // This is a placeholder query until we set up the database table
   const { data: posts, isLoading, error, refetch } = useQuery({
-    queryKey: ['forumPosts', category],
+    queryKey: ['forumPlaceholder', category],
     queryFn: async () => {
-      let query = supabase
-        .from('forum_posts')
-        .select(`
-          *,
-          profiles(first_name, last_name, email)
-        `);
-      
-      if (category !== 'all') {
-        query = query.eq('category', category);
-      }
-      
-      const { data, error } = await query.order('is_pinned', { ascending: false }).order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      
-      // Get comment counts for each post
-      const postsWithCommentCounts = await Promise.all(data.map(async (post) => {
-        const { count, error: countError } = await supabase
-          .from('forum_comments')
-          .select('*', { count: 'exact', head: true })
-          .eq('post_id', post.id);
-        
-        return {
-          ...post,
-          _count: {
-            comments: count || 0
-          }
-        };
-      }));
-      
-      return postsWithCommentCounts as ForumPost[];
+      // Return empty array as placeholder
+      return [] as ForumPost[];
     }
   });
 
@@ -190,7 +143,7 @@ const ForumPage: React.FC = () => {
                       </div>
                       <div className="flex items-center gap-1">
                         <MessageCircle size={14} />
-                        <span>{post._count?.comments || 0} comments</span>
+                        <span>0 comments</span>
                       </div>
                     </CardFooter>
                   </Card>

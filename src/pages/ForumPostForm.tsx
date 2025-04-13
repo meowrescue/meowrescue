@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import Layout from '@/components/Layout';
@@ -27,111 +27,36 @@ const ForumPostForm: React.FC = () => {
   const [content, setContent] = useState('');
   const [category, setCategory] = useState('general');
   
-  // Fetch existing post for editing
-  const { data: post, isLoading: postLoading, error: postError } = useQuery({
-    queryKey: ['forumPostEdit', id],
+  // Placeholder query - we need to set up the database tables first
+  const { data: post, isLoading: postLoading } = useQuery({
+    queryKey: ['forumPostEditPlaceholder', id],
     queryFn: async () => {
-      if (!id) return null;
-      
-      const { data, error } = await supabase
-        .from('forum_posts')
-        .select('*')
-        .eq('id', id)
-        .single();
-      
-      if (error) throw error;
-      
-      // Check if user is the author
-      if (data.profile_id !== user?.id) {
-        throw new Error('You are not authorized to edit this post');
-      }
-      
-      return data;
+      return null;
     },
-    enabled: isEditing && !!user,
-    onSuccess: (data) => {
-      if (data) {
-        setTitle(data.title);
-        setContent(data.content);
-        setCategory(data.category);
-      }
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Could not load the post for editing.",
-        variant: "destructive"
-      });
-      navigate('/forum');
-    }
+    enabled: isEditing && !!user
   });
   
-  // Create post mutation
+  // Placeholder mutation
   const createPostMutation = useMutation({
     mutationFn: async (formData: { title: string; content: string; category: string }) => {
-      if (!user) throw new Error('You must be logged in to create a post');
-      
-      const { data, error } = await supabase
-        .from('forum_posts')
-        .insert({
-          title: formData.title,
-          content: formData.content,
-          category: formData.category,
-          profile_id: user.id
-        })
-        .select();
-      
-      if (error) throw error;
-      return data[0];
-    },
-    onSuccess: (data) => {
       toast({
-        title: "Post Created",
-        description: "Your post has been published successfully."
-      });
-      navigate(`/forum/${data.id}`);
-    },
-    onError: (error) => {
-      toast({
-        title: "Error Creating Post",
-        description: error.message || "Failed to create your post. Please try again.",
+        title: "Forum feature not available",
+        description: "The database tables for forum functionality need to be created first.",
         variant: "destructive"
       });
+      return null;
     }
   });
   
-  // Update post mutation
+  // Placeholder mutation
   const updatePostMutation = useMutation({
     mutationFn: async (formData: { id: string; title: string; content: string; category: string }) => {
-      if (!user) throw new Error('You must be logged in to update a post');
-      
-      const { data, error } = await supabase
-        .from('forum_posts')
-        .update({
-          title: formData.title,
-          content: formData.content,
-          category: formData.category
-        })
-        .eq('id', formData.id)
-        .eq('profile_id', user.id) // Ensure the user is the author
-        .select();
-      
-      if (error) throw error;
-      return data[0];
-    },
-    onSuccess: (data) => {
       toast({
-        title: "Post Updated",
-        description: "Your post has been updated successfully."
-      });
-      navigate(`/forum/${data.id}`);
-    },
-    onError: (error) => {
-      toast({
-        title: "Error Updating Post",
-        description: error.message || "Failed to update your post. Please try again.",
+        title: "Forum feature not available",
+        description: "The database tables for forum functionality need to be created first.",
         variant: "destructive"
       });
+      return null;
     }
   });
   
@@ -153,16 +78,6 @@ const ForumPostForm: React.FC = () => {
       createPostMutation.mutate({ title, content, category });
     }
   };
-  
-  if (isEditing && postLoading) {
-    return (
-      <Layout>
-        <div className="container mx-auto py-12 px-4 flex justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
-        </div>
-      </Layout>
-    );
-  }
   
   return (
     <ProtectedRoute>
@@ -189,65 +104,14 @@ const ForumPostForm: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Post Title</Label>
-                  <Input 
-                    id="title"
-                    placeholder="Enter a title for your post"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    maxLength={100}
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Select value={category} onValueChange={setCategory} required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="general">General Discussion</SelectItem>
-                      <SelectItem value="adoption">Adoption</SelectItem>
-                      <SelectItem value="cat-care">Cat Care</SelectItem>
-                      <SelectItem value="events">Events</SelectItem>
-                      <SelectItem value="resources">Resources</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="content">Post Content</Label>
-                  <Textarea 
-                    id="content"
-                    placeholder="Share your thoughts, questions, or stories..."
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    className="min-h-[200px]"
-                    required
-                  />
-                </div>
-                
-                <CardFooter className="flex justify-end px-0 pt-4">
-                  <Button
-                    type="submit"
-                    variant="meow"
-                    className="flex items-center gap-2"
-                    disabled={createPostMutation.isPending || updatePostMutation.isPending}
-                  >
-                    {(createPostMutation.isPending || updatePostMutation.isPending) ? (
-                      <>
-                        <LoaderIcon className="h-4 w-4 animate-spin" />
-                        {isEditing ? 'Updating...' : 'Publishing...'}
-                      </>
-                    ) : (
-                      <>{isEditing ? 'Update Post' : 'Publish Post'}</>
-                    )}
-                  </Button>
-                </CardFooter>
-              </form>
+              <div className="text-center py-8">
+                <AlertCircle className="mx-auto h-12 w-12 text-amber-500 mb-4" />
+                <h2 className="text-xl font-bold mb-4">Forum Functionality Coming Soon</h2>
+                <p className="text-gray-600 mb-4">
+                  The database tables for the forum feature need to be created first.
+                  Please check back later for this feature.
+                </p>
+              </div>
             </CardContent>
           </Card>
         </div>
