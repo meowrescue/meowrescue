@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
@@ -118,13 +117,15 @@ const AdminBlog: React.FC = () => {
     <AdminLayout title="Blog Management">
       <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
         <div className="w-full md:w-auto">
-          <Input
-            placeholder="Search blog posts..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full md:w-80"
-            icon={<Search className="h-4 w-4 text-gray-400" />}
-          />
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search blog posts..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full md:w-80 pl-10"
+            />
+          </div>
         </div>
         <Button onClick={() => navigate('/admin/blog/new')} className="w-full md:w-auto">
           <Plus className="h-4 w-4 mr-2" /> Create New Post
@@ -151,7 +152,7 @@ const AdminBlog: React.FC = () => {
                 <TableRow key={post.id}>
                   <TableCell className="font-medium">{post.title}</TableCell>
                   <TableCell>
-                    <Badge variant={post.is_published ? "success" : "outline"}>
+                    <Badge variant={post.is_published ? "default" : "outline"} className={post.is_published ? "bg-green-500 hover:bg-green-600" : ""}>
                       {post.is_published ? 'Published' : 'Draft'}
                     </Badge>
                   </TableCell>
@@ -230,7 +231,6 @@ const AdminBlog: React.FC = () => {
         </div>
       )}
 
-      {/* Delete confirmation dialog */}
       <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
