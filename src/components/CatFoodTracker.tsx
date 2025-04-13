@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
@@ -47,7 +48,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { CatFood, CatFeedingRecord } from '@/types/applications';
+import { CatFood, CatFeedingRecord } from '@/types/finance';
 import { catFoodApi } from '@/services/catFoodService';
 
 // Form schemas

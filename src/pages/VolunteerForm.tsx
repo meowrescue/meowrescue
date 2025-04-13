@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import Layout from '@/components/Layout';
@@ -67,14 +68,13 @@ const VolunteerForm: React.FC = () => {
         applicationType = 'volunteer+foster';
       }
       
-      // Insert application directly into the applications table
+      // Use RPC function to create application
       const { error } = await supabase
-        .from('applications')
-        .insert({
-          applicant_id: user?.id,
-          application_type: applicationType,
-          status: 'pending',
-          form_data: data
+        .rpc('create_application', {
+          p_applicant_id: user?.id,
+          p_application_type: applicationType,
+          p_status: 'pending',
+          p_form_data: data
         });
         
       if (error) throw error;

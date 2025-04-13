@@ -44,33 +44,21 @@ const AdminApplications: React.FC = () => {
   const [feedback, setFeedback] = useState('');
   const [newStatus, setNewStatus] = useState<'pending' | 'approved' | 'denied'>('pending');
 
-  // Fetch applications
+  // Fetch applications using RPC
   const { data: applications, isLoading, error, refetch } = useQuery({
     queryKey: ['applications', statusFilter, typeFilter],
     queryFn: async () => {
       try {
+        // Use a custom RPC function to get applications
         const { data, error } = await supabase
-          .from('applications')
-          .select(`
-            *,
-            profiles (email, first_name, last_name)
-          `)
-          .order('created_at', { ascending: false });
+          .rpc('get_applications', {
+            p_status: statusFilter,
+            p_type: typeFilter
+          });
         
         if (error) throw error;
         
-        // Apply filters in-memory 
-        let filteredData = data as Application[];
-        
-        if (statusFilter) {
-          filteredData = filteredData.filter(app => app.status === statusFilter);
-        }
-        
-        if (typeFilter) {
-          filteredData = filteredData.filter(app => app.application_type === typeFilter);
-        }
-        
-        return filteredData;
+        return data as Application[];
       } catch (err) {
         console.error('Error fetching applications:', err);
         throw err;
@@ -89,15 +77,13 @@ const AdminApplications: React.FC = () => {
     if (!viewingApplication) return;
     
     try {
+      // Use RPC function to update application
       const { error } = await supabase
-        .from('applications')
-        .update({
-          status: newStatus,
-          feedback: feedback,
-          reviewed_at: new Date().toISOString(),
-          reviewer_id: (await supabase.auth.getUser()).data.user?.id
-        })
-        .eq('id', viewingApplication.id);
+        .rpc('update_application_status', {
+          p_application_id: viewingApplication.id,
+          p_status: newStatus,
+          p_feedback: feedback
+        });
         
       if (error) throw error;
       

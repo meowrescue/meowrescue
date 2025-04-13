@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -42,27 +43,40 @@ const AdminUsers: React.FC = () => {
   const [newRole, setNewRole] = useState<string>('');
   const [newEmail, setNewEmail] = useState<string>('');
 
-  // Query to get users from profiles table with user_status
+  // Query to get users from profiles table
   const { data: users, isLoading, error, refetch } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
       try {
-        // Join profiles with user_status to get is_active status
-        const { data, error } = await supabase
+        const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
-          .select(`
-            *,
-            user_status (is_active)
-          `)
-          .order('created_at', { ascending: false });
+          .select('*');
         
-        if (error) throw error;
+        if (profilesError) throw profilesError;
         
-        // Transform the data to include is_active
-        const extendedUsers = data.map(user => ({
-          ...user,
-          is_active: user.user_status?.is_active ?? true
-        })) as ExtendedUser[];
+        // Get is_active status for each user
+        const extendedUsers = await Promise.all(
+          profilesData.map(async (profile) => {
+            let isActive = true; // Default to active if not found
+            
+            try {
+              const { data: statusData } = await supabase
+                .rpc('get_user_status', { user_id: profile.id });
+                
+              // If data is returned and contains is_active, use it
+              if (statusData !== null) {
+                isActive = statusData;
+              }
+            } catch (err) {
+              console.error(`Error fetching status for user ${profile.id}:`, err);
+            }
+            
+            return {
+              ...profile,
+              is_active: isActive
+            } as ExtendedUser;
+          })
+        );
         
         return extendedUsers;
       } catch (err: any) {
@@ -100,14 +114,12 @@ const AdminUsers: React.FC = () => {
 
       if (profileError) throw profileError;
 
-      // Update user status
+      // Update user status using RPC function
       const { error: statusError } = await supabase
-        .from('user_status')
-        .upsert({
-          user_id: editingUser.id,
-          is_active: editingUser.is_active
-        })
-        .select();
+        .rpc('update_user_status', { 
+          p_user_id: editingUser.id, 
+          p_is_active: editingUser.is_active 
+        });
 
       if (statusError) {
         console.error("Error updating active status:", statusError);
@@ -134,12 +146,10 @@ const AdminUsers: React.FC = () => {
       const newStatus = !user.is_active;
       
       const { error } = await supabase
-        .from('user_status')
-        .upsert({ 
-          user_id: user.id, 
-          is_active: newStatus 
-        })
-        .select();
+        .rpc('update_user_status', {
+          p_user_id: user.id,
+          p_is_active: newStatus
+        });
 
       if (error) throw error;
 
