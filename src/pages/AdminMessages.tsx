@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -58,12 +59,25 @@ const AdminMessages: React.FC = () => {
     queryKey: ['messages'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('messages')
+        .from('contact_messages')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('received_at', { ascending: false });
 
       if (error) throw error;
-      return data as Message[];
+      
+      // Transform the data to match our Message interface
+      const transformedData = data.map(msg => ({
+        id: msg.id,
+        created_at: msg.received_at,
+        sender_id: msg.id, // Using message id as sender_id since contact_messages might not have this
+        sender_name: msg.name,
+        sender_email: msg.email,
+        message_subject: 'Contact Form Message', // Default subject
+        message_body: msg.message,
+        message_status: msg.status as MessageStatus
+      }));
+      
+      return transformedData as Message[];
     },
   });
 
@@ -72,33 +86,31 @@ const AdminMessages: React.FC = () => {
   }, [refetch]);
 
   // Mutation to update message status
-  const updateMessageStatus = useMutation(
-    async ({ messageId, newStatus }: { messageId: string; newStatus: MessageStatus }) => {
+  const updateMessageStatus = useMutation({
+    mutationFn: async ({ messageId, newStatus }: { messageId: string; newStatus: MessageStatus }) => {
       const { error } = await supabase
-        .from('messages')
-        .update({ message_status: newStatus })
+        .from('contact_messages')
+        .update({ status: newStatus })
         .eq('id', messageId);
 
       if (error) throw error;
     },
-    {
-      onSuccess: () => {
-        // Invalidate the query to refetch messages
-        queryClient.invalidateQueries(['messages']);
-        toast({
-          title: "Status Updated",
-          description: "Message status updated successfully.",
-        });
-      },
-      onError: (error: any) => {
-        toast({
-          title: "Update Failed",
-          description: `Failed to update message status: ${error.message}`,
-          variant: "destructive",
-        });
-      },
-    }
-  );
+    onSuccess: () => {
+      // Invalidate the query to refetch messages
+      queryClient.invalidateQueries({ queryKey: ['messages'] });
+      toast({
+        title: "Status Updated",
+        description: "Message status updated successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Update Failed",
+        description: `Failed to update message status: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
 
   // Filter messages based on search query
   const filteredMessages = messages?.filter((message) =>
@@ -119,9 +131,11 @@ const AdminMessages: React.FC = () => {
     if (!selectedMessage) return;
 
     // Here you would typically send the reply and update the message status
-    // For this example, we'll just update the status to "Replied"
     try {
-      await updateMessageStatus.mutateAsync({ messageId: selectedMessage.id, newStatus: 'Replied' });
+      await updateMessageStatus.mutateAsync({ 
+        messageId: selectedMessage.id, 
+        newStatus: 'Replied' 
+      });
       setReplyDialogOpen(false);
       setSelectedMessage(null);
       setReplyText('');
@@ -141,7 +155,10 @@ const AdminMessages: React.FC = () => {
   // Function to handle status change
   const handleStatusChange = async (messageId: string, newStatus: MessageStatus) => {
     try {
-      await updateMessageStatus.mutateAsync({ messageId: messageId, newStatus: newStatus });
+      await updateMessageStatus.mutateAsync({ 
+        messageId, 
+        newStatus 
+      });
     } catch (error: any) {
       toast({
         title: "Status Update Failed",

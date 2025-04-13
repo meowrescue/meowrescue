@@ -24,8 +24,8 @@ const About = () => {
         return [] as TeamMember[];
       }
       
-      // Cast the data to TeamMember[] to resolve type issues
-      return (data as unknown as TeamMember[] || []);
+      // Use a type assertion to specify the return type explicitly
+      return (data || []) as TeamMember[];
     }
   });
 
