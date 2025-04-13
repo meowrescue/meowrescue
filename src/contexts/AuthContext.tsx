@@ -78,6 +78,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
         setSession(null);
+      } else if (event === 'PASSWORD_RECOVERY') {
+        // Handle password recovery event
+        console.log('Password recovery initiated');
       }
     });
 
@@ -139,11 +142,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Reset password
+  // Reset password - sends reset email
   const resetPassword = async (email: string) => {
     try {
       setIsLoading(true);
-      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`
+      });
       
       if (error) throw error;
     } catch (error: any) {
@@ -154,7 +159,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Update password
+  // Update password - used after reset link is clicked
   const updatePassword = async (password: string) => {
     try {
       setIsLoading(true);

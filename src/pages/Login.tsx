@@ -103,7 +103,7 @@ const Login: React.FC = () => {
                     <FormItem>
                       <Label>Email</Label>
                       <FormControl>
-                        <Input placeholder="your.email@example.com" {...field} type="email" />
+                        <Input placeholder="email@example.com" {...field} type="email" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
