@@ -1,7 +1,9 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Send, X, MessageCircle, Mail } from 'lucide-react';
@@ -20,6 +22,11 @@ interface ChatMessage {
   read_at?: string;
 }
 
+interface GuestUserInfo {
+  name: string;
+  reason: string;
+}
+
 const ChatWidget: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -29,29 +36,30 @@ const ChatWidget: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isAdminAvailable, setIsAdminAvailable] = useState(false);
+  const [guestInfo, setGuestInfo] = useState<GuestUserInfo | null>(null);
+  const [guestName, setGuestName] = useState('');
+  const [guestReason, setGuestReason] = useState('');
+  const [isGuestFormSubmitted, setIsGuestFormSubmitted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   // Check if any admin is currently online
   useEffect(() => {
     const checkAdminAvailability = async () => {
       try {
-        // Check for any logged-in user with an admin role
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('role', 'admin')
+          .limit(1)
+          .single();
         
-        if (session) {
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('id')
-            .eq('id', session.user.id)
-            .eq('role', 'admin')
-            .single();
-          
-          if (error) throw error;
-          
-          setIsAdminAvailable(!!data);
-        } else {
+        if (error) {
+          console.error("Error checking admin availability:", error);
           setIsAdminAvailable(false);
+          return;
         }
+        
+        setIsAdminAvailable(!!data);
       } catch (error) {
         console.error("Error checking admin availability:", error);
         setIsAdminAvailable(false);
@@ -64,76 +72,83 @@ const ChatWidget: React.FC = () => {
     const interval = setInterval(checkAdminAvailability, 30000);
     
     return () => clearInterval(interval);
-  }, [user]);
+  }, []);
 
   // Scroll to bottom of messages
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
   
-  // Fetch or create chat session
-  useEffect(() => {
-    if (isOpen && user) {
-      const fetchOrCreateSession = async () => {
-        setIsLoading(true);
-        
-        try {
-          console.log("Checking for existing chat session");
-          // Check for existing active session
-          const { data: existingSessions, error: fetchError } = await supabase
-            .from('chat_sessions')
-            .select('id')
-            .eq('user_id', user.id)
-            .eq('status', 'active')
-            .order('created_at', { ascending: false })
-            .limit(1);
-          
-          if (fetchError) {
-            console.error("Error fetching chat sessions:", fetchError);
-            throw fetchError;
-          }
-          
-          if (existingSessions && existingSessions.length > 0) {
-            console.log("Found existing chat session:", existingSessions[0].id);
-            setChatSession(existingSessions[0].id);
-          } else {
-            console.log("Creating new chat session");
-            // Create new session
-            const { data: newSession, error: createError } = await supabase
-              .from('chat_sessions')
-              .insert({
-                user_id: user.id,
-                status: 'active',
-                last_message_at: new Date().toISOString(),
-              })
-              .select('id')
-              .single();
-            
-            if (createError) {
-              console.error("Error creating chat session:", createError);
-              throw createError;
-            }
-            
-            if (newSession) {
-              console.log("Created new chat session:", newSession.id);
-              setChatSession(newSession.id);
-            }
-          }
-        } catch (error: any) {
-          console.error("Error with chat session:", error);
-          toast({
-            title: "Chat Error",
-            description: error.message || "Failed to start chat session",
-            variant: "destructive",
-          });
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      
-      fetchOrCreateSession();
+  // Handle guest form submission
+  const handleGuestSubmit = () => {
+    if (!guestName.trim() || !guestReason.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please provide both your name and reason for chatting.",
+        variant: "destructive",
+      });
+      return;
     }
-  }, [isOpen, user, toast]);
+    
+    setGuestInfo({
+      name: guestName.trim(),
+      reason: guestReason.trim()
+    });
+    setIsGuestFormSubmitted(true);
+    
+    // Create chat session for guest
+    createChatSession();
+  };
+  
+  // Fetch or create chat session
+  const createChatSession = async () => {
+    setIsLoading(true);
+    
+    try {
+      console.log("Creating new chat session for guest");
+      // Create new session
+      const { data: newSession, error: createError } = await supabase
+        .from('chat_sessions')
+        .insert({
+          user_id: null,
+          status: 'active',
+          last_message_at: new Date().toISOString(),
+          guest_name: guestName.trim(),
+          guest_reason: guestReason.trim()
+        })
+        .select('id')
+        .single();
+      
+      if (createError) {
+        console.error("Error creating chat session:", createError);
+        throw createError;
+      }
+      
+      if (newSession) {
+        console.log("Created new chat session:", newSession.id);
+        setChatSession(newSession.id);
+        
+        // Add the first system message about the reason
+        await supabase
+          .from('chat_messages')
+          .insert({
+            chat_session_id: newSession.id,
+            content: `Guest user ${guestName} started a chat. Reason: ${guestReason}`,
+            is_admin: true,
+            admin_id: null,
+          });
+      }
+    } catch (error: any) {
+      console.error("Error with chat session:", error);
+      toast({
+        title: "Chat Error",
+        description: error.message || "Failed to start chat session",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   // Fetch messages when chat session is available
   useEffect(() => {
@@ -235,14 +250,6 @@ const ChatWidget: React.FC = () => {
 
   // Check if user is authenticated before opening chat
   const handleOpenChat = () => {
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please login to use the chat feature.",
-        variant: "destructive",
-      });
-      return;
-    }
     setIsOpen(true);
   };
   
@@ -276,39 +283,76 @@ const ChatWidget: React.FC = () => {
                 <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-meow-primary"></div>
               </div>
             ) : isAdminAvailable ? (
-              messages.length > 0 ? (
-                <ScrollArea className="h-full py-2 pr-2">
-                  <div className="space-y-3">
-                    {messages.map((message) => (
-                      <div 
-                        key={message.id} 
-                        className={`flex ${message.is_admin ? 'justify-start' : 'justify-end'}`}
-                      >
+              user || isGuestFormSubmitted ? (
+                messages.length > 0 ? (
+                  <ScrollArea className="h-full py-2 pr-2">
+                    <div className="space-y-3">
+                      {messages.map((message) => (
                         <div 
-                          className={`max-w-[85%] p-2 px-3 rounded-lg ${
-                            message.is_admin 
-                              ? 'bg-gray-100 text-gray-800' 
-                              : 'bg-meow-primary text-white'
-                          }`}
+                          key={message.id} 
+                          className={`flex ${message.is_admin ? 'justify-start' : 'justify-end'}`}
                         >
-                          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                          <p className="text-xs mt-1 opacity-70">
-                            {new Date(message.created_at).toLocaleTimeString([], { 
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </p>
+                          <div 
+                            className={`max-w-[85%] p-2 px-3 rounded-lg ${
+                              message.is_admin 
+                                ? 'bg-gray-100 text-gray-800' 
+                                : 'bg-meow-primary text-white'
+                            }`}
+                          >
+                            <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                            <p className="text-xs mt-1 opacity-70">
+                              {new Date(message.created_at).toLocaleTimeString([], { 
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                    <div ref={messagesEndRef} />
+                      ))}
+                      <div ref={messagesEndRef} />
+                    </div>
+                  </ScrollArea>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-gray-500 text-center p-4">
+                    <div>
+                      <MessageCircle className="mx-auto h-10 w-10 text-gray-300 mb-2" />
+                      <p>Start a conversation with our team! We're here to help.</p>
+                    </div>
                   </div>
-                </ScrollArea>
+                )
               ) : (
-                <div className="h-full flex items-center justify-center text-gray-500 text-center p-4">
-                  <div>
-                    <MessageCircle className="mx-auto h-10 w-10 text-gray-300 mb-2" />
-                    <p>Start a conversation with our team! We're here to help.</p>
+                <div className="h-full flex flex-col justify-center p-4 space-y-4">
+                  <h3 className="text-lg font-medium text-center">Before we chat</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                        Your Name
+                      </label>
+                      <Input 
+                        id="name" 
+                        value={guestName} 
+                        onChange={(e) => setGuestName(e.target.value)} 
+                        placeholder="Enter your name"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="reason" className="block text-sm font-medium text-gray-700 mb-1">
+                        How can we help?
+                      </label>
+                      <Textarea 
+                        id="reason" 
+                        value={guestReason} 
+                        onChange={(e) => setGuestReason(e.target.value)} 
+                        placeholder="Briefly describe your reason for chatting"
+                        rows={3}
+                      />
+                    </div>
+                    <Button 
+                      onClick={handleGuestSubmit} 
+                      className="w-full"
+                    >
+                      Start Chat
+                    </Button>
                   </div>
                 </div>
               )
@@ -327,7 +371,7 @@ const ChatWidget: React.FC = () => {
             )}
           </CardContent>
           
-          {isAdminAvailable && (
+          {isAdminAvailable && (user || isGuestFormSubmitted) && (
             <CardFooter className="py-2 px-3 border-t">
               <div className="flex w-full gap-2">
                 <Textarea

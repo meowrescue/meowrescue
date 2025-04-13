@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import AdminLayout from '@/pages/Admin';
+import { AdminLayout } from '@/pages/Admin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -17,11 +17,13 @@ import { User as UserType } from '@/types/users';
 // Define types for chat session and messages
 interface ChatSession {
   id: string;
-  user_id: string;
+  user_id: string | null;
   status: string;
   last_message_at: string;
   created_at: string;
   updated_at: string;
+  guest_name?: string;
+  guest_reason?: string;
   user_profile?: {
     id: string;
     first_name?: string;
@@ -66,34 +68,36 @@ const AdminChat: React.FC = () => {
           throw sessionsError;
         }
         
-        // Then get user profiles separately
-        if (sessionsData && sessionsData.length > 0) {
-          const userIds = sessionsData.map(session => session.user_id);
-          
-          const { data: profilesData, error: profilesError } = await supabase
-            .from('profiles')
-            .select('id, first_name, last_name, email')
-            .in('id', userIds);
+        // Then get user profiles separately for sessions with user_id
+        const sessionsWithProfiles = await Promise.all(
+          (sessionsData || []).map(async (session) => {
+            if (session.user_id) {
+              const { data: profileData, error: profileError } = await supabase
+                .from('profiles')
+                .select('id, first_name, last_name, email')
+                .eq('id', session.user_id)
+                .single();
+                
+              if (profileError) {
+                console.error("Error fetching user profile:", profileError);
+                return {
+                  ...session,
+                  user_profile: undefined
+                };
+              }
+              
+              return {
+                ...session,
+                user_profile: profileData
+              };
+            }
             
-          if (profilesError) {
-            console.error("Error fetching user profiles:", profilesError);
-            throw profilesError;
-          }
-          
-          // Combine the data
-          const sessionsWithProfiles = sessionsData.map(session => {
-            const userProfile = profilesData?.find(profile => profile.id === session.user_id);
-            return {
-              ...session,
-              user_profile: userProfile || undefined
-            };
-          });
-          
-          console.log("Chat sessions fetched and combined with profiles:", sessionsWithProfiles);
-          return sessionsWithProfiles as ChatSession[];
-        }
+            return session;
+          })
+        );
         
-        return (sessionsData || []) as ChatSession[];
+        console.log("Chat sessions fetched and combined with profiles:", sessionsWithProfiles);
+        return sessionsWithProfiles as ChatSession[];
       } catch (err) {
         console.error("Error in chat sessions query:", err);
         toast({
@@ -269,6 +273,19 @@ const AdminChat: React.FC = () => {
     },
   });
 
+  // Get user display name for chat session
+  const getChatDisplayName = (session: ChatSession) => {
+    if (session.guest_name) {
+      return `${session.guest_name} (Guest)`;
+    }
+    
+    if (session.user_profile) {
+      return `${session.user_profile.first_name || ''} ${session.user_profile.last_name || ''}`.trim() || 'Anonymous User';
+    }
+    
+    return 'Anonymous User';
+  };
+
   return (
     <AdminLayout title="Live Chat">
       <SEO title="Live Chat | Meow Rescue Admin" />
@@ -307,8 +324,13 @@ const AdminChat: React.FC = () => {
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="font-medium truncate">
-                                {session.user_profile?.first_name || 'Anonymous'} {session.user_profile?.last_name || 'User'}
+                                {getChatDisplayName(session)}
                               </p>
+                              {session.guest_reason && (
+                                <p className="text-xs text-gray-500 truncate">
+                                  Reason: {session.guest_reason}
+                                </p>
+                              )}
                               <p className="text-xs text-gray-500 truncate">
                                 {new Date(session.last_message_at).toLocaleString()}
                               </p>
@@ -333,9 +355,9 @@ const AdminChat: React.FC = () => {
             <Card className="h-[calc(100vh-12rem)] flex flex-col">
               <CardHeader className="pb-2 border-b flex flex-row items-center justify-between">
                 <CardTitle className="text-lg font-semibold">
-                  {selectedChatId ? (
+                  {selectedChatId && chatSessions ? (
                     <>
-                      {chatSessions?.find(s => s.id === selectedChatId)?.user_profile?.first_name || 'User'} Chat
+                      {getChatDisplayName(chatSessions.find(s => s.id === selectedChatId) as ChatSession)}
                     </>
                   ) : (
                     'Select a Chat'

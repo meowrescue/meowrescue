@@ -14,7 +14,6 @@ import { Mail, Phone, MapPin, MessageSquare } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import SectionHeading from '@/components/ui/SectionHeading';
-import NetlifyFormHiddenInput from '@/components/NetlifyFormHiddenInput';
 
 // Define the form schema
 const formSchema = z.object({
@@ -166,8 +165,10 @@ const Contact = () => {
     setIsSubmitting(true);
     
     try {
+      console.log("Submitting contact form:", values);
+      
       // Submit to Supabase
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('contact_messages')
         .insert([
           {
@@ -177,9 +178,15 @@ const Contact = () => {
             status: 'New',
             received_at: new Date().toISOString()
           }
-        ]);
+        ])
+        .select();
         
-      if (error) throw error;
+      if (error) {
+        console.error("Error submitting contact form:", error);
+        throw error;
+      }
+
+      console.log("Contact form submitted successfully:", data);
 
       // Success - show toast and reset form
       toast({
@@ -189,7 +196,7 @@ const Contact = () => {
       
       form.reset();
       setIsSubmitted(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting form:', error);
       toast({
         title: 'Message Not Sent',
@@ -203,7 +210,12 @@ const Contact = () => {
 
   return (
     <Layout>
-      <SEO title="Contact Us | Meow Rescue" description="Get in touch with Meow Rescue. We're here to answer your questions about cat adoption, fostering, volunteering, and more." />
+      <SEO 
+        title="Contact Us | Meow Rescue" 
+        description="Get in touch with Meow Rescue. We're here to answer your questions about cat adoption, fostering, volunteering, and more." 
+        publishedTime={new Date().toISOString()}
+        modifiedTime={new Date().toISOString()}
+      />
       
       <div className="bg-gradient-to-r from-meow-primary/10 to-meow-secondary/10 py-16 md:py-24 text-center">
         <div className="container mx-auto px-4">
@@ -227,7 +239,6 @@ const Contact = () => {
               <CardContent>
                 <Form {...form}>
                   <form id="contact-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                    <NetlifyFormHiddenInput formName="contact" />
                     <FormField
                       control={form.control}
                       name="name"

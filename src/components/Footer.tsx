@@ -1,137 +1,167 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Cat, Heart, Phone, Mail, MapPin, Facebook, Instagram, Twitter } from 'lucide-react';
+import { Cat, Heart, Mail, Phone, MapPin, Facebook, Instagram, Twitter } from 'lucide-react';
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
-  
+  const lastUpdated = new Date().toISOString(); // For SEO content freshness
+
   return (
     <footer className="bg-meow-primary text-white">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Logo & About */}
+          {/* About Section */}
           <div>
-            <div className="flex items-center space-x-2 mb-4">
-              <div className="bg-white rounded-full p-1.5">
-                <Cat className="w-6 h-6 text-meow-primary" />
+            <div className="flex items-center mb-4">
+              <div className="bg-white rounded-full p-2 mr-2">
+                <Cat className="h-6 w-6 text-meow-primary" />
               </div>
-              <div>
-                <span className="text-xl font-bold text-white">Meow</span>
-                <span className="text-xl font-bold text-meow-secondary">Rescue</span>
-              </div>
+              <h3 className="text-xl font-bold">
+                <span className="text-white">Meow</span>
+                <span className="text-meow-secondary">Rescue</span>
+              </h3>
             </div>
-            <p className="text-gray-200 text-sm mb-6">
-              A home-based cat rescue dedicated to saving cats and kittens in need throughout Pasco County, Florida.
+            <p className="mb-4 text-white/80">
+              A home-based cat rescue in Pasco County, Florida, dedicated to rescuing, rehabilitating, and rehoming cats in need.
             </p>
             <div className="flex space-x-3">
-              <a href="https://facebook.com" className="hover:text-meow-secondary transition-colors" target="_blank" rel="noreferrer">
-                <Facebook size={20} />
+              <a 
+                href="https://facebook.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors"
+                aria-label="Facebook"
+              >
+                <Facebook className="h-5 w-5" />
               </a>
-              <a href="https://instagram.com" className="hover:text-meow-secondary transition-colors" target="_blank" rel="noreferrer">
-                <Instagram size={20} />
+              <a 
+                href="https://instagram.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors"
+                aria-label="Instagram"
+              >
+                <Instagram className="h-5 w-5" />
               </a>
-              <a href="https://twitter.com" className="hover:text-meow-secondary transition-colors" target="_blank" rel="noreferrer">
-                <Twitter size={20} />
+              <a 
+                href="https://twitter.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors"
+                aria-label="Twitter"
+              >
+                <Twitter className="h-5 w-5" />
               </a>
             </div>
           </div>
           
           {/* Quick Links */}
           <div>
-            <h3 className="text-white font-semibold text-lg mb-4">Quick Links</h3>
+            <h3 className="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/about" className="text-gray-200 hover:text-meow-secondary transition-colors">About Us</Link>
+                <Link to="/" className="text-white/80 hover:text-white transition-colors">Home</Link>
               </li>
               <li>
-                <Link to="/cats" className="text-gray-200 hover:text-meow-secondary transition-colors">Adoptable Cats</Link>
+                <Link to="/about" className="text-white/80 hover:text-white transition-colors">About Us</Link>
               </li>
               <li>
-                <Link to="/adopt" className="text-gray-200 hover:text-meow-secondary transition-colors">Adoption Process</Link>
+                <Link to="/cats" className="text-white/80 hover:text-white transition-colors">Available Cats</Link>
               </li>
               <li>
-                <Link to="/events" className="text-gray-200 hover:text-meow-secondary transition-colors">Events</Link>
+                <Link to="/adopt" className="text-white/80 hover:text-white transition-colors">Adoption Process</Link>
               </li>
               <li>
-                <Link to="/volunteer" className="text-gray-200 hover:text-meow-secondary transition-colors">Volunteer</Link>
+                <Link to="/success-stories" className="text-white/80 hover:text-white transition-colors">Success Stories</Link>
               </li>
               <li>
-                <Link to="/resources" className="text-gray-200 hover:text-meow-secondary transition-colors">Resources</Link>
+                <Link to="/volunteer" className="text-white/80 hover:text-white transition-colors">Volunteer</Link>
+              </li>
+              <li>
+                <Link to="/foster" className="text-white/80 hover:text-white transition-colors">Foster</Link>
+              </li>
+              <li>
+                <Link to="/donate" className="text-white/80 hover:text-white transition-colors">Donate</Link>
+              </li>
+              <li>
+                <Link to="/events" className="text-white/80 hover:text-white transition-colors">Events</Link>
+              </li>
+              <li>
+                <Link to="/blog" className="text-white/80 hover:text-white transition-colors">Blog</Link>
+              </li>
+              <li>
+                <Link to="/lost-found" className="text-white/80 hover:text-white transition-colors">Lost & Found</Link>
+              </li>
+              <li>
+                <Link to="/resources" className="text-white/80 hover:text-white transition-colors">Resources</Link>
+              </li>
+              <li>
+                <Link to="/contact" className="text-white/80 hover:text-white transition-colors">Contact</Link>
               </li>
             </ul>
           </div>
           
           {/* Contact Info */}
           <div>
-            <h3 className="text-white font-semibold text-lg mb-4">Contact Info</h3>
+            <h3 className="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Contact Us</h3>
             <ul className="space-y-3">
-              <li className="flex items-start space-x-3">
-                <MapPin className="w-5 h-5 text-meow-secondary shrink-0 mt-0.5" />
-                <a 
-                  href="https://www.google.com/maps/place/New+Port+Richey,+FL/"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-gray-200 hover:text-meow-secondary transition-colors"
-                >
-                  New Port Richey / Pasco County, Florida
-                </a>
+              <li className="flex items-start">
+                <MapPin className="h-5 w-5 mr-2 mt-0.5 text-meow-secondary" />
+                <span className="text-white/80">
+                  7726 US Highway 19<br />
+                  New Port Richey, FL 34652
+                </span>
               </li>
-              <li className="flex items-center space-x-3">
-                <Phone className="w-5 h-5 text-meow-secondary shrink-0" />
-                <a href="tel:7272570037" className="text-gray-200 hover:text-meow-secondary transition-colors">
+              <li className="flex items-center">
+                <Phone className="h-5 w-5 mr-2 text-meow-secondary" />
+                <a href="tel:7272570037" className="text-white/80 hover:text-white transition-colors">
                   (727) 257-0037
                 </a>
               </li>
-              <li className="flex items-center space-x-3">
-                <Mail className="w-5 h-5 text-meow-secondary shrink-0" />
-                <a href="mailto:info@meowrescue.org" className="text-gray-200 hover:text-meow-secondary transition-colors">
+              <li className="flex items-center">
+                <Mail className="h-5 w-5 mr-2 text-meow-secondary" />
+                <a href="mailto:info@meowrescue.org" className="text-white/80 hover:text-white transition-colors">
                   info@meowrescue.org
                 </a>
               </li>
             </ul>
           </div>
           
-          {/* Get Involved */}
+          {/* Newsletter */}
           <div>
-            <h3 className="text-white font-semibold text-lg mb-4">Get Involved</h3>
-            <ul className="space-y-3">
-              <li>
-                <Link to="/donate" className="flex items-center space-x-2 text-gray-200 hover:text-meow-secondary transition-colors">
-                  <Heart className="w-5 h-5 text-meow-secondary" />
-                  <span>Donate</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/volunteer" className="flex items-center space-x-2 text-gray-200 hover:text-meow-secondary transition-colors">
-                  <Heart className="w-5 h-5 text-meow-secondary" />
-                  <span>Volunteer</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/volunteer#volunteer-form" className="flex items-center space-x-2 text-gray-200 hover:text-meow-secondary transition-colors">
-                  <Heart className="w-5 h-5 text-meow-secondary" />
-                  <span>Foster</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/contact" className="flex items-center space-x-2 text-gray-200 hover:text-meow-secondary transition-colors">
-                  <Heart className="w-5 h-5 text-meow-secondary" />
-                  <span>Contact Us</span>
-                </Link>
-              </li>
-            </ul>
+            <h3 className="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Support Our Mission</h3>
+            <p className="text-white/80 mb-4">
+              Your donations help us save more cats and provide them with the medical care, food, and love they need.
+            </p>
+            <Link to="/donate">
+              <button className="bg-meow-secondary px-4 py-2 rounded flex items-center text-white hover:bg-meow-secondary/90 transition-colors">
+                <Heart className="h-5 w-5 mr-2" />
+                <span>Donate Now</span>
+              </button>
+            </Link>
           </div>
         </div>
         
-        <div className="border-t border-gray-700 mt-12 pt-8 text-center text-gray-300 text-sm">
-          <div className="mb-4">
-            <Link to="/privacy-policy" className="hover:text-meow-secondary mx-3">Privacy Policy</Link>
-            <Link to="/terms-of-service" className="hover:text-meow-secondary mx-3">Terms of Service</Link>
+        <div className="border-t border-white/20 mt-8 pt-8">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="mb-4 md:mb-0 text-center md:text-left">
+              <p className="text-white/80">
+                &copy; {currentYear} Meow Rescue. All rights reserved.
+              </p>
+              <p className="text-white/60 text-sm">
+                <time dateTime={lastUpdated}>Last Updated: {new Date(lastUpdated).toLocaleDateString()}</time>
+              </p>
+            </div>
+            <div className="flex space-x-4">
+              <Link to="/privacy-policy" className="text-white/80 hover:text-white transition-colors">
+                Privacy Policy
+              </Link>
+              <Link to="/terms-of-service" className="text-white/80 hover:text-white transition-colors">
+                Terms of Service
+              </Link>
+            </div>
           </div>
-          <p>
-            &copy; {currentYear} Meow Rescue. All rights reserved.
-          </p>
         </div>
       </div>
     </footer>

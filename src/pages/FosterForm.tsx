@@ -1,98 +1,83 @@
-
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
+import Layout from '@/components/Layout';
+import SEO from '@/components/SEO';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import CustomNavbar from '@/components/CustomNavbar';
-import Footer from '@/components/Footer';
-import SEO from '@/components/SEO';
 
+// Define the form schema
 const formSchema = z.object({
-  firstName: z.string().min(2, { message: "First name must be at least 2 characters." }),
-  lastName: z.string().min(2, { message: "Last name must be at least 2 characters." }),
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  phone: z.string().min(10, { message: "Please enter a valid phone number." }),
-  address: z.string().min(5, { message: "Please enter your full address." }),
-  city: z.string().min(2, { message: "Please enter your city." }),
-  state: z.string().min(2, { message: "Please enter your state." }),
-  zip: z.string().min(5, { message: "Please enter a valid ZIP code." }),
-  experience: z.string().min(10, { message: "Please share your experience with cats." }),
-  housing: z.string().min(5, { message: "Please describe your housing situation." }),
-  availability: z.string().min(5, { message: "Please describe your availability." }),
-  otherInfo: z.string().optional(),
+  name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
+  email: z.string().email({ message: 'Please enter a valid email address.' }),
+  phone: z.string().min(10, { message: 'Phone number must be at least 10 characters.' }),
+  address: z.string().min(5, { message: 'Address must be at least 5 characters.' }),
+  experience: z.string().min(10, { message: 'Experience must be at least 10 characters.' }),
+  availability: z.string().min(10, { message: 'Availability must be at least 10 characters.' }),
+  reason: z.string().min(10, { message: 'Reason must be at least 10 characters.' })
 });
 
-type FormValues = z.infer<typeof formSchema>;
-
-const FosterForm = () => {
+const FosterForm: React.FC = () => {
   const { toast } = useToast();
-  const navigate = useNavigate();
-  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const form = useForm<FormValues>({
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
-      email: user?.email || "",
-      phone: "",
-      address: "",
-      city: "",
-      state: "",
-      zip: "",
-      experience: "",
-      housing: "",
-      availability: "",
-      otherInfo: "",
-    },
+      name: '',
+      email: '',
+      phone: '',
+      address: '',
+      experience: '',
+      availability: '',
+      reason: ''
+    }
   });
 
-  const onSubmit = async (data: FormValues) => {
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to submit an application.",
-        variant: "destructive",
-      });
-      navigate('/login');
-      return;
-    }
-
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
-
+    
     try {
-      // Save the application to Supabase
-      const { error } = await supabase.from('applications').insert({
-        applicant_id: user.id,
-        application_type: 'foster',
-        status: 'submitted',
-        form_data: data,
-      });
-
+      // Submit to Supabase
+      const { error } = await supabase
+        .from('foster_applications')
+        .insert([
+          {
+            name: values.name,
+            email: values.email,
+            phone: values.phone,
+            address: values.address,
+            experience: values.experience,
+            availability: values.availability,
+            reason: values.reason,
+            status: 'New',
+            submitted_at: new Date().toISOString()
+          }
+        ]);
+        
       if (error) throw error;
 
+      // Success - show toast and reset form
       toast({
-        title: "Application submitted",
-        description: "Thank you for your interest in fostering cats! We'll review your application soon.",
+        title: 'Application Submitted',
+        description: 'We have received your application and will get back to you soon.',
       });
-
-      navigate('/foster');
-    } catch (error: any) {
-      console.error('Error submitting application:', error);
+      
+      form.reset();
+      setIsSubmitted(true);
+    } catch (error) {
+      console.error('Error submitting form:', error);
       toast({
-        title: "Submission error",
-        description: error.message || "Failed to submit your application. Please try again.",
-        variant: "destructive",
+        title: 'Application Not Submitted',
+        description: 'There was a problem submitting your application. Please try again later.',
+        variant: 'destructive',
       });
     } finally {
       setIsSubmitting(false);
@@ -100,222 +85,142 @@ const FosterForm = () => {
   };
 
   return (
-    <>
-      <SEO title="Foster Application | Meow Rescue" description="Apply to foster cats with Meow Rescue" />
-      <CustomNavbar />
-      <div className="bg-gray-50 min-h-screen pt-24 pb-12">
+    <Layout>
+      <SEO title="Foster Application | Meow Rescue" description="Apply to foster cats for Meow Rescue. Help us by providing a temporary home for cats in need until they find their forever homes." />
+      
+      <div className="bg-gradient-to-r from-meow-primary/10 to-meow-secondary/10 py-16 md:py-24 text-center">
         <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto">
-            <h1 className="text-3xl font-bold text-center text-meow-primary mb-8">Foster Application</h1>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Become a Cat Foster</CardTitle>
-                <CardDescription>
-                  Thank you for your interest in fostering cats with Meow Rescue. Please fill out this application so we can learn more about you.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                      <FormField
-                        control={form.control}
-                        name="firstName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>First Name</FormLabel>
-                            <FormControl>
-                              <Input placeholder="John" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="lastName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Last Name</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Doe" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                      <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                              <Input placeholder="email@example.com" type="email" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="phone"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Phone Number</FormLabel>
-                            <FormControl>
-                              <Input placeholder="(123) 456-7890" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <FormField
-                      control={form.control}
-                      name="address"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Address</FormLabel>
-                          <FormControl>
-                            <Input placeholder="123 Main St" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-                      <FormField
-                        control={form.control}
-                        name="city"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>City</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Anytown" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="state"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>State</FormLabel>
-                            <FormControl>
-                              <Input placeholder="CA" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="zip"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>ZIP Code</FormLabel>
-                            <FormControl>
-                              <Input placeholder="12345" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <FormField
-                      control={form.control}
-                      name="experience"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Experience with Cats</FormLabel>
-                          <FormControl>
-                            <Textarea 
-                              placeholder="Please describe your experience with cats, including any previous fostering experience." 
-                              className="min-h-[100px]"
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="housing"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Housing Situation</FormLabel>
-                          <FormControl>
-                            <Textarea 
-                              placeholder="Do you own or rent? Any restrictions on pets? Do you have a separate room for foster cats?" 
-                              className="min-h-[100px]"
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="availability"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Availability & Preferences</FormLabel>
-                          <FormControl>
-                            <Textarea 
-                              placeholder="How many cats can you foster at once? Any preferences on age or needs?" 
-                              className="min-h-[100px]"
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="otherInfo"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Additional Information</FormLabel>
-                          <FormControl>
-                            <Textarea 
-                              placeholder="Anything else you'd like us to know?" 
-                              className="min-h-[100px]"
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
-                      {isSubmitting ? "Submitting..." : "Submit Application"}
-                    </Button>
-                  </form>
-                </Form>
-              </CardContent>
-            </Card>
-          </div>
+          <h1 className="text-4xl font-bold text-meow-primary mb-6">Foster Application</h1>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Please complete the form below to apply to become a foster for Meow Rescue.
+          </p>
         </div>
       </div>
-      <Footer />
-    </>
+      
+      <div className="container mx-auto py-16">
+        <Card className="bg-white shadow-lg border-none max-w-3xl mx-auto hover-card-effect">
+          <CardHeader className="pb-6">
+            <CardTitle className="text-2xl text-meow-primary">Foster Application</CardTitle>
+            <CardDescription className="text-base">
+              Fill out the form below to apply to become a foster for Meow Rescue.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Your name" {...field} className="h-12" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Your email address" {...field} className="h-12" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">Phone</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Your phone number" {...field} className="h-12" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">Address</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Your street address" {...field} className="h-12" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="experience"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">Experience</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Please describe your experience with cats" className="min-h-40" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="availability"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">Availability</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="When are you available to foster?" className="min-h-40" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="reason"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">Reason</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Why do you want to foster cats?" className="min-h-40" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </form>
+            </Form>
+          </CardContent>
+          <CardFooter>
+            <Button 
+              type="submit" 
+              form="foster-form"
+              disabled={isSubmitting || isSubmitted}
+              className="w-full h-12 text-base bg-meow-primary hover:bg-meow-primary/90 text-white"
+            >
+              {isSubmitting ? 'Submitting...' : isSubmitted ? 'Application Submitted' : 'Submit Application'}
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    </Layout>
   );
 };
 
