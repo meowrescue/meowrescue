@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Layout from '@/components/Layout';
@@ -11,7 +12,7 @@ import {
   CardTitle 
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Pencil, KeyRound, Trash2, MessageSquare, Search } from 'lucide-react';
+import { User, Pencil, KeyRound, Trash2, MessageSquare, Search, Upload, Camera } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -21,12 +22,16 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { supabase } from '@/integrations/supabase/client';
 import SEO from '@/components/SEO';
 import { useQuery } from '@tanstack/react-query';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const Profile: React.FC = () => {
   const { user, signOut, session } = useAuth();
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isPasswordOpen, setIsPasswordOpen] = useState(false);
+  const [isPhotoUploadOpen, setIsPhotoUploadOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const { toast } = useToast();
 
   const editProfileForm = useForm({
@@ -42,6 +47,26 @@ const Profile: React.FC = () => {
       password: '',
       confirmPassword: ''
     }
+  });
+
+  // Fetch profile data including avatar URL
+  const { data: profileData, refetch: refetchProfile } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      if (error) throw error;
+      if (data?.avatar_url) {
+        setAvatarUrl(data.avatar_url);
+      }
+      return data;
+    },
+    enabled: !!user
   });
 
   // Fixed: Fetch lost & found posts from the correct table
@@ -185,6 +210,70 @@ const Profile: React.FC = () => {
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
+
+  const handlePhotoUpload = async () => {
+    if (!selectedFile || !user) return;
+    
+    setIsLoading(true);
+    try {
+      // Upload the file to Supabase Storage
+      const fileExt = selectedFile.name.split('.').pop();
+      const fileName = `${user.id}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('profiles')
+        .upload(filePath, selectedFile);
+        
+      if (uploadError) throw uploadError;
+      
+      // Get the public URL for the uploaded file
+      const { data: publicUrlData } = supabase.storage
+        .from('profiles')
+        .getPublicUrl(filePath);
+        
+      if (!publicUrlData.publicUrl) throw new Error('Could not get public URL for uploaded image');
+      
+      // Update the profile with the new avatar URL
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrlData.publicUrl })
+        .eq('id', user.id);
+        
+      if (updateError) throw updateError;
+      
+      setAvatarUrl(publicUrlData.publicUrl);
+      
+      toast({
+        title: "Profile Photo Updated",
+        description: "Your profile photo has been updated successfully.",
+      });
+      
+      setIsPhotoUploadOpen(false);
+      setSelectedFile(null);
+      refetchProfile();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to upload profile photo. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getInitials = () => {
+    const firstName = user?.user_metadata?.first_name || '';
+    const lastName = user?.user_metadata?.last_name || '';
+    return firstName || lastName ? `${firstName.charAt(0)}${lastName.charAt(0)}` : (user?.email?.charAt(0) || '');
+  };
+
   return (
     <ProtectedRoute>
       <Layout>
@@ -212,8 +301,79 @@ const Profile: React.FC = () => {
                     <CardDescription>Your personal details</CardDescription>
                   </CardHeader>
                   <CardContent className="flex flex-col items-center">
-                    <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mb-6">
-                      <User size={40} className="text-gray-400" />
+                    <div className="relative mb-6">
+                      <Avatar className="w-24 h-24">
+                        {avatarUrl ? (
+                          <AvatarImage src={avatarUrl} alt="Profile" />
+                        ) : (
+                          <AvatarFallback className="text-2xl">{getInitials()}</AvatarFallback>
+                        )}
+                      </Avatar>
+                      <Dialog open={isPhotoUploadOpen} onOpenChange={setIsPhotoUploadOpen}>
+                        <DialogTrigger asChild>
+                          <Button variant="secondary" size="icon" className="absolute -bottom-2 -right-2 rounded-full">
+                            <Camera className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Update Profile Photo</DialogTitle>
+                            <DialogDescription>
+                              Upload a new profile photo
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="space-y-4 py-4">
+                            <div className="flex flex-col items-center justify-center gap-4">
+                              <Avatar className="w-32 h-32">
+                                {selectedFile ? (
+                                  <AvatarImage src={URL.createObjectURL(selectedFile)} alt="Preview" />
+                                ) : avatarUrl ? (
+                                  <AvatarImage src={avatarUrl} alt="Profile" />
+                                ) : (
+                                  <AvatarFallback className="text-4xl">{getInitials()}</AvatarFallback>
+                                )}
+                              </Avatar>
+                              <div className="flex flex-col items-center">
+                                <label htmlFor="photo-upload" className="cursor-pointer">
+                                  <div className="flex items-center gap-2 px-4 py-2 bg-meow-primary/10 text-meow-primary rounded-md hover:bg-meow-primary/20 transition-colors">
+                                    <Upload className="h-4 w-4" />
+                                    <span>Select Photo</span>
+                                  </div>
+                                  <input 
+                                    id="photo-upload" 
+                                    type="file" 
+                                    accept="image/*" 
+                                    className="hidden" 
+                                    onChange={handleFileChange}
+                                  />
+                                </label>
+                                {selectedFile && (
+                                  <p className="text-sm text-gray-500 mt-2">{selectedFile.name}</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <DialogFooter>
+                            <Button variant="outline" onClick={() => setIsPhotoUploadOpen(false)}>
+                              Cancel
+                            </Button>
+                            <Button 
+                              variant="meow" 
+                              onClick={handlePhotoUpload} 
+                              disabled={isLoading || !selectedFile}
+                            >
+                              {isLoading ? (
+                                <>
+                                  <span className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                                  Uploading...
+                                </>
+                              ) : (
+                                'Upload'
+                              )}
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                     <div className="text-center">
                       <h3 className="font-medium text-lg">
@@ -304,12 +464,12 @@ const Profile: React.FC = () => {
                   <CardContent>
                     <div className="space-y-6">
                       <div>
-                        <h4 className="text-sm font-medium text-gray-500 mb-2">Email Address</h4>
-                        <p>{user?.email}</p>
-                      </div>
-                      <div>
                         <h4 className="text-sm font-medium text-gray-500 mb-2">Name</h4>
                         <p>{user?.user_metadata?.first_name || 'Not provided'} {user?.user_metadata?.last_name || ''}</p>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-500 mb-2">Email Address</h4>
+                        <p>{user?.email}</p>
                       </div>
                       <div className="pt-8 flex flex-wrap gap-4">
                         <Dialog open={isPasswordOpen} onOpenChange={setIsPasswordOpen}>

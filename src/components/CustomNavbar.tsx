@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -7,7 +8,8 @@ import {
   Heart, 
   Search, 
   UserCircle,
-  LogIn
+  LogIn,
+  Cat
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -73,7 +75,9 @@ const CustomNavbar: React.FC = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <img src="/logo.svg" alt="Meow Rescue" className="h-10 w-10" />
+            <div className="bg-meow-primary rounded-full p-2">
+              <Cat className="h-6 w-6 text-white" />
+            </div>
             <span className="font-bold text-xl">
               <span className="text-meow-primary">Meow</span>
               <span className="text-meow-secondary">Rescue</span>
@@ -119,7 +123,7 @@ const CustomNavbar: React.FC = () => {
                       Profile
                     </Link>
                   </DropdownMenuItem>
-                  {user.user_metadata?.role === 'admin' && (
+                  {(user.user_metadata?.role === 'admin' || user.email?.endsWith('@meowrescue.org')) && (
                     <DropdownMenuItem asChild>
                       <Link to="/admin" className="w-full cursor-pointer">
                         Admin Dashboard

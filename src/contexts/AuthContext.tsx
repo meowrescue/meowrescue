@@ -22,6 +22,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [hasShownWelcomeMessage, setHasShownWelcomeMessage] = useState<boolean>(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,13 +32,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
 
-        if (event === 'SIGNED_IN') {
+        if (event === 'SIGNED_IN' && !hasShownWelcomeMessage) {
           setTimeout(() => {
             toast({
               title: "Welcome",
               description: "You have successfully signed in.",
               duration: 3000,
             });
+            setHasShownWelcomeMessage(true);
           }, 0);
         } else if (event === 'SIGNED_OUT') {
           setTimeout(() => {
@@ -46,6 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               description: "You have been signed out.",
               duration: 3000,
             });
+            setHasShownWelcomeMessage(false);
           }, 0);
         }
       }
@@ -61,7 +64,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [hasShownWelcomeMessage]);
+
+  // Check if email ends with @meowrescue.org and update user metadata if needed
+  useEffect(() => {
+    const updateUserRole = async () => {
+      if (user && user.email && user.email.endsWith('@meowrescue.org') && user.user_metadata?.role !== 'admin') {
+        try {
+          await supabase.auth.updateUser({
+            data: {
+              role: 'admin'
+            }
+          });
+        } catch (error) {
+          console.error('Error updating user role:', error);
+        }
+      }
+    };
+
+    if (user) {
+      updateUserRole();
+    }
+  }, [user]);
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -96,6 +120,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           data: {
             first_name: firstName,
             last_name: lastName,
+            role: email.endsWith('@meowrescue.org') ? 'admin' : 'user'
           }
         }
       });

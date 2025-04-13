@@ -11,8 +11,7 @@ import {
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarTrigger
+  SidebarMenuButton
 } from '@/components/ui/sidebar';
 import { 
   Home,
@@ -49,11 +48,13 @@ const AdminNavbar: React.FC = () => {
   };
 
   return (
-    <Sidebar>
+    <Sidebar defaultCollapsed={false} collapsible={false}>
       <SidebarHeader className="border-b mb-0 pb-0">
-        <div className="flex items-center justify-between p-4">
-          <Link to="/admin" className="flex items-center gap-2">
-            <img src="/logo.svg" alt="Meow Rescue Logo" className="h-8" />
+        <div className="flex items-center p-4">
+          <Link to="/" className="flex items-center gap-2">
+            <div className="bg-meow-primary rounded-full p-2">
+              <Cat className="h-6 w-6 text-white" />
+            </div>
             <div>
               <span className="font-bold text-xl">
                 <span className="text-meow-primary">Meow</span>
@@ -62,7 +63,6 @@ const AdminNavbar: React.FC = () => {
               <span className="text-xs block text-gray-500">Admin Dashboard</span>
             </div>
           </Link>
-          <SidebarTrigger />
         </div>
       </SidebarHeader>
 
