@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import SEO from '@/components/SEO';
@@ -6,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -215,12 +217,10 @@ const VolunteerForm: React.FC = () => {
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                       <FormControl>
-                        <input
-                          type="checkbox"
-                          className="flex h-5 w-5 shrink-0 rounded-sm border accent-meow-primary focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 peer data-[state=checked]:bg-meow-primary data-[state=checked]:text-primary-foreground"
-                          id="terms"
+                        <Checkbox
                           checked={field.value}
                           onCheckedChange={field.onChange}
+                          id="terms"
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">

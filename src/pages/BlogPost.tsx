@@ -44,7 +44,7 @@ const BlogPost: React.FC = () => {
       <SEO 
         title={post ? `${post.title} | Meow Rescue Blog` : 'Blog Post | Meow Rescue'} 
         description={post ? post.content.substring(0, 160).replace(/<[^>]*>/g, '') : 'Read our latest blog post'}
-        ogImage={post?.featured_image_url}
+        image={post?.featured_image_url}
       />
       
       {isLoading ? (

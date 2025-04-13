@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Heart, ArrowLeft, Calendar, MapPin, Users } from 'lucide-react';
@@ -137,8 +136,8 @@ const CatDetail: React.FC = () => {
       <SEO 
         title={`Meet ${cat.name} - Adoptable Cat`} 
         description={metaDescription}
-        ogType="profile"
-        ogImage={cat.photos_urls[0] || '/placeholder.svg'}
+        type="profile"
+        image={cat.photos_urls[0] || '/placeholder.svg'}
       />
 
       <div className="container mx-auto px-4 py-12">
