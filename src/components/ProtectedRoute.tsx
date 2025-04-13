@@ -28,7 +28,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/login" />;
   }
 
-  // If admin access required, check user role
+  // If admin access required, check user email domain
   if (requireAdmin && !user.email?.endsWith('@meowrescue.org')) {
     return <Navigate to="/" />;
   }

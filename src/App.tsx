@@ -62,6 +62,7 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <Routes>
+              {/* Public Routes */}
               <Route path="/" element={<Index />} />
               <Route path="/about" element={<About />} />
               <Route path="/cats" element={<Cats />} />
@@ -84,15 +85,15 @@ const App = () => (
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-of-service" element={<TermsOfService />} />
+              <Route path="/lost-found" element={<LostFound />} />
+              <Route path="/lost-found/:id" element={<LostFoundDetail />} />
+              
+              {/* Protected Routes (requires login) */}
               <Route path="/profile" element={
                 <ProtectedRoute>
                   <Profile />
                 </ProtectedRoute>
               } />
-              
-              {/* Lost & Found Routes */}
-              <Route path="/lost-found" element={<LostFound />} />
-              <Route path="/lost-found/:id" element={<LostFoundDetail />} />
               <Route path="/lost-found/new" element={
                 <ProtectedRoute>
                   <LostFoundForm />
@@ -104,26 +105,94 @@ const App = () => (
                 </ProtectedRoute>
               } />
               
-              {/* Admin Routes */}
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/cats" element={<AdminCats />} />
-              <Route path="/admin/cats/new" element={<AdminCatForm />} />
-              <Route path="/admin/cats/edit/:id" element={<AdminCatForm />} />
-              <Route path="/admin/users" element={<AdminUsers />} />
-              <Route path="/admin/finance" element={<AdminFinance />} />
-              <Route path="/admin/pages" element={<AdminPages />} />
-              <Route path="/admin/blog" element={<AdminBlog />} />
-              <Route path="/admin/blog/new" element={<AdminBlogForm />} />
-              <Route path="/admin/blog/edit/:id" element={<AdminBlogForm />} />
-              <Route path="/admin/events" element={<AdminEvents />} />
-              <Route path="/admin/lost-found" element={<AdminLostFound />} />
-              <Route path="/admin/messages" element={<AdminMessages />} />
-              <Route path="/admin/chat" element={<AdminChat />} />
-              <Route path="/admin/security" element={<AdminSecurity />} />
-              <Route path="/admin/settings" element={<AdminSettings />} />
-              <Route path="/admin/applications" element={<AdminApplications />} />
+              {/* Admin Routes (requires admin login) */}
+              <Route path="/admin" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/cats" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminCats />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/cats/new" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminCatForm />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/cats/edit/:id" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminCatForm />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/users" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminUsers />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/finance" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminFinance />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/pages" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminPages />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/blog" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminBlog />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/blog/new" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminBlogForm />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/blog/edit/:id" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminBlogForm />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/events" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminEvents />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/lost-found" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminLostFound />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/messages" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminMessages />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/chat" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminChat />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/security" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminSecurity />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/settings" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminSettings />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/applications" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminApplications />
+                </ProtectedRoute>
+              } />
               
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              {/* Catch-all route for 404 */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>
