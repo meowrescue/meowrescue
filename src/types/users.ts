@@ -15,8 +15,8 @@ export interface User {
   zip: string | null;
   bio: string | null;
   is_active: boolean;
-  role_title?: string | null;
-  show_in_team?: boolean;
+  role_title: string | null;
+  show_in_team: boolean;
 }
 
 export interface ExtendedUser extends User {
