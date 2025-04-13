@@ -46,7 +46,7 @@ import AdminForum from "./pages/AdminForum";
 import AdminPages from "./pages/AdminPages";
 import AdminEvents from "./pages/AdminEvents";
 import AdminLostFound from "./pages/AdminLostFound";
-import AdminAnalytics from "./pages/AdminAnalytics";
+import AdminMessages from "./pages/AdminMessages";
 import AdminSecurity from "./pages/AdminSecurity";
 import AdminSettings from "./pages/AdminSettings";
 
@@ -128,7 +128,7 @@ const App = () => (
               <Route path="/admin/blog/edit/:id" element={<AdminBlogForm />} />
               <Route path="/admin/events" element={<AdminEvents />} />
               <Route path="/admin/lost-found" element={<AdminLostFound />} />
-              <Route path="/admin/analytics" element={<AdminAnalytics />} />
+              <Route path="/admin/messages" element={<AdminMessages />} />
               <Route path="/admin/security" element={<AdminSecurity />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
               

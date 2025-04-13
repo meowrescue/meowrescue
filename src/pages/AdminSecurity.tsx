@@ -1,497 +1,185 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { 
-  ShieldCheck, 
-  User, 
-  Lock, 
-  Key, 
-  Mail, 
-  AlertTriangle, 
-  LogIn, 
-  LogOut, 
-  Edit, 
-  FileText, 
-  PenSquare,
-  MessageSquare
-} from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Search } from 'lucide-react';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { supabase } from '@/integrations/supabase/client';
 import SEO from '@/components/SEO';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface ActivityLog {
   id: string;
-  activity_type: string;
-  user_id: string;
-  user_email?: string;
+  user_id: string | null;
   description: string;
-  ip_address?: string;
+  activity_type: string;
   created_at: string;
-  metadata?: any;
+  ip_address: string | null;
+  user_email?: string;
+  user_name?: string;
 }
 
 const AdminSecurity: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  
+  const [activityFilter, setActivityFilter] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const pageSize = 20;
+
   // Fetch activity logs
-  const { data: activityLogs, isLoading, error } = useQuery({
-    queryKey: ['activity-logs'],
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['activity-logs', page, activityFilter],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase
+        let query = supabase
           .from('activity_logs')
-          .select(`
-            *,
-            profiles:user_id (
-              email,
-              first_name,
-              last_name
-            )
-          `)
-          .order('created_at', { ascending: false });
+          .select('*, profiles!activity_logs_user_id_fkey(email, first_name, last_name)')
+          .order('created_at', { ascending: false })
+          .range((page - 1) * pageSize, page * pageSize - 1);
+          
+        if (activityFilter) {
+          query = query.eq('activity_type', activityFilter);
+        }
+        
+        const { data, error } = await query;
         
         if (error) throw error;
         
-        // Format the data with user emails
         return data.map(log => ({
           ...log,
-          user_email: log.profiles?.email || 'Anonymous',
-          user_name: log.profiles?.first_name && log.profiles?.last_name ? 
-            `${log.profiles.first_name} ${log.profiles.last_name}` : 
-            (log.profiles?.email || 'Anonymous')
+          user_email: log.profiles?.email || 'System',
+          user_name: log.profiles ? `${log.profiles.first_name || ''} ${log.profiles.last_name || ''}`.trim() : 'System'
         })) as ActivityLog[];
-      } catch (error) {
-        console.error("Error fetching activity logs:", error);
-        return [] as ActivityLog[];
+      } catch (err) {
+        console.error('Error fetching activity logs:', err);
+        throw err;
       }
     }
   });
-  
-  // Get the right icon based on activity type
-  const getActivityIcon = (activityType: string) => {
-    switch (activityType.toLowerCase()) {
-      case 'login':
-        return <LogIn className="h-4 w-4 text-blue-600" />;
-      case 'logout':
-        return <LogOut className="h-4 w-4 text-gray-600" />;
-      case 'registration':
-        return <User className="h-4 w-4 text-green-600" />;
-      case 'password_change':
-        return <Lock className="h-4 w-4 text-yellow-600" />;
-      case 'password_reset':
-        return <Key className="h-4 w-4 text-orange-600" />;
-      case 'profile_update':
-        return <Edit className="h-4 w-4 text-purple-600" />;
-      case 'post_created':
-        return <PenSquare className="h-4 w-4 text-indigo-600" />;
-      case 'post_updated':
-        return <FileText className="h-4 w-4 text-cyan-600" />;
-      case 'comment_created':
-        return <MessageSquare className="h-4 w-4 text-pink-600" />;
-      case 'failed_login':
-        return <AlertTriangle className="h-4 w-4 text-red-600" />;
-      default:
-        return <AlertTriangle className="h-4 w-4 text-gray-600" />;
-    }
-  };
-  
-  // Get background color based on activity type
-  const getActivityBgColor = (activityType: string) => {
-    switch (activityType.toLowerCase()) {
-      case 'login':
-        return 'bg-blue-100';
-      case 'logout':
-        return 'bg-gray-100';
-      case 'registration':
-        return 'bg-green-100';
-      case 'password_change':
-      case 'password_reset':
-        return 'bg-yellow-100';
-      case 'profile_update':
-        return 'bg-purple-100';
-      case 'post_created':
-      case 'post_updated':
-        return 'bg-indigo-100';
-      case 'comment_created':
-        return 'bg-pink-100';
-      case 'failed_login':
-        return 'bg-red-100';
-      default:
-        return 'bg-gray-100';
-    }
-  };
-  
-  // Filter activity logs based on search query
-  const filteredLogs = activityLogs?.filter(log => 
-    log.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    log.user_email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    log.activity_type?.toLowerCase().includes(searchQuery.toLowerCase())
+
+  // Filter logs based on search query
+  const filteredLogs = data?.filter(log =>
+    log.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (log.user_email && log.user_email.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (log.user_name && log.user_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    log.activity_type.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Get unique activity types for the filter
+  const activityTypes = React.useMemo(() => {
+    if (!data) return [];
+    
+    const types = new Set<string>();
+    data.forEach(log => types.add(log.activity_type));
+    return Array.from(types).sort();
+  }, [data]);
 
   return (
     <AdminLayout title="Security">
       <SEO title="Security | Meow Rescue Admin" />
       
       <div className="container mx-auto py-10">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-meow-primary">Security</h1>
-          <Button variant="outline">
-            <ShieldCheck className="mr-2 h-4 w-4" />
-            Run Security Check
-          </Button>
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle>Security Overview</CardTitle>
-              <CardDescription>Current status of system security</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="bg-green-100 text-green-600 p-2 rounded-full">
-                      <ShieldCheck className="h-4 w-4" />
-                    </div>
-                    <span>Last security check</span>
-                  </div>
-                  <span className="text-sm font-medium">April 13, 2025</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="bg-green-100 text-green-600 p-2 rounded-full">
-                      <User className="h-4 w-4" />
-                    </div>
-                    <span>User authentication</span>
-                  </div>
-                  <span className="text-sm text-green-600 font-medium">Secure</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="bg-green-100 text-green-600 p-2 rounded-full">
-                      <Lock className="h-4 w-4" />
-                    </div>
-                    <span>Data encryption</span>
-                  </div>
-                  <span className="text-sm text-green-600 font-medium">Enabled</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="bg-yellow-100 text-yellow-600 p-2 rounded-full">
-                      <Key className="h-4 w-4" />
-                    </div>
-                    <span>Two-factor authentication</span>
-                  </div>
-                  <span className="text-sm text-yellow-600 font-medium">Optional</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="bg-red-100 text-red-600 p-2 rounded-full">
-                      <AlertTriangle className="h-4 w-4" />
-                    </div>
-                    <span>Weak admin passwords</span>
-                  </div>
-                  <span className="text-sm text-red-600 font-medium">3 users</span>
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button variant="ghost">View Details</Button>
-              <Button>Fix Security Issues</Button>
-            </CardFooter>
-          </Card>
+        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+          <h1 className="text-3xl font-bold text-meow-primary">Activity Logs</h1>
           
-          <Card>
-            <CardHeader>
-              <CardTitle>Security Settings</CardTitle>
-              <CardDescription>Configure security options</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Login Rate Limiting</label>
-                  <Switch checked={true} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Email Verification</label>
-                  <Switch checked={true} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Require Strong Passwords</label>
-                  <Switch checked={true} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Session Timeout (30 min)</label>
-                  <Switch checked={true} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Require 2FA for Admins</label>
-                  <Switch checked={false} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        
-        <Tabs defaultValue="all">
-          <div className="flex justify-between items-center mb-6">
-            <TabsList>
-              <TabsTrigger value="all">All Activity</TabsTrigger>
-              <TabsTrigger value="login">Logins</TabsTrigger>
-              <TabsTrigger value="posts">Posts</TabsTrigger>
-              <TabsTrigger value="comments">Comments</TabsTrigger>
-              <TabsTrigger value="security">Security Events</TabsTrigger>
-            </TabsList>
+          <div className="flex items-center gap-4 w-full md:w-auto">
+            <div className="relative w-full md:w-auto">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search logs..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 w-full md:w-64"
+              />
+            </div>
             
-            <Input
-              placeholder="Search activities..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="max-w-sm"
-            />
+            <Select
+              value={activityFilter || ''}
+              onValueChange={(value) => setActivityFilter(value === '' ? null : value)}
+            >
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="All activities" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All activities</SelectItem>
+                {activityTypes.map(type => (
+                  <SelectItem key={type} value={type}>{type}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          
-          <TabsContent value="all">
-            <Card>
-              <CardHeader>
-                <CardTitle>User Activity Log</CardTitle>
-                <CardDescription>All user activity in the system</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <div className="flex justify-center py-12">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
-                  </div>
-                ) : error ? (
-                  <div className="text-center py-12">
-                    <p className="text-red-500">Error loading activity logs. Please try again later.</p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableCaption>A list of all user activities in the system.</TableCaption>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Date & Time</TableHead>
-                          <TableHead>User</TableHead>
-                          <TableHead>Activity</TableHead>
-                          <TableHead>Description</TableHead>
-                          <TableHead>IP Address</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredLogs?.length > 0 ? (
-                          filteredLogs.map((log) => (
-                            <TableRow key={log.id}>
-                              <TableCell>
-                                {new Date(log.created_at).toLocaleDateString()} {new Date(log.created_at).toLocaleTimeString()}
-                              </TableCell>
-                              <TableCell>{log.user_email}</TableCell>
-                              <TableCell>
-                                <Badge className={`flex items-center gap-1 ${getActivityBgColor(log.activity_type)} text-gray-800`}>
-                                  {getActivityIcon(log.activity_type)}
-                                  {log.activity_type.replace('_', ' ')}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>{log.description}</TableCell>
-                              <TableCell>{log.ip_address || 'Unknown'}</TableCell>
-                            </TableRow>
-                          ))
-                        ) : (
-                          <TableRow>
-                            <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                              No activity logs found.
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
-              </CardContent>
-              <CardFooter>
-                <Button variant="outline" className="w-full">Load More</Button>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="login">
-            <Card>
-              <CardHeader>
-                <CardTitle>Login Activity</CardTitle>
-                <CardDescription>User login and logout events</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date & Time</TableHead>
-                        <TableHead>User</TableHead>
-                        <TableHead>Activity</TableHead>
-                        <TableHead>IP Address</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredLogs?.filter(log => 
-                        ['login', 'logout', 'failed_login'].includes(log.activity_type.toLowerCase())
-                      ).map((log) => (
-                        <TableRow key={log.id}>
-                          <TableCell>
-                            {new Date(log.created_at).toLocaleDateString()} {new Date(log.created_at).toLocaleTimeString()}
-                          </TableCell>
-                          <TableCell>{log.user_email}</TableCell>
-                          <TableCell>
-                            <Badge className={`flex items-center gap-1 ${getActivityBgColor(log.activity_type)} text-gray-800`}>
-                              {getActivityIcon(log.activity_type)}
-                              {log.activity_type.replace('_', ' ')}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{log.ip_address || 'Unknown'}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+        </div>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>User Activity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="flex justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
+              </div>
+            ) : error ? (
+              <div className="text-center py-12">
+                <p className="text-red-500">Error loading activity logs. Please try again later.</p>
+                <Button 
+                  variant="outline" 
+                  className="mt-4"
+                  onClick={() => refetch()}
+                >
+                  Try Again
+                </Button>
+              </div>
+            ) : filteredLogs && filteredLogs.length > 0 ? (
+              <>
+                <div className="space-y-4">
+                  {filteredLogs.map(log => (
+                    <div key={log.id} className="border-b pb-4 last:border-b-0">
+                      <div className="flex flex-col md:flex-row justify-between mb-1">
+                        <span className="font-semibold">{log.user_name || 'Unknown User'}</span>
+                        <span className="text-sm text-gray-500">{new Date(log.created_at).toLocaleString()}</span>
+                      </div>
+                      <p className="text-gray-800">{log.description}</p>
+                      <div className="flex justify-between mt-1 text-sm">
+                        <span className="text-meow-primary">{log.activity_type}</span>
+                        {log.ip_address && <span className="text-gray-500">IP: {log.ip_address}</span>}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="posts">
-            <Card>
-              <CardHeader>
-                <CardTitle>Post Activity</CardTitle>
-                <CardDescription>Post creation and updates</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date & Time</TableHead>
-                        <TableHead>User</TableHead>
-                        <TableHead>Activity</TableHead>
-                        <TableHead>Description</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredLogs?.filter(log => 
-                        ['post_created', 'post_updated'].includes(log.activity_type.toLowerCase())
-                      ).map((log) => (
-                        <TableRow key={log.id}>
-                          <TableCell>
-                            {new Date(log.created_at).toLocaleDateString()} {new Date(log.created_at).toLocaleTimeString()}
-                          </TableCell>
-                          <TableCell>{log.user_email}</TableCell>
-                          <TableCell>
-                            <Badge className={`flex items-center gap-1 ${getActivityBgColor(log.activity_type)} text-gray-800`}>
-                              {getActivityIcon(log.activity_type)}
-                              {log.activity_type.replace('_', ' ')}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{log.description}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                
+                <div className="flex justify-between items-center mt-6">
+                  <Button
+                    variant="outline"
+                    onClick={() => setPage(prev => Math.max(prev - 1, 1))}
+                    disabled={page === 1}
+                  >
+                    Previous
+                  </Button>
+                  <span className="text-sm text-gray-500">Page {page}</span>
+                  <Button
+                    variant="outline"
+                    onClick={() => setPage(prev => prev + 1)}
+                    disabled={!data || data.length < pageSize}
+                  >
+                    Next
+                  </Button>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="comments">
-            <Card>
-              <CardHeader>
-                <CardTitle>Comment Activity</CardTitle>
-                <CardDescription>Comment creation and interactions</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date & Time</TableHead>
-                        <TableHead>User</TableHead>
-                        <TableHead>Activity</TableHead>
-                        <TableHead>Description</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredLogs?.filter(log => 
-                        ['comment_created'].includes(log.activity_type.toLowerCase())
-                      ).map((log) => (
-                        <TableRow key={log.id}>
-                          <TableCell>
-                            {new Date(log.created_at).toLocaleDateString()} {new Date(log.created_at).toLocaleTimeString()}
-                          </TableCell>
-                          <TableCell>{log.user_email}</TableCell>
-                          <TableCell>
-                            <Badge className={`flex items-center gap-1 ${getActivityBgColor(log.activity_type)} text-gray-800`}>
-                              {getActivityIcon(log.activity_type)}
-                              {log.activity_type.replace('_', ' ')}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{log.description}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="security">
-            <Card>
-              <CardHeader>
-                <CardTitle>Security Events</CardTitle>
-                <CardDescription>Password changes, password resets, and other security-related events</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date & Time</TableHead>
-                        <TableHead>User</TableHead>
-                        <TableHead>Activity</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead>IP Address</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredLogs?.filter(log => 
-                        ['password_change', 'password_reset', 'failed_login'].includes(log.activity_type.toLowerCase())
-                      ).map((log) => (
-                        <TableRow key={log.id}>
-                          <TableCell>
-                            {new Date(log.created_at).toLocaleDateString()} {new Date(log.created_at).toLocaleTimeString()}
-                          </TableCell>
-                          <TableCell>{log.user_email}</TableCell>
-                          <TableCell>
-                            <Badge className={`flex items-center gap-1 ${getActivityBgColor(log.activity_type)} text-gray-800`}>
-                              {getActivityIcon(log.activity_type)}
-                              {log.activity_type.replace('_', ' ')}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{log.description}</TableCell>
-                          <TableCell>{log.ip_address || 'Unknown'}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+              </>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-gray-500">No activity logs found.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </AdminLayout>
   );

@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { PlusCircle, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -12,10 +12,21 @@ import { LostFoundPost } from '@/types/supabase';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const AdminLostFound: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   // Fetch lost and found posts
   const { data: posts, isLoading, error, refetch } = useQuery({
@@ -48,12 +59,14 @@ const AdminLostFound: React.FC = () => {
     post.location.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleDeletePost = async (id: string) => {
+  const handleDeletePost = async () => {
+    if (!deleteId) return;
+    
     try {
       const { error } = await supabase
         .from('lost_found_posts')
         .delete()
-        .eq('id', id);
+        .eq('id', deleteId);
         
       if (error) throw error;
       
@@ -69,6 +82,8 @@ const AdminLostFound: React.FC = () => {
         description: err.message || "Failed to delete post",
         variant: "destructive"
       });
+    } finally {
+      setDeleteId(null);
     }
   };
 
@@ -89,12 +104,6 @@ const AdminLostFound: React.FC = () => {
                 className="pl-10 w-full md:w-64"
               />
             </div>
-            <Link to="/lost-found/new">
-              <Button>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add Post
-              </Button>
-            </Link>
           </div>
         </div>
         
@@ -152,7 +161,7 @@ const AdminLostFound: React.FC = () => {
                         variant="ghost" 
                         size="sm" 
                         className="text-red-500 hover:text-red-700"
-                        onClick={() => handleDeletePost(post.id)}
+                        onClick={() => setDeleteId(post.id)}
                       >
                         Delete
                       </Button>
@@ -167,18 +176,29 @@ const AdminLostFound: React.FC = () => {
             <div className="text-center py-12">
               <h2 className="text-2xl font-semibold text-gray-700 mb-4">No Lost & Found Posts</h2>
               <p className="text-gray-500 mb-8">
-                There are no lost and found posts in the database. You can add a new post using the button above.
+                There are no lost and found posts in the database yet. Posts created on the public site will appear here for moderation.
               </p>
-              <Link to="/lost-found/new">
-                <Button>
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Create New Post
-                </Button>
-              </Link>
             </div>
           </div>
         )}
       </div>
+
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this post?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the lost & found post from the database.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeletePost} className="bg-red-500 hover:bg-red-600">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 };

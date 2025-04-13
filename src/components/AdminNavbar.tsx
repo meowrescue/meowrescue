@@ -24,7 +24,7 @@ import {
   BarChart3,
   ShieldCheck,
   LogOut,
-  Bell,
+  Mail,
   PenSquare
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -109,10 +109,10 @@ const AdminNavbar: React.FC = () => {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild className={isActive('/admin/forum') ? 'bg-meow-primary/10 text-meow-primary font-medium' : ''}>
-                  <Link to="/admin/forum">
-                    <MessageSquare size={18} />
-                    <span>Forum</span>
+                <SidebarMenuButton asChild className={isActive('/admin/messages') ? 'bg-meow-primary/10 text-meow-primary font-medium' : ''}>
+                  <Link to="/admin/messages">
+                    <Mail size={18} />
+                    <span>Messages</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -148,6 +148,14 @@ const AdminNavbar: React.FC = () => {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild className={isActive('/admin/forum') ? 'bg-meow-primary/10 text-meow-primary font-medium' : ''}>
+                  <Link to="/admin/forum">
+                    <MessageSquare size={18} />
+                    <span>Forum</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -156,14 +164,6 @@ const AdminNavbar: React.FC = () => {
           <SidebarGroupLabel>System</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild className={isActive('/admin/analytics') ? 'bg-meow-primary/10 text-meow-primary font-medium' : ''}>
-                  <Link to="/admin/analytics">
-                    <BarChart3 size={18} />
-                    <span>Analytics</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild className={isActive('/admin/security') ? 'bg-meow-primary/10 text-meow-primary font-medium' : ''}>
                   <Link to="/admin/security">

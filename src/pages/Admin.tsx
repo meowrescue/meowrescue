@@ -14,8 +14,8 @@ interface AdminLayoutProps {
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title = "Admin Dashboard" }) => {
   const { user, isLoading } = useAuth();
   
-  // Check if the user has admin role or @meowrescue.org email
-  const isAdmin = user?.user_metadata?.role === 'admin' || user?.email === 'patrick@meowrescue.org' || user?.email?.endsWith('@meowrescue.org');
+  // Check if the user has @meowrescue.org email
+  const isAdmin = user?.email?.endsWith('@meowrescue.org');
   
   if (isLoading) {
     return (

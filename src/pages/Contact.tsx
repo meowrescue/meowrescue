@@ -12,7 +12,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Map, MessageCircle, Mail, Phone, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import NetlifyFormHiddenInput from '@/components/NetlifyFormHiddenInput';
 import { supabase } from '@/integrations/supabase/client';
 
 const formSchema = z.object({
@@ -96,9 +95,7 @@ const Contact = () => {
               </CardHeader>
               <CardContent>
                 <Form {...form}>
-                  <form id="contact-form" name="contact" method="POST" data-netlify="true" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                    <NetlifyFormHiddenInput formName="contact" />
-                    
+                  <form id="contact-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                     <FormField
                       control={form.control}
                       name="name"
