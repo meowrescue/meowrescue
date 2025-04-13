@@ -12,22 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
-
-interface ActivityLog {
-  id: string;
-  user_id: string;
-  description: string;
-  activity_type: string;
-  created_at: string;
-  ip_address: string | null;
-  metadata: any | null;
-  profiles?: {
-    email: string;
-    first_name: string | null;
-    last_name: string | null;
-    role: string;
-  };
-}
+import { ActivityLog } from '@/types/activity';
 
 const AdminSecurity: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -63,9 +48,9 @@ const AdminSecurity: React.FC = () => {
 
   // Filter logs based on search query
   const filteredLogs = activityLogs?.filter(log =>
-    log.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    log.activity_type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    log.profiles?.email.toLowerCase().includes(searchQuery.toLowerCase())
+    log.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    log.activity_type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    log.profiles?.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const getActivityTypeColor = (type: string) => {

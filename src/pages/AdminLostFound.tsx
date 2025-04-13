@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -53,27 +52,44 @@ const AdminLostFound: React.FC = () => {
     queryKey: ['admin-lost-found-posts'],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase
+        // First fetch the posts
+        const { data: postsData, error: postsError } = await supabase
           .from('lost_found_posts')
-          .select(`
-            *,
-            profiles(email, first_name, last_name)
-          `)
+          .select('*')
           .order('created_at', { ascending: false });
           
-        if (error) throw error;
+        if (postsError) throw postsError;
         
-        // Check if we got a valid result and convert to appropriate type
-        const typedData = data?.map(post => ({
-          ...post,
-          profiles: post.profiles || {
-            email: 'Unknown',
-            first_name: null,
-            last_name: null
+        // Then fetch profile data separately and combine it
+        const enhancedPosts = await Promise.all(postsData.map(async post => {
+          if (post.profile_id) {
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('email, first_name, last_name')
+              .eq('id', post.profile_id)
+              .single();
+              
+            return {
+              ...post,
+              profiles: profileData || {
+                email: 'Unknown',
+                first_name: null,
+                last_name: null
+              }
+            };
           }
-        })) as LostFoundPost[];
+          
+          return {
+            ...post,
+            profiles: {
+              email: 'Unknown',
+              first_name: null,
+              last_name: null
+            }
+          };
+        }));
         
-        return typedData;
+        return enhancedPosts as LostFoundPost[];
       } catch (err: any) {
         console.error("Error fetching lost and found posts:", err);
         toast({

@@ -57,21 +57,35 @@ const AdminBlog: React.FC = () => {
 
       if (error) throw error;
 
+      // Log activity
+      await supabase.from('activity_logs').insert({
+        user_id: (await supabase.auth.getUser()).data.user?.id,
+        activity_type: 'Delete',
+        description: 'Deleted blog post',
+      });
+
       toast({
         title: 'Success',
         description: 'Blog post deleted successfully',
       });
       
-      refetch();
+      // Close dialog first, then refetch to prevent UI locking
+      setIsDeleteAlertOpen(false);
+      setPostToDelete(null);
+      
+      // Use setTimeout to ensure the dialog is properly closed before refetching
+      setTimeout(() => {
+        refetch();
+      }, 100);
+      
     } catch (error: any) {
       toast({
         title: 'Error',
         description: error.message || 'Failed to delete blog post',
         variant: 'destructive',
       });
-    } finally {
-      setPostToDelete(null);
       setIsDeleteAlertOpen(false);
+      setPostToDelete(null);
     }
   };
 

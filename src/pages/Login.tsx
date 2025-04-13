@@ -1,131 +1,117 @@
-
-import React from 'react';
-import { z } from 'zod';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Link } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import Layout from '@/components/Layout';
-import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import * as z from 'zod';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import Layout from '@/components/Layout';
 import SEO from '@/components/SEO';
 
-// Form schema
-const loginSchema = z.object({
-  email: z.string().email({ message: 'Please enter a valid email address' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
+const formSchema = z.object({
+  email: z.string().email({
+    message: "Please enter a valid email address.",
+  }),
+  password: z.string().min(8, {
+    message: "Password must be at least 8 characters.",
+  }),
 });
 
-type LoginFormValues = z.infer<typeof loginSchema>;
-
 const Login: React.FC = () => {
-  const { signIn, isLoading } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
-      email: '',
-      password: '',
+      email: "",
+      password: "",
     },
   });
 
-  const onSubmit = async (values: LoginFormValues) => {
-    await signIn(values.email, values.password);
+  const handleLogin = async (values: z.infer<typeof formSchema>) => {
+    setIsLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: values.email,
+        password: values.password,
+      });
+      
+      if (error) throw error;
+      
+      // Log activity
+      await supabase.from('activity_logs').insert({
+        user_id: (await supabase.auth.getUser()).data.user?.id,
+        activity_type: 'Login',
+        description: 'User logged in',
+        ip_address: '127.0.0.1', // This would ideally be the actual IP
+      });
+      
+      // Redirect to admin dashboard after successful login
+      navigate('/admin');
+      
+    } catch (error: any) {
+      toast({
+        title: "Login Failed",
+        description: error.message || "There was a problem with your login.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <Layout>
-      <SEO 
-        title="Sign In" 
-        description="Sign in to your Meow Rescue account to manage your profile, track your adoption applications, and more."
-      />
-      
-      <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
-          <div>
-            <h1 className="text-center text-3xl font-extrabold text-meow-primary">
-              Sign in to your account
-            </h1>
-            <p className="mt-2 text-center text-sm text-gray-600">
-              Or{' '}
-              <Link to="/register" className="font-medium text-meow-secondary hover:text-meow-secondary/80">
-                create a new account
-              </Link>
-            </p>
-          </div>
-
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="you@example.com" 
-                        {...field} 
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="password" 
-                        placeholder="••••••••" 
-                        {...field} 
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="flex items-center justify-between">
-                <div className="text-sm">
-                  <Link to="/reset-password" className="font-medium text-meow-secondary hover:text-meow-secondary/80">
-                    Forgot your password?
-                  </Link>
-                </div>
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full bg-meow-primary hover:bg-meow-primary/90"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <span className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
-                    Signing in...
-                  </div>
-                ) : (
-                  'Sign in'
-                )}
-              </Button>
-            </form>
-          </Form>
-        </div>
+      <SEO title="Login | Meow Rescue Admin" />
+      <div className="flex items-center justify-center h-screen bg-gray-100">
+        <Card className="w-full max-w-md p-4">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold text-center">Admin Login</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(handleLogin)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <Label>Email</Label>
+                      <FormControl>
+                        <Input placeholder="admin@example.com" {...field} type="email" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <Label>Password</Label>
+                      <FormControl>
+                        <Input placeholder="Password" {...field} type="password" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button disabled={isLoading} className="w-full" type="submit">
+                  {isLoading ? "Logging in..." : "Login"}
+                </Button>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
       </div>
     </Layout>
   );

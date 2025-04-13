@@ -12,7 +12,6 @@ import {
   Settings, 
   Menu, 
   Lock,
-  MessagesSquare,
   Search,
   ClipboardList
 } from 'lucide-react';
@@ -37,7 +36,6 @@ const AdminNavbar: React.FC = () => {
     { path: '/admin/messages', label: 'Messages', icon: <MessageSquare size={20} /> },
     { path: '/admin/lost-found', label: 'Lost & Found', icon: <Search size={20} /> },
     { path: '/admin/blog', label: 'Blog', icon: <FileText size={20} /> },
-    { path: '/admin/forum', label: 'Forum', icon: <MessagesSquare size={20} /> },
     { path: '/admin/security', label: 'Security', icon: <Lock size={20} /> },
     { path: '/admin/settings', label: 'Settings', icon: <Settings size={20} /> },
   ];

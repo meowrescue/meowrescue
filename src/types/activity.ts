@@ -8,4 +8,10 @@ export interface ActivityLog {
   ip_address?: string;
   created_at: string;
   metadata?: any;
+  profiles?: {
+    first_name?: string;
+    last_name?: string;
+    email?: string;
+    role?: string;
+  };
 }

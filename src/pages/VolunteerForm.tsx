@@ -1,14 +1,46 @@
-
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import SEO from '@/components/SEO';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
-import { ArrowLeft } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
-const VolunteerForm: React.FC = () => {
+// Define the form schema
+const formSchema = z.object({
+  firstName: z.string().min(2, { message: 'First name must be at least 2 characters.' }),
+  lastName: z.string().min(2, { message: 'Last name must be at least 2 characters.' }),
+  email: z.string().email({ message: 'Please enter a valid email address.' }),
+  phone: z.string().min(10, { message: 'Phone number must be at least 10 digits.' }),
+  address: z.string().min(5, { message: 'Address must be at least 5 characters.' }),
+  city: z.string().min(2, { message: 'City must be at least 2 characters.' }),
+  state: z.string().min(2, { message: 'State must be at least 2 characters.' }),
+  zip: z.string().min(5, { message: 'Zip code must be at least 5 digits.' }),
+  availability: z.string().min(10, { message: 'Availability must be at least 10 characters.' }),
+  interests: z.string().min(10, { message: 'Interests must be at least 10 characters.' }),
+  experience: z.string().optional(),
+  agreement: z.boolean().refine((val) => val === true, {
+    message: 'You must agree to the terms and conditions.',
+  }),
+  backgroundCheck: z.boolean().refine((val) => val === true, {
+    message: 'You must consent to a background check.',
+  }),
+  canCommit: z.boolean().refine((val) => val === true, {
+    message: 'You must be able to commit to a regular schedule.',
+  }),
+});
+
+const VolunteerForm = () => {
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -20,24 +52,37 @@ const VolunteerForm: React.FC = () => {
     zip: '',
     availability: '',
     interests: '',
-    skills: '',
     experience: '',
-    references: '',
     agreement: false,
+    backgroundCheck: false,
+    canCommit: false,
   });
-  const { toast } = useToast();
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  
-  const goBack = () => {
-    navigate(-1);
-  };
-  
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      address: '',
+      city: '',
+      state: '',
+      zip: '',
+      availability: '',
+      interests: '',
+      experience: '',
+      agreement: false,
+      backgroundCheck: false,
+      canCommit: false,
+    },
+  });
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
+    const { name, value } = e.target;
     
-    // Improved type guard for checkbox inputs
-    if (type === 'checkbox' && e.target instanceof HTMLInputElement) {
+    // Handle checkboxes differently than text inputs
+    if (e.target instanceof HTMLInputElement && e.target.type === 'checkbox') {
       setFormData(prev => ({
         ...prev,
         [name]: e.target.checked
@@ -50,243 +95,315 @@ const VolunteerForm: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    setIsSubmitting(true);
     
-    if (!formData.agreement) {
-      toast({
-        title: "Agreement Required",
-        description: "Please agree to the terms and conditions.",
-        variant: "destructive",
-      });
-      return;
-    }
+    try {
+      // Submit to Supabase
+      const { error } = await supabase
+        .from('volunteer_applications')
+        .insert([
+          {
+            first_name: values.firstName,
+            last_name: values.lastName,
+            email: values.email,
+            phone: values.phone,
+            address: values.address,
+            city: values.city,
+            state: values.state,
+            zip: values.zip,
+            availability: values.availability,
+            interests: values.interests,
+            experience: values.experience,
+            agreement: values.agreement,
+            background_check: values.backgroundCheck,
+            can_commit: values.canCommit,
+            submitted_at: new Date().toISOString()
+          }
+        ]);
+        
+      if (error) throw error;
 
-    // Simulate form submission
-    toast({
-      title: "Application Submitted",
-      description: "Thank you for your application! We will be in touch soon.",
-    });
+      // Success - show toast and reset form
+      toast({
+        title: 'Application Sent',
+        description: 'Thank you for your interest in volunteering with us! We will review your application and get back to you soon.',
+      });
+      
+      form.reset();
+      setIsSubmitted(true);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast({
+        title: 'Application Not Sent',
+        description: 'There was a problem sending your application. Please try again later.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-  
+
   return (
     <Layout>
-      <SEO title="Volunteer Application | Meow Rescue" description="Apply to become a volunteer at Meow Rescue and help make a difference in the lives of cats in need." />
+      <SEO title="Volunteer | Meow Rescue" description="Join the Meow Rescue team and help us save cats! Fill out our volunteer application form to get started." />
       
-      <div className="container mx-auto py-16 px-4">
-        <div className="mb-6">
-          <Button 
-            variant="ghost" 
-            onClick={goBack} 
-            className="mb-4 flex items-center text-gray-600 hover:text-meow-primary"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          <h1 className="text-3xl font-bold text-meow-primary">Volunteer Application</h1>
-          <p className="text-gray-600 mt-2">
-            Thank you for your interest in volunteering with Meow Rescue! Please complete the form below.
+      <div className="container mx-auto py-24">
+        <div className="text-center mb-16">
+          <h1 className="text-4xl font-bold text-meow-primary mb-6">Volunteer with Us</h1>
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            Join our dedicated team of volunteers and make a difference in the lives of cats in need. We have a variety of volunteer opportunities available, and we're sure to find a role that's perfect for you!
           </p>
         </div>
         
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">First Name</label>
-            <input
-              type="text"
-              id="firstName"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-meow-primary focus:ring-meow-primary sm:text-sm"
-              required
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">Last Name</label>
-            <input
-              type="text"
-              id="lastName"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-meow-primary focus:ring-meow-primary sm:text-sm"
-              required
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-meow-primary focus:ring-meow-primary sm:text-sm"
-              required
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label>
-            <input
-              type="tel"
-              id="phone"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-meow-primary focus:ring-meow-primary sm:text-sm"
-              required
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="address" className="block text-sm font-medium text-gray-700">Address</label>
-            <input
-              type="text"
-              id="address"
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-meow-primary focus:ring-meow-primary sm:text-sm"
-              required
-            />
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label htmlFor="city" className="block text-sm font-medium text-gray-700">City</label>
-              <input
-                type="text"
-                id="city"
-                name="city"
-                value={formData.city}
-                onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-meow-primary focus:ring-meow-primary sm:text-sm"
-                required
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="state" className="block text-sm font-medium text-gray-700">State</label>
-              <input
-                type="text"
-                id="state"
-                name="state"
-                value={formData.state}
-                onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-meow-primary focus:ring-meow-primary sm:text-sm"
-                required
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="zip" className="block text-sm font-medium text-gray-700">Zip</label>
-              <input
-                type="text"
-                id="zip"
-                name="zip"
-                value={formData.zip}
-                onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-meow-primary focus:ring-meow-primary sm:text-sm"
-                required
-              />
-            </div>
-          </div>
-          
-          <div>
-            <label htmlFor="availability" className="block text-sm font-medium text-gray-700">Availability</label>
-            <textarea
-              id="availability"
-              name="availability"
-              value={formData.availability}
-              onChange={handleChange}
-              rows={3}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-meow-primary focus:ring-meow-primary sm:text-sm"
-              required
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="interests" className="block text-sm font-medium text-gray-700">Interests</label>
-            <textarea
-              id="interests"
-              name="interests"
-              value={formData.interests}
-              onChange={handleChange}
-              rows={3}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-meow-primary focus:ring-meow-primary sm:text-sm"
-              required
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="skills" className="block text-sm font-medium text-gray-700">Skills</label>
-            <textarea
-              id="skills"
-              name="skills"
-              value={formData.skills}
-              onChange={handleChange}
-              rows={3}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-meow-primary focus:ring-meow-primary sm:text-sm"
-              required
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="experience" className="block text-sm font-medium text-gray-700">Experience</label>
-            <textarea
-              id="experience"
-              name="experience"
-              value={formData.experience}
-              onChange={handleChange}
-              rows={3}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-meow-primary focus:ring-meow-primary sm:text-sm"
-              required
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="references" className="block text-sm font-medium text-gray-700">References</label>
-            <textarea
-              id="references"
-              name="references"
-              value={formData.references}
-              onChange={handleChange}
-              rows={3}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-meow-primary focus:ring-meow-primary sm:text-sm"
-              required
-            />
-          </div>
-          
-          <div className="flex items-start">
-            <div className="flex items-center h-5">
-              <input
-                id="agreement"
-                name="agreement"
-                type="checkbox"
-                checked={formData.agreement}
-                onChange={handleChange}
-                className="focus:ring-meow-primary h-4 w-4 text-meow-primary border-gray-300 rounded"
-                required
-              />
-            </div>
-            <div className="ml-3 text-sm">
-              <label htmlFor="agreement" className="font-medium text-gray-700">
-                I agree to the terms and conditions
-              </label>
-              <p className="text-gray-500">
-                Please read our <a href="/terms-of-service" className="text-meow-primary hover:underline">terms of service</a> and <a href="/privacy-policy" className="text-meow-primary hover:underline">privacy policy</a>.
-              </p>
-            </div>
-          </div>
-          
-          <div>
-            <Button type="submit" className="w-full">Submit Application</Button>
-          </div>
-        </form>
+        <Card className="bg-white shadow-lg border-none max-w-4xl mx-auto">
+          <CardHeader className="pb-6">
+            <CardTitle className="text-2xl">Volunteer Application Form</CardTitle>
+            <CardDescription className="text-base">
+              Please fill out the form below to apply for a volunteer position.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form id="volunteer-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="firstName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base">First Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Your first name" {...field} className="h-12" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="lastName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base">Last Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Your last name" {...field} className="h-12" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base">Email</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Your email address" {...field} className="h-12" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base">Phone</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Your phone number" {...field} className="h-12" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">Address</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Your street address" {...field} className="h-12" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="city"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base">City</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Your city" {...field} className="h-12" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="state"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base">State</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Your state" {...field} className="h-12" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="zip"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base">Zip Code</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Your zip code" {...field} className="h-12" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="availability"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">Availability</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="When are you available to volunteer?" className="min-h-40" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="interests"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">Areas of Interest</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="What areas of volunteering are you interested in?" className="min-h-40" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="experience"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">Relevant Experience (Optional)</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Do you have any relevant experience?" className="min-h-40" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <div className="space-y-2">
+                  <FormField
+                    control={form.control}
+                    name="agreement"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox 
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-tight">
+                          <FormLabel className="text-base">
+                            I agree to the <a href="/terms" className="text-meow-primary underline underline-offset-2">terms and conditions</a>
+                          </FormLabel>
+                          <FormMessage />
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="backgroundCheck"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox 
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-tight">
+                          <FormLabel className="text-base">
+                            I consent to a background check
+                          </FormLabel>
+                          <FormMessage />
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="canCommit"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox 
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-tight">
+                          <FormLabel className="text-base">
+                            I can commit to a regular schedule
+                          </FormLabel>
+                          <FormMessage />
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+          <CardFooter>
+            <Button 
+              type="submit" 
+              form="volunteer-form"
+              disabled={isSubmitting || isSubmitted}
+              className="w-full h-12 text-base"
+            >
+              {isSubmitting ? 'Submitting...' : isSubmitted ? 'Application Sent' : 'Submit Application'}
+            </Button>
+          </CardFooter>
+        </Card>
       </div>
     </Layout>
   );

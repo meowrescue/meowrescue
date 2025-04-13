@@ -63,10 +63,10 @@ const Contact = () => {
     const initMapFunction = () => {
       if (!isMounted) return;
       
-      if (mapRef.current && !mapInstanceRef.current && window.google?.maps) {
-        const newPortRicheyLocation = { lat: 28.2442, lng: -82.7190 };
-        
-        try {
+      try {
+        if (mapRef.current && !mapInstanceRef.current && window.google?.maps) {
+          const newPortRicheyLocation = { lat: 28.2442, lng: -82.7190 };
+          
           // Initialize the map
           mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
             center: newPortRicheyLocation,
@@ -82,10 +82,10 @@ const Contact = () => {
           
           setMapLoaded(true);
           setMapError(false);
-        } catch (error) {
-          console.error("Error initializing Google Map:", error);
-          setMapError(true);
         }
+      } catch (error) {
+        console.error("Error initializing Google Map:", error);
+        setMapError(true);
       }
     };
 
@@ -96,20 +96,25 @@ const Contact = () => {
     if (!document.getElementById(mapScriptId) && !scriptLoadedRef.current) {
       scriptLoadedRef.current = true;
       
-      const script = document.createElement('script');
-      script.id = mapScriptId;
-      script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBLkQbdtq_eR3-jLjOYMYICN0NLaWO74jo&callback=initMap&loading=async`;
-      script.async = true;
-      script.defer = true;
-      
-      script.onerror = () => {
-        if (!isMounted) return;
-        console.error("Error loading Google Maps script");
-        scriptLoadedRef.current = false;
+      try {
+        const script = document.createElement('script');
+        script.id = mapScriptId;
+        script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBLkQbdtq_eR3-jLjOYMYICN0NLaWO74jo&callback=initMap&loading=async`;
+        script.async = true;
+        script.defer = true;
+        
+        script.onerror = () => {
+          if (!isMounted) return;
+          console.error("Error loading Google Maps script");
+          scriptLoadedRef.current = false;
+          setMapError(true);
+        };
+        
+        document.head.appendChild(script);
+      } catch (error) {
+        console.error("Error adding Google Maps script to DOM:", error);
         setMapError(true);
-      };
-      
-      document.head.appendChild(script);
+      }
     } else if (window.google?.maps) {
       // If script already loaded but map not initialized
       initMapFunction();
