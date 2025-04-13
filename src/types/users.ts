@@ -12,7 +12,13 @@ export interface User {
   bio?: string;
   avatar_url?: string;
   role?: 'user' | 'volunteer' | 'foster' | 'admin';
-  role_title?: string; // Add this property
+  role_title?: string; // Added this property
   created_at?: string;
   updated_at?: string;
+}
+
+// Adding ExtendedUser interface that was referenced in AdminUsers.tsx
+export interface ExtendedUser extends User {
+  application_count?: number;
+  donation_count?: number;
 }

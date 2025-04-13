@@ -6,8 +6,8 @@ export interface TeamMember {
   avatar_url?: string;
   email?: string;
   role?: 'user' | 'volunteer' | 'foster' | 'admin';
-  role_title?: string; // Add this property
-  show_in_team?: boolean; // Add this property
+  role_title?: string; // Added this property
+  show_in_team?: boolean; // Added this property
   bio?: string;
   created_at?: string;
 }

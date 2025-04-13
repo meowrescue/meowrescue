@@ -9,7 +9,7 @@ export interface Donation {
   notes: string;
   payment_gateway_id: string;
   status: string;
-  income_type: string; // Add this property
+  income_type: string; // Added this property
   donor_name?: string;
   donor_email?: string;
 }
@@ -25,6 +25,11 @@ export interface Expense {
   receipt_url?: string;
   status: string;
   expense_type: string;
+  // Additional properties needed based on error messages
+  description: string;
+  payment_method: string;
+  donation_id?: string;
+  created_by?: string;
 }
 
 export interface Budget {
@@ -44,4 +49,41 @@ export interface FinancialSummary {
   donations_count: number;
   recurring_donations: number;
   expenses_count: number;
+}
+
+// Adding the missing interfaces for CatFood related functionality
+export interface Cat {
+  id: string;
+  name: string;
+}
+
+export interface CatFood {
+  id: string;
+  brand: string;
+  type: string;
+  quantity: number;
+  units: string;
+  cost_per_unit: number;
+  purchase_date: string;
+  created_at: string;
+}
+
+export interface CatFeedingRecord {
+  id: string;
+  cat_id: string;
+  cat_food_id: string;
+  amount: number;
+  feeding_date: string;
+  created_at: string;
+  cat_name?: string;
+  food_brand?: string;
+  food_type?: string;
+}
+
+export interface CatFoodAPI {
+  getCatFood: () => Promise<CatFood[]>;
+  addCatFood: (food: Partial<CatFood>) => Promise<CatFood>;
+  getCatFeedingRecords: () => Promise<CatFeedingRecord[]>;
+  addCatFeedingRecord: (record: Partial<CatFeedingRecord>) => Promise<CatFeedingRecord>;
+  getCats: () => Promise<Cat[]>;
 }
