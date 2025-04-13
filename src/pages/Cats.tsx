@@ -1,15 +1,59 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import SectionHeading from '../components/ui/SectionHeading';
 import CatCard from '../components/CatCard';
 import { cats } from '../data/cats';
 import CtaSection from '../components/CtaSection';
 import SEO from '../components/SEO';
+import { Button } from '@/components/ui/button';
+import { Filter } from 'lucide-react';
 
 const Cats: React.FC = () => {
-  // Filter cats that are available for adoption
-  const availableCats = cats.filter(cat => cat.status === 'Available');
+  // State for filters
+  const [ageFilter, setAgeFilter] = useState<string>('all');
+  const [genderFilter, setGenderFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('Available');
+  const [showFilters, setShowFilters] = useState(false);
+  
+  // Function to determine age group based on age string
+  const getAgeGroup = (age: string): string => {
+    if (age.toLowerCase().includes('kitten')) return 'kitten';
+    if (age.toLowerCase().includes('young')) return 'young';
+    if (age.toLowerCase().includes('adult')) return 'adult';
+    if (age.toLowerCase().includes('senior')) return 'senior';
+    return 'unknown';
+  };
+  
+  // Filter cats based on selected criteria
+  const filteredCats = cats.filter(cat => {
+    // Status filter
+    if (statusFilter !== 'all' && cat.status !== statusFilter) {
+      return false;
+    }
+    
+    // Gender filter
+    if (genderFilter !== 'all' && cat.gender !== genderFilter) {
+      return false;
+    }
+    
+    // Age filter
+    if (ageFilter !== 'all') {
+      const ageGroup = getAgeGroup(cat.age);
+      if (ageFilter !== ageGroup) {
+        return false;
+      }
+    }
+    
+    return true;
+  });
+  
+  // Reset filters
+  const resetFilters = () => {
+    setAgeFilter('all');
+    setGenderFilter('all');
+    setStatusFilter('Available');
+  };
   
   return (
     <Layout>
@@ -31,9 +75,88 @@ const Cats: React.FC = () => {
           </p>
         </div>
         
-        {availableCats.length > 0 ? (
+        {/* Filter controls */}
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2"
+            >
+              <Filter size={16} />
+              {showFilters ? 'Hide Filters' : 'Show Filters'}
+            </Button>
+            
+            {showFilters && (
+              <Button 
+                variant="ghost" 
+                onClick={resetFilters}
+                size="sm"
+              >
+                Reset Filters
+              </Button>
+            )}
+          </div>
+          
+          {showFilters && (
+            <div className="bg-gray-50 p-4 rounded-lg space-y-4 md:space-y-0 md:grid md:grid-cols-3 md:gap-4">
+              {/* Age filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Age</label>
+                <select 
+                  value={ageFilter} 
+                  onChange={(e) => setAgeFilter(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-meow-primary focus:border-meow-primary"
+                >
+                  <option value="all">All Ages</option>
+                  <option value="kitten">Kitten (0-1 year)</option>
+                  <option value="young">Young (1-3 years)</option>
+                  <option value="adult">Adult (3-7 years)</option>
+                  <option value="senior">Senior (7+ years)</option>
+                </select>
+              </div>
+              
+              {/* Gender filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                <select 
+                  value={genderFilter} 
+                  onChange={(e) => setGenderFilter(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-meow-primary focus:border-meow-primary"
+                >
+                  <option value="all">All Genders</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </select>
+              </div>
+              
+              {/* Status filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select 
+                  value={statusFilter} 
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-meow-primary focus:border-meow-primary"
+                >
+                  <option value="all">All Statuses</option>
+                  <option value="Available">Available</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Adopted">Adopted</option>
+                </select>
+              </div>
+            </div>
+          )}
+          
+          {/* Filter results summary */}
+          <div className="mt-4 text-sm text-gray-500">
+            Showing {filteredCats.length} {filteredCats.length === 1 ? 'cat' : 'cats'}
+            {(ageFilter !== 'all' || genderFilter !== 'all' || statusFilter !== 'Available') && ' with applied filters'}
+          </div>
+        </div>
+        
+        {filteredCats.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
-            {availableCats.map(cat => (
+            {filteredCats.map(cat => (
               <CatCard 
                 key={cat.id}
                 id={cat.id}
@@ -49,8 +172,15 @@ const Cats: React.FC = () => {
         ) : (
           <div className="text-center py-12">
             <p className="text-xl text-gray-700">
-              All of our cats have found homes! Check back soon as we rescue and rehabilitate more cats in need.
+              No cats match your current filters. Please try different filter options or check back soon.
             </p>
+            <Button 
+              variant="meow" 
+              onClick={resetFilters} 
+              className="mt-4"
+            >
+              Reset Filters
+            </Button>
           </div>
         )}
         
