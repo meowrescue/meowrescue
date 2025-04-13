@@ -46,7 +46,7 @@ interface Application {
   reviewed_at: string | null;
   reviewer_id: string | null;
   feedback: string | null;
-  applicant?: {
+  profiles?: {
     email: string;
     first_name: string | null;
     last_name: string | null;
@@ -84,9 +84,9 @@ const AdminApplications: React.FC = () => {
         
         if (error) throw error;
         
-        return data.map(app => ({
+        return (data as any[]).map(app => ({
           ...app,
-          applicant: app.profiles
+          profiles: app.profiles
         })) as Application[];
       } catch (err) {
         console.error('Error fetching applications:', err);
@@ -97,9 +97,9 @@ const AdminApplications: React.FC = () => {
 
   // Filter applications based on search query
   const filteredApplications = applications?.filter(app =>
-    app.applicant?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    app.applicant?.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    app.applicant?.last_name?.toLowerCase().includes(searchQuery.toLowerCase())
+    app.profiles?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    app.profiles?.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    app.profiles?.last_name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleViewApplication = (application: Application) => {
@@ -142,7 +142,7 @@ const AdminApplications: React.FC = () => {
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-      case 'approved': return 'success';
+      case 'approved': return 'default'; // Changed from 'success' to 'default'
       case 'denied': return 'destructive';
       default: return 'secondary';
     }
@@ -241,12 +241,12 @@ const AdminApplications: React.FC = () => {
                   <TableRow key={app.id}>
                     <TableCell>
                       <div className="font-medium">
-                        {app.applicant ? 
-                          `${app.applicant.first_name || ''} ${app.applicant.last_name || ''}`.trim() || 
-                          app.applicant.email : 
+                        {app.profiles ? 
+                          `${app.profiles.first_name || ''} ${app.profiles.last_name || ''}`.trim() || 
+                          app.profiles.email : 
                           'Unknown User'}
                       </div>
-                      <div className="text-sm text-gray-500">{app.applicant?.email}</div>
+                      <div className="text-sm text-gray-500">{app.profiles?.email}</div>
                     </TableCell>
                     <TableCell>
                       <Badge className={getApplicationTypeBadge(app.application_type).color}>
@@ -301,11 +301,11 @@ const AdminApplications: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <h3 className="font-semibold mb-2">Applicant Information</h3>
-                  <p><span className="text-gray-500">Name:</span> {viewingApplication.applicant ? 
-                    `${viewingApplication.applicant.first_name || ''} ${viewingApplication.applicant.last_name || ''}`.trim() || 
-                    viewingApplication.applicant.email : 
+                  <p><span className="text-gray-500">Name:</span> {viewingApplication.profiles ? 
+                    `${viewingApplication.profiles.first_name || ''} ${viewingApplication.profiles.last_name || ''}`.trim() || 
+                    viewingApplication.profiles.email : 
                     'Unknown User'}</p>
-                  <p><span className="text-gray-500">Email:</span> {viewingApplication.applicant?.email}</p>
+                  <p><span className="text-gray-500">Email:</span> {viewingApplication.profiles?.email}</p>
                   <p><span className="text-gray-500">Submitted:</span> {new Date(viewingApplication.created_at).toLocaleString()}</p>
                 </div>
                 <div>

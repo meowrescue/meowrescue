@@ -8,7 +8,6 @@ import { Search } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { LostFoundPost } from '@/types/supabase';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
@@ -23,6 +22,27 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+interface LostFoundPost {
+  id: string;
+  profile_id: string;
+  title: string;
+  description: string;
+  location: string;
+  status: string;
+  pet_type: string;
+  pet_name?: string;
+  date_occurred: string;
+  contact_info?: string;
+  photos_urls?: string[];
+  created_at: string;
+  updated_at: string;
+  profiles?: {
+    email: string;
+    first_name: string | null;
+    last_name: string | null;
+  };
+}
+
 const AdminLostFound: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
@@ -35,7 +55,7 @@ const AdminLostFound: React.FC = () => {
       try {
         const { data, error } = await supabase
           .from('lost_found_posts')
-          .select('*, profiles(first_name, last_name, email)')
+          .select('*, profiles(*)')
           .order('created_at', { ascending: false });
           
         if (error) throw error;

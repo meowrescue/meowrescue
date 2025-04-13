@@ -167,7 +167,8 @@ const AdminUsers: React.FC = () => {
           { 
             id: data.user?.id,
             email: newUserEmail, 
-            role: newUserRole 
+            role: newUserRole,
+            is_active: true
           }
         ]);
       
@@ -330,7 +331,8 @@ const AdminUsers: React.FC = () => {
                                 email: editingUser.email,
                                 first_name: editingUser.first_name,
                                 last_name: editingUser.last_name,
-                                role: editingUser.role
+                                role: editingUser.role,
+                                is_active: editingUser.is_active
                               })}
                             >
                               <CheckCheck className="h-4 w-4 mr-2" />
