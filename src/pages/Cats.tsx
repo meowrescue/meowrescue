@@ -5,6 +5,7 @@ import SectionHeading from '../components/ui/SectionHeading';
 import CatCard from '../components/CatCard';
 import { cats } from '../data/cats';
 import CtaSection from '../components/CtaSection';
+import SEO from '../components/SEO';
 
 const Cats: React.FC = () => {
   // Filter cats that are available for adoption
@@ -12,6 +13,11 @@ const Cats: React.FC = () => {
   
   return (
     <Layout>
+      <SEO 
+        title="Adoptable Cats" 
+        description="Find your perfect feline companion at Meow Rescue. Browse our adoptable cats and start your adoption journey today."
+      />
+      
       <div className="container mx-auto px-4 py-12">
         <SectionHeading 
           title="Adoptable Cats" 
