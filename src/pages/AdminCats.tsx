@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -6,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, Upload } from 'lucide-react';
+import { Edit, Trash2, Upload, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import SEO from '@/components/SEO';
@@ -125,6 +126,28 @@ const AdminCats: React.FC = () => {
     cat.breed?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Get status badge color
+  const getStatusBadgeClass = (status: string) => {
+    switch(status) {
+      case 'Available':
+        return "bg-green-100 text-green-800";
+      case 'Pending':
+        return "bg-yellow-100 text-yellow-800";
+      case 'Adopted':
+        return "bg-blue-100 text-blue-800";
+      case 'NotListed':
+        return "bg-gray-100 text-gray-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  // Get human-readable status
+  const getDisplayStatus = (status: string) => {
+    if (status === 'NotListed') return 'Not Listed';
+    return status;
+  };
+
   return (
     <AdminLayout title="Cats">
       <SEO title="Cats | Meow Rescue Admin" />
@@ -158,7 +181,10 @@ const AdminCats: React.FC = () => {
                 </span>
               </Button>
             </label>
-            <Button onClick={() => navigate('/admin/cats/new')}>Add Cat</Button>
+            <Button onClick={() => navigate('/admin/cats/new')}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Cat
+            </Button>
           </div>
         </div>
         
@@ -190,7 +216,9 @@ const AdminCats: React.FC = () => {
                     <TableCell>{cat.age_estimate || 'Unknown'}</TableCell>
                     <TableCell>{cat.breed || 'Unknown'}</TableCell>
                     <TableCell>
-                      <Badge className="bg-green-100 text-green-800">{cat.status}</Badge>
+                      <Badge className={getStatusBadgeClass(cat.status)}>
+                        {getDisplayStatus(cat.status)}
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-right">
                       <Button variant="ghost" size="icon" onClick={() => navigate(`/admin/cats/edit/${cat.id}`)}>

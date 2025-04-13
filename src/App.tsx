@@ -33,6 +33,7 @@ import ForumPost from "./pages/ForumPost";
 import ForumPostForm from "./pages/ForumPostForm";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminCats from "./pages/AdminCats";
+import AdminCatForm from "./pages/AdminCatForm";
 
 const queryClient = new QueryClient();
 
@@ -97,6 +98,8 @@ const App = () => (
               {/* Admin Routes */}
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/cats" element={<AdminCats />} />
+              <Route path="/admin/cats/new" element={<AdminCatForm />} />
+              <Route path="/admin/cats/edit/:id" element={<AdminCatForm />} />
               <Route path="/admin/users" element={<AdminDashboard />} />
               <Route path="/admin/finance" element={<AdminDashboard />} />
               <Route path="/admin/forum" element={<AdminDashboard />} />
