@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -11,6 +10,7 @@ import { Calendar, ArrowLeft, MapPin, User, Phone, Mail, Tag, Info } from 'lucid
 import NotFound from './NotFound';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import { scrollToTop } from '@/utils/scrollUtils';
+import { toast } from '@/hooks/use-toast'; // Import toast from the correct location
 
 const LostFoundDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
