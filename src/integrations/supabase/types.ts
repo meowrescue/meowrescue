@@ -825,6 +825,53 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_cat_feeding_record: {
+        Args: {
+          p_cat_id: string
+          p_cat_food_id: string
+          p_amount: number
+          p_feeding_date: string
+        }
+        Returns: string
+      }
+      add_cat_food: {
+        Args: {
+          p_brand: string
+          p_type: string
+          p_quantity: number
+          p_units: string
+          p_cost_per_unit: number
+          p_purchase_date: string
+        }
+        Returns: string
+      }
+      get_cat_feeding_records: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          cat_id: string
+          cat_food_id: string
+          amount: number
+          feeding_date: string
+          created_at: string
+          cat_name: string
+          food_brand: string
+          food_type: string
+        }[]
+      }
+      get_cat_food: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          brand: string
+          cost_per_unit: number
+          created_at: string
+          id: string
+          purchase_date: string
+          quantity: number
+          type: string
+          units: string
+        }[]
+      }
       is_admin: {
         Args: { uid: string }
         Returns: boolean
