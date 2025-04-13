@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Users, 
@@ -13,17 +13,30 @@ import {
   Lock,
   Search,
   ClipboardList,
-  MessageCircle
+  MessageCircle,
+  LogOut
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSidebarContext } from '@/components/ui/sidebar';
+import { useAuth } from '@/contexts/AuthContext';
 
 const AdminNavbar: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { isSidebarOpen } = useSidebarContext();
+  const { signOut } = useAuth();
   
   const isActive = (path: string) => {
     return location.pathname === path;
+  };
+  
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
   
   const navItems = [
@@ -84,13 +97,14 @@ const AdminNavbar: React.FC = () => {
         </nav>
         
         <div className="p-4 border-t border-gray-200">
-          <Link 
-            to="/admin/settings" 
-            className="flex items-center text-gray-700 hover:text-meow-primary"
+          <Button 
+            onClick={handleLogout}
+            className="flex w-full items-center text-gray-700 hover:text-meow-primary"
+            variant="ghost"
           >
-            <Settings size={20} className="mr-2" />
-            <span>Admin Settings</span>
-          </Link>
+            <LogOut size={20} className="mr-2" />
+            <span>Logout</span>
+          </Button>
         </div>
       </div>
     </aside>
