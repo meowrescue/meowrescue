@@ -135,17 +135,17 @@ const AdminLostFound = () => {
   // Restore post mutation
   const restorePost = useMutation({
     mutationFn: async (id: string) => {
-      // Get the post to see its original status
+      // First get the post to determine the original status
       const { data, error: fetchError } = await supabase
         .from('lost_found_posts')
-        .select('status')
+        .select('*')
         .eq('id', id)
         .single();
       
       if (fetchError) throw fetchError;
       
-      // Determine the correct status to restore to
-      let originalStatus = data.status === 'archived' ? 'lost' : data.status;
+      // Use 'lost' as the default status when restoring from archived
+      const originalStatus = 'lost';
       
       // Update the post
       const { error } = await supabase

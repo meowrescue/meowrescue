@@ -104,7 +104,13 @@ const AdminApplications = () => {
         ) : error ? (
           <div className="text-center py-12">
             <p className="text-red-500">Error loading applications. Please try again later.</p>
-            <pre className="mt-4 text-xs text-gray-500">{JSON.stringify(error, null, 2)}</pre>
+            <Button 
+              variant="outline" 
+              onClick={() => refetch()}
+              className="mt-4"
+            >
+              Try Again
+            </Button>
           </div>
         ) : filteredApplications && filteredApplications.length > 0 ? (
           <div className="bg-white rounded-lg shadow overflow-hidden">

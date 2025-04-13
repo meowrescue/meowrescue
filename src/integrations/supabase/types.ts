@@ -397,7 +397,6 @@ export type Database = {
           received_at: string
           responded_at: string | null
           response: string | null
-          status: Database["public"]["Enums"]["message_status"]
           subject: string | null
         }
         Insert: {
@@ -409,7 +408,6 @@ export type Database = {
           received_at?: string
           responded_at?: string | null
           response?: string | null
-          status?: Database["public"]["Enums"]["message_status"]
           subject?: string | null
         }
         Update: {
@@ -421,7 +419,6 @@ export type Database = {
           received_at?: string
           responded_at?: string | null
           response?: string | null
-          status?: Database["public"]["Enums"]["message_status"]
           subject?: string | null
         }
         Relationships: []
@@ -514,9 +511,9 @@ export type Database = {
       events: {
         Row: {
           created_at: string
+          date_end: string
+          date_start: string
           description: string
-          event_date_end: string
-          event_date_start: string
           id: string
           image_url: string | null
           location: string
@@ -525,9 +522,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          date_end: string
+          date_start: string
           description: string
-          event_date_end: string
-          event_date_start: string
           id?: string
           image_url?: string | null
           location: string
@@ -536,9 +533,9 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          date_end?: string
+          date_start?: string
           description?: string
-          event_date_end?: string
-          event_date_start?: string
           id?: string
           image_url?: string | null
           location?: string

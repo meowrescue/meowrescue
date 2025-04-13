@@ -29,14 +29,12 @@ const ApplicationView: React.FC<ApplicationViewProps> = ({ application, onClose 
     mutationFn: async ({ id, status, feedback }: { id: string; status: string; feedback: string }) => {
       console.log(`Updating application ${id} to status: ${status} with feedback: ${feedback}`);
       
-      // Ensure status values match database enum values (lowercase)
-      const formattedStatus = status.toLowerCase();
-      
       try {
+        // The RPC is already set up to handle the correct status format
         const { data, error } = await supabase
           .rpc('update_application_status', {
             p_application_id: id,
-            p_status: formattedStatus,
+            p_status: status,
             p_feedback: feedback
           });
 
@@ -47,7 +45,7 @@ const ApplicationView: React.FC<ApplicationViewProps> = ({ application, onClose 
           const { data: updateData, error: updateError } = await supabase
             .from('applications')
             .update({ 
-              status: formattedStatus,
+              status: status,
               feedback,
               reviewed_at: new Date().toISOString(),
               reviewer_id: (await supabase.auth.getUser()).data.user?.id,
