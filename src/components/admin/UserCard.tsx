@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Check, Mail, X, UserPlus, Shield, Clock, UserX } from 'lucide-react';
+import { Check, Mail, X, UserPlus, Shield, Clock, UserX, Cat } from 'lucide-react';
 import { 
   DropdownMenu,
   DropdownMenuContent,

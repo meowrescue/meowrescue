@@ -14,7 +14,9 @@ export interface User {
   state: string | null;
   zip: string | null;
   bio: string | null;
-  is_active: boolean; // Now a required field
+  is_active: boolean;
+  role_title?: string | null;
+  show_in_team?: boolean;
 }
 
 export interface ExtendedUser extends User {

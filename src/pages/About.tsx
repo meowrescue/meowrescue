@@ -16,7 +16,8 @@ interface TeamMember {
   last_name: string | null;
   avatar_url: string | null;
   role: string;
-  role_title?: string | null;
+  role_title: string | null;
+  show_in_team: boolean;
 }
 
 const About = () => {
@@ -25,12 +26,12 @@ const About = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, first_name, last_name, avatar_url, role, role_title, show_in_team')
         .eq('show_in_team', true)
         .order('created_at', { ascending: true });
       
       if (error) throw error;
-      return data || [];
+      return data as TeamMember[] || [];
     }
   });
 
