@@ -10,12 +10,14 @@ import SEO from "@/components/SEO";
 import LostFoundFilters from "@/components/LostFound/LostFoundFilters";
 import LostFoundSearch from "@/components/LostFound/LostFoundSearch";
 import LostFoundGrid from "@/components/LostFound/LostFoundGrid";
+import { Button } from "@/components/ui/button";
 
 const LostFound = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [posts, setPosts] = useState<LostFoundPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "lost" | "found" | "reunited">("all");
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -25,6 +27,7 @@ const LostFound = () => {
 
   const fetchPosts = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       let query = supabase
         .from("lost_found_posts")
@@ -39,6 +42,7 @@ const LostFound = () => {
 
       if (error) {
         console.error("Error fetching posts:", error);
+        setError(error.message);
         toast({
           title: "Error fetching posts",
           description: error.message,
@@ -48,8 +52,9 @@ const LostFound = () => {
       }
 
       setPosts(data as unknown as LostFoundPost[]);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Unexpected error:", error);
+      setError(error.message || "An unexpected error occurred");
     } finally {
       setIsLoading(false);
     }
@@ -87,6 +92,14 @@ const LostFound = () => {
           {/* Search and new post */}
           <LostFoundSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </div>
+
+        {/* Error state */}
+        {error && (
+          <div className="text-center py-8">
+            <p className="text-red-500 mb-4">{error}</p>
+            <Button onClick={fetchPosts}>Try Again</Button>
+          </div>
+        )}
 
         {/* Posts grid */}
         <LostFoundGrid 

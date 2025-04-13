@@ -66,16 +66,20 @@ const About = () => {
           />
           <div className="max-w-3xl mx-auto text-center text-lg text-gray-700 leading-relaxed">
             <p className="mb-4">
-              Meow Rescue began in 2010 when our founder, Sarah, found a litter of abandoned kittens behind her apartment complex. 
-              Unable to find a shelter with space to take them in, she decided to care for them herself.
+              Meow Rescue began in 2015 when our founder, Patrick, discovered a colony of feral cats living 
+              behind his office building. Concerned for their welfare, he began feeding them daily and 
+              sought help from local animal rescue organizations.
             </p>
             <p className="mb-4">
-              What started as a small act of kindness soon grew into a passion. Sarah began networking with local veterinarians 
-              and animal lovers to create a foster network. Within a year, she had helped rescue and rehome over 50 cats.
+              When he learned that most shelters were overcrowded and couldn't accommodate more cats, 
+              Patrick decided to take matters into his own hands. He educated himself on TNR (Trap-Neuter-Return) 
+              techniques and began working with a local veterinarian to provide medical care for the colony.
             </p>
             <p>
-              In 2012, Meow Rescue officially became a registered non-profit organization. Today, we operate with a network of 
-              dedicated volunteers, foster homes, and community partners who share our commitment to improving the lives of cats in need.
+              What started as a compassionate effort to help a few cats quickly evolved into a full-fledged rescue operation. 
+              In 2017, Patrick officially established Meow Rescue as a non-profit organization. Today, we've rescued over 
+              500 cats and continue to grow our network of volunteers, foster homes, and supporters who share our passion 
+              for feline welfare.
             </p>
           </div>
         </section>

@@ -1,233 +1,271 @@
 import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/integrations/supabase/client';
 import Layout from '@/components/Layout';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Search, Filter } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import SEO from '@/components/SEO';
-import CatCard from '@/components/CatCard';
+import SectionHeading from '@/components/ui/SectionHeading';
 
 interface Cat {
   id: string;
   name: string;
-  age_estimate: string | null;
-  breed: string | null;
-  gender: string | null;
-  status: "Available" | "Pending" | "Adopted";
-  photos_urls: string[] | null;
-  description: string | null;
+  age_estimate: string;
+  gender: string;
+  breed: string;
+  description: string;
+  photos_urls: string[];
+  status: 'Available' | 'Pending' | 'Adopted';
 }
 
 const Cats: React.FC = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState<"Available" | "Pending" | "Adopted" | null>("Available");
-  const [selectedAge, setSelectedAge] = useState<string | null>(null);
-  const [selectedGender, setSelectedGender] = useState<string | null>(null);
-  const [cats, setCats] = useState<Cat[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchCats();
-  }, [selectedStatus]);
-
-  const fetchCats = async () => {
-    setLoading(true);
-    setError(null);
-
-    let query = supabase
-      .from('cats')
-      .select('*')
-      .order('name', { ascending: true });
-
-    if (selectedStatus) {
-      query = query.eq('status', selectedStatus);
-    }
-
-    try {
-      const { data, error } = await query;
-
-      if (error) {
-        throw error;
+  const [searchTerm, setSearchTerm] = useState('');
+  const [ageFilter, setAgeFilter] = useState<string>('all');
+  const [genderFilter, setGenderFilter] = useState<string>('all');
+  
+  // Fetch cats from Supabase
+  const { data: cats = [], isLoading, isError, error, refetch } = useQuery({
+    queryKey: ['adoptable-cats'],
+    queryFn: async () => {
+      try {
+        const { data, error } = await supabase
+          .from('cats')
+          .select('*')
+          .eq('status', 'Available')
+          .order('name');
+        
+        if (error) throw error;
+        
+        return data as Cat[];
+      } catch (err) {
+        console.error('Error fetching cats:', err);
+        return [];
       }
+    },
+    retry: 2,
+    retryDelay: 1000
+  });
 
-      // Only use data from database, no mock data fallback
-      setCats(data || []);
-    } catch (error: any) {
-      setError(error.message);
-      console.error("Error fetching cats:", error);
-      // No fallback to mock data on error
-      setCats([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleStatusChange = (status: string) => {
-    // Cast to the correct type when setting the status
-    setSelectedStatus(status as "Available" | "Pending" | "Adopted" | null);
-  };
-
-  const handleAgeChange = (age: string) => {
-    setSelectedAge(age === "all" ? null : age);
-  };
-
-  const handleGenderChange = (gender: string) => {
-    setSelectedGender(gender === "all" ? null : gender);
-  };
-
-  const resetFilters = () => {
-    setSelectedAge(null);
-    setSelectedGender(null);
-    setSelectedStatus("Available");
-    setSearchQuery('');
-  };
-
-  // Filter cats based on all criteria
+  // Apply filters
   const filteredCats = cats.filter(cat => {
-    // Name search filter
-    const nameMatch = cat.name.toLowerCase().includes(searchQuery.toLowerCase());
+    // Search filter
+    const matchesSearch = 
+      cat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cat.breed.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cat.description.toLowerCase().includes(searchTerm.toLowerCase());
     
     // Age filter
-    const ageMatch = !selectedAge || (cat.age_estimate && cat.age_estimate.toLowerCase().includes(selectedAge.toLowerCase()));
+    const matchesAge = 
+      ageFilter === 'all' || 
+      (ageFilter === 'kitten' && cat.age_estimate.toLowerCase().includes('month')) ||
+      (ageFilter === 'young' && cat.age_estimate.toLowerCase().includes('year') && parseInt(cat.age_estimate) <= 3) ||
+      (ageFilter === 'adult' && cat.age_estimate.toLowerCase().includes('year') && parseInt(cat.age_estimate) > 3);
     
     // Gender filter
-    const genderMatch = !selectedGender || (cat.gender && cat.gender.toLowerCase() === selectedGender.toLowerCase());
+    const matchesGender = genderFilter === 'all' || cat.gender.toLowerCase() === genderFilter.toLowerCase();
     
-    return nameMatch && ageMatch && genderMatch;
+    return matchesSearch && matchesAge && matchesGender;
   });
 
   return (
     <Layout>
-      <SEO title="Adoptable Cats | Meow Rescue" description="Browse our available cats for adoption. Find your perfect feline companion!" />
+      <SEO 
+        title="Adoptable Cats | Meow Rescue" 
+        description="Meet our adorable cats available for adoption. Find your perfect feline companion today!"
+      />
       
-      <div className="container mx-auto py-10">
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-meow-primary mb-4">Adoptable Cats</h1>
-          <p className="text-gray-600 max-w-3xl mx-auto">
-            Our adoptable cats are looking for loving forever homes. Browse through our available cats and find your perfect companion.
+      {/* Hero Section */}
+      <div className="bg-meow-primary/10 py-16 md:py-24 text-center">
+        <div className="container mx-auto px-4">
+          <SectionHeading
+            title="Adoptable Cats"
+            subtitle="Find your perfect feline companion"
+            className="text-center"
+          />
+          <p className="mt-6 max-w-2xl mx-auto text-gray-600">
+            All of our cats are spayed/neutered, vaccinated, and microchipped before adoption.
+            Adoption fees help cover these medical costs and support our rescue efforts.
           </p>
         </div>
-
-        {/* Always show filters */}
-        <div className="bg-gray-50 p-4 rounded-lg mb-6">
-          <div className="mb-4">
-            <Input
-              type="text"
-              placeholder="Search cats..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full mb-4"
-            />
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="status-filter">Status</Label>
-              <Select value={selectedStatus || ''} onValueChange={handleStatusChange}>
-                <SelectTrigger id="status-filter" className="w-full">
-                  <SelectValue placeholder="All Statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Available">Available</SelectItem>
-                  <SelectItem value="Pending">Pending</SelectItem>
-                  <SelectItem value="Adopted">Adopted</SelectItem>
-                </SelectContent>
-              </Select>
+      </div>
+      
+      {/* Filters Section */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="bg-white rounded-lg shadow-md p-4 mb-8">
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Search */}
+            <div className="relative flex-grow">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Input
+                type="text"
+                placeholder="Search by name, breed, or description..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 w-full"
+              />
             </div>
             
-            <div>
-              <Label htmlFor="age-filter">Age</Label>
-              <Select value={selectedAge || 'all'} onValueChange={handleAgeChange}>
-                <SelectTrigger id="age-filter" className="w-full">
-                  <SelectValue placeholder="All Ages" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Ages</SelectItem>
-                  <SelectItem value="kitten">Kitten</SelectItem>
-                  <SelectItem value="young">Young</SelectItem>
-                  <SelectItem value="adult">Adult</SelectItem>
-                  <SelectItem value="senior">Senior</SelectItem>
-                </SelectContent>
-              </Select>
+            {/* Age Filter */}
+            <div className="flex-shrink-0">
+              <select
+                value={ageFilter}
+                onChange={(e) => setAgeFilter(e.target.value)}
+                className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-meow-primary focus:border-meow-primary"
+              >
+                <option value="all">All Ages</option>
+                <option value="kitten">Kittens (< 1 year)</option>
+                <option value="young">Young (1-3 years)</option>
+                <option value="adult">Adult (3+ years)</option>
+              </select>
             </div>
             
-            <div>
-              <Label htmlFor="gender-filter">Gender</Label>
-              <Select value={selectedGender || 'all'} onValueChange={handleGenderChange}>
-                <SelectTrigger id="gender-filter" className="w-full">
-                  <SelectValue placeholder="All Genders" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Genders</SelectItem>
-                  <SelectItem value="male">Male</SelectItem>
-                  <SelectItem value="female">Female</SelectItem>
-                </SelectContent>
-              </Select>
+            {/* Gender Filter */}
+            <div className="flex-shrink-0">
+              <select
+                value={genderFilter}
+                onChange={(e) => setGenderFilter(e.target.value)}
+                className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-meow-primary focus:border-meow-primary"
+              >
+                <option value="all">All Genders</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        {/* Cats Grid */}
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
+          </div>
+        ) : isError ? (
+          <div className="text-center py-12">
+            <p className="text-lg text-red-500 mb-4">
+              We encountered an error loading our adoptable cats.
+            </p>
+            <Button onClick={() => refetch()} variant="outline">
+              Try Again
+            </Button>
+          </div>
+        ) : filteredCats.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredCats.map((cat) => (
+              <Link 
+                to={`/cats/${cat.id}`} 
+                key={cat.id}
+                className="group"
+              >
+                <div className="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg h-full flex flex-col">
+                  <div className="h-64 overflow-hidden">
+                    <img 
+                      src={cat.photos_urls?.[0] || '/placeholder-cat.jpg'} 
+                      alt={cat.name}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  </div>
+                  <div className="p-4 flex-grow">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="text-xl font-semibold text-meow-primary">{cat.name}</h3>
+                      <Badge className="bg-meow-secondary text-white">
+                        {cat.status}
+                      </Badge>
+                    </div>
+                    <div className="flex gap-2 mb-3 text-sm text-gray-600">
+                      <span>{cat.age_estimate}</span>
+                      <span>•</span>
+                      <span>{cat.gender}</span>
+                      {cat.breed && (
+                        <>
+                          <span>•</span>
+                          <span>{cat.breed}</span>
+                        </>
+                      )}
+                    </div>
+                    <p className="text-gray-600 line-clamp-3">{cat.description}</p>
+                  </div>
+                  <div className="p-4 pt-0">
+                    <Button className="w-full group-hover:bg-meow-primary/90">
+                      Meet {cat.name}
+                    </Button>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-lg text-gray-500 mb-4">
+              {searchTerm || ageFilter !== 'all' || genderFilter !== 'all'
+                ? "No cats match your current filters. Try adjusting your search criteria."
+                : "No cats are currently available for adoption. Please check back soon!"}
+            </p>
+            {(searchTerm || ageFilter !== 'all' || genderFilter !== 'all') && (
+              <Button 
+                onClick={() => {
+                  setSearchTerm('');
+                  setAgeFilter('all');
+                  setGenderFilter('all');
+                }}
+                variant="outline"
+              >
+                Clear Filters
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+      
+      {/* Adoption Process Section */}
+      <div className="bg-gray-50 py-16">
+        <div className="container mx-auto px-4">
+          <SectionHeading
+            title="Adoption Process"
+            subtitle="How to bring your new feline friend home"
+            centered
+          />
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+            <div className="bg-white p-6 rounded-lg shadow-md text-center">
+              <div className="w-16 h-16 bg-meow-primary/10 rounded-full flex items-center justify-center text-meow-primary text-2xl font-bold mx-auto mb-4">
+                1
+              </div>
+              <h3 className="text-xl font-semibold mb-3">Apply</h3>
+              <p className="text-gray-600">
+                Fill out our adoption application to start the process. We'll review your application and contact you within 48 hours.
+              </p>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-md text-center">
+              <div className="w-16 h-16 bg-meow-primary/10 rounded-full flex items-center justify-center text-meow-primary text-2xl font-bold mx-auto mb-4">
+                2
+              </div>
+              <h3 className="text-xl font-semibold mb-3">Meet</h3>
+              <p className="text-gray-600">
+                Schedule a meet and greet with your potential new family member. Spend time getting to know each other.
+              </p>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-md text-center">
+              <div className="w-16 h-16 bg-meow-primary/10 rounded-full flex items-center justify-center text-meow-primary text-2xl font-bold mx-auto mb-4">
+                3
+              </div>
+              <h3 className="text-xl font-semibold mb-3">Adopt</h3>
+              <p className="text-gray-600">
+                Complete the adoption contract, pay the adoption fee, and welcome your new cat home!
+              </p>
             </div>
           </div>
           
-          <div className="mt-4 flex justify-end">
-            <Button variant="outline" onClick={resetFilters} size="sm">
-              Reset Filters
+          <div className="text-center mt-12">
+            <Button asChild size="lg">
+              <Link to="/adopt">Start Adoption Process</Link>
             </Button>
           </div>
         </div>
-
-        {loading ? (
-          <div className="flex justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-meow-primary" />
-          </div>
-        ) : error ? (
-          <div className="text-center py-12">
-            <p className="text-red-500 mb-4">There was an issue loading the cats.</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
-              {filteredCats.map(cat => (
-                <CatCard
-                  key={cat.id}
-                  id={cat.id}
-                  name={cat.name}
-                  imageUrl={cat.photos_urls && cat.photos_urls.length > 0 ? cat.photos_urls[0] : '/placeholder.svg'}
-                  age={cat.age_estimate || 'Unknown age'}
-                  gender={cat.gender || 'Unknown'}
-                  description={cat.description || 'No description available'}
-                  status={cat.status}
-                />
-              ))}
-            </div>
-          </div>
-        ) : filteredCats.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-600">No cats found matching your search criteria.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
-            {filteredCats.map(cat => (
-              <CatCard
-                key={cat.id}
-                id={cat.id}
-                name={cat.name}
-                imageUrl={cat.photos_urls && cat.photos_urls.length > 0 ? cat.photos_urls[0] : '/placeholder.svg'}
-                age={cat.age_estimate || 'Unknown age'}
-                gender={cat.gender || 'Unknown'}
-                description={cat.description || 'No description available'}
-                status={cat.status}
-              />
-            ))}
-          </div>
-        )}
       </div>
     </Layout>
   );

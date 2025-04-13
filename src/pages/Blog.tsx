@@ -19,18 +19,25 @@ import SectionHeading from '@/components/ui/SectionHeading';
 
 const Blog: React.FC = () => {
   const navigate = useNavigate();
-  const { data: posts, isLoading } = useQuery({
+  const { data: posts, isLoading, isError } = useQuery({
     queryKey: ['blogPosts'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .eq('is_published', true)
-        .order('published_at', { ascending: false });
-      
-      if (error) throw error;
-      return data;
-    }
+      try {
+        const { data, error } = await supabase
+          .from('blog_posts')
+          .select('*')
+          .eq('is_published', true)
+          .order('published_at', { ascending: false });
+        
+        if (error) throw error;
+        return data || [];
+      } catch (error) {
+        console.error("Error fetching blog posts:", error);
+        return [];
+      }
+    },
+    retry: 2,
+    retryDelay: 1000
   });
 
   const handleCardClick = (slug: string) => {
@@ -60,6 +67,11 @@ const Blog: React.FC = () => {
         {isLoading ? (
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
+          </div>
+        ) : isError ? (
+          <div className="text-center py-12">
+            <p className="text-lg text-red-500 mb-4">We encountered an error loading the blog posts.</p>
+            <Button variant="outline" onClick={() => window.location.reload()}>Try Again</Button>
           </div>
         ) : posts && posts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

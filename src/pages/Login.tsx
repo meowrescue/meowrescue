@@ -1,10 +1,10 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -113,6 +113,19 @@ const Login: React.FC = () => {
               </form>
             </Form>
           </CardContent>
+          <CardFooter className="flex flex-col space-y-2">
+            <div className="text-center text-sm text-gray-500">
+              <Link to="/reset-password" className="text-meow-primary hover:underline">
+                Forgot your password?
+              </Link>
+            </div>
+            <div className="text-center text-sm text-gray-500">
+              Don't have an account?{" "}
+              <Link to="/register" className="text-meow-primary hover:underline">
+                Sign up
+              </Link>
+            </div>
+          </CardFooter>
         </Card>
       </div>
     </Layout>
