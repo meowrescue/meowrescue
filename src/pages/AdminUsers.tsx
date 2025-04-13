@@ -60,10 +60,10 @@ const AdminUsers: React.FC = () => {
             let isActive = true; // Default to active if not found
             
             try {
-              const { data: statusData } = await supabase
+              const { data: statusData, error: statusError } = await supabase
                 .rpc('get_user_status', { user_id: profile.id });
                 
-              // If data is returned and contains is_active, use it
+              // If data is returned and not null, use it
               if (statusData !== null) {
                 isActive = statusData;
               }

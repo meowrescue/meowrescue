@@ -886,24 +886,64 @@ export type Database = {
     }
     Functions: {
       add_cat_feeding_record: {
-        Args: {
-          p_cat_id: string
-          p_cat_food_id: string
-          p_amount: number
-          p_feeding_date: string
-        }
+        Args:
+          | {
+              p_cat_id: string
+              p_cat_food_id: string
+              p_amount: number
+              p_feeding_date: string
+            }
+          | {
+              p_cat_id: string
+              p_cat_food_id: string
+              p_amount: number
+              p_feeding_date: string
+            }
         Returns: string
       }
       add_cat_food: {
+        Args:
+          | {
+              p_brand: string
+              p_type: string
+              p_quantity: number
+              p_units: string
+              p_cost_per_unit: number
+              p_purchase_date: string
+            }
+          | {
+              p_brand: string
+              p_type: string
+              p_quantity: number
+              p_units: string
+              p_cost_per_unit: number
+              p_purchase_date: string
+            }
+        Returns: string
+      }
+      create_application: {
         Args: {
-          p_brand: string
-          p_type: string
-          p_quantity: number
-          p_units: string
-          p_cost_per_unit: number
-          p_purchase_date: string
+          p_applicant_id: string
+          p_application_type: string
+          p_status: string
+          p_form_data: Json
         }
         Returns: string
+      }
+      get_applications: {
+        Args: { p_status?: string; p_type?: string }
+        Returns: {
+          applicant_id: string | null
+          application_type: string
+          created_at: string
+          feedback: string | null
+          form_data: Json
+          id: string
+          reviewed_at: string | null
+          reviewer_id: string | null
+          status: string
+          updated_at: string
+        }[]
       }
       get_cat_feeding_records: {
         Args: Record<PropertyKey, never>
@@ -932,6 +972,10 @@ export type Database = {
           units: string
         }[]
       }
+      get_user_status: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
       is_admin: {
         Args: { uid: string }
         Returns: boolean
@@ -943,6 +987,18 @@ export type Database = {
       is_volunteer: {
         Args: { uid: string }
         Returns: boolean
+      }
+      update_application_status: {
+        Args: {
+          p_application_id: string
+          p_status: string
+          p_feedback?: string
+        }
+        Returns: undefined
+      }
+      update_user_status: {
+        Args: { p_user_id: string; p_is_active: boolean }
+        Returns: undefined
       }
     }
     Enums: {
