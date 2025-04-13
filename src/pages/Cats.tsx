@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import Layout from '@/components/Layout';
+import Layout from '../components/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -116,7 +117,7 @@ const Cats: React.FC = () => {
                 className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-meow-primary focus:border-meow-primary"
               >
                 <option value="all">All Ages</option>
-                <option value="kitten">Kittens (< 1 year)</option>
+                <option value="kitten">Kittens (&lt; 1 year)</option>
                 <option value="young">Young (1-3 years)</option>
                 <option value="adult">Adult (3+ years)</option>
               </select>
