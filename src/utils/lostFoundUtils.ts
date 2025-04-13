@@ -2,8 +2,8 @@
 import React from "react";
 import { AlertCircle, Search, CheckCircle } from "lucide-react";
 
-export const getStatusBadgeClass = (status: string): string => {
-  switch (status) {
+export const getStatusBadgeClass = (status: string | null | undefined): string => {
+  switch (status?.toLowerCase()) {
     case "lost":
       return "bg-red-100 text-red-800 border-red-200";
     case "found":
@@ -15,8 +15,8 @@ export const getStatusBadgeClass = (status: string): string => {
   }
 };
 
-export const getStatusIcon = (status: string): React.ReactNode => {
-  switch (status) {
+export const getStatusIcon = (status: string | null | undefined): React.ReactNode => {
+  switch (status?.toLowerCase()) {
     case "lost":
       return React.createElement(AlertCircle, { size: 16, strokeWidth: 2 });
     case "found":
@@ -25,5 +25,25 @@ export const getStatusIcon = (status: string): React.ReactNode => {
       return React.createElement(CheckCircle, { size: 16, strokeWidth: 2 });
     default:
       return null;
+  }
+};
+
+// Function to format date (Includes safe-checks)
+export const formatDateForDisplay = (dateString: string | null | undefined): string => {
+  if (!dateString) return 'Unknown date';
+  try {
+    const date = new Date(dateString);
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return 'Invalid date';
+    }
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  } catch (e) {
+    console.error('Error formatting date:', dateString, e);
+    return typeof dateString === 'string' ? dateString : 'Invalid date input';
   }
 };
