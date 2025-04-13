@@ -17,6 +17,7 @@ const SEO: React.FC<SEOProps> = ({
   ogType = 'website',
   ogImage = 'https://lovable.dev/opengraph-image-p98pqg.png',
 }) => {
+  // Ensure title has "Meow Rescue" in it for consistency
   const siteTitle = title.includes('Meow Rescue') ? title : `${title} | Meow Rescue`;
   
   return (

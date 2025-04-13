@@ -16,6 +16,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import SEO from '@/components/SEO';
 
 // Form schema
 const loginSchema = z.object({
@@ -42,6 +43,11 @@ const Login: React.FC = () => {
 
   return (
     <Layout>
+      <SEO 
+        title="Sign In" 
+        description="Sign in to your Meow Rescue account to manage your profile, track your adoption applications, and more."
+      />
+      
       <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
           <div>

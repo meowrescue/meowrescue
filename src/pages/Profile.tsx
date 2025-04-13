@@ -20,9 +20,10 @@ import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
+import SEO from '@/components/SEO';
 
 const Profile: React.FC = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, session } = useAuth();
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isPasswordOpen, setIsPasswordOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -45,6 +46,11 @@ const Profile: React.FC = () => {
   const handleEditProfile = async (data: any) => {
     setIsLoading(true);
     try {
+      // Check if session exists before performing the update
+      if (!session) {
+        throw new Error("Authentication session is missing. Please log in again.");
+      }
+      
       const { error } = await supabase.auth.updateUser({
         data: { name: data.name }
       });
@@ -79,6 +85,11 @@ const Profile: React.FC = () => {
         return;
       }
       
+      // Check if session exists before performing the password update
+      if (!session) {
+        throw new Error("Authentication session is missing. Please log in again.");
+      }
+      
       const { error } = await supabase.auth.updateUser({
         password: data.password
       });
@@ -105,6 +116,11 @@ const Profile: React.FC = () => {
   const handleDeleteAccount = async () => {
     setIsLoading(true);
     try {
+      // Check if session exists before attempting to delete the account
+      if (!session) {
+        throw new Error("Authentication session is missing. Please log in again.");
+      }
+      
       // In a full implementation, we would call a Supabase Edge Function to delete the user
       // Since that requires backend code, we'll handle it on the client for now
       // and just show a successful toast and sign the user out
@@ -133,6 +149,11 @@ const Profile: React.FC = () => {
   return (
     <ProtectedRoute>
       <Layout>
+        <SEO 
+          title="My Profile" 
+          description="Manage your Meow Rescue profile, view your adoption applications, and track your donations."
+        />
+        
         <div className="container mx-auto py-16 px-4">
           <h1 className="text-3xl font-bold mb-10 text-meow-primary">My Profile</h1>
           
