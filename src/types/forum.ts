@@ -5,11 +5,14 @@ export interface ForumPost {
   id: string;
   title: string;
   content: string;
-  category: string;
-  is_pinned: boolean;
-  is_locked: boolean;
   created_at: string;
   profile_id: string;
+  description?: string;
+  location?: string;
+  status?: string;
+  pet_type?: string;
+  photos_urls?: string[];
+  date_occurred?: string;
   profiles?: {
     first_name?: string;
     last_name?: string;

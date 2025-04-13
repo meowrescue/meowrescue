@@ -10,14 +10,9 @@ import { Edit, MessageSquare, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import SEO from '@/components/SEO';
+import { ForumPost } from '@/types/forum';
 
-interface ForumPost {
-  id: string;
-  title: string;
-  content: string;
-  created_at: string;
-  updated_at: string;
-  profile_id: string;
+interface ForumPostWithDetails extends ForumPost {
   user_name?: string;
   user_email?: string;
   comment_count?: number;
@@ -27,44 +22,51 @@ const AdminForum: React.FC = () => {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   
-  // Fetch forum posts with user info and comment counts
+  // Check if forum_posts table exists
   const { data: posts, isLoading, error, refetch } = useQuery({
     queryKey: ['forum-posts'],
     queryFn: async () => {
-      // Fetch the posts
-      const { data: postsData, error: postsError } = await supabase
-        .from('forum_posts')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (postsError) throw postsError;
-      
-      // Get user info and comment counts for each post
-      const postsWithDetails = await Promise.all(
-        postsData.map(async (post) => {
-          // Get user info
-          const { data: userData } = await supabase
-            .from('profiles')
-            .select('first_name, last_name, email')
-            .eq('id', post.profile_id)
-            .single();
-          
-          // Get comment count
-          const { count: commentCount } = await supabase
-            .from('post_comments')
-            .select('*', { count: 'exact', head: true })
-            .eq('post_id', post.id);
-          
-          return {
-            ...post,
-            user_name: userData ? `${userData.first_name || ''} ${userData.last_name || ''}`.trim() : 'Unknown User',
-            user_email: userData?.email || '',
-            comment_count: commentCount
-          };
-        })
-      );
-      
-      return postsWithDetails as ForumPost[];
+      try {
+        // First check if the lost_found_posts table exists and use its data
+        const { data: postsData, error: postsError } = await supabase
+          .from('lost_found_posts')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (postsError) throw postsError;
+        
+        // Get user info and comment counts for each post
+        const postsWithDetails = await Promise.all(
+          postsData.map(async (post) => {
+            // Get user info
+            const { data: userData } = await supabase
+              .from('profiles')
+              .select('first_name, last_name, email')
+              .eq('id', post.profile_id)
+              .single();
+            
+            // Get comment count
+            const { count: commentCount } = await supabase
+              .from('post_comments')
+              .select('*', { count: 'exact', head: true })
+              .eq('post_id', post.id);
+            
+            return {
+              ...post,
+              title: post.title,
+              content: post.description, // Use description as content
+              user_name: userData ? `${userData.first_name || ''} ${userData.last_name || ''}`.trim() : 'Unknown User',
+              user_email: userData?.email || '',
+              comment_count: commentCount
+            } as ForumPostWithDetails;
+          })
+        );
+        
+        return postsWithDetails;
+      } catch (error) {
+        console.error("Error fetching forum posts:", error);
+        return [] as ForumPostWithDetails[];
+      }
     }
   });
   
@@ -81,7 +83,7 @@ const AdminForum: React.FC = () => {
       
       // Then delete the post itself
       const { error } = await supabase
-        .from('forum_posts')
+        .from('lost_found_posts')
         .delete()
         .eq('id', id);
       

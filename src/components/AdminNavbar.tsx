@@ -48,7 +48,7 @@ const AdminNavbar: React.FC = () => {
   };
 
   return (
-    <Sidebar defaultCollapsed={false} collapsible={false}>
+    <Sidebar defaultCollapsed={false} collapsible="none">
       <SidebarHeader className="border-b mb-0 pb-0">
         <div className="flex items-center p-4">
           <Link to="/" className="flex items-center gap-2">

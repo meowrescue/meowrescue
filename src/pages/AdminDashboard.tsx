@@ -42,7 +42,7 @@ const AdminDashboard: React.FC = () => {
       
       if (error) throw error;
       
-      return data.reduce((sum, donation) => sum + parseFloat(donation.amount), 0) || 0;
+      return data.reduce((sum, donation) => sum + parseFloat(donation.amount.toString()), 0) || 0;
     }
   });
 
