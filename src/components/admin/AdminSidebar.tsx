@@ -14,8 +14,7 @@ import {
   Shield,
   FileImage,
   Search,
-  LogOut,
-  Home
+  LogOut
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -38,7 +37,7 @@ const AdminSidebar: React.FC = () => {
   };
   
   return (
-    <div className="fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 text-gray-700 p-4 flex flex-col h-screen z-10">
+    <div className="fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 text-gray-700 p-4 flex flex-col h-screen z-10 overflow-auto">
       <div className="mb-4 mt-2">
         <Link to="/" className="flex items-center gap-2">
           <div className="bg-meow-primary rounded-full p-2">
@@ -51,7 +50,7 @@ const AdminSidebar: React.FC = () => {
         </Link>
       </div>
       
-      <div className="flex-1 overflow-y-auto space-y-4">
+      <div className="flex-1 space-y-4">
         {/* Dashboard Section */}
         <div>
           <h3 className="font-semibold text-xs uppercase text-gray-500 mb-2 px-3">Dashboard</h3>
@@ -63,13 +62,6 @@ const AdminSidebar: React.FC = () => {
           >
             <BarChart3 className="mr-3 h-5 w-5 text-gray-600" />
             <span>Dashboard</span>
-          </Link>
-          <Link 
-            to="/"
-            className={`flex items-center p-2 rounded transition-colors hover:bg-gray-100`}
-          >
-            <Home className="mr-3 h-5 w-5 text-gray-600" />
-            <span>Visit Site</span>
           </Link>
         </div>
         

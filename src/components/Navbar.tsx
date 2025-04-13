@@ -102,7 +102,7 @@ const Navbar: React.FC = () => {
                 </NavigationMenuItem>
                 <NavigationMenuItem>
                   <NavigationMenuTrigger>Adopt</NavigationMenuTrigger>
-                  <NavigationMenuContent className="origin-top-center">
+                  <NavigationMenuContent className="origin-top-center absolute left-0">
                     <ul className="grid gap-3 p-4 md:w-[400px] lg:w-[500px] lg:grid-cols-2">
                       <li className="row-span-3">
                         <NavigationMenuLink asChild>
@@ -134,7 +134,7 @@ const Navbar: React.FC = () => {
                 </NavigationMenuItem>
                 <NavigationMenuItem>
                   <NavigationMenuTrigger>Get Involved</NavigationMenuTrigger>
-                  <NavigationMenuContent className="origin-top-center">
+                  <NavigationMenuContent className="origin-top-center absolute left-0">
                     <ul className="grid gap-3 p-4 md:w-[400px] lg:w-[500px] lg:grid-cols-2">
                       <ListItem href="/volunteer" title="Volunteer">
                         Join our team of dedicated volunteers
@@ -160,7 +160,7 @@ const Navbar: React.FC = () => {
                 </NavigationMenuItem>
                 <NavigationMenuItem>
                   <NavigationMenuTrigger>Resources</NavigationMenuTrigger>
-                  <NavigationMenuContent className="origin-top-center">
+                  <NavigationMenuContent className="origin-top-center absolute left-0">
                     <ul className="grid gap-3 p-4 w-[400px]">
                       <ListItem href="/blog" title="Blog">
                         Read our latest articles and updates

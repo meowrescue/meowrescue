@@ -17,6 +17,7 @@ export function capitalizeFirstLetter(string: string): string {
 }
 
 export function capitalizeWords(string: string): string {
+  if (!string) return '';
   return string
     .split(' ')
     .map(word => capitalizeFirstLetter(word))
@@ -24,5 +25,6 @@ export function capitalizeWords(string: string): string {
 }
 
 export function formatApplicationType(type: string): string {
-  return capitalizeWords(type);
+  if (!type) return '';
+  return capitalizeWords(type.replace(/-/g, ' '));
 }

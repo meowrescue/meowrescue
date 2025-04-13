@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Send, X, MessageCircle, Mail } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useBusinessHours } from './BusinessHoursProvider';
 import { Link } from 'react-router-dom';
 
 interface ChatMessage {
@@ -25,13 +24,40 @@ interface ChatMessage {
 const ChatWidget: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { isBusinessHours } = useBusinessHours();
   const [isOpen, setIsOpen] = useState(false);
   const [newMessage, setNewMessage] = useState('');
   const [chatSession, setChatSession] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isAdminAvailable, setIsAdminAvailable] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Check if any admin is currently online
+  useEffect(() => {
+    const checkAdminAvailability = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('role', 'admin')
+          .eq('is_active', true)
+          .limit(1);
+          
+        if (error) throw error;
+        
+        setIsAdminAvailable(data && data.length > 0);
+      } catch (error) {
+        console.error("Error checking admin availability:", error);
+      }
+    };
+    
+    checkAdminAvailability();
+    
+    // Set up a subscription to check admin availability every minute
+    const interval = setInterval(checkAdminAvailability, 60000);
+    
+    return () => clearInterval(interval);
+  }, []);
   
   // Scroll to bottom of messages
   const scrollToBottom = () => {
@@ -242,7 +268,7 @@ const ChatWidget: React.FC = () => {
               <div className="h-full flex items-center justify-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-meow-primary"></div>
               </div>
-            ) : isBusinessHours ? (
+            ) : isAdminAvailable ? (
               messages.length > 0 ? (
                 <ScrollArea className="h-full py-2 pr-2">
                   <div className="space-y-3">
@@ -283,7 +309,7 @@ const ChatWidget: React.FC = () => {
               <div className="h-full flex items-center justify-center text-gray-500 text-center p-4">
                 <div>
                   <Mail className="mx-auto h-10 w-10 text-gray-300 mb-2" />
-                  <p>Our team is currently offline. Our business hours are Monday to Friday, 9am to 5pm.</p>
+                  <p>Our team is currently offline. Please try again later or send us a message through our contact form.</p>
                   <Link to="/contact">
                     <Button variant="outline" className="mt-4">
                       Send us a message
@@ -294,7 +320,7 @@ const ChatWidget: React.FC = () => {
             )}
           </CardContent>
           
-          {isBusinessHours && (
+          {isAdminAvailable && (
             <CardFooter className="py-2 px-3 border-t">
               <div className="flex w-full gap-2">
                 <Textarea
