@@ -17,9 +17,7 @@ const LostFound = () => {
   const [posts, setPosts] = useState<LostFoundPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "lost" | "found" | "reunited">("all");
-  const [petTypeFilter, setPetTypeFilter] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [petTypes, setPetTypes] = useState<string[]>([]);
 
   useEffect(() => {
     fetchPosts();
@@ -50,12 +48,6 @@ const LostFound = () => {
       }
 
       setPosts(data as unknown as LostFoundPost[]);
-      
-      // Extract unique pet types
-      if (data && data.length > 0) {
-        const types = [...new Set(data.map(post => post.pet_type))];
-        setPetTypes(types);
-      }
     } catch (error) {
       console.error("Unexpected error:", error);
     } finally {
@@ -63,16 +55,16 @@ const LostFound = () => {
     }
   };
 
-  const filteredPosts = posts
-    .filter(post => petTypeFilter === "" || post.pet_type.toLowerCase() === petTypeFilter.toLowerCase())
-    .filter(post => 
-      searchTerm === "" || 
-      post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      post.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      post.pet_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (post.pet_name && post.pet_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      post.location.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  const filteredPosts = searchTerm
+    ? posts.filter(
+        (post) =>
+          post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          post.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          post.pet_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (post.pet_name && post.pet_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          post.location.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : posts;
 
   return (
     <Layout>
@@ -90,13 +82,7 @@ const LostFound = () => {
 
         <div className="flex flex-col gap-6 mb-8">
           {/* Filter buttons */}
-          <LostFoundFilters 
-            filter={filter} 
-            setFilter={setFilter} 
-            petTypeFilter={petTypeFilter}
-            setPetTypeFilter={setPetTypeFilter}
-            petTypes={petTypes}
-          />
+          <LostFoundFilters filter={filter} setFilter={setFilter} />
 
           {/* Search and new post */}
           <LostFoundSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
