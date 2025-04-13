@@ -313,6 +313,74 @@ export type Database = {
           },
         ]
       }
+      chat_messages: {
+        Row: {
+          admin_id: string | null
+          chat_session_id: string
+          content: string
+          created_at: string
+          id: string
+          is_admin: boolean
+          read_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          admin_id?: string | null
+          chat_session_id: string
+          content: string
+          created_at?: string
+          id?: string
+          is_admin?: boolean
+          read_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          admin_id?: string | null
+          chat_session_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_admin?: boolean
+          read_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_chat_session_id_fkey"
+            columns: ["chat_session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          last_message_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       contact_messages: {
         Row: {
           email: string
@@ -391,6 +459,7 @@ export type Database = {
           donation_date: string
           donor_profile_id: string | null
           id: string
+          income_type: string | null
           is_recurring: boolean
           notes: string | null
           payment_gateway_id: string | null
@@ -402,6 +471,7 @@ export type Database = {
           donation_date?: string
           donor_profile_id?: string | null
           id?: string
+          income_type?: string | null
           is_recurring?: boolean
           notes?: string | null
           payment_gateway_id?: string | null
@@ -413,6 +483,7 @@ export type Database = {
           donation_date?: string
           donor_profile_id?: string | null
           id?: string
+          income_type?: string | null
           is_recurring?: boolean
           notes?: string | null
           payment_gateway_id?: string | null
@@ -1011,7 +1082,7 @@ export type Database = {
       app_role: "user" | "volunteer" | "foster" | "admin"
       application_status: "Submitted" | "Under Review" | "Approved" | "Rejected"
       cat_status: "Available" | "Pending" | "Adopted"
-      message_status: "New" | "Read" | "Replied"
+      message_status: "New" | "Read" | "Replied" | "Archived"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1130,7 +1201,7 @@ export const Constants = {
       app_role: ["user", "volunteer", "foster", "admin"],
       application_status: ["Submitted", "Under Review", "Approved", "Rejected"],
       cat_status: ["Available", "Pending", "Adopted"],
-      message_status: ["New", "Read", "Replied"],
+      message_status: ["New", "Read", "Replied", "Archived"],
     },
   },
 } as const

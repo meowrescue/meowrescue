@@ -41,6 +41,34 @@ export interface Comment {
   };
 }
 
+// Define the types for chat sessions
+export interface ChatSession {
+  id: string;
+  user_id: string;
+  status: 'active' | 'closed';
+  created_at: string;
+  updated_at: string;
+  last_message_at: string;
+  user?: {
+    id: string;
+    first_name?: string;
+    last_name?: string;
+    email?: string;
+  };
+}
+
+// Define the types for chat messages
+export interface ChatMessage {
+  id: string;
+  chat_session_id: string;
+  user_id?: string;
+  admin_id?: string;
+  content: string;
+  is_admin: boolean;
+  created_at: string;
+  read_at?: string;
+}
+
 // This type is used to define the type safe database interface
 export type Database = {
   public: {
@@ -95,6 +123,92 @@ export type Database = {
           {
             foreignKeyName: "lost_found_posts_profile_id_fkey";
             columns: ["profile_id"];
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      chat_sessions: {
+        Row: {
+          id: string;
+          user_id: string;
+          status: string;
+          created_at: string;
+          updated_at: string;
+          last_message_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          status?: string;
+          created_at?: string;
+          updated_at?: string;
+          last_message_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          status?: string;
+          created_at?: string;
+          updated_at?: string;
+          last_message_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "chat_sessions_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      chat_messages: {
+        Row: {
+          id: string;
+          chat_session_id: string;
+          user_id: string | null;
+          admin_id: string | null;
+          content: string;
+          is_admin: boolean;
+          created_at: string;
+          read_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          chat_session_id: string;
+          user_id?: string | null;
+          admin_id?: string | null;
+          content: string;
+          is_admin?: boolean;
+          created_at?: string;
+          read_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          chat_session_id?: string;
+          user_id?: string | null;
+          admin_id?: string | null;
+          content?: string;
+          is_admin?: boolean;
+          created_at?: string;
+          read_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_chat_session_id_fkey";
+            columns: ["chat_session_id"];
+            referencedRelation: "chat_sessions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "chat_messages_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "chat_messages_admin_id_fkey";
+            columns: ["admin_id"];
             referencedRelation: "users";
             referencedColumns: ["id"];
           }
@@ -379,6 +493,7 @@ export type Database = {
           notes: string | null
           payment_gateway_id: string | null
           status: string
+          income_type: string | null
         }
         Insert: {
           amount: number
@@ -390,6 +505,7 @@ export type Database = {
           notes?: string | null
           payment_gateway_id?: string | null
           status?: string
+          income_type?: string | null
         }
         Update: {
           amount?: number
@@ -401,6 +517,7 @@ export type Database = {
           notes?: string | null
           payment_gateway_id?: string | null
           status?: string
+          income_type?: string | null
         }
         Relationships: [
           {
@@ -542,6 +659,8 @@ export type Database = {
           state: string | null
           updated_at: string
           zip: string | null
+          role_title: string | null
+          show_in_team: boolean | null
         }
         Insert: {
           address?: string | null
@@ -558,6 +677,8 @@ export type Database = {
           state?: string | null
           updated_at?: string
           zip?: string | null
+          role_title?: string | null
+          show_in_team?: boolean | null
         }
         Update: {
           address?: string | null
@@ -574,6 +695,8 @@ export type Database = {
           state?: string | null
           updated_at?: string
           zip?: string | null
+          role_title?: string | null
+          show_in_team?: boolean | null
         }
         Relationships: []
       }
@@ -873,7 +996,7 @@ export type Database = {
       app_role: "user" | "volunteer" | "foster" | "admin"
       application_status: "Submitted" | "Under Review" | "Approved" | "Rejected"
       cat_status: "Available" | "Pending" | "Adopted"
-      message_status: "New" | "Read" | "Replied"
+      message_status: "New" | "Read" | "Replied" | "Archived"
     }
     CompositeTypes: {
       [_ in never]: never

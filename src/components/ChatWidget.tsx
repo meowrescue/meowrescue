@@ -8,13 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Send, X, MessageCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
-interface ChatMessage {
-  id: string;
-  content: string;
-  is_admin: boolean;
-  created_at: string;
-}
+import { ChatMessage } from '@/types/supabase';
 
 const ChatWidget: React.FC = () => {
   const { user } = useAuth();

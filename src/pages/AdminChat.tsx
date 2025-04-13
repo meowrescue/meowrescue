@@ -13,26 +13,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { User, MessageCircle, Send } from 'lucide-react';
 import { User as UserType } from '@/types/users';
-
-interface ChatMessage {
-  id: string;
-  user_id: string;
-  admin_id: string | null;
-  content: string;
-  is_admin: boolean;
-  created_at: string;
-  read_at: string | null;
-}
-
-interface ChatSession {
-  id: string;
-  user_id: string;
-  status: 'active' | 'closed';
-  created_at: string;
-  updated_at: string;
-  last_message_at: string;
-  user?: UserType;
-}
+import { ChatSession, ChatMessage } from '@/types/supabase';
 
 const AdminChat: React.FC = () => {
   const { toast } = useToast();
@@ -59,7 +40,7 @@ const AdminChat: React.FC = () => {
         return [] as ChatSession[];
       }
       
-      return data as ChatSession[];
+      return data as unknown as ChatSession[];
     },
     refetchInterval: 10000, // Refresh every 10 seconds
   });
@@ -86,7 +67,7 @@ const AdminChat: React.FC = () => {
       }
       
       // Mark messages as read if not admin's messages
-      const unreadMessages = data.filter(message => !message.is_admin && !message.read_at);
+      const unreadMessages = (data as ChatMessage[]).filter(message => !message.is_admin && !message.read_at);
       if (unreadMessages.length > 0) {
         const unreadIds = unreadMessages.map(msg => msg.id);
         await supabase

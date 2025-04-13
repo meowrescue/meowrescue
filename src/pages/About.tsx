@@ -24,8 +24,7 @@ const About = () => {
         return [] as TeamMember[];
       }
       
-      // Use a type assertion to specify the return type explicitly
-      return (data || []) as TeamMember[];
+      return (data || []) as unknown as TeamMember[];
     }
   });
 

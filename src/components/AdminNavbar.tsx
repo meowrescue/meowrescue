@@ -32,7 +32,7 @@ const AdminNavbar: React.FC = () => {
     { path: '/admin/applications', label: 'Applications', icon: <ClipboardList size={20} /> },
     { path: '/admin/users', label: 'Users', icon: <Users size={20} /> },
     { path: '/admin/events', label: 'Events', icon: <Calendar size={20} /> },
-    { path: '/admin/finance', label: 'Finance', icon: <DollarSign size={20} /> },
+    { path: '/admin/finance', label: 'Income', icon: <DollarSign size={20} /> },
     { path: '/admin/messages', label: 'Messages', icon: <MessageSquare size={20} /> },
     { path: '/admin/chat', label: 'Chat', icon: <MessageCircle size={20} /> },
     { path: '/admin/lost-found', label: 'Lost & Found', icon: <Search size={20} /> },
@@ -43,7 +43,7 @@ const AdminNavbar: React.FC = () => {
   
   return (
     <aside 
-      className="bg-white border-r border-gray-200 w-64 transition-all duration-300 h-screen sticky top-0 z-40 overflow-y-auto"
+      className="bg-white border-r border-gray-200 w-64 h-screen sticky top-0 z-40 overflow-y-auto"
     >
       <div className="flex flex-col h-full">
         <div className="p-4 border-b border-gray-200 flex items-center justify-between">
