@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,6 +49,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { CatFood, CatFeedingRecord } from '@/types/finance';
+import { catFoodApi } from '@/services/catFoodService';
 
 // Form schemas
 const catFoodSchema = z.object({
@@ -99,90 +99,19 @@ const CatFoodTracker: React.FC = () => {
   // Query for cat food inventory
   const { data: foodInventory = [], isLoading: isLoadingFood, refetch: refetchFood } = useQuery({
     queryKey: ['cat-food-inventory'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('cat_food')
-        .select('*')
-        .order('purchase_date', { ascending: false });
-        
-      if (error) {
-        console.error('Error fetching cat food:', error);
-        throw error;
-      }
-      
-      return data as CatFood[];
-    }
+    queryFn: () => catFoodApi.getCatFood()
   });
 
-  // Query for feeding records with joins to get cat and food names
+  // Query for feeding records
   const { data: feedingRecords = [], isLoading: isLoadingFeedings, refetch: refetchFeedings } = useQuery({
     queryKey: ['cat-feeding-records'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('cat_feeding_records')
-        .select(`
-          id,
-          cat_id,
-          cat_food_id,
-          amount,
-          feeding_date,
-          created_at
-        `)
-        .order('feeding_date', { ascending: false });
-        
-      if (error) {
-        console.error('Error fetching feeding records:', error);
-        throw error;
-      }
-      
-      // For each feeding record, fetch the cat name and food details
-      if (data) {
-        const enhancedRecords = await Promise.all(data.map(async (record) => {
-          // Get cat name
-          const { data: catData } = await supabase
-            .from('cats')
-            .select('name')
-            .eq('id', record.cat_id)
-            .single();
-          
-          // Get food details
-          const { data: foodData } = await supabase
-            .from('cat_food')
-            .select('brand, type')
-            .eq('id', record.cat_food_id)
-            .single();
-          
-          return {
-            ...record,
-            cat_name: catData?.name || 'Unknown Cat',
-            food_brand: foodData?.brand || 'Unknown Brand',
-            food_type: foodData?.type || 'Unknown Type'
-          };
-        }));
-        
-        return enhancedRecords as CatFeedingRecord[];
-      }
-      
-      return [] as CatFeedingRecord[];
-    }
+    queryFn: () => catFoodApi.getCatFeedingRecords()
   });
 
   // Query for available cats
   const { data: cats = [] } = useQuery({
     queryKey: ['available-cats'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('cats')
-        .select('id, name')
-        .order('name', { ascending: true });
-        
-      if (error) {
-        console.error('Error fetching cats:', error);
-        throw error;
-      }
-      
-      return data;
-    }
+    queryFn: () => catFoodApi.getCats()
   });
 
   // Handle food form submission
@@ -190,23 +119,14 @@ const CatFoodTracker: React.FC = () => {
     const costPerUnit = values.total_cost / values.quantity;
     
     try {
-      const { error } = await supabase
-        .from('cat_food')
-        .insert([
-          {
-            brand: values.brand,
-            type: values.type,
-            quantity: values.quantity,
-            units: values.units,
-            cost_per_unit: costPerUnit,
-            purchase_date: values.purchase_date,
-          }
-        ]);
-        
-      if (error) {
-        console.error('Error adding cat food:', error);
-        throw error;
-      }
+      await catFoodApi.addCatFood({
+        brand: values.brand,
+        type: values.type,
+        quantity: values.quantity,
+        units: values.units,
+        cost_per_unit: costPerUnit,
+        purchase_date: values.purchase_date,
+      });
       
       toast({
         title: "Food Added",
@@ -229,21 +149,12 @@ const CatFoodTracker: React.FC = () => {
   // Handle feeding form submission
   const onSubmitFeeding = async (values: z.infer<typeof feedingSchema>) => {
     try {
-      const { error } = await supabase
-        .from('cat_feeding_records')
-        .insert([
-          {
-            cat_id: values.cat_id,
-            cat_food_id: values.cat_food_id,
-            amount: values.amount,
-            feeding_date: values.feeding_date,
-          }
-        ]);
-        
-      if (error) {
-        console.error('Error recording feeding:', error);
-        throw error;
-      }
+      await catFoodApi.addCatFeedingRecord({
+        cat_id: values.cat_id,
+        cat_food_id: values.cat_food_id,
+        amount: values.amount,
+        feeding_date: values.feeding_date,
+      });
       
       toast({
         title: "Feeding Recorded",
@@ -266,7 +177,7 @@ const CatFoodTracker: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Cat Food Tracker</h2>
+        <h2 className="text-2xl font-bold text-meow-primary">Cat Food Tracker</h2>
         <div className="flex gap-4">
           <Dialog open={foodDialogOpen} onOpenChange={setFoodDialogOpen}>
             <DialogTrigger asChild>

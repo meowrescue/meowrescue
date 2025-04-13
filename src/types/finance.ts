@@ -47,3 +47,12 @@ export interface CatFeedingRecord {
   food_brand?: string;
   food_type?: string;
 }
+
+// Add these mock API types to help with the Supabase client type issues
+export interface CatFoodAPI {
+  getCatFood: () => Promise<CatFood[]>;
+  addCatFood: (food: Omit<CatFood, 'id' | 'created_at'>) => Promise<void>;
+  getCatFeedingRecords: () => Promise<CatFeedingRecord[]>;
+  addCatFeedingRecord: (record: Omit<CatFeedingRecord, 'id' | 'created_at' | 'cat_name' | 'food_brand' | 'food_type'>) => Promise<void>;
+  getCats: () => Promise<{id: string; name: string}[]>;
+}
