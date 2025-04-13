@@ -85,13 +85,13 @@ const AdminSidebar: React.FC = () => {
           </ul>
         </nav>
         
-        <div className="p-4 border-t border-gray-200">
+        <div className="px-2 border-t border-gray-200 py-4">
           <Button 
             onClick={handleLogout}
-            className="flex w-full items-center text-gray-700 hover:text-meow-primary"
+            className="flex w-full items-center text-gray-700 hover:text-meow-primary px-3 justify-start"
             variant="ghost"
           >
-            <LogOut size={20} className="mr-2" />
+            <LogOut size={20} className="mr-3" />
             <span>Logout</span>
           </Button>
         </div>
