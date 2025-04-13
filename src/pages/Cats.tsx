@@ -120,8 +120,8 @@ const Cats: React.FC = () => {
       <SEO title="Adoptable Cats | Meow Rescue" description="Browse our available cats for adoption. Find your perfect feline companion!" />
       
       <div className="container mx-auto py-10">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-meow-primary mb-4 md:mb-0">Adoptable Cats</h1>
+        <div className="flex flex-col md:flex-row items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold text-meow-primary mb-4 md:mb-0 text-center w-full">Adoptable Cats</h1>
           <div className="w-full md:w-auto">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="w-full">
@@ -200,6 +200,12 @@ const Cats: React.FC = () => {
             </div>
           </div>
         )}
+
+        <div className="text-center mb-6">
+          <p className="text-gray-600 max-w-3xl mx-auto">
+            Our adoptable cats are looking for loving forever homes. Browse through our available cats and find your perfect companion.
+          </p>
+        </div>
 
         {loading ? (
           <div className="flex justify-center py-12">

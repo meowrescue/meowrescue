@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -165,11 +166,6 @@ const CustomNavbar: React.FC = () => {
                   <DropdownMenuItem asChild>
                     <Link to="/profile" className="w-full cursor-pointer">
                       Profile
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/forum" className="w-full cursor-pointer">
-                      Forum
                     </Link>
                   </DropdownMenuItem>
                   {(user.user_metadata?.role === 'admin' || user.email?.endsWith('@meowrescue.org')) && (

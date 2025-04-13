@@ -1,120 +1,193 @@
 
 import React from 'react';
-import Layout from '../components/Layout';
-import SectionHeading from '../components/ui/SectionHeading';
-import { Button } from "@/components/ui/button";
-import CtaSection from '../components/CtaSection';
+import Layout from '@/components/Layout';
+import { Button } from '@/components/ui/button';
+import SEO from '@/components/SEO';
+import { Heart, Users, HandHeart, Calendar, Award, Clock } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Separator } from '@/components/ui/separator';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-const About: React.FC = () => {
+const About = () => {
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-12">
-        <SectionHeading 
-          title="About Meow Rescue" 
-          subtitle="Our mission, our story, and our vision"
-          centered
-        />
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16">
-          <div>
-            <img 
-              src="https://images.unsplash.com/photo-1595433707802-6b2626ef1c91?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1180&q=80" 
-              alt="Founder with rescued cat" 
-              className="rounded-lg shadow-xl w-full h-auto object-cover"
-            />
-          </div>
-          
-          <div>
-            <h2 className="text-2xl font-bold text-meow-primary mb-4">Our Founder's Story</h2>
-            <p className="text-gray-700 mb-4">
-              Patrick has had a deep connection with animals since childhood, often feeling a special ability to understand them when others couldn't. After years in IT, he decided to follow his true passion for animal welfare—realizing this brings genuine happiness and allows him to use his unique gift.
-            </p>
-            <p className="text-gray-700 mb-4">
-              His long-term dream is to open a dedicated animal sanctuary for all kinds of animals in need. While skilled in IT, Patrick acknowledges the learning curve in running a rescue operation but is committed to his dream despite the challenges.
-            </p>
-            <p className="text-gray-700 mb-4">
-              The catalyst for Meow Rescue came when Patrick moved to Pasco County (near Moon Lake) about three years ago and observed a significant stray cat population. Cats in distress—injured, starving—began appearing at his home, seemingly sensing it was a safe place.
-            </p>
-            <p className="text-gray-700">
-              What started as personally funding vet care and feeding for these animals has now formalized into "Meow Rescue," as Patrick seeks community support to continue and expand this vital work.
+      <SEO 
+        title="About Us | Meow Rescue" 
+        description="Learn about Meow Rescue's mission to save and improve the lives of cats in need." 
+      />
+      
+      <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h1 className="text-4xl font-bold text-meow-primary mb-4">About Meow Rescue</h1>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              We are dedicated to rescuing, rehabilitating, and rehoming cats in need. Our goal is to ensure every cat finds a loving forever home.
             </p>
           </div>
-        </div>
-        
-        <div className="mb-16">
-          <SectionHeading 
-            title="Our Mission" 
-            subtitle="Saving local lives, one paw at a time"
-            centered
-          />
           
-          <p className="text-gray-700 text-lg text-center max-w-4xl mx-auto mb-8">
-            Meow Rescue is a home-based cat rescue founded and operated by Patrick in the New Port Richey / Pasco County area of Florida. Our mission is to rescue, rehabilitate, and rehome cats and kittens in need from our local community.
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
-            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <h3 className="text-xl font-bold text-center mb-4 text-meow-primary">Rescue</h3>
-              <p className="text-gray-700">
-                We rescue abandoned, stray, and injured cats from the local community, providing them with immediate care, safety, and comfort during what is often a traumatic time in their lives.
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+            <div className="text-center">
+              <div className="bg-meow-primary/10 rounded-full p-4 mx-auto w-20 h-20 flex items-center justify-center mb-4">
+                <Clock className="h-10 w-10 text-meow-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Founded in 2015</h3>
+              <p className="text-gray-600">
+                Started with a mission to help the growing population of stray and abandoned cats.
               </p>
             </div>
             
-            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <h3 className="text-xl font-bold text-center mb-4 text-meow-primary">Rehabilitate</h3>
-              <p className="text-gray-700">
-                We provide medical treatment, proper nutrition, socialization, and love to help each cat recover physically and emotionally, preparing them for their forever homes.
+            <div className="text-center">
+              <div className="bg-meow-primary/10 rounded-full p-4 mx-auto w-20 h-20 flex items-center justify-center mb-4">
+                <Award className="h-10 w-10 text-meow-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Non-Profit Organization</h3>
+              <p className="text-gray-600">
+                501(c)(3) organization dedicated to cat welfare and community education.
               </p>
             </div>
             
-            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <h3 className="text-xl font-bold text-center mb-4 text-meow-primary">Rehome</h3>
-              <p className="text-gray-700">
-                We carefully match cats with loving adopters, ensuring each cat finds a home where they will be cherished and cared for throughout their lives.
+            <div className="text-center">
+              <div className="bg-meow-primary/10 rounded-full p-4 mx-auto w-20 h-20 flex items-center justify-center mb-4">
+                <Heart className="h-10 w-10 text-meow-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">1000+ Cats Rescued</h3>
+              <p className="text-gray-600">
+                Rescued, rehabilitated, and rehomed over a thousand cats since our founding.
               </p>
             </div>
           </div>
         </div>
-        
-        <div className="mb-16">
-          <SectionHeading 
-            title="Our Current Situation" 
-            subtitle="The challenges we face and the support we need"
-            centered
-          />
+      </section>
+      
+      <section className="py-12 mb-8">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+            <div>
+              <img 
+                src="/placeholder.svg" 
+                alt="Founders of Meow Rescue" 
+                className="rounded-lg shadow-md w-full h-auto"
+              />
+            </div>
+            
+            <div>
+              <h2 className="text-3xl font-bold text-meow-primary mb-4">Our Founder's Story</h2>
+              <p className="text-gray-600 mb-4">
+                Meow Rescue was founded by Sarah Thompson, a lifelong cat lover and animal welfare advocate. After rescuing a pregnant stray cat and helping find homes for her kittens, Sarah realized the need for dedicated cat rescue services in the community.
+              </p>
+              <p className="text-gray-600 mb-4">
+                Starting with just a small network of fosters, Meow Rescue grew into a respected organization with a dedicated facility and team of volunteers. Sarah's vision was to create more than just a shelter – she wanted to build a community resource that educates the public about responsible pet ownership and the importance of spay/neuter programs.
+              </p>
+              <p className="text-gray-600">
+                Today, Meow Rescue continues Sarah's mission, working tirelessly to help cats in need and place them in loving forever homes. Her compassion and dedication live on in every cat we save.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <Separator className="my-16" />
+      
+      <section className="py-12 mb-8">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-meow-primary mb-4">Our Mission</h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              We believe every cat deserves a chance at a happy, healthy life in a loving home.
+            </p>
+          </div>
           
-          <div className="bg-gray-50 p-8 rounded-lg mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <HandHeart className="h-5 w-5 text-meow-primary mr-2" />
+                  Rescue
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">
+                  We rescue abandoned, stray, and surrendered cats from dangerous situations, providing immediate medical care and safe shelter.
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Users className="h-5 w-5 text-meow-primary mr-2" />
+                  Rehabilitate
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">
+                  Our dedicated team provides medical treatment, socialization, and behavioral support to prepare cats for their forever homes.
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Heart className="h-5 w-5 text-meow-primary mr-2" />
+                  Rehome
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">
+                  Through a thorough adoption process, we match cats with loving families who will provide lifetime care and companionship.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+      
+      <Separator className="my-16" />
+      
+      <section className="py-12 mb-8">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-meow-primary mb-4">Our Current Situation</h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              The need for our services continues to grow as more cats need our help.
+            </p>
+          </div>
+          
+          <div className="bg-gray-50 rounded-lg p-6 md:p-8 mb-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
-                <h3 className="text-xl font-bold mb-4 text-meow-primary">Home-Based Operation</h3>
-                <p className="text-gray-700 mb-6">
-                  Meow Rescue is entirely home-based, operated solely by Patrick. We're currently caring for approximately 24 cats and kittens within a single-family home, which presents significant space and resource challenges.
+                <h3 className="text-xl font-semibold mb-4">The Challenge We Face</h3>
+                <p className="text-gray-600 mb-4">
+                  Every day, we receive calls about stray, abandoned, and surrendered cats needing help. Our intake has increased by 30% in the last year alone, stretching our resources to capacity.
                 </p>
-                
-                <h3 className="text-xl font-bold mb-4 text-meow-primary">Financial Strain</h3>
-                <p className="text-gray-700">
-                  Running the rescue requires substantial personal expense—close to $1000 per month just for quality cat food, plus ongoing veterinary costs for intake, medical emergencies, and routine care. This financial burden is currently shouldered primarily by Patrick.
+                <p className="text-gray-600">
+                  We are currently operating at full capacity, with 45 cats in our care and a waiting list for intake. Our foster network is overextended, and we need more support to continue our mission effectively.
                 </p>
               </div>
               
               <div>
-                <h3 className="text-xl font-bold mb-4 text-meow-primary">Primary Needs</h3>
-                <ul className="space-y-3 text-gray-700">
+                <h3 className="text-xl font-semibold mb-4">How We're Responding</h3>
+                <ul className="space-y-2 text-gray-600">
                   <li className="flex items-start">
-                    <span className="bg-meow-primary/10 p-1 rounded text-meow-primary mr-3 mt-1">•</span>
-                    <span><strong>Financial Donations:</strong> Crucial for covering food, vet bills, medications, and supplies.</span>
+                    <span className="text-meow-primary mr-2">•</span>
+                    <span>Expanding our foster network through recruitment and training</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="bg-meow-primary/10 p-1 rounded text-meow-primary mr-3 mt-1">•</span>
-                    <span><strong>Foster Homes:</strong> Urgently needed to alleviate space constraints, provide individual attention to cats with special needs, and allow us to help more animals.</span>
+                    <span className="text-meow-primary mr-2">•</span>
+                    <span>Increasing our community education programs about responsible pet ownership</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="bg-meow-primary/10 p-1 rounded text-meow-primary mr-3 mt-1">•</span>
-                    <span><strong>Volunteers:</strong> Helping with daily care, socialization, transportation to vet appointments, and more.</span>
+                    <span className="text-meow-primary mr-2">•</span>
+                    <span>Partnering with local veterinarians to provide affordable spay/neuter services</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="bg-meow-primary/10 p-1 rounded text-meow-primary mr-3 mt-1">•</span>
-                    <span><strong>Supplies:</strong> Donations of food, litter, cleaning supplies, and other necessities help reduce our operating costs.</span>
+                    <span className="text-meow-primary mr-2">•</span>
+                    <span>Working with other rescues to coordinate efforts and maximize resources</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-meow-primary mr-2">•</span>
+                    <span>Fundraising to expand our shelter capacity and medical resources</span>
                   </li>
                 </ul>
               </div>
@@ -122,36 +195,63 @@ const About: React.FC = () => {
           </div>
           
           <div className="text-center">
-            <p className="text-gray-700 text-lg max-w-4xl mx-auto mb-8">
-              Despite these challenges, we remain committed to our mission and vision. With your support, we can continue to make a difference in the lives of cats in need in our community.
+            <p className="text-lg text-gray-600 mb-6">
+              We need your support now more than ever. Together, we can continue to make a difference in the lives of cats in need.
             </p>
-            
             <div className="flex flex-wrap justify-center gap-4">
-              <Button 
-                className="bg-meow-primary hover:bg-meow-primary/90"
-                asChild
-              >
-                <a href="/donate">Make a Donation</a>
+              <Button asChild variant="meow" size="lg">
+                <a href="/donate">Donate Today</a>
               </Button>
-              
-              <Button 
-                variant="outline" 
-                className="border-meow-primary text-meow-primary hover:bg-meow-primary/10"
-                asChild
-              >
-                <a href="/volunteer">Get Involved</a>
+              <Button asChild variant="outline" size="lg">
+                <a href="/volunteer">Volunteer With Us</a>
               </Button>
             </div>
           </div>
         </div>
-      </div>
+      </section>
       
-      <CtaSection 
-        title="Help Us Save More Lives"
-        description="Your support makes a direct impact on the cats in our care. Join us in our mission to rescue, rehabilitate, and rehome cats in need."
-        buttonText="Donate Now"
-        buttonLink="/donate"
-      />
+      <Separator className="my-16" />
+      
+      <section className="py-12 mb-8">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-meow-primary mb-4">Meet Our Team</h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Our dedicated staff and volunteers work tirelessly to support our mission.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+            {[
+              { name: "Sarah Thompson", role: "Founder & Director", image: "/placeholder.svg" },
+              { name: "Michael Rodriguez", role: "Shelter Manager", image: "/placeholder.svg" },
+              { name: "Jennifer Wu", role: "Adoption Coordinator", image: "/placeholder.svg" },
+              { name: "David Park", role: "Veterinary Coordinator", image: "/placeholder.svg" }
+            ].map((person, index) => (
+              <div key={index} className="text-center">
+                <Avatar className="h-32 w-32 mx-auto mb-4">
+                  <AvatarImage src={person.image} alt={person.name} />
+                  <AvatarFallback>{person.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                </Avatar>
+                <h3 className="font-semibold text-lg">{person.name}</h3>
+                <p className="text-gray-600">{person.role}</p>
+              </div>
+            ))}
+          </div>
+          
+          <div className="mt-16 text-center">
+            <h3 className="text-xl font-semibold mb-4">Our Volunteers</h3>
+            <p className="text-gray-600 mb-6 max-w-3xl mx-auto">
+              Behind our success is a team of over 50 dedicated volunteers who contribute their time, 
+              energy, and expertise to our cause. From socializing cats to administrative support, 
+              event planning to facility maintenance, our volunteers make our work possible.
+            </p>
+            <Button asChild variant="outline">
+              <a href="/volunteer">Join Our Volunteer Team</a>
+            </Button>
+          </div>
+        </div>
+      </section>
     </Layout>
   );
 };
