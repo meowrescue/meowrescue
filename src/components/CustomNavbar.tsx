@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -110,27 +111,29 @@ const CustomNavbar: React.FC = () => {
           <nav className="hidden lg:block">
             <ul className="flex space-x-6">
               {navLinks.map((link) => (
-                <li key={link.path} className="relative group">
+                <li key={link.path} className="relative">
                   {link.dropdown ? (
-                    <div className="inline-flex items-center gap-1 cursor-pointer font-medium transition-colors hover:text-meow-primary">
-                      <span className={isActive(link.path) ? 'text-meow-primary' : 'text-gray-700'}>
-                        {link.name}
-                      </span>
-                      <ChevronDown className="h-4 w-4" />
-                      <div className="absolute left-0 top-full pt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
-                        <div className="bg-white shadow-lg rounded-md py-2 border border-gray-100">
-                          {link.dropdown.map((item) => (
-                            <Link
-                              key={item.path}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className={`inline-flex items-center gap-1 font-medium transition-colors hover:text-meow-primary ${
+                          isActive(link.path) ? 'text-meow-primary' : 'text-gray-700'
+                        }`}>
+                          {link.name} <ChevronDown className="h-4 w-4" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="bg-white shadow-lg rounded-md py-1 border border-gray-100 min-w-[180px]">
+                        {link.dropdown.map((item) => (
+                          <DropdownMenuItem key={item.path} asChild>
+                            <Link 
                               to={item.path}
-                              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-meow-primary"
+                              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-meow-primary cursor-pointer"
                             >
                               {item.name}
                             </Link>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   ) : (
                     <Link
                       to={link.path}
@@ -161,7 +164,7 @@ const CustomNavbar: React.FC = () => {
                     <UserCircle className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="bg-white">
                   <DropdownMenuItem asChild>
                     <Link to="/profile" className="w-full cursor-pointer">
                       Profile

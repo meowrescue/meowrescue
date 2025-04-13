@@ -13,7 +13,8 @@ import {
   Shield,
   FileImage,
   Search,
-  LogOut
+  LogOut,
+  Utensils
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -95,6 +96,16 @@ const AdminSidebar: React.FC = () => {
           >
             <FileText className="mr-3 h-5 w-5 text-gray-600" />
             <span>Applications</span>
+          </Link>
+
+          <Link 
+            to="/admin/cat-feeding"
+            className={`flex items-center p-2 rounded transition-colors ${
+              isActive('/admin/cat-feeding') ? 'bg-gray-100' : 'hover:bg-gray-100'
+            }`}
+          >
+            <Utensils className="mr-3 h-5 w-5 text-gray-600" />
+            <span>Cat Feeding</span>
           </Link>
         </div>
         

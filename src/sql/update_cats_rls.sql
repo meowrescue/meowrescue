@@ -3,29 +3,32 @@
 ALTER TABLE IF EXISTS public.cats ENABLE ROW LEVEL SECURITY;
 
 -- Create a policy that allows all authenticated users to view cats
-CREATE POLICY IF NOT EXISTS "Anyone can view cats" 
+DROP POLICY IF EXISTS "Anyone can view cats" ON public.cats;
+CREATE POLICY "Anyone can view cats" 
 ON public.cats
 FOR SELECT
 USING (true);
 
 -- Create a policy that allows only admins to insert/update/delete cats
-CREATE POLICY IF NOT EXISTS "Admins can manage cats" 
+DROP POLICY IF EXISTS "Admins can manage cats" ON public.cats;
+CREATE POLICY "Admins can manage cats" 
 ON public.cats
 FOR ALL
 USING (
-  EXISTS (
-    SELECT 1 FROM public.profiles
-    WHERE id = auth.uid() AND role = 'admin'
+  auth.uid() IN (
+    SELECT id FROM public.profiles
+    WHERE role = 'admin'
   )
 );
 
 -- Create a policy that allows fosters to view their assigned cats
-CREATE POLICY IF NOT EXISTS "Fosters can view their cats" 
+DROP POLICY IF EXISTS "Fosters can view their cats" ON public.cats;
+CREATE POLICY "Fosters can view their cats" 
 ON public.cats
 FOR SELECT
 USING (
-  EXISTS (
-    SELECT 1 FROM public.profiles
-    WHERE id = auth.uid() AND role = 'foster'
+  auth.uid() IN (
+    SELECT id FROM public.profiles
+    WHERE role = 'foster'
   )
 );
