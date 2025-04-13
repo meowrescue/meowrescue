@@ -7,7 +7,6 @@ import {
   Calendar,
   FileText,
   DollarSign,
-  Settings,
   Users,
   MessageCircle,
   Mail,
@@ -50,7 +49,7 @@ const AdminSidebar: React.FC = () => {
         </Link>
       </div>
       
-      <div className="flex-1 space-y-4">
+      <div className="flex-1 space-y-2">
         {/* Dashboard Section */}
         <div>
           <h3 className="font-semibold text-xs uppercase text-gray-500 mb-2 px-3">Dashboard</h3>
@@ -178,16 +177,6 @@ const AdminSidebar: React.FC = () => {
           >
             <Shield className="mr-3 h-5 w-5 text-gray-600" />
             <span>Security</span>
-          </Link>
-          
-          <Link 
-            to="/admin/settings"
-            className={`flex items-center p-2 rounded transition-colors ${
-              isActive('/admin/settings') ? 'bg-gray-100' : 'hover:bg-gray-100'
-            }`}
-          >
-            <Settings className="mr-3 h-5 w-5 text-gray-600" />
-            <span>Settings</span>
           </Link>
         </div>
       </div>

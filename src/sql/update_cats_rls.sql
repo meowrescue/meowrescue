@@ -8,7 +8,7 @@ ON public.cats
 FOR SELECT
 USING (true);
 
--- Create a policy that allows only admins to insert/update cats
+-- Create a policy that allows only admins to insert/update/delete cats
 CREATE POLICY IF NOT EXISTS "Admins can manage cats" 
 ON public.cats
 FOR ALL

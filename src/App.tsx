@@ -13,6 +13,7 @@ import About from "./pages/About";
 import Cats from "./pages/Cats";
 import CatDetail from "./pages/CatDetail";
 import Adopt from "./pages/Adopt";
+import AdoptionForm from "./pages/AdoptionForm";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import Events from "./pages/Events";
@@ -47,7 +48,6 @@ import AdminLostFound from "./pages/AdminLostFound";
 import AdminMessages from "./pages/AdminMessages";
 import AdminChat from "./pages/AdminChat";
 import AdminSecurity from "./pages/AdminSecurity";
-import AdminSettings from "./pages/AdminSettings";
 import AdminApplications from "./pages/AdminApplications";
 import SuccessStories from "./pages/SuccessStories";
 
@@ -68,6 +68,7 @@ const App = () => (
               <Route path="/cats" element={<Cats />} />
               <Route path="/cats/:id" element={<CatDetail />} />
               <Route path="/adopt" element={<Adopt />} />
+              <Route path="/adopt/apply" element={<AdoptionForm />} />
               <Route path="/foster" element={<Foster />} />
               <Route path="/foster/apply" element={<FosterForm />} />
               <Route path="/success-stories" element={<SuccessStories />} />
@@ -179,11 +180,6 @@ const App = () => (
               <Route path="/admin/security" element={
                 <ProtectedRoute requireAdmin={true}>
                   <AdminSecurity />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/settings" element={
-                <ProtectedRoute requireAdmin={true}>
-                  <AdminSettings />
                 </ProtectedRoute>
               } />
               <Route path="/admin/applications" element={

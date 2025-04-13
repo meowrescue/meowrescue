@@ -20,6 +20,7 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
+import { capitalizeWords, capitalizeFirstLetter } from '@/utils/stringUtils';
 
 const AdminSecurity: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -193,7 +194,7 @@ const AdminSecurity: React.FC = () => {
                 <SelectItem value="all">All Activity Types</SelectItem>
                 {uniqueActivityTypes.map(type => (
                   <SelectItem key={type} value={type}>
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                    {capitalizeFirstLetter(type)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -286,118 +287,65 @@ const AdminSecurity: React.FC = () => {
           </Card>
         </div>
         
-        {/* Recent Logins */}
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-3">Recent Logins</h2>
-          {recentLogins && recentLogins.length > 0 ? (
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>User</TableHead>
-                    <TableHead>Time</TableHead>
-                    <TableHead>IP Address</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {recentLogins.map((log) => (
-                    <TableRow key={log.id}>
-                      <TableCell>
-                        <div className="font-medium">
-                          {log.profiles ? 
-                            `${log.profiles.first_name || ''} ${log.profiles.last_name || ''}`.trim() || 
-                            log.profiles.email : 
-                            'Unknown User'}
+        {/* Activity Log Table */}
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <Table>
+            <TableCaption>User activity and system security logs.</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Date & Time</TableHead>
+                <TableHead>Activity</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>User</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-8">
+                    <div className="flex justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-meow-primary"></div>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : filteredLogs.length > 0 ? (
+                filteredLogs.map((log) => (
+                  <TableRow key={log.id}>
+                    <TableCell className="whitespace-nowrap">
+                      {format(new Date(log.created_at), 'MMM dd, yyyy HH:mm')}
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getActivityTypeColor(log.activity_type)}>
+                        {capitalizeFirstLetter(log.activity_type)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="max-w-md truncate">
+                      {capitalizeWords(log.description)}
+                    </TableCell>
+                    <TableCell>
+                      {log.profiles ? (
+                        <div className="flex items-center">
+                          <span>
+                            {log.profiles.first_name && log.profiles.last_name
+                              ? `${log.profiles.first_name} ${log.profiles.last_name}`
+                              : log.profiles.email}
+                          </span>
                         </div>
-                        <div className="text-sm text-gray-500">{log.profiles?.role || 'N/A'}</div>
-                      </TableCell>
-                      <TableCell>
-                        {format(new Date(log.created_at), 'MMM d, yyyy h:mm a')}
-                      </TableCell>
-                      <TableCell>{log.ip_address || 'N/A'}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          ) : (
-            <Card>
-              <CardContent className="py-6 text-center">
-                <p className="text-gray-500">No recent login activities found.</p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-        
-        {/* All Activity Logs */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold">All Activity Logs</h2>
-            <Badge variant="outline">{filteredLogs.length} records</Badge>
-          </div>
-          
-          {isLoading ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-meow-primary"></div>
-            </div>
-          ) : error ? (
-            <div className="text-center py-8">
-              <p className="text-red-500">Error loading activity logs. Please try again later.</p>
-              <Button 
-                variant="outline" 
-                className="mt-4"
-                onClick={() => refetch()}
-              >
-                Try Again
-              </Button>
-            </div>
-          ) : filteredLogs.length > 0 ? (
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <Table>
-                <TableCaption>Comprehensive history of system activities</TableCaption>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Activity Type</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>User</TableHead>
-                    <TableHead>Date & Time</TableHead>
-                    <TableHead>IP Address</TableHead>
+                      ) : (
+                        <span className="text-gray-500">System</span>
+                      )}
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredLogs.map((log) => (
-                    <TableRow key={log.id}>
-                      <TableCell>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getActivityTypeColor(log.activity_type)}`}>
-                          {log.activity_type}
-                        </span>
-                      </TableCell>
-                      <TableCell className="font-medium max-w-[300px] truncate" title={log.description}>
-                        {log.description}
-                      </TableCell>
-                      <TableCell>
-                        {log.profiles ? 
-                          `${log.profiles.first_name || ''} ${log.profiles.last_name || ''}`.trim() || 
-                          log.profiles.email : 
-                          'Unknown User'}
-                      </TableCell>
-                      <TableCell>{format(new Date(log.created_at), 'MMM d, yyyy h:mm:ss a')}</TableCell>
-                      <TableCell>{log.ip_address || 'N/A'}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          ) : (
-            <Card>
-              <CardContent className="py-6 text-center">
-                <h3 className="text-lg font-semibold text-gray-700 mb-2">No Activity Logs Found</h3>
-                <p className="text-gray-500">
-                  There are no activity logs matching your search criteria.
-                </p>
-              </CardContent>
-            </Card>
-          )}
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                    No activity logs found
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </div>
       </div>
     </AdminLayout>

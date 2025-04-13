@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Menu, 
   X, 
@@ -35,6 +35,7 @@ const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { user, signOut } = useAuth();
 
@@ -44,6 +45,17 @@ const Navbar: React.FC = () => {
 
   const closeMenu = () => {
     setIsMenuOpen(false);
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleLogoClick = (e: React.MouseEvent) => {
+    if (location.pathname === '/') {
+      e.preventDefault();
+      scrollToTop();
+    }
   };
 
   useEffect(() => {
@@ -72,7 +84,7 @@ const Navbar: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2" onClick={handleLogoClick}>
             <div className="bg-meow-primary rounded-full p-2">
               <Cat className="h-6 w-6 text-white" />
             </div>
@@ -102,7 +114,7 @@ const Navbar: React.FC = () => {
                 </NavigationMenuItem>
                 <NavigationMenuItem>
                   <NavigationMenuTrigger>Adopt</NavigationMenuTrigger>
-                  <NavigationMenuContent className="origin-top-center absolute left-0">
+                  <NavigationMenuContent className="origin-top-center absolute transform translate-x-[-50%] left-[50%]">
                     <ul className="grid gap-3 p-4 md:w-[400px] lg:w-[500px] lg:grid-cols-2">
                       <li className="row-span-3">
                         <NavigationMenuLink asChild>
@@ -134,7 +146,7 @@ const Navbar: React.FC = () => {
                 </NavigationMenuItem>
                 <NavigationMenuItem>
                   <NavigationMenuTrigger>Get Involved</NavigationMenuTrigger>
-                  <NavigationMenuContent className="origin-top-center absolute left-0">
+                  <NavigationMenuContent className="origin-top-center absolute transform translate-x-[-50%] left-[50%]">
                     <ul className="grid gap-3 p-4 md:w-[400px] lg:w-[500px] lg:grid-cols-2">
                       <ListItem href="/volunteer" title="Volunteer">
                         Join our team of dedicated volunteers
@@ -160,7 +172,7 @@ const Navbar: React.FC = () => {
                 </NavigationMenuItem>
                 <NavigationMenuItem>
                   <NavigationMenuTrigger>Resources</NavigationMenuTrigger>
-                  <NavigationMenuContent className="origin-top-center absolute left-0">
+                  <NavigationMenuContent className="origin-top-center absolute transform translate-x-[-50%] left-[50%]">
                     <ul className="grid gap-3 p-4 w-[400px]">
                       <ListItem href="/blog" title="Blog">
                         Read our latest articles and updates

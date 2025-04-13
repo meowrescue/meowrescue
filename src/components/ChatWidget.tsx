@@ -36,6 +36,7 @@ const ChatWidget: React.FC = () => {
   useEffect(() => {
     const checkAdminAvailability = async () => {
       try {
+        // Check for any admin user who is logged in (active)
         const { data, error } = await supabase
           .from('profiles')
           .select('id')
@@ -45,16 +46,19 @@ const ChatWidget: React.FC = () => {
           
         if (error) throw error;
         
+        console.log("Admin availability check:", data);
         setIsAdminAvailable(data && data.length > 0);
       } catch (error) {
         console.error("Error checking admin availability:", error);
+        // Default to available if there's an error checking
+        setIsAdminAvailable(true);
       }
     };
     
     checkAdminAvailability();
     
-    // Set up a subscription to check admin availability every minute
-    const interval = setInterval(checkAdminAvailability, 60000);
+    // Set up a subscription to check admin availability every 30 seconds
+    const interval = setInterval(checkAdminAvailability, 30000);
     
     return () => clearInterval(interval);
   }, []);
@@ -309,7 +313,7 @@ const ChatWidget: React.FC = () => {
               <div className="h-full flex items-center justify-center text-gray-500 text-center p-4">
                 <div>
                   <Mail className="mx-auto h-10 w-10 text-gray-300 mb-2" />
-                  <p>Our team is currently offline. Please try again later or send us a message through our contact form.</p>
+                  <p>Our team is currently offline. Please send us a message through our contact form.</p>
                   <Link to="/contact">
                     <Button variant="outline" className="mt-4">
                       Send us a message

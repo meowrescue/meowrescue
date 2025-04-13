@@ -11,6 +11,7 @@ import SEO from '@/components/SEO';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import ApplicationView from '@/components/admin/ApplicationView';
+import { formatApplicationType, capitalizeWords } from '@/utils/stringUtils';
 
 const AdminApplications = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -113,9 +114,9 @@ const AdminApplications = () => {
                       {application.form_data.firstName} {application.form_data.lastName}
                     </TableCell>
                     <TableCell>{application.form_data.email}</TableCell>
-                    <TableCell>{application.application_type}</TableCell>
+                    <TableCell>{formatApplicationType(application.application_type)}</TableCell>
                     <TableCell>
-                      <Badge variant="secondary">{application.status}</Badge>
+                      <Badge variant="secondary">{capitalizeWords(application.status)}</Badge>
                     </TableCell>
                     <TableCell>{new Date(application.created_at).toLocaleDateString()}</TableCell>
                     <TableCell className="text-right">
