@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -101,14 +100,14 @@ const AdminSecurity: React.FC = () => {
             </div>
             
             <Select
-              value={activityFilter || ''}
-              onValueChange={(value) => setActivityFilter(value === '' ? null : value)}
+              value={activityFilter || undefined}
+              onValueChange={(value) => setActivityFilter(value || null)}
             >
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="All activities" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All activities</SelectItem>
+                <SelectItem value="all">All activities</SelectItem>
                 {activityTypes.map(type => (
                   <SelectItem key={type} value={type}>{type}</SelectItem>
                 ))}
