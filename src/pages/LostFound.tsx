@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Layout from "../components/Layout";
@@ -6,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import SectionHeading from "@/components/ui/SectionHeading";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { MapPin, CalendarDays, Search, Plus, AlertCircle, CheckCircle } from "lucide-react";
+import { MapPin, CalendarDays, Search, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { LostFoundPost } from "@/types/supabase";
 import SEO from "@/components/SEO";
+import { getStatusBadgeClass, getStatusIcon } from "@/utils/lostFoundUtils";
 
 const LostFound = () => {
   const { user } = useAuth();
@@ -66,32 +66,6 @@ const LostFound = () => {
           post.location.toLowerCase().includes(searchTerm.toLowerCase())
       )
     : posts;
-
-  const getStatusBadgeClass = (status: string) => {
-    switch (status) {
-      case "lost":
-        return "bg-red-100 text-red-800 border-red-200";
-      case "found":
-        return "bg-amber-100 text-amber-800 border-amber-200";
-      case "reunited":
-        return "bg-green-100 text-green-800 border-green-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "lost":
-        return <AlertCircle className="w-4 h-4" />;
-      case "found":
-        return <Search className="w-4 h-4" />;
-      case "reunited":
-        return <CheckCircle className="w-4 h-4" />;
-      default:
-        return null;
-    }
-  };
 
   return (
     <Layout>
