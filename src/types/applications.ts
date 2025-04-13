@@ -2,7 +2,7 @@
 export interface Application {
   id: string;
   applicant_id: string;
-  application_type: 'adoption' | 'foster' | 'volunteer';
+  application_type: 'adoption' | 'foster' | 'volunteer' | 'volunteer+foster';
   status: 'pending' | 'approved' | 'denied';
   form_data: any;
   created_at: string;

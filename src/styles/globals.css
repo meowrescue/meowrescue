@@ -15,14 +15,14 @@ body {
 
 /* Increased spacing between sections */
 section {
-  padding-top: 4rem;
-  padding-bottom: 4rem;
-  margin-bottom: 2rem;
+  padding-top: 6rem;
+  padding-bottom: 6rem;
+  margin-bottom: 4rem;
 }
 
 .section-divider {
-  margin-top: 5rem;
-  margin-bottom: 5rem;
+  margin-top: 7rem;
+  margin-bottom: 7rem;
   border-color: #e5e7eb;
   opacity: 0.5;
 }
@@ -44,7 +44,7 @@ section {
 
 /* Consistent section heading styles */
 .section-heading {
-  margin-bottom: 3rem;
+  margin-bottom: 4rem;
 }
 
 /* Custom button styles */
@@ -79,7 +79,7 @@ section {
 
 /* Custom spacing for card sections */
 .card-section + .card-section {
-  margin-top: 3rem;
+  margin-top: 5rem;
 }
 
 /* Consistent card styles */
@@ -90,17 +90,21 @@ section {
 /* Override styles for Mobile */
 @media (max-width: 768px) {
   section {
-    padding-top: 3rem;
-    padding-bottom: 3rem;
-    margin-bottom: 1.5rem;
-  }
-  
-  .section-divider {
-    margin-top: 3rem;
+    padding-top: 4rem;
+    padding-bottom: 4rem;
     margin-bottom: 3rem;
   }
   
+  .section-divider {
+    margin-top: 4rem;
+    margin-bottom: 4rem;
+  }
+  
   .section-heading {
-    margin-bottom: 2rem;
+    margin-bottom: 3rem;
+  }
+  
+  .card-section + .card-section {
+    margin-top: 3rem;
   }
 }
