@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -32,6 +33,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import SEO from '@/components/SEO';
@@ -60,8 +62,8 @@ const AdminMessages: React.FC = () => {
   });
 
   // Mutation to update message status
-  const updateMessageStatus = useMutation(
-    async ({ id, status }: { id: string; status: MessageStatus }) => {
+  const updateMessageStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: MessageStatus }) => {
       const { data, error } = await supabase
         .from('contact_messages')
         .update({ status })
@@ -71,49 +73,45 @@ const AdminMessages: React.FC = () => {
       if (error) throw new Error(`Failed to update message status: ${error.message}`);
       return data;
     },
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['messages'] });
-        toast({
-          title: "Message Updated",
-          description: "Message status updated successfully.",
-        });
-      },
-      onError: (error: any) => {
-        toast({
-          title: "Update Failed",
-          description: `Failed to update message status: ${error.message}`,
-          variant: "destructive",
-        });
-      },
-    }
-  );
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['messages'] });
+      toast({
+        title: "Message Updated",
+        description: "Message status updated successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Update Failed",
+        description: `Failed to update message status: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
 
   // Mutation to send a reply
-  const sendReply = useMutation(
-    async ({ id, reply }: { id: string; reply: string }) => {
+  const sendReply = useMutation({
+    mutationFn: async ({ id, reply }: { id: string; reply: string }) => {
       // Simulate sending a reply (replace with actual implementation)
       await new Promise((resolve) => setTimeout(resolve, 1000));
       return { id, reply };
     },
-    {
-      onSuccess: () => {
-        toast({
-          title: "Reply Sent",
-          description: "Reply sent successfully.",
-        });
-        setReplyText('');
-        setOpenMessageId(null);
-      },
-      onError: () => {
-        toast({
-          title: "Reply Failed",
-          description: "Failed to send reply.",
-          variant: "destructive",
-        });
-      },
-    }
-  );
+    onSuccess: () => {
+      toast({
+        title: "Reply Sent",
+        description: "Reply sent successfully.",
+      });
+      setReplyText('');
+      setOpenMessageId(null);
+    },
+    onError: () => {
+      toast({
+        title: "Reply Failed",
+        description: "Failed to send reply.",
+        variant: "destructive",
+      });
+    },
+  });
 
   // Filter messages based on search query
   const filteredMessages = messages?.filter(message =>

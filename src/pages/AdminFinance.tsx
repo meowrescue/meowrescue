@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -152,6 +153,11 @@ const AdminFinance: React.FC = () => {
     }
   };
 
+  // Custom handler for date picker
+  const handleDateChange = (date: Date | undefined) => {
+    setNewDonationDate(date);
+  };
+
   return (
     <AdminLayout title="Finance">
       <SEO title="Finance | Meow Rescue Admin" />
@@ -247,11 +253,10 @@ const AdminFinance: React.FC = () => {
                 <div className="space-y-2">
                   <Label htmlFor="donationDate">Donation Date</Label>
                   <DatePicker
-                    id="donationDate"
                     mode="single"
                     selected={newDonationDate}
-                    onSelect={setNewDonationDate}
-                    placeholderText={new Date().toLocaleDateString()}
+                    onSelect={handleDateChange}
+                    placeholder={new Date().toLocaleDateString()}
                   />
                 </div>
                 <div className="space-y-2">
