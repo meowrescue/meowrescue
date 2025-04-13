@@ -23,6 +23,7 @@ import Donate from "./pages/Donate";
 import Volunteer from "./pages/Volunteer";
 import VolunteerForm from "./pages/VolunteerForm";
 import Foster from "./pages/Foster";
+import FosterForm from "./pages/FosterForm";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ResetPassword from "./pages/ResetPassword";
@@ -66,6 +67,7 @@ const App = () => (
               <Route path="/cats/:id" element={<CatDetail />} />
               <Route path="/adopt" element={<Adopt />} />
               <Route path="/foster" element={<Foster />} />
+              <Route path="/foster/apply" element={<FosterForm />} />
               <Route path="/success-stories" element={<SuccessStories />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/blog/:slug" element={<BlogPost />} />

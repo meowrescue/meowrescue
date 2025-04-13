@@ -10,6 +10,15 @@ import { Separator } from '@/components/ui/separator';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 
+interface TeamMember {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  avatar_url: string | null;
+  role: string;
+  role_title?: string | null;
+}
+
 const About = () => {
   const { data: teamMembers, isLoading } = useQuery({
     queryKey: ['teamMembers'],
@@ -243,7 +252,7 @@ const About = () => {
             </div>
           ) : teamMembers && teamMembers.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
-              {teamMembers.map((person) => (
+              {teamMembers.map((person: TeamMember) => (
                 <div key={person.id} className="text-center">
                   <Avatar className="h-32 w-32 mx-auto mb-4">
                     <AvatarImage src={person.avatar_url || '/placeholder.svg'} alt={`${person.first_name} ${person.last_name}`} />

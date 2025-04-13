@@ -21,6 +21,19 @@ const formSchema = z.object({
   message: z.string().min(10, { message: 'Message must be at least 10 characters.' })
 });
 
+// Define the window interface with Google Maps properties
+declare global {
+  interface Window {
+    initMap: () => void;
+    google?: {
+      maps: {
+        Map: new (element: HTMLElement, options: any) => any;
+        Marker: new (options: any) => any;
+      }
+    };
+  }
+}
+
 const Contact = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
