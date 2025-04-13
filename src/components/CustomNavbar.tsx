@@ -201,7 +201,7 @@ const CustomNavbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Menu - FIXED: Added max-height and overflow-y-auto for scrolling */}
+      {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="lg:hidden bg-white border-t border-gray-200 max-h-[80vh] overflow-y-auto">
           <div className="container mx-auto px-4 py-4">

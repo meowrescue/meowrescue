@@ -47,6 +47,7 @@ import AdminMessages from "./pages/AdminMessages";
 import AdminSecurity from "./pages/AdminSecurity";
 import AdminSettings from "./pages/AdminSettings";
 import AdminApplications from "./pages/AdminApplications";
+import SuccessStories from "./pages/SuccessStories";
 
 const queryClient = new QueryClient();
 
@@ -65,6 +66,7 @@ const App = () => (
               <Route path="/cats/:id" element={<CatDetail />} />
               <Route path="/adopt" element={<Adopt />} />
               <Route path="/foster" element={<Foster />} />
+              <Route path="/success-stories" element={<SuccessStories />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/blog/:slug" element={<BlogPost />} />
               <Route path="/events" element={<Events />} />

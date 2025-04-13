@@ -14,10 +14,11 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import SEO from '@/components/SEO';
 import { Calendar, ChevronRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import SectionHeading from '@/components/ui/SectionHeading';
 
 const Blog: React.FC = () => {
+  const navigate = useNavigate();
   const { data: posts, isLoading } = useQuery({
     queryKey: ['blogPosts'],
     queryFn: async () => {
@@ -31,6 +32,10 @@ const Blog: React.FC = () => {
       return data;
     }
   });
+
+  const handleCardClick = (slug: string) => {
+    navigate(`/blog/${slug}`);
+  };
 
   return (
     <Layout>
@@ -59,7 +64,11 @@ const Blog: React.FC = () => {
         ) : posts && posts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {posts.map((post: any) => (
-              <Card key={post.id} className="h-full flex flex-col">
+              <Card 
+                key={post.id} 
+                className="h-full flex flex-col cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => handleCardClick(post.slug)}
+              >
                 {post.featured_image_url && (
                   <div className="h-48 overflow-hidden">
                     <img 
@@ -87,10 +96,10 @@ const Blog: React.FC = () => {
                 </CardContent>
                 <CardFooter>
                   <Button variant="ghost" className="group" asChild>
-                    <Link to={`/blog/${post.slug}`} className="flex items-center">
+                    <span>
                       Read More 
                       <ChevronRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                    </Link>
+                    </span>
                   </Button>
                 </CardFooter>
               </Card>

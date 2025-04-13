@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import SEO from '@/components/SEO';
@@ -7,8 +8,23 @@ import { Heart, Users, HandHeart, Calendar, Award, Clock } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { supabase } from '@/integrations/supabase/client';
 
 const About = () => {
+  const { data: teamMembers, isLoading } = useQuery({
+    queryKey: ['teamMembers'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('show_in_team', true)
+        .order('created_at', { ascending: true });
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
   return (
     <Layout>
       <SEO 
@@ -59,7 +75,7 @@ const About = () => {
         </div>
       </section>
       
-      <section className="py-12 mb-8">
+      <section className="py-16 mb-8">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
             <div>
@@ -88,7 +104,7 @@ const About = () => {
       
       <Separator className="my-16" />
       
-      <section className="py-12 mb-8">
+      <section className="py-16 mb-8">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-meow-primary mb-4">Our Mission</h2>
@@ -145,7 +161,7 @@ const About = () => {
       
       <Separator className="my-16" />
       
-      <section className="py-12 mb-8">
+      <section className="py-16 mb-8">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-meow-primary mb-4">Our Current Situation</h2>
@@ -212,7 +228,7 @@ const About = () => {
       
       <Separator className="my-16" />
       
-      <section className="py-12 mb-8">
+      <section className="py-16 mb-8">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-meow-primary mb-4">Meet Our Team</h2>
@@ -221,23 +237,28 @@ const About = () => {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
-            {[
-              { name: "Sarah Thompson", role: "Founder & Director", image: "/placeholder.svg" },
-              { name: "Michael Rodriguez", role: "Shelter Manager", image: "/placeholder.svg" },
-              { name: "Jennifer Wu", role: "Adoption Coordinator", image: "/placeholder.svg" },
-              { name: "David Park", role: "Veterinary Coordinator", image: "/placeholder.svg" }
-            ].map((person, index) => (
-              <div key={index} className="text-center">
-                <Avatar className="h-32 w-32 mx-auto mb-4">
-                  <AvatarImage src={person.image} alt={person.name} />
-                  <AvatarFallback>{person.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                </Avatar>
-                <h3 className="font-semibold text-lg">{person.name}</h3>
-                <p className="text-gray-600">{person.role}</p>
-              </div>
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="flex justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
+            </div>
+          ) : teamMembers && teamMembers.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+              {teamMembers.map((person) => (
+                <div key={person.id} className="text-center">
+                  <Avatar className="h-32 w-32 mx-auto mb-4">
+                    <AvatarImage src={person.avatar_url || '/placeholder.svg'} alt={`${person.first_name} ${person.last_name}`} />
+                    <AvatarFallback>{person.first_name?.charAt(0)}{person.last_name?.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <h3 className="font-semibold text-lg">{person.first_name} {person.last_name}</h3>
+                  <p className="text-gray-600">{person.role_title || person.role}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center">
+              <p className="text-gray-600">Our team information is being updated. Check back soon!</p>
+            </div>
+          )}
           
           <div className="mt-16 text-center">
             <h3 className="text-xl font-semibold mb-4">Our Volunteers</h3>

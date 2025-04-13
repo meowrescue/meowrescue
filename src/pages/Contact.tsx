@@ -21,30 +21,12 @@ const formSchema = z.object({
   message: z.string().min(10, { message: 'Message must be at least 10 characters.' })
 });
 
-// Define types for Google Maps
-declare global {
-  interface Window {
-    initMap?: () => void;
-    google?: {
-      maps: {
-        Map: new (element: HTMLElement, options: any) => any;
-        Marker: new (options: any) => any;
-        LatLng: new (lat: number, lng: number) => any;
-      }
-    }
-  }
-}
-
 const Contact = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<any | null>(null);
-  const scriptLoadedRef = useRef<boolean>(false);
-  const mapScriptId = 'google-maps-script';
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -56,81 +38,51 @@ const Contact = () => {
   });
 
   useEffect(() => {
-    // Only execute map initialization if the component is mounted
-    let isMounted = true;
-    
-    // Define the map initialization function
-    const initMapFunction = () => {
-      if (!isMounted) return;
-      
-      try {
-        if (mapRef.current && !mapInstanceRef.current && window.google?.maps) {
+    // Initialize Google Maps
+    const initMap = () => {
+      if (mapRef.current && window.google?.maps) {
+        try {
           const newPortRicheyLocation = { lat: 28.2442, lng: -82.7190 };
           
-          // Initialize the map
-          mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
+          const map = new window.google.maps.Map(mapRef.current, {
             center: newPortRicheyLocation,
             zoom: 12,
           });
           
-          // Add a marker
           new window.google.maps.Marker({
             position: newPortRicheyLocation,
-            map: mapInstanceRef.current,
+            map: map,
             title: "Meow Rescue Center",
           });
-          
-          setMapLoaded(true);
-          setMapError(false);
+        } catch (error) {
+          console.error("Error initializing map:", error);
+          setMapError(true);
         }
-      } catch (error) {
-        console.error("Error initializing Google Map:", error);
-        setMapError(true);
       }
     };
 
-    // Set up the global callback
-    window.initMap = initMapFunction;
-
-    // Create script only if it doesn't exist and hasn't been loaded before
-    if (!document.getElementById(mapScriptId) && !scriptLoadedRef.current) {
-      scriptLoadedRef.current = true;
+    // Load Google Maps script
+    if (!document.getElementById('google-maps-script')) {
+      window.initMap = initMap;
       
-      try {
-        const script = document.createElement('script');
-        script.id = mapScriptId;
-        script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBLkQbdtq_eR3-jLjOYMYICN0NLaWO74jo&callback=initMap&loading=async`;
-        script.async = true;
-        script.defer = true;
-        
-        script.onerror = () => {
-          if (!isMounted) return;
-          console.error("Error loading Google Maps script");
-          scriptLoadedRef.current = false;
-          setMapError(true);
-        };
-        
-        document.head.appendChild(script);
-      } catch (error) {
-        console.error("Error adding Google Maps script to DOM:", error);
+      const script = document.createElement('script');
+      script.id = 'google-maps-script';
+      script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBLkQbdtq_eR3-jLjOYMYICN0NLaWO74jo&callback=initMap`;
+      script.async = true;
+      script.defer = true;
+      script.onerror = () => {
+        console.error("Error loading Google Maps script");
         setMapError(true);
-      }
+      };
+      
+      document.head.appendChild(script);
     } else if (window.google?.maps) {
-      // If script already loaded but map not initialized
-      initMapFunction();
+      initMap();
     }
 
-    // Clean up function to handle component unmounting
     return () => {
-      isMounted = false;
-      
-      // Clean up the global callback to prevent memory leaks
-      if (window.initMap === initMapFunction) {
-        window.initMap = undefined;
-      }
-      
-      // Clear the map instance reference
-      mapInstanceRef.current = null;
+      // Cleanup
+      window.initMap = undefined;
     };
   }, []);
 
@@ -177,14 +129,16 @@ const Contact = () => {
     <Layout>
       <SEO title="Contact Us | Meow Rescue" description="Get in touch with Meow Rescue. We're here to answer your questions about cat adoption, fostering, volunteering, and more." />
       
-      <div className="container mx-auto py-24">
-        <div className="text-center mb-16">
+      <div className="bg-meow-primary/10 py-16 md:py-24 text-center">
+        <div className="container mx-auto px-4">
           <h1 className="text-4xl font-bold text-meow-primary mb-6">Contact Us</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Have questions about adoption, fostering, or volunteering? We're here to help!
           </p>
         </div>
-        
+      </div>
+      
+      <div className="container mx-auto py-16">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 mb-20">
           <div>
             <Card className="bg-white shadow-lg border-none h-full">
@@ -345,12 +299,6 @@ const Contact = () => {
                 id="google-map" 
                 className="h-96 w-full bg-gray-100 relative"
               >
-                {!mapLoaded && !mapError && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
-                  </div>
-                )}
-                
                 {mapError && (
                   <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
                     <div className="text-center p-4">

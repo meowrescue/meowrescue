@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Loader2, Filter } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Select,
@@ -39,7 +38,6 @@ const Cats: React.FC = () => {
   const [cats, setCats] = useState<Cat[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     fetchCats();
@@ -90,10 +88,6 @@ const Cats: React.FC = () => {
     setSelectedGender(gender === "all" ? null : gender);
   };
 
-  const toggleFilters = () => {
-    setShowFilters(!showFilters);
-  };
-
   const resetFilters = () => {
     setSelectedAge(null);
     setSelectedGender(null);
@@ -120,91 +114,76 @@ const Cats: React.FC = () => {
       <SEO title="Adoptable Cats | Meow Rescue" description="Browse our available cats for adoption. Find your perfect feline companion!" />
       
       <div className="container mx-auto py-10">
-        <div className="flex flex-col md:flex-row items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-meow-primary mb-4 md:mb-0 text-center w-full">Adoptable Cats</h1>
-          <div className="w-full md:w-auto">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="w-full">
-                <Input
-                  type="text"
-                  placeholder="Search cats..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-              <Button 
-                variant="outline" 
-                onClick={toggleFilters}
-                className="whitespace-nowrap"
-              >
-                <Filter className="h-4 w-4 mr-2" />
-                {showFilters ? "Hide Filters" : "Show Filters"}
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {showFilters && (
-          <div className="bg-gray-50 p-4 rounded-lg mb-6">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="status-filter">Status</Label>
-                <Select value={selectedStatus || ''} onValueChange={handleStatusChange}>
-                  <SelectTrigger id="status-filter" className="w-full">
-                    <SelectValue placeholder="All Statuses" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Available">Available</SelectItem>
-                    <SelectItem value="Pending">Pending</SelectItem>
-                    <SelectItem value="Adopted">Adopted</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label htmlFor="age-filter">Age</Label>
-                <Select value={selectedAge || 'all'} onValueChange={handleAgeChange}>
-                  <SelectTrigger id="age-filter" className="w-full">
-                    <SelectValue placeholder="All Ages" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Ages</SelectItem>
-                    <SelectItem value="kitten">Kitten</SelectItem>
-                    <SelectItem value="young">Young</SelectItem>
-                    <SelectItem value="adult">Adult</SelectItem>
-                    <SelectItem value="senior">Senior</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label htmlFor="gender-filter">Gender</Label>
-                <Select value={selectedGender || 'all'} onValueChange={handleGenderChange}>
-                  <SelectTrigger id="gender-filter" className="w-full">
-                    <SelectValue placeholder="All Genders" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Genders</SelectItem>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            <div className="mt-4 flex justify-end">
-              <Button variant="outline" onClick={resetFilters} size="sm">
-                Reset Filters
-              </Button>
-            </div>
-          </div>
-        )}
-
         <div className="text-center mb-6">
+          <h1 className="text-3xl font-bold text-meow-primary mb-4">Adoptable Cats</h1>
           <p className="text-gray-600 max-w-3xl mx-auto">
             Our adoptable cats are looking for loving forever homes. Browse through our available cats and find your perfect companion.
           </p>
+        </div>
+
+        {/* Always show filters */}
+        <div className="bg-gray-50 p-4 rounded-lg mb-6">
+          <div className="mb-4">
+            <Input
+              type="text"
+              placeholder="Search cats..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full mb-4"
+            />
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="status-filter">Status</Label>
+              <Select value={selectedStatus || ''} onValueChange={handleStatusChange}>
+                <SelectTrigger id="status-filter" className="w-full">
+                  <SelectValue placeholder="All Statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Available">Available</SelectItem>
+                  <SelectItem value="Pending">Pending</SelectItem>
+                  <SelectItem value="Adopted">Adopted</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <Label htmlFor="age-filter">Age</Label>
+              <Select value={selectedAge || 'all'} onValueChange={handleAgeChange}>
+                <SelectTrigger id="age-filter" className="w-full">
+                  <SelectValue placeholder="All Ages" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Ages</SelectItem>
+                  <SelectItem value="kitten">Kitten</SelectItem>
+                  <SelectItem value="young">Young</SelectItem>
+                  <SelectItem value="adult">Adult</SelectItem>
+                  <SelectItem value="senior">Senior</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <Label htmlFor="gender-filter">Gender</Label>
+              <Select value={selectedGender || 'all'} onValueChange={handleGenderChange}>
+                <SelectTrigger id="gender-filter" className="w-full">
+                  <SelectValue placeholder="All Genders" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Genders</SelectItem>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <div className="mt-4 flex justify-end">
+            <Button variant="outline" onClick={resetFilters} size="sm">
+              Reset Filters
+            </Button>
+          </div>
         </div>
 
         {loading ? (
