@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import Layout from '@/components/Layout';
 import SEO from '@/components/SEO';
 import { Cat } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 const formSchema = z.object({
   email: z.string().email({
@@ -26,8 +27,10 @@ const formSchema = z.object({
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const { user, signIn } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -37,30 +40,26 @@ const Login: React.FC = () => {
     },
   });
 
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      const redirectTo = location.state?.from || (user.email?.endsWith('@meowrescue.org') ? '/admin' : '/profile');
+      navigate(redirectTo);
+    }
+  }, [user, navigate, location.state]);
+
   const handleLogin = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: values.email,
-        password: values.password,
-      });
-      
-      if (error) throw error;
-      
-      console.log("Login successful", data);
-      
-      // Redirect after successful login
-      if (data.user.email?.endsWith('@meowrescue.org')) {
-        navigate('/admin');
-      } else {
-        navigate('/profile');
-      }
+      await signIn(values.email, values.password);
       
       toast({
         title: "Login Successful",
         description: "You have been logged in successfully.",
       });
+      
+      // The redirect will be handled by the useEffect above
       
     } catch (error: any) {
       console.error("Login error:", error);

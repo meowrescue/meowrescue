@@ -25,27 +25,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    // Check active session and set user
+    // Set up auth state change listener first
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      console.log('Auth state changed:', event, newSession?.user?.id);
+      
+      if (event === 'SIGNED_IN' && newSession) {
+        setSession(newSession);
+        await fetchUserProfile(newSession);
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setSession(null);
+      } else if (event === 'PASSWORD_RECOVERY') {
+        // Handle password recovery event
+        console.log('Password recovery initiated');
+      }
+    });
+    
+    // Then check active session
     const checkUser = async () => {
       try {
         const { data } = await supabase.auth.getSession();
         
-        if (data.session?.user) {
+        if (data.session) {
           setSession(data.session);
-          
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', data.session.user.id)
-            .single();
-            
-          setUser({
-            id: data.session.user.id,
-            email: data.session.user.email || '',
-            user_metadata: data.session.user.user_metadata,
-            created_at: data.session.user.created_at,
-            ...profileData
-          });
+          await fetchUserProfile(data.session);
         }
       } catch (error: any) {
         console.error('Error checking user session:', error);
@@ -57,37 +60,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     checkUser();
 
-    // Listen for auth changes
-    const { data } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-      if (event === 'SIGNED_IN' && newSession) {
-        setSession(newSession);
-        
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', newSession.user.id)
-          .single();
-          
-        setUser({
-          id: newSession.user.id,
-          email: newSession.user.email || '',
-          user_metadata: newSession.user.user_metadata,
-          created_at: newSession.user.created_at,
-          ...profileData
-        });
-      } else if (event === 'SIGNED_OUT') {
-        setUser(null);
-        setSession(null);
-      } else if (event === 'PASSWORD_RECOVERY') {
-        // Handle password recovery event
-        console.log('Password recovery initiated');
-      }
-    });
-
     return () => {
-      data.subscription.unsubscribe();
+      authListener.subscription.unsubscribe();
     };
   }, []);
+  
+  // Helper function to fetch user profile
+  const fetchUserProfile = async (currentSession: Session) => {
+    if (!currentSession.user) return;
+    
+    try {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', currentSession.user.id)
+        .single();
+        
+      setUser({
+        id: currentSession.user.id,
+        email: currentSession.user.email || '',
+        ...profileData,
+        role: profileData?.role || (currentSession.user.email?.endsWith('@meowrescue.org') ? 'admin' : 'user')
+      });
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      
+      // If profile doesn't exist, set basic user data
+      setUser({
+        id: currentSession.user.id,
+        email: currentSession.user.email || '',
+        role: currentSession.user.email?.endsWith('@meowrescue.org') ? 'admin' : 'user',
+        is_active: true,
+        created_at: currentSession.user.created_at || new Date().toISOString()
+      });
+    }
+  };
 
   // Sign in with email and password
   const signIn = async (email: string, password: string) => {
@@ -97,7 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (error) throw error;
       
-      setSession(data.session);
+      // Session will be handled by the onAuthStateChange listener
     } catch (error: any) {
       setError(error);
       throw error;
@@ -134,6 +141,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase.auth.signOut();
       
       if (error) throw error;
+      
+      // State will be updated by the onAuthStateChange listener
     } catch (error: any) {
       setError(error);
       throw error;
