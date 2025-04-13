@@ -49,28 +49,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-
-interface CatFood {
-  id: string;
-  brand: string;
-  type: string;
-  quantity: number;
-  units: string;
-  cost_per_unit: number;
-  purchase_date: string;
-  created_at: string;
-}
-
-interface FeedingRecord {
-  id: string;
-  cat_id: string;
-  cat_food_id: string;
-  amount: number;
-  feeding_date: string;
-  cat_name: string;
-  food_brand: string;
-  food_type: string;
-}
+import { CatFood, CatFeedingRecord } from '@/types/finance';
 
 // Form schemas
 const catFoodSchema = z.object({
@@ -126,13 +105,16 @@ const CatFoodTracker: React.FC = () => {
         .select('*')
         .order('purchase_date', { ascending: false });
         
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching cat food:', error);
+        throw error;
+      }
       
       return data as CatFood[];
     }
   });
 
-  // Query for feeding records
+  // Query for feeding records with joins to get cat and food names
   const { data: feedingRecords = [], isLoading: isLoadingFeedings, refetch: refetchFeedings } = useQuery({
     queryKey: ['cat-feeding-records'],
     queryFn: async () => {
@@ -144,23 +126,44 @@ const CatFoodTracker: React.FC = () => {
           cat_food_id,
           amount,
           feeding_date,
-          cats:cat_id(name),
-          cat_food:cat_food_id(brand, type)
+          created_at
         `)
         .order('feeding_date', { ascending: false });
         
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching feeding records:', error);
+        throw error;
+      }
       
-      return data.map(record => ({
-        id: record.id,
-        cat_id: record.cat_id,
-        cat_food_id: record.cat_food_id,
-        amount: record.amount,
-        feeding_date: record.feeding_date,
-        cat_name: record.cats?.name || 'Unknown Cat',
-        food_brand: record.cat_food?.brand || 'Unknown Brand',
-        food_type: record.cat_food?.type || 'Unknown Type'
-      })) as FeedingRecord[];
+      // For each feeding record, fetch the cat name and food details
+      if (data) {
+        const enhancedRecords = await Promise.all(data.map(async (record) => {
+          // Get cat name
+          const { data: catData } = await supabase
+            .from('cats')
+            .select('name')
+            .eq('id', record.cat_id)
+            .single();
+          
+          // Get food details
+          const { data: foodData } = await supabase
+            .from('cat_food')
+            .select('brand, type')
+            .eq('id', record.cat_food_id)
+            .single();
+          
+          return {
+            ...record,
+            cat_name: catData?.name || 'Unknown Cat',
+            food_brand: foodData?.brand || 'Unknown Brand',
+            food_type: foodData?.type || 'Unknown Type'
+          };
+        }));
+        
+        return enhancedRecords as CatFeedingRecord[];
+      }
+      
+      return [] as CatFeedingRecord[];
     }
   });
 
@@ -173,7 +176,11 @@ const CatFoodTracker: React.FC = () => {
         .select('id, name')
         .order('name', { ascending: true });
         
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching cats:', error);
+        throw error;
+      }
+      
       return data;
     }
   });
@@ -196,7 +203,10 @@ const CatFoodTracker: React.FC = () => {
           }
         ]);
         
-      if (error) throw error;
+      if (error) {
+        console.error('Error adding cat food:', error);
+        throw error;
+      }
       
       toast({
         title: "Food Added",
@@ -230,7 +240,10 @@ const CatFoodTracker: React.FC = () => {
           }
         ]);
         
-      if (error) throw error;
+      if (error) {
+        console.error('Error recording feeding:', error);
+        throw error;
+      }
       
       toast({
         title: "Feeding Recorded",
@@ -312,7 +325,7 @@ const CatFoodTracker: React.FC = () => {
                               min="1" 
                               placeholder="24" 
                               {...field}
-                              onChange={(e) => field.onChange(e.target.value)}
+                              onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                             />
                           </FormControl>
                           <FormMessage />
@@ -362,7 +375,7 @@ const CatFoodTracker: React.FC = () => {
                               min="0" 
                               placeholder="18.99" 
                               {...field}
-                              onChange={(e) => field.onChange(e.target.value)}
+                              onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                             />
                           </FormControl>
                           <FormMessage />
@@ -469,8 +482,8 @@ const CatFoodTracker: React.FC = () => {
                         <FormItem>
                           <FormLabel>Amount (in portions of 1/4 can)</FormLabel>
                           <Select 
-                            onValueChange={field.onChange} 
-                            defaultValue={field.value.toString()}
+                            onValueChange={(value) => field.onChange(parseFloat(value))} 
+                            value={field.value.toString()}
                           >
                             <FormControl>
                               <SelectTrigger>
