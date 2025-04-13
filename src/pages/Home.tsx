@@ -16,12 +16,23 @@ const Home: React.FC = () => {
         title="Meow Rescue - Save and Protect Cats" 
         description="Meow Rescue is dedicated to saving and protecting cats in need. Adopt, foster, and support our mission." 
       />
-      <HeroSection />
+      <HeroSection 
+        title="Save a Life, Adopt a Cat"
+        subtitle="Find your perfect feline companion and make a difference"
+        imageSrc="/images/hero-cat.jpg"
+        ctaText="View Available Cats"
+        ctaLink="/cats"
+      />
       <MissionSection />
       <FeaturedCatsSection />
       <UrgentNeedsSection />
       <TestimonialsSection />
-      <CtaSection />
+      <CtaSection 
+        title="Ready to Make a Difference?"
+        description="Join our mission to save and protect cats in need"
+        buttonText="Get Involved"
+        buttonLink="/volunteer"
+      />
     </Layout>
   );
 };

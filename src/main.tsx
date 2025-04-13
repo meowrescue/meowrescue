@@ -1,6 +1,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 import App from './App.tsx';
 import './index.css';
 import { Toaster } from '@/components/ui/toaster';
@@ -46,11 +47,13 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <App />
-          <Toaster />
-          <QueryDevTools />
-        </AuthProvider>
+        <BrowserRouter>
+          <AuthProvider>
+            <App />
+            <Toaster />
+            <QueryDevTools />
+          </AuthProvider>
+        </BrowserRouter>
       </QueryClientProvider>
     </HelmetProvider>
   </React.StrictMode>,
