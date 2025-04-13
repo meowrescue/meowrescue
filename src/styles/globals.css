@@ -17,12 +17,12 @@ body {
 section {
   padding-top: 6rem;
   padding-bottom: 6rem;
-  margin-bottom: 4rem;
+  margin-bottom: 6rem;
 }
 
 .section-divider {
-  margin-top: 7rem;
-  margin-bottom: 7rem;
+  margin-top: 8rem;
+  margin-bottom: 8rem;
   border-color: #e5e7eb;
   opacity: 0.5;
 }
@@ -44,7 +44,7 @@ section {
 
 /* Consistent section heading styles */
 .section-heading {
-  margin-bottom: 4rem;
+  margin-bottom: 5rem;
 }
 
 /* Custom button styles */
@@ -79,7 +79,7 @@ section {
 
 /* Custom spacing for card sections */
 .card-section + .card-section {
-  margin-top: 5rem;
+  margin-top: 6rem;
 }
 
 /* Consistent card styles */
@@ -92,19 +92,19 @@ section {
   section {
     padding-top: 4rem;
     padding-bottom: 4rem;
-    margin-bottom: 3rem;
-  }
-  
-  .section-divider {
-    margin-top: 4rem;
     margin-bottom: 4rem;
   }
   
+  .section-divider {
+    margin-top: 6rem;
+    margin-bottom: 6rem;
+  }
+  
   .section-heading {
-    margin-bottom: 3rem;
+    margin-bottom: 4rem;
   }
   
   .card-section + .card-section {
-    margin-top: 3rem;
+    margin-top: 4rem;
   }
 }

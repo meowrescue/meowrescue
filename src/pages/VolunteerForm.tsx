@@ -68,28 +68,19 @@ const VolunteerForm: React.FC = () => {
         applicationType = 'volunteer+foster';
       }
       
-      // Use the stored procedure to insert the application
-      const { data: newId, error } = await supabase.rpc(
-        'insert_application',
-        {
-          p_applicant_id: user?.id,
-          p_application_type: applicationType,
-          p_form_data: data,
-          p_status: 'pending'
-        }
-      );
-      
-      if (error) {
-        // Fallback method if RPC is not available
-        const { error: insertError } = await supabase.from('applications').insert({
+      // Insert application directly
+      const { error } = await supabase
+        .from('applications')
+        .insert({
           applicant_id: user?.id,
           application_type: applicationType,
           form_data: data,
-          status: 'pending'
+          status: 'pending',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         });
         
-        if (insertError) throw insertError;
-      }
+      if (error) throw error;
       
       // Show success message
       toast({

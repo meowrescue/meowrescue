@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -49,13 +50,11 @@ const AdminApplications: React.FC = () => {
     queryKey: ['applications', statusFilter, typeFilter],
     queryFn: async () => {
       try {
-        let query = supabase.from('applications');
-        
-        // Add select with join to get applicant information
-        query = query.select(`
-          *,
-          profiles:applicant_id(email, first_name, last_name)
-        `);
+        let query = supabase.from('applications')
+          .select(`
+            *,
+            profiles:applicant_id(email, first_name, last_name)
+          `);
         
         if (statusFilter) {
           query = query.eq('status', statusFilter);
@@ -71,7 +70,7 @@ const AdminApplications: React.FC = () => {
         
         if (error) throw error;
         
-        return data as Application[];
+        return data as unknown as Application[];
       } catch (err) {
         console.error('Error fetching applications:', err);
         throw err;
@@ -89,7 +88,7 @@ const AdminApplications: React.FC = () => {
   const handleViewApplication = (application: Application) => {
     setViewingApplication(application);
     setFeedback(application.feedback || '');
-    setNewStatus(application.status as 'pending' | 'approved' | 'denied');
+    setNewStatus(application.status);
   };
 
   const handleUpdateApplicationStatus = async () => {

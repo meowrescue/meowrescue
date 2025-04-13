@@ -86,7 +86,7 @@ const AdminUsers: React.FC = () => {
       const { error } = await supabase
         .from('profiles')
         .update({ 
-          role: newRole,
+          role: newRole as 'user' | 'volunteer' | 'foster' | 'admin',
           email: newEmail
         })
         .eq('id', editingUser.id);

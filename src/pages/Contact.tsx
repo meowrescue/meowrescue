@@ -21,6 +21,20 @@ const formSchema = z.object({
   message: z.string().min(10, { message: 'Message must be at least 10 characters.' })
 });
 
+// Define types for Google Maps
+declare global {
+  interface Window {
+    initMap?: () => void;
+    google?: {
+      maps: {
+        Map: new (element: HTMLElement, options: any) => google.maps.Map;
+        Marker: new (options: any) => google.maps.Marker;
+        LatLng: new (lat: number, lng: number) => google.maps.LatLng;
+      }
+    }
+  }
+}
+
 const Contact = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,7 +42,6 @@ const Contact = () => {
   const [mapLoaded, setMapLoaded] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  const googleMapScriptRef = useRef<HTMLScriptElement | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -40,8 +53,8 @@ const Contact = () => {
   });
 
   useEffect(() => {
-    // Define the initMap function in the window object
-    window.initMap = function() {
+    // Define the map initialization function
+    const initMapFunction = () => {
       if (mapRef.current && !mapInstanceRef.current) {
         const newPortRicheyLocation = { lat: 28.2442, lng: -82.7190 };
         
@@ -66,32 +79,31 @@ const Contact = () => {
       }
     };
 
-    // Create and load the Google Maps script
-    if (!googleMapScriptRef.current && !window.google?.maps) {
-      googleMapScriptRef.current = document.createElement('script');
-      googleMapScriptRef.current.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBLkQbdtq_eR3-jLjOYMYICN0NLaWO74jo&callback=initMap&loading=async`;
-      googleMapScriptRef.current.async = true;
-      googleMapScriptRef.current.defer = true;
-      document.head.appendChild(googleMapScriptRef.current);
-    } else if (window.google?.maps && mapRef.current && !mapInstanceRef.current) {
-      // If the API is already loaded but the map isn't initialized
-      window.initMap();
+    // Set up the global callback
+    window.initMap = initMapFunction;
+
+    // Create script only if it doesn't exist
+    if (!document.getElementById('google-maps-script')) {
+      const script = document.createElement('script');
+      script.id = 'google-maps-script';
+      script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBLkQbdtq_eR3-jLjOYMYICN0NLaWO74jo&callback=initMap&loading=async`;
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    } else if (window.google?.maps) {
+      // If script already loaded but map not initialized
+      initMapFunction();
     }
-    
-    // Clean up function
+
+    // Clean up
     return () => {
-      // Clean up the global initMap function
-      if (window.initMap) {
+      // Remove the global callback without removing the script
+      if (window.initMap === initMapFunction) {
         window.initMap = undefined;
       }
       
-      // Clean up the map instance
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current = null;
-      }
-      
-      // We don't remove the script element to avoid issues with multiple mounts/unmounts
-      // as removing it can cause the DOM node removal error
+      // Reset map instance reference
+      mapInstanceRef.current = null;
     };
   }, []);
 
@@ -319,18 +331,5 @@ const Contact = () => {
     </Layout>
   );
 };
-
-// Add TypeScript declaration for the global window object
-declare global {
-  interface Window {
-    initMap?: () => void;
-    google?: {
-      maps: {
-        Map: new (element: HTMLElement, options: any) => any;
-        Marker: new (options: any) => any;
-      }
-    }
-  }
-}
 
 export default Contact;
