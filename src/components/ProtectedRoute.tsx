@@ -38,10 +38,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/login" />;
   }
 
-  // If admin access required, check user email domain or user metadata role
+  // If admin access required, check user email domain or user role data
   if (requireAdmin) {
     const isAdmin = user.email?.endsWith('@meowrescue.org') || 
-                   user.user_metadata?.role === 'admin';
+                   user.role === 'admin';
                    
     if (!isAdmin) {
       return <Navigate to="/" />;
