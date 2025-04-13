@@ -9,6 +9,7 @@ export interface User {
   user_metadata?: {
     first_name?: string;
     last_name?: string;
+    role?: string;
     [key: string]: any;
   };
   raw_user_meta_data?: any;

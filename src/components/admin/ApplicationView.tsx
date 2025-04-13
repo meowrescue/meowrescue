@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Application } from '@/types/supabase';
+import { Application } from '@/types/applications';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';

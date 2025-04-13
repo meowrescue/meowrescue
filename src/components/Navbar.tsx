@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -203,7 +202,7 @@ const Navbar: React.FC = () => {
                       Profile
                     </Link>
                   </DropdownMenuItem>
-                  {(user.user_metadata?.role === 'admin' || user.email === 'patrick@meowrescue.org' || user.email?.endsWith('@meowrescue.org')) && (
+                  {(user.role === 'admin' || user.email === 'patrick@meowrescue.org' || user.email?.endsWith('@meowrescue.org')) && (
                     <DropdownMenuItem asChild>
                       <Link to="/admin" className="w-full cursor-pointer">
                         Admin Dashboard

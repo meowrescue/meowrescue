@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Layout from '@/components/Layout';
@@ -37,8 +36,8 @@ const Profile: React.FC = () => {
   const editProfileForm = useForm({
     defaultValues: {
       email: user?.email || '',
-      firstName: user?.user_metadata?.first_name || '',
-      lastName: user?.user_metadata?.last_name || ''
+      firstName: user?.first_name || '',
+      lastName: user?.last_name || ''
     }
   });
 
@@ -269,8 +268,8 @@ const Profile: React.FC = () => {
   };
 
   const getInitials = () => {
-    const firstName = user?.user_metadata?.first_name || '';
-    const lastName = user?.user_metadata?.last_name || '';
+    const firstName = user?.first_name || '';
+    const lastName = user?.last_name || '';
     return firstName || lastName ? `${firstName.charAt(0)}${lastName.charAt(0)}` : (user?.email?.charAt(0) || '');
   };
 
@@ -377,7 +376,7 @@ const Profile: React.FC = () => {
                     </div>
                     <div className="text-center">
                       <h3 className="font-medium text-lg">
-                        {user?.user_metadata?.first_name || ''} {user?.user_metadata?.last_name || ''}
+                        {user?.first_name || ''} {user?.last_name || ''}
                       </h3>
                       <p className="text-gray-500 text-sm">{user?.email}</p>
                       <p className="text-gray-500 text-sm mb-6">Member since {new Date(user?.created_at || '').toLocaleDateString()}</p>
@@ -465,7 +464,7 @@ const Profile: React.FC = () => {
                     <div className="space-y-6">
                       <div>
                         <h4 className="text-sm font-medium text-gray-500 mb-2">Name</h4>
-                        <p>{user?.user_metadata?.first_name || 'Not provided'} {user?.user_metadata?.last_name || ''}</p>
+                        <p>{user?.first_name || 'Not provided'} {user?.last_name || ''}</p>
                       </div>
                       <div>
                         <h4 className="text-sm font-medium text-gray-500 mb-2">Email Address</h4>
