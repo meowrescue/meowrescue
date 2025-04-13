@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -63,7 +62,7 @@ const AdminFinance: React.FC = () => {
     category: '',
     vendor: '',
     payment_method: '',
-    donation_id: '',
+    donation_id: 'none', // Changed from empty string to 'none'
     receipt: null as File | null
   });
   
@@ -287,7 +286,7 @@ const AdminFinance: React.FC = () => {
           category: expenseFormData.category,
           vendor: expenseFormData.vendor,
           payment_method: expenseFormData.payment_method,
-          donation_id: expenseFormData.donation_id || null,
+          donation_id: expenseFormData.donation_id === 'none' ? null : expenseFormData.donation_id, // Modified to check for 'none'
           receipt_url: receiptUrl,
           created_at: new Date().toISOString(),
           created_by: (await supabase.auth.getUser()).data.user?.id
@@ -307,7 +306,7 @@ const AdminFinance: React.FC = () => {
         category: '',
         vendor: '',
         payment_method: '',
-        donation_id: '',
+        donation_id: 'none', // Updated default value to 'none'
         receipt: null
       });
       setReceiptFile(null);
@@ -395,10 +394,13 @@ const AdminFinance: React.FC = () => {
   };
 
   return (
+    
     <AdminLayout title="Finance">
       <SEO title="Finance | Meow Rescue Admin" />
       
       <div className="container mx-auto py-10">
+        
+        
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-meow-primary">Finance</h1>
           <div className="flex items-center space-x-4">
@@ -586,7 +588,7 @@ const AdminFinance: React.FC = () => {
                         <SelectValue placeholder="Select a donation (optional)" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">None</SelectItem>
+                        <SelectItem value="none">None</SelectItem> {/* Changed from empty string to "none" */}
                         {donations?.map(donation => (
                           <SelectItem key={donation.id} value={donation.id}>
                             ${donation.amount} - {donation.donor_name} ({new Date(donation.donation_date).toLocaleDateString()})
