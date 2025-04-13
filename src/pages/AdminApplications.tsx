@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -50,20 +49,12 @@ const AdminApplications: React.FC = () => {
     queryKey: ['applications', statusFilter, typeFilter],
     queryFn: async () => {
       try {
-        // Custom query to fetch application data with profile information
-        let query = `
-          *,
-          profiles:applicant_id(email, first_name, last_name)
-        `;
-        
-        let queryBuilder = supabase.rpc('get_applications');
-        
-        const { data, error } = await queryBuilder;
+        const { data, error } = await supabase.rpc('get_applications');
         
         if (error) throw error;
         
         // Apply filters in-memory since we're using RPC
-        let filteredData = data as unknown as Application[];
+        let filteredData = data as Application[];
         
         if (statusFilter) {
           filteredData = filteredData.filter(app => app.status === statusFilter);
@@ -92,12 +83,6 @@ const AdminApplications: React.FC = () => {
     app.profiles?.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     app.profiles?.last_name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const handleViewApplication = (application: Application) => {
-    setViewingApplication(application);
-    setFeedback(application.feedback || '');
-    setNewStatus(application.status);
-  };
 
   const handleUpdateApplicationStatus = async () => {
     if (!viewingApplication) return;
@@ -143,6 +128,12 @@ const AdminApplications: React.FC = () => {
       case 'volunteer': return { label: 'Volunteer', color: 'bg-purple-100 text-purple-800' };
       default: return { label: type, color: 'bg-gray-100 text-gray-800' };
     }
+  };
+
+  const handleViewApplication = (application: Application) => {
+    setViewingApplication(application);
+    setFeedback(application.feedback || '');
+    setNewStatus(application.status);
   };
 
   return (

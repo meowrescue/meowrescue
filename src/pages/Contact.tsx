@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import Layout from '@/components/Layout';
 import SEO from '@/components/SEO';
@@ -22,20 +21,18 @@ const formSchema = z.object({
 });
 
 // Define types for Google Maps
-interface GoogleMap {
-  Map: new (element: HTMLElement, options: any) => any;
-  Marker: new (options: any) => any;
-  LatLng: new (lat: number, lng: number) => any;
-}
-
-interface GoogleMapsWindow extends Window {
-  initMap?: () => void;
-  google?: {
-    maps: GoogleMap;
+declare global {
+  interface Window {
+    initMap?: () => void;
+    google?: {
+      maps: {
+        Map: new (element: HTMLElement, options: any) => any;
+        Marker: new (options: any) => any;
+        LatLng: new (lat: number, lng: number) => any;
+      }
+    }
   }
 }
-
-declare let window: GoogleMapsWindow;
 
 const Contact = () => {
   const { toast } = useToast();

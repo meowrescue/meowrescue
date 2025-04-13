@@ -5,54 +5,47 @@ import { CatFood, CatFeedingRecord, Cat } from '@/types/applications';
 export const catFoodApi = {
   async getCatFood(): Promise<CatFood[]> {
     const { data, error } = await supabase
-      .from('cat_food')
-      .select('*')
-      .order('purchase_date', { ascending: false });
+      .rpc('get_cat_food');
       
     if (error) throw error;
-    return data || [];
+    return data as CatFood[] || [];
   },
   
   async addCatFood(food: Omit<CatFood, 'id' | 'created_at'>): Promise<CatFood> {
     const { data, error } = await supabase
-      .from('cat_food')
-      .insert([food])
-      .select()
-      .single();
+      .rpc('add_cat_food', {
+        p_brand: food.brand,
+        p_type: food.type,
+        p_quantity: food.quantity,
+        p_units: food.units,
+        p_cost_per_unit: food.cost_per_unit,
+        p_purchase_date: food.purchase_date
+      });
       
     if (error) throw error;
-    return data;
+    return data as CatFood;
   },
   
   async getCatFeedingRecords(): Promise<CatFeedingRecord[]> {
     const { data, error } = await supabase
-      .from('cat_feeding_records')
-      .select(`
-        *,
-        cats(name),
-        cat_food(brand, type)
-      `)
-      .order('feeding_date', { ascending: false });
+      .rpc('get_cat_feeding_records');
       
     if (error) throw error;
     
-    return (data || []).map(record => ({
-      ...record,
-      cat_name: record.cats?.name || 'Unknown Cat',
-      food_brand: record.cat_food?.brand || 'Unknown Brand',
-      food_type: record.cat_food?.type || 'Unknown Type'
-    }));
+    return data as CatFeedingRecord[] || [];
   },
   
   async addCatFeedingRecord(record: Omit<CatFeedingRecord, 'id' | 'created_at' | 'cat_name' | 'food_brand' | 'food_type'>): Promise<CatFeedingRecord> {
     const { data, error } = await supabase
-      .from('cat_feeding_records')
-      .insert([record])
-      .select()
-      .single();
+      .rpc('add_cat_feeding_record', {
+        p_cat_id: record.cat_id,
+        p_cat_food_id: record.cat_food_id,
+        p_amount: record.amount,
+        p_feeding_date: record.feeding_date
+      });
       
     if (error) throw error;
-    return data;
+    return data as CatFeedingRecord;
   },
   
   async getCats(): Promise<Cat[]> {
