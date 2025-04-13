@@ -190,7 +190,7 @@ const AdminSecurity: React.FC = () => {
                 <SelectValue placeholder="Filter by type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Activity Types</SelectItem>
+                <SelectItem value="all">All Activity Types</SelectItem>
                 {uniqueActivityTypes.map(type => (
                   <SelectItem key={type} value={type}>
                     {type.charAt(0).toUpperCase() + type.slice(1)}
@@ -209,7 +209,7 @@ const AdminSecurity: React.FC = () => {
                 <SelectValue placeholder="Filter by user" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Users</SelectItem>
+                <SelectItem value="all">All Users</SelectItem>
                 {uniqueUsers?.map(user => (
                   <SelectItem key={user.id} value={user.id}>
                     {user.first_name && user.last_name 
