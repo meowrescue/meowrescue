@@ -25,7 +25,7 @@ const About = () => {
       }
       
       // Cast the data to TeamMember[] to resolve type issues
-      return (data as any || []) as TeamMember[];
+      return (data as unknown as TeamMember[] || []);
     }
   });
 
