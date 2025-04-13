@@ -50,7 +50,11 @@ const Register: React.FC = () => {
   });
 
   const onSubmit = async (values: RegisterFormValues) => {
-    await signUp(values.email, values.password, values.firstName, values.lastName);
+    // Pass first and last name as metadata object instead of separate parameters
+    await signUp(values.email, values.password, {
+      first_name: values.firstName,
+      last_name: values.lastName
+    });
   };
 
   return (
