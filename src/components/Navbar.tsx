@@ -59,8 +59,9 @@ const Navbar: React.FC = () => {
     >
       <nav className="container mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center">
+        <Link to="/" className="flex items-center gap-2">
           <img src="/logo.svg" alt="Meow Rescue" className="h-10" />
+          <span className="font-bold text-xl text-meow-primary">Meow Rescue</span>
         </Link>
 
         {/* Desktop Navigation */}

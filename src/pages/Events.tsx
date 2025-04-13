@@ -4,8 +4,12 @@ import Layout from '../components/Layout';
 import SectionHeading from '../components/ui/SectionHeading';
 import { Event } from '../types/events';
 import EventCard from '../components/EventCard';
+import { useScrollToElement } from '@/hooks/use-scroll';
 
 const Events: React.FC = () => {
+  // Use the custom hook to handle scrolling
+  useScrollToElement();
+  
   // Sample events data - in a real app, this would come from a database
   const events: Event[] = [
     {
@@ -39,7 +43,7 @@ const Events: React.FC = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 py-12 pt-24" id="events-content">
         <SectionHeading 
           title="Upcoming Events" 
           subtitle="Join us at our upcoming events and help support our mission"

@@ -14,10 +14,12 @@ import Cats from "./pages/Cats";
 import CatDetail from "./pages/CatDetail";
 import Adopt from "./pages/Adopt";
 import Events from "./pages/Events";
+import EventDetail from "./pages/EventDetail";
 import Resources from "./pages/Resources";
 import Contact from "./pages/Contact";
 import Donate from "./pages/Donate";
 import Volunteer from "./pages/Volunteer";
+import VolunteerForm from "./pages/VolunteerForm";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ResetPassword from "./pages/ResetPassword";
@@ -52,10 +54,12 @@ const App = () => (
               <Route path="/cats/:id" element={<CatDetail />} />
               <Route path="/adopt" element={<Adopt />} />
               <Route path="/events" element={<Events />} />
+              <Route path="/events/:id" element={<EventDetail />} />
               <Route path="/resources" element={<Resources />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/donate" element={<Donate />} />
               <Route path="/volunteer" element={<Volunteer />} />
+              <Route path="/volunteer/apply" element={<VolunteerForm />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/reset-password" element={<ResetPassword />} />

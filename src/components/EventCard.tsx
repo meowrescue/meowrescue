@@ -1,59 +1,53 @@
 
 import React from 'react';
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 import { Calendar, Clock, MapPin } from 'lucide-react';
 import { Event } from '../types/events';
-import { Link } from 'react-router-dom';
 
 interface EventCardProps {
   event: Event;
 }
 
 const EventCard: React.FC<EventCardProps> = ({ event }) => {
-  const { id, title, date, time, location, description, imageUrl } = event;
-  
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-      {imageUrl && (
+    <Card className="overflow-hidden flex flex-col h-full">
+      <div className="h-48 overflow-hidden">
         <img 
-          src={imageUrl} 
-          alt={title} 
-          className="w-full h-48 object-cover"
+          src={event.imageUrl} 
+          alt={event.title} 
+          className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
         />
-      )}
-      <div className="p-6">
-        <h3 className="text-xl font-bold text-meow-primary mb-2">{title}</h3>
+      </div>
+      <CardContent className="flex-grow p-5">
+        <h3 className="text-xl font-bold mb-2 text-meow-primary">{event.title}</h3>
         
-        <div className="space-y-2 mb-4">
-          <div className="flex items-center text-gray-600">
-            <Calendar className="w-4 h-4 mr-2 text-meow-secondary" />
-            <span>{date}</span>
+        <div className="space-y-2 text-sm text-gray-600 mb-4">
+          <div className="flex items-center">
+            <Calendar className="h-4 w-4 mr-2" />
+            <span>{event.date}</span>
           </div>
-          
-          <div className="flex items-center text-gray-600">
-            <Clock className="w-4 h-4 mr-2 text-meow-secondary" />
-            <span>{time}</span>
+          <div className="flex items-center">
+            <Clock className="h-4 w-4 mr-2" />
+            <span>{event.time}</span>
           </div>
-          
-          <div className="flex items-center text-gray-600">
-            <MapPin className="w-4 h-4 mr-2 text-meow-secondary" />
-            <span>{location}</span>
+          <div className="flex items-center">
+            <MapPin className="h-4 w-4 mr-2" />
+            <span>{event.location}</span>
           </div>
         </div>
         
-        <p className="text-gray-700 mb-4 line-clamp-3">{description}</p>
-        
-        <Button 
-          asChild
-          variant="meow" 
-          className="w-full"
-        >
-          <Link to={`/events/${id}`}>
-            Event Details
-          </Link>
+        <p className="text-gray-600 line-clamp-3">
+          {event.description}
+        </p>
+      </CardContent>
+      <CardFooter className="px-5 pb-5 pt-0">
+        <Button asChild variant="meowOutline" className="w-full">
+          <Link to={`/events/${event.id}`}>Event Details</Link>
         </Button>
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   );
 };
 
