@@ -114,11 +114,11 @@ const AdminSecurity: React.FC = () => {
           `${log.profiles.first_name} ${log.profiles.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()));
       
       // Activity type filter
-      const matchesType = activityTypeFilter === '' || 
+      const matchesType = activityTypeFilter === '' || activityTypeFilter === 'all' || 
         log.activity_type.toLowerCase() === activityTypeFilter.toLowerCase();
       
       // User filter
-      const matchesUser = userFilter === '' || log.user_id === userFilter;
+      const matchesUser = userFilter === '' || userFilter === 'all' || log.user_id === userFilter;
       
       return matchesSearch && matchesType && matchesUser;
     });

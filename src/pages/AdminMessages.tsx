@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -54,7 +55,7 @@ const AdminMessages: React.FC = () => {
         const { data, error } = await supabase
           .from('contact_messages')
           .select('*')
-          .order('created_at', { ascending: false });
+          .order('received_at', { ascending: false }); // Changed from created_at to received_at
 
         if (error) {
           console.error("Error fetching messages:", error);

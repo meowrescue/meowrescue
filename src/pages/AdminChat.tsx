@@ -22,7 +22,7 @@ interface ChatSession {
   last_message_at: string;
   created_at: string;
   updated_at: string;
-  user?: {
+  user_profile?: {
     id: string;
     first_name?: string;
     last_name?: string;
@@ -57,7 +57,7 @@ const AdminChat: React.FC = () => {
           .from('chat_sessions')
           .select(`
             *,
-            user:user_id (
+            user_profile:user_id (
               id,
               first_name,
               last_name,
@@ -287,7 +287,7 @@ const AdminChat: React.FC = () => {
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="font-medium truncate">
-                                {session.user?.first_name || 'Anonymous'} {session.user?.last_name || 'User'}
+                                {session.user_profile?.first_name || 'Anonymous'} {session.user_profile?.last_name || 'User'}
                               </p>
                               <p className="text-xs text-gray-500 truncate">
                                 {new Date(session.last_message_at).toLocaleString()}
@@ -315,7 +315,7 @@ const AdminChat: React.FC = () => {
                 <CardTitle className="text-lg font-semibold">
                   {selectedChatId ? (
                     <>
-                      {chatSessions?.find(s => s.id === selectedChatId)?.user?.first_name || 'User'} Chat
+                      {chatSessions?.find(s => s.id === selectedChatId)?.user_profile?.first_name || 'User'} Chat
                     </>
                   ) : (
                     'Select a Chat'
