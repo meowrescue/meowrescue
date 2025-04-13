@@ -2,17 +2,19 @@
 import { supabase } from '@/integrations/supabase/client';
 import { CatFood, CatFeedingRecord, CatFoodAPI } from '@/types/finance';
 
-// Helper function to call Supabase RPC functions
+// Helper function to call Supabase RPC functions with proper type handling
 const callRpcFunction = async <T>(functionName: string, params: any = {}): Promise<T[]> => {
   try {
-    const { data, error } = await supabase.rpc(functionName, params);
+    // Use type assertion to avoid TypeScript errors with RPC function names
+    const { data, error } = await supabase.rpc(functionName as any, params);
     
     if (error) {
       console.error(`Error calling RPC function ${functionName}:`, error);
       return [];
     }
     
-    return data as T[] || [];
+    // Use type assertion to ensure we return the correct type
+    return (data as T[]) || [];
   } catch (error) {
     console.error(`Error in RPC function ${functionName}:`, error);
     return [];
@@ -33,8 +35,8 @@ export const catFoodApi: CatFoodAPI = {
   
   addCatFood: async (food) => {
     try {
-      // Use RPC function to add cat food
-      const { data, error } = await supabase.rpc('add_cat_food', {
+      // Use type assertion to bypass TypeScript checking for RPC function name
+      const { data, error } = await supabase.rpc('add_cat_food' as any, {
         p_brand: food.brand,
         p_type: food.type,
         p_quantity: food.quantity,
@@ -66,8 +68,8 @@ export const catFoodApi: CatFoodAPI = {
   
   addCatFeedingRecord: async (record) => {
     try {
-      // Use RPC function to add feeding record
-      const { data, error } = await supabase.rpc('add_cat_feeding_record', {
+      // Use type assertion to bypass TypeScript checking for RPC function name
+      const { data, error } = await supabase.rpc('add_cat_feeding_record' as any, {
         p_cat_id: record.cat_id,
         p_cat_food_id: record.cat_food_id,
         p_amount: record.amount,
