@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
 import { Button } from '@/components/ui/button';
@@ -48,6 +48,12 @@ const AdminChat: React.FC = () => {
   const queryClient = useQueryClient();
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to bottom of messages
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   // Fetch active chat sessions
   const { data: chatSessions, isLoading: sessionsLoading } = useQuery({
@@ -147,7 +153,7 @@ const AdminChat: React.FC = () => {
           return [] as ChatMessage[];
         }
         
-        console.log("Chat messages fetched:", data);
+        console.log("Chat messages fetched:", data?.length);
         
         // Mark messages as read if not admin's messages
         const unreadMessages = (data as ChatMessage[]).filter(message => !message.is_admin && !message.read_at);
@@ -160,7 +166,11 @@ const AdminChat: React.FC = () => {
             .in('id', unreadIds);
         }
         
-        return data as ChatMessage[];
+        if (data) {
+          setTimeout(scrollToBottom, 100);
+          return data as ChatMessage[];
+        }
+        return [] as ChatMessage[];
       } catch (err) {
         console.error("Error in chat messages query:", err);
         return [] as ChatMessage[];
@@ -169,6 +179,11 @@ const AdminChat: React.FC = () => {
     enabled: !!selectedChatId,
     refetchInterval: selectedChatId ? 5000 : false, // Poll for new messages if chat is selected
   });
+
+  // Effect to scroll to bottom when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [chatMessages]);
 
   // Send message mutation
   const sendMessage = useMutation({
@@ -179,14 +194,28 @@ const AdminChat: React.FC = () => {
         console.log("Sending admin message to chat:", selectedChatId);
         const adminId = (await supabase.auth.getUser()).data.user?.id;
         
+        // Create message object
+        const newMessageObj = {
+          chat_session_id: selectedChatId,
+          content: content.trim(),
+          is_admin: true,
+          admin_id: adminId,
+        };
+        
+        // First update UI optimistically
+        const tempMessage = {
+          ...newMessageObj,
+          id: 'temp-' + Date.now(),
+          created_at: new Date().toISOString(),
+        } as ChatMessage;
+        
+        queryClient.setQueryData(['chat-messages', selectedChatId], 
+          (oldData: ChatMessage[] | undefined) => oldData ? [...oldData, tempMessage] : [tempMessage]);
+        
+        // Then insert into database
         const { error: messageError } = await supabase
           .from('chat_messages')
-          .insert({
-            chat_session_id: selectedChatId,
-            content,
-            is_admin: true,
-            admin_id: adminId,
-          });
+          .insert(newMessageObj);
         
         if (messageError) {
           console.error("Error inserting message:", messageError);
@@ -217,6 +246,7 @@ const AdminChat: React.FC = () => {
       setNewMessage('');
       queryClient.invalidateQueries({ queryKey: ['chat-messages', selectedChatId] });
       queryClient.invalidateQueries({ queryKey: ['chat-sessions'] });
+      setTimeout(scrollToBottom, 100);
     },
     onError: (error: any) => {
       console.error("Error in send message mutation:", error);
@@ -409,13 +439,14 @@ const AdminChat: React.FC = () => {
                                     : 'bg-gray-100 text-gray-800'
                                 }`}
                               >
-                                <p className="text-sm">{message.content}</p>
+                                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                                 <p className="text-xs mt-1 opacity-70">
                                   {new Date(message.created_at).toLocaleTimeString()}
                                 </p>
                               </div>
                             </div>
                           ))}
+                          <div ref={messagesEndRef} />
                         </div>
                       ) : (
                         <div className="h-full flex items-center justify-center text-gray-500">
@@ -438,7 +469,7 @@ const AdminChat: React.FC = () => {
                           type="button" 
                           onClick={handleSendMessage}
                           className="self-end"
-                          disabled={sendMessage.isPending}
+                          disabled={sendMessage.isPending || !newMessage.trim()}
                         >
                           <Send size={16} />
                         </Button>

@@ -61,6 +61,11 @@ section {
   @apply bg-gradient-to-r from-meow-primary to-meow-secondary text-white;
 }
 
+/* Page header background - consistent across all pages */
+.page-header {
+  @apply bg-meow-light py-16 px-4;
+}
+
 /* Standard card styling */
 .meow-card {
   @apply bg-white rounded-lg shadow-md overflow-hidden border border-gray-100 transition-shadow hover:shadow-lg;
@@ -77,6 +82,11 @@ section {
 
 .meow-button-outline {
   @apply border border-meow-primary text-meow-primary hover:bg-meow-primary/10 font-medium py-2 px-4 rounded transition-colors;
+}
+
+/* Update donate button hover state */
+.hero-donate-button {
+  @apply bg-meow-secondary hover:bg-meow-secondary/90 text-white transition-colors;
 }
 
 /* Admin layout styles */
@@ -150,4 +160,9 @@ section {
 /* Form elements consistency */
 input, select, textarea {
   @apply border-gray-300 focus:border-meow-primary focus:ring-1 focus:ring-meow-primary;
+}
+
+/* Make sure scrolling to top works */
+html {
+  scroll-behavior: smooth;
 }

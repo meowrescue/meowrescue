@@ -237,8 +237,10 @@ const ChatWidget: React.FC = () => {
         }
         
         console.log("Fetched messages:", data?.length);
-        setMessages(data as ChatMessage[]);
-        setTimeout(scrollToBottom, 100);
+        if (data) {
+          setMessages(data as ChatMessage[]);
+          setTimeout(scrollToBottom, 100);
+        }
       } catch (error: any) {
         console.error("Error fetching messages:", error);
       }
@@ -272,14 +274,30 @@ const ChatWidget: React.FC = () => {
     
     try {
       console.log("Sending message to chat session:", chatSession);
+      
+      // Create message object
+      const newMessageObj = {
+        chat_session_id: chatSession,
+        content: newMessage.trim(),
+        is_admin: false,
+        user_id: user?.id,
+      };
+      
+      // First update local state for immediate feedback
+      const tempMessage = {
+        ...newMessageObj,
+        id: 'temp-' + Date.now(),
+        created_at: new Date().toISOString(),
+      } as ChatMessage;
+      
+      setMessages(prevMessages => [...prevMessages, tempMessage]);
+      setNewMessage('');
+      setTimeout(scrollToBottom, 50);
+      
+      // Then send to database
       const { error } = await supabase
         .from('chat_messages')
-        .insert({
-          chat_session_id: chatSession,
-          content: newMessage,
-          is_admin: false,
-          user_id: user?.id,
-        });
+        .insert(newMessageObj);
       
       if (error) {
         console.error("Error sending message:", error);
@@ -297,7 +315,6 @@ const ChatWidget: React.FC = () => {
         })
         .eq('id', chatSession);
       
-      setNewMessage('');
     } catch (error: any) {
       console.error("Error in sendMessage:", error);
       toast({

@@ -8,14 +8,17 @@ const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
   const lastUpdated = new Date().toISOString(); // For SEO content freshness
 
-  // Quick links in a single collection but displayed in three columns
-  const quickLinks = [
+  // Quick links in two columns
+  const quickLinksColumnOne = [
     { path: "/", label: "Home" },
     { path: "/about", label: "About Us" },
     { path: "/cats", label: "Available Cats" },
     { path: "/adopt", label: "Adoption Process" },
     { path: "/success-stories", label: "Success Stories" },
     { path: "/volunteer", label: "Volunteer" },
+  ];
+  
+  const quickLinksColumnTwo = [
     { path: "/foster", label: "Foster" },
     { path: "/donate", label: "Donate" },
     { path: "/events", label: "Events" },
@@ -73,13 +76,13 @@ const Footer: React.FC = () => {
             </div>
           </div>
           
-          {/* Quick Links Section */}
+          {/* Quick Links Section - Two columns */}
           <div className="md:col-span-2">
             <h3 className="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Quick Links</h3>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               {/* First column of links */}
               <ul className="space-y-2">
-                {quickLinks.slice(0, 4).map((link, index) => (
+                {quickLinksColumnOne.map((link, index) => (
                   <li key={index}>
                     <Link 
                       to={link.path} 
@@ -94,23 +97,8 @@ const Footer: React.FC = () => {
               
               {/* Second column of links */}
               <ul className="space-y-2">
-                {quickLinks.slice(4, 8).map((link, index) => (
-                  <li key={index + 4}>
-                    <Link 
-                      to={link.path} 
-                      className="text-white/80 hover:text-white transition-colors"
-                      onClick={scrollToTop}
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-              
-              {/* Third column of links */}
-              <ul className="space-y-2">
-                {quickLinks.slice(8, 12).map((link, index) => (
-                  <li key={index + 8}>
+                {quickLinksColumnTwo.map((link, index) => (
+                  <li key={index}>
                     <Link 
                       to={link.path} 
                       className="text-white/80 hover:text-white transition-colors"
@@ -130,10 +118,15 @@ const Footer: React.FC = () => {
             <ul className="space-y-3">
               <li className="flex items-start">
                 <MapPin className="h-5 w-5 mr-2 mt-0.5 text-meow-secondary" />
-                <span className="text-white/80">
+                <a 
+                  href="https://maps.google.com/?q=7726+US+Highway+19,New+Port+Richey,FL+34652" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-white/80 hover:text-white transition-colors"
+                >
                   7726 US Highway 19<br />
                   New Port Richey, FL 34652
-                </span>
+                </a>
               </li>
               <li className="flex items-center">
                 <Phone className="h-5 w-5 mr-2 text-meow-secondary" />
