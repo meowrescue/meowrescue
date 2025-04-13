@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import Layout from '@/components/Layout';
 import SEO from '@/components/SEO';
@@ -42,6 +43,7 @@ const Contact = () => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any | null>(null);
   const scriptLoadedRef = useRef<boolean>(false);
+  const mapScriptId = 'google-maps-script';
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -53,8 +55,13 @@ const Contact = () => {
   });
 
   useEffect(() => {
+    // Only execute map initialization if the component is mounted
+    let isMounted = true;
+    
     // Define the map initialization function
     const initMapFunction = () => {
+      if (!isMounted) return;
+      
       if (mapRef.current && !mapInstanceRef.current && window.google?.maps) {
         const newPortRicheyLocation = { lat: 28.2442, lng: -82.7190 };
         
@@ -83,24 +90,38 @@ const Contact = () => {
     window.initMap = initMapFunction;
 
     // Create script only if it doesn't exist and hasn't been loaded before
-    if (!document.getElementById('google-maps-script') && !scriptLoadedRef.current) {
+    if (!document.getElementById(mapScriptId) && !scriptLoadedRef.current) {
       scriptLoadedRef.current = true;
+      
       const script = document.createElement('script');
-      script.id = 'google-maps-script';
-      script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBLkQbdtq_eR3-jLjOYMYICN0NLaWO74jo&callback=initMap`;
+      script.id = mapScriptId;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBLkQbdtq_eR3-jLjOYMYICN0NLaWO74jo&callback=initMap&loading=async`;
       script.async = true;
       script.defer = true;
+      
+      script.onerror = () => {
+        if (!isMounted) return;
+        console.error("Error loading Google Maps script");
+        scriptLoadedRef.current = false;
+      };
+      
       document.head.appendChild(script);
     } else if (window.google?.maps) {
       // If script already loaded but map not initialized
       initMapFunction();
     }
 
-    // Clean up
+    // Clean up function to handle component unmounting
     return () => {
+      isMounted = false;
+      
+      // Clean up the global callback to prevent memory leaks
       if (window.initMap === initMapFunction) {
         window.initMap = undefined;
       }
+      
+      // Clear the map instance reference
+      mapInstanceRef.current = null;
     };
   }, []);
 

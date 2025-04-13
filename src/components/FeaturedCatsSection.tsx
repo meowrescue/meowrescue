@@ -31,9 +31,8 @@ const FeaturedCatsSection: React.FC = () => {
     });
   };
 
-  // Don't render anything if there are no available cats
-  if (isLoading === false && featuredCats.length === 0) {
-    // If we have no cats to display, don't render the section at all
+  // If loading is complete and there are no cats, don't render the section
+  if (!isLoading && featuredCats.length === 0) {
     return null;
   }
 
@@ -50,7 +49,7 @@ const FeaturedCatsSection: React.FC = () => {
           <div className="flex justify-center items-center h-40">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-meow-primary"></div>
           </div>
-        ) : (
+        ) : featuredCats.length > 0 ? (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
               {featuredCats.map(cat => (
@@ -76,6 +75,16 @@ const FeaturedCatsSection: React.FC = () => {
               </Button>
             </div>
           </>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-16">
+            <p className="text-gray-500 text-center mb-6">
+              We currently don't have any cats available for adoption.
+              Please check back soon or contact us for more information.
+            </p>
+            <Button asChild variant="outline">
+              <Link to="/contact" onClick={scrollToTop}>Contact Us</Link>
+            </Button>
+          </div>
         )}
       </div>
     </section>
