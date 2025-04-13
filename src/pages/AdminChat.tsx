@@ -13,7 +13,33 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { User, MessageCircle, Send } from 'lucide-react';
 import { User as UserType } from '@/types/users';
-import { ChatSession, ChatMessage } from '@/types/supabase';
+
+// Define types for chat session and messages
+interface ChatSession {
+  id: string;
+  user_id: string;
+  status: string;
+  last_message_at: string;
+  created_at: string;
+  updated_at: string;
+  user?: {
+    id: string;
+    first_name?: string;
+    last_name?: string;
+    email?: string;
+  };
+}
+
+interface ChatMessage {
+  id: string;
+  chat_session_id: string;
+  user_id?: string;
+  admin_id?: string;
+  is_admin: boolean;
+  content: string;
+  created_at: string;
+  read_at?: string;
+}
 
 const AdminChat: React.FC = () => {
   const { toast } = useToast();
@@ -25,22 +51,38 @@ const AdminChat: React.FC = () => {
   const { data: chatSessions, isLoading: sessionsLoading } = useQuery({
     queryKey: ['chat-sessions'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('chat_sessions')
-        .select('*, user:profiles(*)')
-        .eq('status', 'active')
-        .order('last_message_at', { ascending: false });
-      
-      if (error) {
-        toast({
-          title: "Error Loading Chats",
-          description: error.message,
-          variant: "destructive",
-        });
+      try {
+        console.log("Fetching chat sessions");
+        const { data, error } = await supabase
+          .from('chat_sessions')
+          .select(`
+            *,
+            user:user_id (
+              id,
+              first_name,
+              last_name,
+              email
+            )
+          `)
+          .eq('status', 'active')
+          .order('last_message_at', { ascending: false });
+        
+        if (error) {
+          console.error("Error fetching chat sessions:", error);
+          toast({
+            title: "Error Loading Chats",
+            description: error.message,
+            variant: "destructive",
+          });
+          return [] as ChatSession[];
+        }
+        
+        console.log("Chat sessions fetched:", data);
+        return data as ChatSession[];
+      } catch (err) {
+        console.error("Error in chat sessions query:", err);
         return [] as ChatSession[];
       }
-      
-      return data as unknown as ChatSession[];
     },
     refetchInterval: 10000, // Refresh every 10 seconds
   });
@@ -51,32 +93,42 @@ const AdminChat: React.FC = () => {
     queryFn: async () => {
       if (!selectedChatId) return [];
       
-      const { data, error } = await supabase
-        .from('chat_messages')
-        .select('*')
-        .eq('chat_session_id', selectedChatId)
-        .order('created_at', { ascending: true });
-      
-      if (error) {
-        toast({
-          title: "Error Loading Messages",
-          description: error.message,
-          variant: "destructive",
-        });
+      try {
+        console.log("Fetching messages for chat:", selectedChatId);
+        const { data, error } = await supabase
+          .from('chat_messages')
+          .select('*')
+          .eq('chat_session_id', selectedChatId)
+          .order('created_at', { ascending: true });
+        
+        if (error) {
+          console.error("Error fetching chat messages:", error);
+          toast({
+            title: "Error Loading Messages",
+            description: error.message,
+            variant: "destructive",
+          });
+          return [] as ChatMessage[];
+        }
+        
+        console.log("Chat messages fetched:", data);
+        
+        // Mark messages as read if not admin's messages
+        const unreadMessages = (data as ChatMessage[]).filter(message => !message.is_admin && !message.read_at);
+        if (unreadMessages.length > 0) {
+          console.log("Marking messages as read:", unreadMessages.length);
+          const unreadIds = unreadMessages.map(msg => msg.id);
+          await supabase
+            .from('chat_messages')
+            .update({ read_at: new Date().toISOString() })
+            .in('id', unreadIds);
+        }
+        
+        return data as ChatMessage[];
+      } catch (err) {
+        console.error("Error in chat messages query:", err);
         return [] as ChatMessage[];
       }
-      
-      // Mark messages as read if not admin's messages
-      const unreadMessages = (data as ChatMessage[]).filter(message => !message.is_admin && !message.read_at);
-      if (unreadMessages.length > 0) {
-        const unreadIds = unreadMessages.map(msg => msg.id);
-        await supabase
-          .from('chat_messages')
-          .update({ read_at: new Date().toISOString() })
-          .in('id', unreadIds);
-      }
-      
-      return data as ChatMessage[];
     },
     enabled: !!selectedChatId,
     refetchInterval: selectedChatId ? 5000 : false, // Poll for new messages if chat is selected
@@ -87,29 +139,43 @@ const AdminChat: React.FC = () => {
     mutationFn: async (content: string) => {
       if (!selectedChatId || !content.trim()) return;
       
-      const adminId = (await supabase.auth.getUser()).data.user?.id;
-      
-      const { error: messageError } = await supabase
-        .from('chat_messages')
-        .insert({
-          chat_session_id: selectedChatId,
-          content,
-          is_admin: true,
-          admin_id: adminId,
-        });
-      
-      if (messageError) throw messageError;
-      
-      // Update last message timestamp
-      const { error: sessionError } = await supabase
-        .from('chat_sessions')
-        .update({
-          last_message_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', selectedChatId);
-      
-      if (sessionError) throw sessionError;
+      try {
+        console.log("Sending admin message to chat:", selectedChatId);
+        const adminId = (await supabase.auth.getUser()).data.user?.id;
+        
+        const { error: messageError } = await supabase
+          .from('chat_messages')
+          .insert({
+            chat_session_id: selectedChatId,
+            content,
+            is_admin: true,
+            admin_id: adminId,
+          });
+        
+        if (messageError) {
+          console.error("Error inserting message:", messageError);
+          throw messageError;
+        }
+        
+        // Update last message timestamp
+        const { error: sessionError } = await supabase
+          .from('chat_sessions')
+          .update({
+            last_message_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', selectedChatId);
+        
+        if (sessionError) {
+          console.error("Error updating chat session:", sessionError);
+          throw sessionError;
+        }
+        
+        console.log("Message sent successfully");
+      } catch (err) {
+        console.error("Error sending message:", err);
+        throw err;
+      }
     },
     onSuccess: () => {
       setNewMessage('');
@@ -117,6 +183,7 @@ const AdminChat: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['chat-sessions'] });
     },
     onError: (error: any) => {
+      console.error("Error in send message mutation:", error);
       toast({
         title: "Error Sending Message",
         description: error.message,
@@ -143,15 +210,26 @@ const AdminChat: React.FC = () => {
   // Close chat session
   const closeChat = useMutation({
     mutationFn: async (chatId: string) => {
-      const { error } = await supabase
-        .from('chat_sessions')
-        .update({
-          status: 'closed',
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', chatId);
-      
-      if (error) throw error;
+      try {
+        console.log("Closing chat session:", chatId);
+        const { error } = await supabase
+          .from('chat_sessions')
+          .update({
+            status: 'closed',
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', chatId);
+        
+        if (error) {
+          console.error("Error closing chat session:", error);
+          throw error;
+        }
+        
+        console.log("Chat session closed successfully");
+      } catch (err) {
+        console.error("Error in close chat mutation:", err);
+        throw err;
+      }
     },
     onSuccess: () => {
       setSelectedChatId(null);
@@ -162,6 +240,7 @@ const AdminChat: React.FC = () => {
       });
     },
     onError: (error: any) => {
+      console.error("Error closing chat:", error);
       toast({
         title: "Error Closing Chat",
         description: error.message,

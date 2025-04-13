@@ -5,14 +5,27 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Send, X, MessageCircle } from 'lucide-react';
+import { Send, X, MessageCircle, Mail } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { ChatMessage } from '@/types/supabase';
+import { useBusinessHours } from './BusinessHoursProvider';
+import { Link } from 'react-router-dom';
+
+interface ChatMessage {
+  id: string;
+  chat_session_id: string;
+  user_id?: string;
+  admin_id?: string;
+  is_admin: boolean;
+  content: string;
+  created_at: string;
+  read_at?: string;
+}
 
 const ChatWidget: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { isBusinessHours } = useBusinessHours();
   const [isOpen, setIsOpen] = useState(false);
   const [newMessage, setNewMessage] = useState('');
   const [chatSession, setChatSession] = useState<string | null>(null);
@@ -32,6 +45,7 @@ const ChatWidget: React.FC = () => {
         setIsLoading(true);
         
         try {
+          console.log("Checking for existing chat session");
           // Check for existing active session
           const { data: existingSessions, error: fetchError } = await supabase
             .from('chat_sessions')
@@ -41,11 +55,16 @@ const ChatWidget: React.FC = () => {
             .order('created_at', { ascending: false })
             .limit(1);
           
-          if (fetchError) throw fetchError;
+          if (fetchError) {
+            console.error("Error fetching chat sessions:", fetchError);
+            throw fetchError;
+          }
           
           if (existingSessions && existingSessions.length > 0) {
+            console.log("Found existing chat session:", existingSessions[0].id);
             setChatSession(existingSessions[0].id);
           } else {
+            console.log("Creating new chat session");
             // Create new session
             const { data: newSession, error: createError } = await supabase
               .from('chat_sessions')
@@ -57,13 +76,18 @@ const ChatWidget: React.FC = () => {
               .select('id')
               .single();
             
-            if (createError) throw createError;
+            if (createError) {
+              console.error("Error creating chat session:", createError);
+              throw createError;
+            }
             
             if (newSession) {
+              console.log("Created new chat session:", newSession.id);
               setChatSession(newSession.id);
             }
           }
         } catch (error: any) {
+          console.error("Error with chat session:", error);
           toast({
             title: "Chat Error",
             description: error.message || "Failed to start chat session",
@@ -84,14 +108,19 @@ const ChatWidget: React.FC = () => {
     
     const fetchMessages = async () => {
       try {
+        console.log("Fetching messages for chat session:", chatSession);
         const { data, error } = await supabase
           .from('chat_messages')
           .select('*')
           .eq('chat_session_id', chatSession)
           .order('created_at', { ascending: true });
         
-        if (error) throw error;
+        if (error) {
+          console.error("Error fetching chat messages:", error);
+          throw error;
+        }
         
+        console.log("Fetched messages:", data?.length);
         setMessages(data as ChatMessage[]);
         setTimeout(scrollToBottom, 100);
       } catch (error: any) {
@@ -102,7 +131,7 @@ const ChatWidget: React.FC = () => {
     fetchMessages();
     
     // Subscribe to new messages
-    const subscription = supabase
+    const channel = supabase
       .channel(`chat:${chatSession}`)
       .on('postgres_changes', {
         event: 'INSERT',
@@ -110,13 +139,14 @@ const ChatWidget: React.FC = () => {
         table: 'chat_messages',
         filter: `chat_session_id=eq.${chatSession}`,
       }, (payload) => {
+        console.log("New message received via subscription:", payload.new);
         setMessages(current => [...current, payload.new as ChatMessage]);
         setTimeout(scrollToBottom, 100);
       })
       .subscribe();
     
     return () => {
-      supabase.removeChannel(subscription);
+      supabase.removeChannel(channel);
     };
   }, [chatSession]);
   
@@ -125,6 +155,7 @@ const ChatWidget: React.FC = () => {
     if (!chatSession || !newMessage.trim()) return;
     
     try {
+      console.log("Sending message to chat session:", chatSession);
       const { error } = await supabase
         .from('chat_messages')
         .insert({
@@ -134,7 +165,12 @@ const ChatWidget: React.FC = () => {
           user_id: user?.id,
         });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error sending message:", error);
+        throw error;
+      }
+      
+      console.log("Message sent successfully");
       
       // Update last message timestamp
       await supabase
@@ -147,6 +183,7 @@ const ChatWidget: React.FC = () => {
       
       setNewMessage('');
     } catch (error: any) {
+      console.error("Error in sendMessage:", error);
       toast({
         title: "Error Sending Message",
         description: error.message,
@@ -162,6 +199,19 @@ const ChatWidget: React.FC = () => {
       sendMessage();
     }
   };
+
+  // Check if user is authenticated before opening chat
+  const handleOpenChat = () => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please login to use the chat feature.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsOpen(true);
+  };
   
   return (
     <>
@@ -169,7 +219,7 @@ const ChatWidget: React.FC = () => {
       {!isOpen && (
         <Button 
           className="fixed bottom-6 right-6 rounded-full h-14 w-14 shadow-lg"
-          onClick={() => setIsOpen(true)}
+          onClick={handleOpenChat}
         >
           <MessageCircle size={24} />
         </Button>
@@ -192,63 +242,79 @@ const ChatWidget: React.FC = () => {
               <div className="h-full flex items-center justify-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-meow-primary"></div>
               </div>
-            ) : messages.length > 0 ? (
-              <ScrollArea className="h-full py-2 pr-2">
-                <div className="space-y-3">
-                  {messages.map((message) => (
-                    <div 
-                      key={message.id} 
-                      className={`flex ${message.is_admin ? 'justify-start' : 'justify-end'}`}
-                    >
+            ) : isBusinessHours ? (
+              messages.length > 0 ? (
+                <ScrollArea className="h-full py-2 pr-2">
+                  <div className="space-y-3">
+                    {messages.map((message) => (
                       <div 
-                        className={`max-w-[85%] p-2 px-3 rounded-lg ${
-                          message.is_admin 
-                            ? 'bg-gray-100 text-gray-800' 
-                            : 'bg-meow-primary text-white'
-                        }`}
+                        key={message.id} 
+                        className={`flex ${message.is_admin ? 'justify-start' : 'justify-end'}`}
                       >
-                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                        <p className="text-xs mt-1 opacity-70">
-                          {new Date(message.created_at).toLocaleTimeString([], { 
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </p>
+                        <div 
+                          className={`max-w-[85%] p-2 px-3 rounded-lg ${
+                            message.is_admin 
+                              ? 'bg-gray-100 text-gray-800' 
+                              : 'bg-meow-primary text-white'
+                          }`}
+                        >
+                          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                          <p className="text-xs mt-1 opacity-70">
+                            {new Date(message.created_at).toLocaleTimeString([], { 
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                  <div ref={messagesEndRef} />
+                    ))}
+                    <div ref={messagesEndRef} />
+                  </div>
+                </ScrollArea>
+              ) : (
+                <div className="h-full flex items-center justify-center text-gray-500 text-center p-4">
+                  <div>
+                    <MessageCircle className="mx-auto h-10 w-10 text-gray-300 mb-2" />
+                    <p>Start a conversation with our team! We're here to help.</p>
+                  </div>
                 </div>
-              </ScrollArea>
+              )
             ) : (
               <div className="h-full flex items-center justify-center text-gray-500 text-center p-4">
                 <div>
-                  <MessageCircle className="mx-auto h-10 w-10 text-gray-300 mb-2" />
-                  <p>Start a conversation with our team! We're here to help.</p>
+                  <Mail className="mx-auto h-10 w-10 text-gray-300 mb-2" />
+                  <p>Our team is currently offline. Our business hours are Monday to Friday, 9am to 5pm.</p>
+                  <Link to="/contact">
+                    <Button variant="outline" className="mt-4">
+                      Send us a message
+                    </Button>
+                  </Link>
                 </div>
               </div>
             )}
           </CardContent>
           
-          <CardFooter className="py-2 px-3 border-t">
-            <div className="flex w-full gap-2">
-              <Textarea
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Type your message..."
-                className="min-h-[40px] max-h-[100px] resize-none flex-1 text-sm"
-              />
-              <Button 
-                type="button" 
-                onClick={sendMessage}
-                className="self-end h-10 w-10 p-0"
-                disabled={!newMessage.trim()}
-              >
-                <Send size={16} />
-              </Button>
-            </div>
-          </CardFooter>
+          {isBusinessHours && (
+            <CardFooter className="py-2 px-3 border-t">
+              <div className="flex w-full gap-2">
+                <Textarea
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Type your message..."
+                  className="min-h-[40px] max-h-[100px] resize-none flex-1 text-sm"
+                />
+                <Button 
+                  type="button" 
+                  onClick={sendMessage}
+                  className="self-end h-10 w-10 p-0"
+                  disabled={!newMessage.trim()}
+                >
+                  <Send size={16} />
+                </Button>
+              </div>
+            </CardFooter>
+          )}
         </Card>
       )}
     </>

@@ -35,6 +35,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // If user is not logged in, redirect to login
   if (!user || !session) {
+    console.log("User not logged in, redirecting to login");
     return <Navigate to="/login" />;
   }
 
@@ -44,6 +45,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
                    user.role === 'admin';
                    
     if (!isAdmin) {
+      console.log("User is not an admin, redirecting to home");
       return <Navigate to="/" />;
     }
   }

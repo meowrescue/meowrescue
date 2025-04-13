@@ -1,35 +1,25 @@
 
-import React from 'react';
-import Navbar from './Navbar';
-import Footer from './Footer';
-import SEO from './SEO';
+import React, { ReactNode } from 'react';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import { BusinessHoursProvider } from '@/components/BusinessHoursProvider';
+import ChatWidget from '@/components/ChatWidget';
 
 interface LayoutProps {
-  children: React.ReactNode;
-  title?: string;
-  description?: string;
-  image?: string;
+  children: ReactNode;
+  hideFooter?: boolean;
 }
 
-const Layout: React.FC<LayoutProps> = ({
-  children,
-  title,
-  description,
-  image
-}) => {
+const Layout: React.FC<LayoutProps> = ({ children, hideFooter = false }) => {
   return (
-    <div className="flex flex-col min-h-screen">
-      {title && <SEO title={title} description={description} ogImage={image} />}
-      
-      {/* Add a top margin to account for fixed navbar */}
-      <Navbar />
-      
-      <main className="flex-grow pt-16">
-        {children}
-      </main>
-      
-      <Footer />
-    </div>
+    <BusinessHoursProvider>
+      <div className="flex flex-col min-h-screen">
+        <Navbar />
+        <main className="flex-grow pt-16">{children}</main>
+        {!hideFooter && <Footer />}
+        <ChatWidget />
+      </div>
+    </BusinessHoursProvider>
   );
 };
 

@@ -45,25 +45,36 @@ const AdminMessages: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [openMessageId, setOpenMessageId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
-  const [messageStatus, setMessageStatus] = useState<MessageStatus>("New");
 
   // Fetch messages from Supabase
   const { data: messages, isLoading, error, refetch } = useQuery({
     queryKey: ['messages'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('contact_messages')
-        .select('*')
-        .order('created_at', { ascending: false });
+      try {
+        console.log("Fetching messages from Supabase");
+        const { data, error } = await supabase
+          .from('contact_messages')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data;
+        if (error) {
+          console.error("Error fetching messages:", error);
+          throw error;
+        }
+        
+        console.log("Messages fetched successfully:", data);
+        return data || [];
+      } catch (err) {
+        console.error("Error in messages query:", err);
+        throw err;
+      }
     },
   });
 
   // Mutation to update message status
   const updateMessageStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: MessageStatus }) => {
+      console.log("Updating message status:", id, status);
       const { data, error } = await supabase
         .from('contact_messages')
         .update({ status })
@@ -81,6 +92,7 @@ const AdminMessages: React.FC = () => {
       });
     },
     onError: (error: any) => {
+      console.error("Error updating message status:", error);
       toast({
         title: "Update Failed",
         description: `Failed to update message status: ${error.message}`,
@@ -92,11 +104,22 @@ const AdminMessages: React.FC = () => {
   // Mutation to send a reply
   const sendReply = useMutation({
     mutationFn: async ({ id, reply }: { id: string; reply: string }) => {
-      // Simulate sending a reply (replace with actual implementation)
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      return { id, reply };
+      console.log("Sending reply for message:", id);
+      const { data, error } = await supabase
+        .from('contact_messages')
+        .update({ 
+          response: reply,
+          status: 'Replied' as MessageStatus,
+          responded_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select();
+
+      if (error) throw new Error(`Failed to send reply: ${error.message}`);
+      return data;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['messages'] });
       toast({
         title: "Reply Sent",
         description: "Reply sent successfully.",
@@ -104,10 +127,11 @@ const AdminMessages: React.FC = () => {
       setReplyText('');
       setOpenMessageId(null);
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Error sending reply:", error);
       toast({
         title: "Reply Failed",
-        description: "Failed to send reply.",
+        description: `Failed to send reply: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -126,6 +150,10 @@ const AdminMessages: React.FC = () => {
 
   const handleOpenMessage = (id: string) => {
     setOpenMessageId(id);
+    // Mark as read when opening
+    if (messages?.find(m => m.id === id)?.status === 'New') {
+      handleStatusChange(id, 'Read');
+    }
   };
 
   const handleCloseMessage = () => {
@@ -134,7 +162,15 @@ const AdminMessages: React.FC = () => {
   };
 
   const handleSendReply = (id: string) => {
-    sendReply.mutate({ id, reply: replyText });
+    if (replyText.trim()) {
+      sendReply.mutate({ id, reply: replyText });
+    } else {
+      toast({
+        title: "Empty Reply",
+        description: "Please enter a reply message.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -153,6 +189,13 @@ const AdminMessages: React.FC = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="max-w-sm"
           />
+          <Button 
+            variant="outline" 
+            className="ml-2" 
+            onClick={() => refetch()}
+          >
+            Refresh
+          </Button>
         </div>
 
         {isLoading ? (
@@ -162,7 +205,7 @@ const AdminMessages: React.FC = () => {
         ) : error ? (
           <div className="text-center py-12">
             <p className="text-red-500">Error loading messages. Please try again later.</p>
-            <Button onClick={() => refetch()}>Try Again</Button>
+            <Button onClick={() => refetch()} className="mt-4">Try Again</Button>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -215,9 +258,6 @@ const AdminMessages: React.FC = () => {
                           <DropdownMenuItem onClick={() => handleStatusChange(message.id, "Archived")}>
                             Archive Message
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => refetch()}>
-                            Refresh
-                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -251,7 +291,7 @@ const AdminMessages: React.FC = () => {
                   <p><strong>Name:</strong> {messages?.find(message => message.id === openMessageId)?.name}</p>
                   <p><strong>Email:</strong> {messages?.find(message => message.id === openMessageId)?.email}</p>
                   <p><strong>Message:</strong></p>
-                  <p className="whitespace-pre-line">{messages?.find(message => message.id === openMessageId)?.message}</p>
+                  <p className="whitespace-pre-line border p-2 rounded bg-gray-50">{messages?.find(message => message.id === openMessageId)?.message}</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="reply">Reply</Label>
@@ -260,6 +300,7 @@ const AdminMessages: React.FC = () => {
                     placeholder="Enter your reply"
                     value={replyText}
                     onChange={(e) => setReplyText(e.target.value)}
+                    className="min-h-[100px]"
                   />
                 </div>
               </div>

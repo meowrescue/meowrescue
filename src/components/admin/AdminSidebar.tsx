@@ -41,7 +41,6 @@ const AdminSidebar: React.FC = () => {
     { to: '/admin/blog', icon: <FileText size={18} />, label: 'Blog' },
     { to: '/admin/events', icon: <Calendar size={18} />, label: 'Events' },
     { to: '/admin/finance', icon: <DollarSign size={18} />, label: 'Finance' },
-    { to: '/admin/pages', icon: <FileText size={18} />, label: 'Pages' },
     { to: '/admin/messages', icon: <MessageSquare size={18} />, label: 'Messages' },
     { to: '/admin/lost-found', icon: <Bell size={18} />, label: 'Lost & Found' },
     { to: '/admin/chat', icon: <MessageCircle size={18} />, label: 'Live Chat' },
@@ -62,13 +61,21 @@ const AdminSidebar: React.FC = () => {
       <div className="flex flex-col h-full">
         <div className="p-4 border-b border-gray-200 flex items-center justify-between">
           {isSidebarOpen && (
-            <h1 className="text-lg font-bold text-meow-primary">Meow Admin</h1>
+            <Link to="/" className="flex items-center gap-2">
+              <div className="bg-meow-primary rounded-full p-1">
+                <Cat className="h-4 w-4 text-white" />
+              </div>
+              <span className="font-bold text-sm">
+                <span className="text-meow-primary">Meow</span>
+                <span className="text-meow-secondary">Rescue</span>
+              </span>
+            </Link>
           )}
           <Button
             variant="ghost"
             size="sm"
             onClick={toggleSidebar}
-            className="ml-auto"
+            className={cn(!isSidebarOpen && "w-full")}
           >
             {isSidebarOpen ? '←' : '→'}
           </Button>

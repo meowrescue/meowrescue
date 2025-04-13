@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -101,7 +102,7 @@ const Navbar: React.FC = () => {
                 </NavigationMenuItem>
                 <NavigationMenuItem>
                   <NavigationMenuTrigger>Adopt</NavigationMenuTrigger>
-                  <NavigationMenuContent>
+                  <NavigationMenuContent className="origin-top-center">
                     <ul className="grid gap-3 p-4 md:w-[400px] lg:w-[500px] lg:grid-cols-2">
                       <li className="row-span-3">
                         <NavigationMenuLink asChild>
@@ -133,7 +134,7 @@ const Navbar: React.FC = () => {
                 </NavigationMenuItem>
                 <NavigationMenuItem>
                   <NavigationMenuTrigger>Get Involved</NavigationMenuTrigger>
-                  <NavigationMenuContent>
+                  <NavigationMenuContent className="origin-top-center">
                     <ul className="grid gap-3 p-4 md:w-[400px] lg:w-[500px] lg:grid-cols-2">
                       <ListItem href="/volunteer" title="Volunteer">
                         Join our team of dedicated volunteers
@@ -159,7 +160,7 @@ const Navbar: React.FC = () => {
                 </NavigationMenuItem>
                 <NavigationMenuItem>
                   <NavigationMenuTrigger>Resources</NavigationMenuTrigger>
-                  <NavigationMenuContent>
+                  <NavigationMenuContent className="origin-top-center">
                     <ul className="grid gap-3 p-4 w-[400px]">
                       <ListItem href="/blog" title="Blog">
                         Read our latest articles and updates
@@ -196,7 +197,7 @@ const Navbar: React.FC = () => {
                     <UserCircle className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" sideOffset={4}>
                   <DropdownMenuItem asChild>
                     <Link to="/profile" className="w-full cursor-pointer">
                       Profile
