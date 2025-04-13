@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
@@ -50,23 +51,13 @@ const LostFoundDetail = () => {
         .from("lost_found_posts")
         .select("*, profiles(first_name, last_name, email)")
         .eq("id", id)
-        .maybeSingle(); // Use maybeSingle instead of single to avoid errors when no data is found
+        .single();
 
       if (postError) {
         console.error("Error fetching post:", postError);
         toast({
           title: "Error",
           description: "Unable to load the post details.",
-          variant: "destructive",
-        });
-        navigate("/lost-found");
-        return;
-      }
-
-      if (!postData) {
-        toast({
-          title: "Post not found",
-          description: "The requested post could not be found.",
           variant: "destructive",
         });
         navigate("/lost-found");

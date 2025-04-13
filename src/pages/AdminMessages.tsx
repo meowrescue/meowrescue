@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { AdminLayout } from '@/pages/Admin';
+import AdminLayout from '@/pages/Admin';
 import { Search, Mail, CheckCircle, ArrowRightCircle, ArchiveIcon } from 'lucide-react';
 import { 
   Table, 

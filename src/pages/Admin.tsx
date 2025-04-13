@@ -30,30 +30,4 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
   );
 };
 
-// Create a default Admin component that uses the AdminLayout
-const Admin: React.FC = () => {
-  return (
-    <AdminLayout title="Dashboard">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">Quick Stats</h2>
-          <p className="text-gray-600">View summary information about shelter operations.</p>
-        </div>
-        
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
-          <p className="text-gray-600">See recent events and updates at the shelter.</p>
-        </div>
-        
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">Urgent Items</h2>
-          <p className="text-gray-600">View items requiring immediate attention.</p>
-        </div>
-      </div>
-    </AdminLayout>
-  );
-};
-
-export default Admin;
-// We also export the layout component for use in other admin pages
-export { AdminLayout };
+export default AdminLayout;

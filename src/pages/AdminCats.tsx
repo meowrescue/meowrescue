@@ -1,12 +1,13 @@
+
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { AdminLayout } from '@/pages/Admin';
+import AdminLayout from '@/pages/Admin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, Plus } from 'lucide-react';
+import { Edit, Trash2, Upload, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import SEO from '@/components/SEO';
@@ -26,6 +27,7 @@ const AdminCats: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
+  const [isImporting, setIsImporting] = useState(false);
   
   // Fetch cats
   const { data: cats, isLoading, error, refetch } = useQuery({
@@ -65,6 +67,56 @@ const AdminCats: React.FC = () => {
         description: error.message,
         variant: "destructive"
       });
+    }
+  };
+  
+  // Import cats from CSV
+  const handleImportCats = async (file: File) => {
+    try {
+      setIsImporting(true);
+      const text = await file.text();
+      const rows = text.split('\n');
+      const headers = rows[0].split(',');
+      
+      const cats = [];
+      
+      for (let i = 1; i < rows.length; i++) {
+        if (!rows[i].trim()) continue;
+        
+        const values = rows[i].split(',');
+        const cat: any = {};
+        
+        headers.forEach((header, index) => {
+          cat[header.trim()] = values[index]?.trim() || '';
+        });
+        
+        // Ensure required fields have default values
+        cat.name = cat.name || `Cat ${i}`; // Default name is required
+        cat.intake_date = cat.intake_date || new Date().toISOString();
+        cat.status = cat.status || 'Available';
+        
+        cats.push(cat);
+      }
+      
+      const { error } = await supabase.from('cats').insert(cats);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Import Successful",
+        description: `${cats.length} cats have been imported.`
+      });
+      
+      refetch();
+    } catch (error: any) {
+      console.error('Error importing cats:', error);
+      toast({
+        title: "Import Failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsImporting(false);
     }
   };
   
@@ -110,6 +162,25 @@ const AdminCats: React.FC = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="max-w-sm"
             />
+            <input
+              type="file"
+              id="importCats"
+              accept=".csv"
+              className="hidden"
+              onChange={(e: any) => {
+                if (e.target.files && e.target.files[0]) {
+                  handleImportCats(e.target.files[0]);
+                }
+              }}
+            />
+            <label htmlFor="importCats">
+              <Button variant="outline" disabled={isImporting} asChild>
+                <span>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Import CSV
+                </span>
+              </Button>
+            </label>
             <Button onClick={() => navigate('/admin/cats/new')}>
               <Plus className="mr-2 h-4 w-4" />
               Add Cat

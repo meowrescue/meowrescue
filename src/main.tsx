@@ -1,16 +1,12 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
 import App from './App.tsx';
 import './index.css';
 import { Toaster } from '@/components/ui/toaster';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from './contexts/AuthContext';
-
-// Console log for debugging
-console.log('Main.tsx is initializing...');
 
 // Create a client
 const queryClient = new QueryClient({
@@ -36,7 +32,6 @@ function QueryDevTools() {
     // Only enable devtools in development
     if (import.meta.env.DEV) {
       setShowDevtools(true);
-      console.log('ReactQuery DevTools enabled');
     }
   }, []);
 
@@ -47,22 +42,16 @@ function QueryDevTools() {
   ) : null;
 }
 
-console.log('Rendering app to DOM...');
-
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <AuthProvider>
-            <App />
-            <Toaster />
-            <QueryDevTools />
-          </AuthProvider>
-        </BrowserRouter>
+        <AuthProvider>
+          <App />
+          <Toaster />
+          <QueryDevTools />
+        </AuthProvider>
       </QueryClientProvider>
     </HelmetProvider>
   </React.StrictMode>,
 );
-
-console.log('App mounted successfully');
