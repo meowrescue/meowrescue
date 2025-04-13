@@ -13,7 +13,9 @@ import {
   Menu, 
   Lock,
   Search,
-  ClipboardList
+  ClipboardList,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSidebarContext } from '@/components/ui/sidebar';
@@ -70,9 +72,6 @@ const AdminNavbar: React.FC = () => {
               </div>
             )}
           </Link>
-          <Button variant="ghost" size="sm" onClick={toggleSidebar} className="p-0 h-8 w-8">
-            <Menu size={20} />
-          </Button>
         </div>
         
         <nav className="flex-1 overflow-y-auto py-4">
@@ -96,9 +95,25 @@ const AdminNavbar: React.FC = () => {
         </nav>
         
         <div className="p-4 border-t border-gray-200">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={toggleSidebar} 
+            className="w-full flex items-center justify-center p-2 h-auto"
+          >
+            {isSidebarOpen ? (
+              <>
+                <ChevronLeft size={20} className="mr-2" />
+                <span>Collapse Sidebar</span>
+              </>
+            ) : (
+              <ChevronRight size={20} />
+            )}
+          </Button>
+          
           <Link 
             to="/admin/settings" 
-            className={`flex items-center text-gray-700 hover:text-meow-primary ${
+            className={`flex items-center text-gray-700 hover:text-meow-primary mt-4 ${
               !isSidebarOpen && 'justify-center'
             }`}
           >

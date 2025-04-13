@@ -4,25 +4,34 @@
 @tailwind utilities;
 
 :root {
-  --meow-primary: #9b87f5;
-  --meow-secondary: #7E69AB;
-  --meow-tertiary: #6E59A5;
+  --meow-primary: #4A6FA5;
+  --meow-secondary: #E27D60;
+  --meow-tertiary: #85DCBA;
+  --meow-light: #F7F8FC;
+  --meow-dark: #343A40;
 }
 
 body {
-  background-color: #f7f8fc;
+  background-color: var(--meow-light);
+  color: var(--meow-dark);
+  font-family: 'Open Sans', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
 }
 
 /* Increased spacing between sections */
 section {
   padding-top: 6rem;
   padding-bottom: 6rem;
-  margin-bottom: 8rem; /* Increased from 6rem to 8rem */
+  margin-bottom: 8rem;
 }
 
 .section-divider {
-  margin-top: 10rem; /* Increased from 8rem to 10rem */
-  margin-bottom: 10rem; /* Increased from 8rem to 10rem */
+  margin-top: 10rem;
+  margin-bottom: 10rem;
   border-color: #e5e7eb;
   opacity: 0.5;
 }
@@ -44,7 +53,7 @@ section {
 
 /* Consistent section heading styles */
 .section-heading {
-  margin-bottom: 6rem; /* Increased from 5rem to 6rem */
+  margin-bottom: 6rem;
 }
 
 /* Custom button styles */
@@ -79,7 +88,7 @@ section {
 
 /* Custom spacing for card sections */
 .card-section + .card-section {
-  margin-top: 8rem; /* Increased from 6rem to 8rem */
+  margin-top: 8rem;
 }
 
 /* Consistent card styles */
@@ -92,19 +101,19 @@ section {
   section {
     padding-top: 4rem;
     padding-bottom: 4rem;
-    margin-bottom: 6rem; /* Increased from 4rem to 6rem */
+    margin-bottom: 6rem;
   }
   
   .section-divider {
-    margin-top: 8rem; /* Increased from 6rem to 8rem */
-    margin-bottom: 8rem; /* Increased from 6rem to 8rem */
+    margin-top: 8rem;
+    margin-bottom: 8rem;
   }
   
   .section-heading {
-    margin-bottom: 5rem; /* Increased from 4rem to 5rem */
+    margin-bottom: 5rem;
   }
   
   .card-section + .card-section {
-    margin-top: 6rem; /* Increased from 4rem to 6rem */
+    margin-top: 6rem;
   }
 }

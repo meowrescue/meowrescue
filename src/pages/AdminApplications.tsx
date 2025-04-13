@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -12,14 +13,38 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, File, Search, UserCheck, UserX } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { Application } from '@/types/applications';
+import { useToast } from '@/hooks/use-toast';
 import SEO from '@/components/SEO';
+
+interface Application {
+  id: string;
+  applicant_id: string | null;
+  application_type: string;
+  status: string;
+  feedback: string | null;
+  reviewer_id: string | null;
+  reviewed_at: string | null;
+  updated_at: string;
+  created_at: string;
+  form_data: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    [key: string]: any;
+  };
+  profiles?: {
+    first_name: string | null;
+    last_name: string | null;
+    email: string;
+  } | null;
+}
 
 const AdminApplications: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const { data: applications, isLoading } = useQuery({
     queryKey: ['admin-applications', filterStatus, filterType],
@@ -28,7 +53,7 @@ const AdminApplications: React.FC = () => {
         let query = supabase.from('applications')
           .select(`
             *,
-            profiles:applicant_id(
+            profiles(
               email,
               first_name,
               last_name
@@ -45,7 +70,10 @@ const AdminApplications: React.FC = () => {
         
         const { data, error } = await query.order('created_at', { ascending: false });
         
-        if (error) throw error;
+        if (error) {
+          console.error("Error fetching applications:", error);
+          throw error;
+        }
         
         return data as unknown as Application[];
       } catch (error) {
@@ -63,12 +91,25 @@ const AdminApplications: React.FC = () => {
           status: newStatus,
           feedback: feedback,
           reviewed_at: new Date().toISOString(),
-          reviewer_id: supabase.auth.getUser() ? (await supabase.auth.getUser()).data.user?.id : null,
+          reviewer_id: (await supabase.auth.getUser()).data.user?.id,
           updated_at: new Date().toISOString()
         })
         .eq('id', applicationId);
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error updating application status:", error);
+        toast({
+          title: "Error",
+          description: "Failed to update application status.",
+          variant: "destructive",
+        });
+        throw error;
+      }
+      
+      toast({
+        title: "Status Updated",
+        description: `Application status changed to ${newStatus}.`,
+      });
       
       // Refetch applications after status update
       // This will be automatic with React Query
@@ -82,7 +123,8 @@ const AdminApplications: React.FC = () => {
   };
 
   const filteredApplications = applications?.filter(app => {
-    const searchMatch = app.applicant_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const searchMatch = 
+      (app.applicant_id?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
       app.application_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
       JSON.stringify(app.form_data).toLowerCase().includes(searchTerm.toLowerCase());
     
