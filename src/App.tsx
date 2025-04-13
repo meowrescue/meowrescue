@@ -25,6 +25,9 @@ import Profile from "./pages/Profile";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import NotFound from "./pages/NotFound";
+import LostFound from "./pages/LostFound";
+import LostFoundDetail from "./pages/LostFoundDetail";
+import LostFoundForm from "./pages/LostFoundForm";
 
 const queryClient = new QueryClient();
 
@@ -57,6 +60,21 @@ const App = () => (
                   <Profile />
                 </ProtectedRoute>
               } />
+              
+              {/* Lost & Found Routes */}
+              <Route path="/lost-found" element={<LostFound />} />
+              <Route path="/lost-found/:id" element={<LostFoundDetail />} />
+              <Route path="/lost-found/new" element={
+                <ProtectedRoute>
+                  <LostFoundForm />
+                </ProtectedRoute>
+              } />
+              <Route path="/lost-found/edit/:id" element={
+                <ProtectedRoute>
+                  <LostFoundForm />
+                </ProtectedRoute>
+              } />
+              
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

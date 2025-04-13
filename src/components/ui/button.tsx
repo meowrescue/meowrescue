@@ -22,7 +22,9 @@ const buttonVariants = cva(
         meowSecondaryOutline: "border-2 border-meow-secondary text-meow-secondary bg-transparent hover:bg-meow-secondary/10",
         success: "bg-green-600 text-white hover:bg-green-700",
         info: "bg-blue-600 text-white hover:bg-blue-700",
-        warning: "bg-amber-500 text-white hover:bg-amber-600"
+        warning: "bg-amber-500 text-white hover:bg-amber-600",
+        danger: "bg-red-600 text-white hover:bg-red-700",
+        dangerOutline: "border-2 border-red-600 text-red-600 bg-transparent hover:bg-red-50"
       },
       size: {
         default: "h-10 px-4 py-2",

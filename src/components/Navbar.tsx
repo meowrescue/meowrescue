@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Menu, X, Heart, Users, Home, Info, Calendar, BookOpen, Phone, Cat, LogOut, User } from 'lucide-react';
+import { Menu, X, Heart, Users, Home, Info, Calendar, BookOpen, Phone, Cat, LogOut, User, Search } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Navbar: React.FC = () => {
@@ -47,6 +47,7 @@ const Navbar: React.FC = () => {
             <NavLink to="/cats" icon={<Heart size={16} />} onClick={handleLinkClick}>Adoptable Cats</NavLink>
             <NavLink to="/adopt" icon={<Users size={16} />} onClick={handleLinkClick}>Adopt</NavLink>
             <NavLink to="/events" icon={<Calendar size={16} />} onClick={handleLinkClick}>Events</NavLink>
+            <NavLink to="/lost-found" icon={<Search size={16} />} onClick={handleLinkClick}>Lost & Found</NavLink>
             <NavLink to="/resources" icon={<BookOpen size={16} />} onClick={handleLinkClick}>Resources</NavLink>
             <NavLink to="/contact" icon={<Phone size={16} />} onClick={handleLinkClick}>Contact</NavLink>
           </nav>
@@ -99,6 +100,7 @@ const Navbar: React.FC = () => {
             <MobileNavLink to="/cats" icon={<Heart size={18} />} onClick={handleLinkClick}>Adoptable Cats</MobileNavLink>
             <MobileNavLink to="/adopt" icon={<Users size={18} />} onClick={handleLinkClick}>Adopt</MobileNavLink>
             <MobileNavLink to="/events" icon={<Calendar size={18} />} onClick={handleLinkClick}>Events</MobileNavLink>
+            <MobileNavLink to="/lost-found" icon={<Search size={18} />} onClick={handleLinkClick}>Lost & Found</MobileNavLink>
             <MobileNavLink to="/resources" icon={<BookOpen size={18} />} onClick={handleLinkClick}>Resources</MobileNavLink>
             <MobileNavLink to="/contact" icon={<Phone size={18} />} onClick={handleLinkClick}>Contact</MobileNavLink>
             
