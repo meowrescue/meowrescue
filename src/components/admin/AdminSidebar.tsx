@@ -103,16 +103,6 @@ const AdminSidebar: React.FC = () => {
         </Link>
         
         <Link 
-          to="/admin/pages"
-          className={`flex items-center p-3 rounded transition-colors ${
-            isActive('/admin/pages') ? 'bg-slate-700' : 'hover:bg-slate-800'
-          }`}
-        >
-          <FileText className="mr-3 h-5 w-5" />
-          <span>Pages</span>
-        </Link>
-        
-        <Link 
           to="/admin/lost-found"
           className={`flex items-center p-3 rounded transition-colors ${
             isActive('/admin/lost-found') ? 'bg-slate-700' : 'hover:bg-slate-800'
