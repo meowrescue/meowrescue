@@ -41,23 +41,7 @@ const VolunteerForm = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    state: '',
-    zip: '',
-    availability: '',
-    interests: '',
-    experience: '',
-    agreement: false,
-    backgroundCheck: false,
-    canCommit: false,
-  });
-
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -79,19 +63,11 @@ const VolunteerForm = () => {
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    
-    // Handle checkboxes differently than text inputs
+    // Type guard to check if the element is an input element with a checkbox
     if (e.target instanceof HTMLInputElement && e.target.type === 'checkbox') {
-      setFormData(prev => ({
-        ...prev,
-        [name]: e.target.checked
-      }));
+      form.setValue(e.target.name as any, e.target.checked);
     } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
+      form.setValue(e.target.name as any, e.target.value);
     }
   };
 
@@ -99,26 +75,31 @@ const VolunteerForm = () => {
     setIsSubmitting(true);
     
     try {
-      // Submit to Supabase
+      // Submit to Supabase - Use 'applications' table with volunteer type
       const { error } = await supabase
-        .from('volunteer_applications')
+        .from('applications')
         .insert([
           {
-            first_name: values.firstName,
-            last_name: values.lastName,
-            email: values.email,
-            phone: values.phone,
-            address: values.address,
-            city: values.city,
-            state: values.state,
-            zip: values.zip,
-            availability: values.availability,
-            interests: values.interests,
-            experience: values.experience,
-            agreement: values.agreement,
-            background_check: values.backgroundCheck,
-            can_commit: values.canCommit,
-            submitted_at: new Date().toISOString()
+            applicant_id: (await supabase.auth.getUser()).data.user?.id,
+            application_type: 'volunteer',
+            status: 'submitted',
+            form_data: {
+              first_name: values.firstName,
+              last_name: values.lastName,
+              email: values.email,
+              phone: values.phone,
+              address: values.address,
+              city: values.city,
+              state: values.state,
+              zip: values.zip,
+              availability: values.availability,
+              interests: values.interests,
+              experience: values.experience,
+              agreement: values.agreement,
+              background_check: values.backgroundCheck,
+              can_commit: values.canCommit,
+              submitted_at: new Date().toISOString()
+            }
           }
         ]);
         
@@ -144,6 +125,7 @@ const VolunteerForm = () => {
     }
   };
 
+  
   return (
     <Layout>
       <SEO title="Volunteer | Meow Rescue" description="Join the Meow Rescue team and help us save cats! Fill out our volunteer application form to get started." />
@@ -195,6 +177,8 @@ const VolunteerForm = () => {
                     )}
                   />
                 </div>
+                
+                
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField
