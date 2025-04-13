@@ -25,37 +25,76 @@ const AdminApplications: React.FC = () => {
   const { data: applications, isLoading } = useQuery({
     queryKey: ['admin-applications', filterStatus, filterType],
     queryFn: async () => {
-      // Using .from().select() for direct table query
-      let query = supabase.from('applications')
-        .select('*, profiles(email, first_name, last_name)');
-      
-      if (filterStatus) {
-        query = query.eq('status', filterStatus);
+      try {
+        // Using a direct query approach since the table isn't recognized in TypeScript
+        let query = `
+          SELECT a.*, p.email, p.first_name, p.last_name
+          FROM applications a
+          LEFT JOIN profiles p ON a.applicant_id = p.id
+          WHERE 1=1
+        `;
+        
+        const params: any[] = [];
+        let paramIndex = 1;
+        
+        if (filterStatus) {
+          query += ` AND a.status = $${paramIndex}`;
+          params.push(filterStatus);
+          paramIndex++;
+        }
+        
+        if (filterType) {
+          query += ` AND a.application_type = $${paramIndex}`;
+          params.push(filterType);
+          paramIndex++;
+        }
+        
+        query += ` ORDER BY a.created_at DESC`;
+        
+        const { data, error } = await supabase.rpc('execute_sql', { 
+          sql_query: query,
+          params: params
+        });
+        
+        if (error) throw error;
+        
+        // Transform the data to match the Application interface
+        const transformedData = data.map((item: any) => ({
+          id: item.id,
+          applicant_id: item.applicant_id,
+          application_type: item.application_type,
+          status: item.status,
+          form_data: item.form_data,
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          reviewed_at: item.reviewed_at,
+          reviewer_id: item.reviewer_id,
+          feedback: item.feedback,
+          profiles: {
+            email: item.email,
+            first_name: item.first_name,
+            last_name: item.last_name
+          }
+        }));
+        
+        return transformedData as Application[];
+      } catch (error) {
+        console.error('Error fetching applications:', error);
+        return [] as Application[];
       }
-      
-      if (filterType) {
-        query = query.eq('application_type', filterType);
-      }
-      
-      const { data, error } = await query.order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as unknown as Application[];
     }
   });
 
   const handleStatusChange = async (applicationId: string, newStatus: string, feedback: string = '') => {
     try {
-      // Using .from().update() for direct table update
-      await supabase
-        .from('applications')
-        .update({
-          status: newStatus,
-          feedback: feedback,
-          reviewed_at: new Date().toISOString(),
-          reviewer_id: (await supabase.auth.getUser()).data.user?.id
-        })
-        .eq('id', applicationId);
+      // Using a direct query since the table isn't recognized in TypeScript
+      const { error } = await supabase.rpc('update_application_status', { 
+        p_application_id: applicationId,
+        p_status: newStatus,
+        p_feedback: feedback
+      });
+      
+      if (error) throw error;
       
       // Refetch applications after status update
       // This will be automatic with React Query

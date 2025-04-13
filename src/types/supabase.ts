@@ -805,6 +805,52 @@ export type Database = {
           }
         ];
       };
+      applications: {
+        Row: {
+          id: string;
+          applicant_id: string;
+          application_type: string;
+          status: string;
+          form_data: Record<string, any>;
+          created_at: string;
+          updated_at: string;
+          reviewed_at?: string;
+          reviewer_id?: string;
+          feedback?: string;
+        };
+        Insert: {
+          id?: string;
+          applicant_id: string;
+          application_type: string;
+          status: string;
+          form_data: Record<string, any>;
+          created_at?: string;
+          updated_at?: string;
+          reviewed_at?: string;
+          reviewer_id?: string;
+          feedback?: string;
+        };
+        Update: {
+          id?: string;
+          applicant_id?: string;
+          application_type?: string;
+          status?: string;
+          form_data?: Record<string, any>;
+          created_at?: string;
+          updated_at?: string;
+          reviewed_at?: string;
+          reviewer_id?: string;
+          feedback?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "applications_applicant_id_fkey";
+            columns: ["applicant_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     }
     Views: {
       [_ in never]: never
