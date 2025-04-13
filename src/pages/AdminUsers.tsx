@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
-import { Search, Edit, UserCog, Shield, UserX, Check } from 'lucide-react';
+import { Search, Edit, UserCog, Shield, UserX, Check, Filter } from 'lucide-react';
 import { 
   Table, 
   TableBody, 
@@ -34,25 +33,38 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import SEO from '@/components/SEO';
-import { User, ExtendedUser } from '@/types/users';
+import { ExtendedUser } from '@/types/users';
 
 const AdminUsers: React.FC = () => {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [editingUser, setEditingUser] = useState<ExtendedUser | null>(null);
   const [newRole, setNewRole] = useState<string>('');
   const [newEmail, setNewEmail] = useState<string>('');
 
-  // Query to get users from profiles table
+  // Query to get users from profiles table with enhanced filtering
   const { data: users, isLoading, error, refetch } = useQuery({
-    queryKey: ['users'],
+    queryKey: ['users', roleFilter, statusFilter],
     queryFn: async () => {
-      try {
-        const { data: profilesData, error: profilesError } = await supabase
-          .from('profiles')
-          .select('*');
-        
-        if (profilesError) throw profilesError;
+      let query = supabase
+        .from('profiles')
+        .select('*');
+
+      if (roleFilter) {
+        query = query.eq('role', roleFilter);
+      }
+
+      if (statusFilter === 'active') {
+        query = query.eq('is_active', true);
+      } else if (statusFilter === 'disabled') {
+        query = query.eq('is_active', false);
+      }
+
+      const { data: profilesData, error: profilesError } = await query;
+      
+      if (profilesError) throw profilesError;
         
         // Get is_active status for each user
         const extendedUsers = await Promise.all(
@@ -80,10 +92,6 @@ const AdminUsers: React.FC = () => {
         );
         
         return extendedUsers;
-      } catch (err: any) {
-        console.error("Error fetching users:", err);
-        throw err;
-      }
     }
   });
 
@@ -97,7 +105,6 @@ const AdminUsers: React.FC = () => {
   const handleEditUser = (user: ExtendedUser) => {
     setEditingUser(user);
     setNewRole(user.role);
-    setNewEmail(user.email);
   };
 
   const handleUpdateUser = async () => {
@@ -108,23 +115,11 @@ const AdminUsers: React.FC = () => {
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
-          role: newRole as 'user' | 'volunteer' | 'foster' | 'admin',
-          email: newEmail,
+          role: newRole as 'user' | 'volunteer' | 'foster' | 'admin'
         })
         .eq('id', editingUser.id);
 
       if (profileError) throw profileError;
-
-      // Update user status using RPC function with type assertion
-      const { error: statusError } = await supabase
-        .rpc('update_user_status' as any, { 
-          p_user_id: editingUser.id, 
-          p_is_active: editingUser.is_active 
-        }) as { data: null, error: Error | null };
-
-      if (statusError) {
-        console.error("Error updating active status:", statusError);
-      }
 
       toast({
         title: "User Updated",
@@ -144,14 +139,14 @@ const AdminUsers: React.FC = () => {
 
   const toggleUserStatus = async (user: ExtendedUser) => {
     try {
+      // Optimistically update the UI
       const newStatus = !user.is_active;
-      
-      // Use type assertion to bypass TypeScript's strict checking
-      const { error } = await supabase
-        .rpc('update_user_status' as any, {
-          p_user_id: user.id,
-          p_is_active: newStatus
-        }) as { data: null, error: Error | null };
+
+      // Call the RPC function to update user status
+      const { error } = await supabase.rpc('update_user_status', {
+        p_user_id: user.id,
+        p_is_active: newStatus,
+      });
 
       if (error) throw error;
 
@@ -177,14 +172,37 @@ const AdminUsers: React.FC = () => {
       <div className="container mx-auto py-10">
         <div className="flex flex-col md:flex-row items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-meow-primary mb-4 md:mb-0">User Management</h1>
-          <div className="relative w-full md:w-auto">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search users..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 w-full md:w-64"
-            />
+          
+          <div className="flex gap-2 items-center">
+            <Select 
+              value={roleFilter} 
+              onValueChange={setRoleFilter}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by Role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Roles</SelectItem>
+                <SelectItem value="user">User</SelectItem>
+                <SelectItem value="volunteer">Volunteer</SelectItem>
+                <SelectItem value="foster">Foster</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select 
+              value={statusFilter} 
+              onValueChange={setStatusFilter}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="disabled">Disabled</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
         
@@ -291,23 +309,11 @@ const AdminUsers: React.FC = () => {
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
             <DialogDescription>
-              Change the role or email of this user. Be careful with admin privileges.
+              Change the role of this user. Be careful with admin privileges.
             </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="email" className="text-right text-sm">
-                Email
-              </label>
-              <Input
-                id="email"
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-                className="col-span-3"
-              />
-            </div>
-            
             <div className="grid grid-cols-4 items-center gap-4">
               <label htmlFor="role" className="text-right text-sm">
                 Role
