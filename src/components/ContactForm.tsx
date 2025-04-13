@@ -46,6 +46,8 @@ export default function ContactForm() {
     setIsSubmitting(true);
     
     try {
+      console.log("Submitting contact form with values:", values);
+      
       // Insert the contact message into the database
       const { data, error } = await supabase
         .from('contact_messages')
@@ -55,10 +57,16 @@ export default function ContactForm() {
           phone: values.phone || null,
           subject: values.subject,
           message: values.message,
-          status: 'new',
+          status: 'New',
+          received_at: new Date().toISOString()
         }]);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error submitting contact form:', error);
+        throw error;
+      }
+      
+      console.log("Contact form submitted successfully:", data);
       
       toast({
         title: "Message Sent",

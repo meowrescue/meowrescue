@@ -1,501 +1,462 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Calendar, Clock, MapPin, Plus, Edit, Trash, Image } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { CalendarIcon } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { format } from "date-fns"
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
 import SEO from '@/components/SEO';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogClose,
-} from '@/components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface Event {
   id: string;
   title: string;
   description: string;
-  location: string;
   date: string;
-  time: string;
-  image_url?: string;
+  location: string;
+  image_url: string;
   created_at: string;
+  updated_at: string;
 }
 
 const AdminEvents: React.FC = () => {
   const { toast } = useToast();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
-  
-  const [newEvent, setNewEvent] = useState({
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [formState, setFormState] = useState({
+    id: '',
     title: '',
     description: '',
+    date: new Date(),
     location: '',
-    date: '',
-    time: '',
+    image_url: '',
   });
-  
-  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [isUploading, setIsUploading] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setImageFile(file);
-      
-      // Create preview URL
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const resetForm = () => {
-    setNewEvent({
-      title: '',
-      description: '',
-      location: '',
-      date: '',
-      time: '',
-    });
-    setImageFile(null);
-    setPreviewUrl(null);
-    setUploadProgress(0);
-  };
-
-  // Fetch all events
-  const { data: events, isLoading } = useQuery({
+  // Fetch events
+  const { data: events, isLoading: eventsLoading } = useQuery({
     queryKey: ['events'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('events')
-        .select('*')
-        .order('date', { ascending: true });
-
-      if (error) throw error;
-      return data as Event[];
+      try {
+        console.log("Fetching events");
+        const { data, error } = await supabase
+          .from('events')
+          .select('*')
+          .order('date', { ascending: true });
+        
+        if (error) {
+          console.error("Error fetching events:", error);
+          toast({
+            title: "Error Loading Events",
+            description: error.message,
+            variant: "destructive",
+          });
+          return [] as Event[];
+        }
+        
+        console.log("Events fetched:", data);
+        return data as Event[];
+      } catch (err) {
+        console.error("Error in events query:", err);
+        return [] as Event[];
+      }
     },
+    refetchInterval: 60000, // Refresh every minute
   });
 
-  // Create event mutation
-  const createEventMutation = useMutation({
-    mutationFn: async () => {
-      setIsUploading(true);
-      let imageUrl = '';
-      
-      // Upload image if provided
-      if (imageFile) {
-        const fileExt = imageFile.name.split('.').pop();
-        const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-        const filePath = `event-images/${fileName}`;
+  // Create or update event mutation
+  const createOrUpdateEvent = useMutation({
+    mutationFn: async (event: Omit<Event, 'created_at' | 'updated_at'>) => {
+      try {
+        console.log("Creating/updating event:", event);
         
-        const { error: uploadError, data } = await supabase.storage
-          .from('public')
-          .upload(filePath, imageFile, {
-            cacheControl: '3600',
-            upsert: false,
-            onUploadProgress: (progress) => {
-              setUploadProgress((progress.loaded / progress.total) * 100);
-            },
-          });
-
-        if (uploadError) throw uploadError;
+        const isNewEvent = !event.id;
         
-        // Get public URL
-        const { data: publicUrlData } = supabase.storage
-          .from('public')
-          .getPublicUrl(filePath);
-          
-        imageUrl = publicUrlData.publicUrl;
+        const { data, error } = await supabase
+          .from('events')
+          .upsert([
+            {
+              id: event.id || undefined,
+              title: event.title,
+              description: event.description,
+              date: event.date,
+              location: event.location,
+              image_url: event.image_url,
+            }
+          ], { onConflict: 'id' })
+          .select();
+        
+        if (error) {
+          console.error("Error creating/updating event:", error);
+          throw error;
+        }
+        
+        console.log("Event created/updated successfully:", data);
+        return { data, isNewEvent };
+      } catch (err: any) {
+        console.error("Error in create/update event mutation:", err);
+        throw err;
       }
-      
-      // Create event record
-      const { data, error } = await supabase
-        .from('events')
-        .insert([
-          { 
-            ...newEvent, 
-            image_url: imageUrl 
-          },
-        ])
-        .select();
-
-      if (error) throw error;
-      
-      setIsUploading(false);
-      return data[0];
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['events'] });
+    onSuccess: (result) => {
       toast({
-        title: 'Success',
-        description: 'Event created successfully',
+        title: result.isNewEvent ? "Event Created" : "Event Updated",
+        description: `Event has been ${result.isNewEvent ? 'created' : 'updated'} successfully.`,
       });
-      resetForm();
+      
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      closeModal();
     },
     onError: (error: any) => {
+      console.error("Error in create/update event mutation:", error);
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to create event',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
       });
-      setIsUploading(false);
     },
   });
 
   // Delete event mutation
-  const deleteEventMutation = useMutation({
+  const deleteEvent = useMutation({
     mutationFn: async (id: string) => {
-      // Get the event to find the image URL
-      const { data: eventData } = await supabase
-        .from('events')
-        .select('image_url')
-        .eq('id', id)
-        .single();
+      try {
+        console.log("Deleting event:", id);
+        const { error } = await supabase
+          .from('events')
+          .delete()
+          .eq('id', id);
         
-      // Delete the event
-      const { error } = await supabase
-        .from('events')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-      
-      // If there's an image, delete it from storage
-      if (eventData?.image_url) {
-        try {
-          // Extract file path from URL
-          const url = new URL(eventData.image_url);
-          const filePath = url.pathname.split('/').slice(-2).join('/');
-          
-          if (filePath) {
-            await supabase.storage
-              .from('public')
-              .remove([filePath]);
-          }
-        } catch (err) {
-          console.error('Error deleting image:', err);
-          // Continue even if image deletion fails
+        if (error) {
+          console.error("Error deleting event:", error);
+          throw error;
         }
+        
+        console.log("Event deleted successfully");
+      } catch (err: any) {
+        console.error("Error in delete event mutation:", err);
+        throw err;
       }
-      
-      return id;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['events'] });
       toast({
-        title: 'Success',
-        description: 'Event deleted successfully',
+        title: "Event Deleted",
+        description: "Event has been deleted successfully.",
       });
-      setIsDeleteDialogOpen(false);
-      setSelectedEventId(null);
+      
+      queryClient.invalidateQueries({ queryKey: ['events'] });
     },
     onError: (error: any) => {
+      console.error("Error in delete event mutation:", error);
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete event',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
       });
     },
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setNewEvent((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  // Handle opening the modal in create mode
+  const openCreateModal = () => {
+    setIsEditMode(false);
+    setSelectedEvent(null);
+    setFormState({
+      id: '',
+      title: '',
+      description: '',
+      date: new Date(),
+      location: '',
+      image_url: '',
+    });
+    setIsModalOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Handle opening the modal in edit mode
+  const openEditModal = (event: Event) => {
+    setIsEditMode(true);
+    setSelectedEvent(event);
+    setFormState({
+      id: event.id,
+      title: event.title,
+      description: event.description,
+      date: new Date(event.date),
+      location: event.location,
+      image_url: event.image_url,
+    });
+    setIsModalOpen(true);
+  };
+
+  // Handle closing the modal
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    createEventMutation.mutate();
+    
+    if (!formState.title.trim() || !formState.description.trim() || !formState.location.trim() || !formState.date || !formState.image_url.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill out all fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const eventToSubmit = {
+      id: formState.id,
+      title: formState.title,
+      description: formState.description,
+      date: formState.date.toISOString(),
+      location: formState.location,
+      image_url: formState.image_url,
+    };
+    
+    createOrUpdateEvent.mutate(eventToSubmit);
   };
 
-  const handleDeleteClick = (id: string) => {
-    setSelectedEventId(id);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = () => {
-    if (selectedEventId) {
-      deleteEventMutation.mutate(selectedEventId);
+  // Handle deleting an event
+  const handleDelete = (id: string) => {
+    if (window.confirm("Are you sure you want to delete this event?")) {
+      deleteEvent.mutate(id);
     }
   };
 
-  // Format date for display
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+  // Upload event image
+  const uploadEventImage = async (file: File) => {
+  setIsUploading(true);
+  const uniqueFileName = `event-${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
+  
+  try {
+    // Upload the file to Supabase storage
+    const { data, error } = await supabase.storage
+      .from('event-images')
+      .upload(uniqueFileName, file, {
+        cacheControl: '3600',
+        contentType: file.type
+      });
+    
+    if (error) throw error;
+    
+    const publicUrl = supabase.storage.from('event-images').getPublicUrl(data.path).data.publicUrl;
+    setFormState(prev => ({ ...prev, image_url: publicUrl }));
+    toast({
+      title: "Image Uploaded",
+      description: "Event image has been uploaded successfully."
     });
-  };
+  } catch (error: any) {
+    console.error("Error uploading image:", error);
+    toast({
+      title: "Upload Failed",
+      description: error.message || "Failed to upload image",
+      variant: "destructive"
+    });
+  } finally {
+    setIsUploading(false);
+  }
+};
 
   return (
-    <AdminLayout title="Event Management">
-      <SEO title="Event Management | Meow Rescue Admin" />
+    <AdminLayout title="Events">
+      <SEO title="Events | Meow Rescue Admin" />
       
       <div className="container mx-auto py-10">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-meow-primary">Upcoming Events</h1>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" /> Add New Event
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[550px]">
-              <DialogHeader>
-                <DialogTitle>Create New Event</DialogTitle>
-                <DialogDescription>
-                  Enter the details for your new event. Click save when you're done.
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4 py-4">
-                <div className="grid w-full items-center gap-2">
-                  <label htmlFor="title" className="text-sm font-medium">
-                    Event Title
-                  </label>
-                  <Input
-                    id="title"
-                    name="title"
-                    value={newEvent.title}
-                    onChange={handleInputChange}
-                    placeholder="Enter event title"
-                    required
-                  />
-                </div>
-                
-                <div className="grid w-full items-center gap-2">
-                  <label htmlFor="description" className="text-sm font-medium">
-                    Description
-                  </label>
-                  <Textarea
-                    id="description"
-                    name="description"
-                    value={newEvent.description}
-                    onChange={handleInputChange}
-                    placeholder="Describe the event"
-                    required
-                    rows={4}
-                  />
-                </div>
-                
-                <div className="grid w-full items-center gap-2">
-                  <label htmlFor="location" className="text-sm font-medium">
-                    Location
-                  </label>
-                  <Input
-                    id="location"
-                    name="location"
-                    value={newEvent.location}
-                    onChange={handleInputChange}
-                    placeholder="Event location"
-                    required
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid w-full items-center gap-2">
-                    <label htmlFor="date" className="text-sm font-medium">
-                      Date
-                    </label>
-                    <Input
-                      id="date"
-                      name="date"
-                      type="date"
-                      value={newEvent.date}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="grid w-full items-center gap-2">
-                    <label htmlFor="time" className="text-sm font-medium">
-                      Time
-                    </label>
-                    <Input
-                      id="time"
-                      name="time"
-                      type="time"
-                      value={newEvent.time}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="grid w-full items-center gap-2">
-                  <label htmlFor="image" className="text-sm font-medium">
-                    Event Image
-                  </label>
-                  <div className="flex flex-col gap-4">
-                    <Input
-                      id="image"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="cursor-pointer"
-                    />
-                    {previewUrl && (
-                      <div className="relative mt-2 rounded-md overflow-hidden h-40 bg-gray-100">
-                        <img 
-                          src={previewUrl} 
-                          alt="Preview" 
-                          className="object-cover w-full h-full"
-                        />
-                      </div>
-                    )}
-                    {isUploading && (
-                      <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
-                        <div 
-                          className="bg-meow-primary h-2.5 rounded-full" 
-                          style={{ width: `${uploadProgress}%` }}
-                        ></div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                <DialogFooter>
-                  <DialogClose asChild>
-                    <Button type="button" variant="outline" onClick={resetForm}>
-                      Cancel
-                    </Button>
-                  </DialogClose>
-                  <Button type="submit" disabled={isUploading}>
-                    {isUploading ? 'Uploading...' : 'Save Event'}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold text-meow-primary">Events</h1>
+          <Button onClick={openCreateModal}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Event
+          </Button>
         </div>
-
-        {isLoading ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
-          </div>
-        ) : events && events.length > 0 ? (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {events.map((event) => (
-              <div 
-                key={event.id} 
-                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-              >
-                <div className="relative h-48 bg-gray-200">
-                  {event.image_url ? (
-                    <img 
-                      src={event.image_url} 
-                      alt={event.title} 
-                      className="w-full h-full object-cover"
-                    />
+        
+        <div className="grid grid-cols-1 gap-6">
+          {/* Events List */}
+          <div>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg font-semibold">Upcoming Events</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <ScrollArea className="h-[calc(100vh-20rem)]">
+                  {eventsLoading ? (
+                    <div className="flex justify-center py-6">
+                      <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-meow-primary"></div>
+                    </div>
+                  ) : events && events.length > 0 ? (
+                    <div className="divide-y divide-gray-200">
+                      {events.map((event) => (
+                        <div
+                          key={event.id}
+                          className="p-4 hover:bg-gray-50 flex items-center justify-between"
+                        >
+                          <div>
+                            <p className="font-medium">{event.title}</p>
+                            <p className="text-sm text-gray-500">
+                              {new Date(event.date).toLocaleDateString()} - {event.location}
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="icon" 
+                              onClick={() => openEditModal(event)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="destructive" 
+                              size="icon" 
+                              onClick={() => handleDelete(event.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                      <Image className="h-16 w-16 text-gray-400" />
+                    <div className="p-6 text-center text-gray-500">
+                      <p>No events found</p>
                     </div>
                   )}
-                  <div className="absolute top-2 right-2 flex gap-2">
-                    <Button 
-                      size="icon" 
-                      variant="outline" 
-                      className="bg-white h-8 w-8"
-                      onClick={() => navigate(`/admin/events/edit/${event.id}`)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      size="icon" 
-                      variant="outline" 
-                      className="bg-white text-red-500 hover:text-red-700 hover:bg-white h-8 w-8"
-                      onClick={() => handleDeleteClick(event.id)}
-                    >
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-lg mb-2">{event.title}</h3>
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <div className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-2 text-meow-primary" />
-                      <span>{formatDate(event.date)}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Clock className="h-4 w-4 mr-2 text-meow-primary" />
-                      <span>{event.time}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <MapPin className="h-4 w-4 mr-2 text-meow-primary" />
-                      <span>{event.location}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+                </ScrollArea>
+              </CardContent>
+            </Card>
           </div>
-        ) : (
-          <div className="text-center py-12 bg-white rounded-lg shadow">
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">No Events Scheduled</h3>
-            <p className="text-gray-500 mb-6">
-              There are no upcoming events. Create one to get started.
-            </p>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" /> Create Your First Event
-                </Button>
-              </DialogTrigger>
-              {/* We're reusing the same dialog content */}
-            </Dialog>
-          </div>
-        )}
+        </div>
       </div>
-
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the event.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 overflow-auto bg-black/50">
+          <div className="relative w-auto mx-auto max-w-2xl my-20">
+            <Card className="bg-white rounded-lg shadow-xl">
+              <CardHeader className="border-b">
+                <CardTitle className="text-xl font-bold">
+                  {isEditMode ? 'Edit Event' : 'Add Event'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <Label htmlFor="title">Title</Label>
+                    <Input
+                      type="text"
+                      id="title"
+                      value={formState.title}
+                      onChange={(e) => setFormState({ ...formState, title: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      value={formState.description}
+                      onChange={(e) => setFormState({ ...formState, description: e.target.value })}
+                      rows={4}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="location">Location</Label>
+                    <Input
+                      type="text"
+                      id="location"
+                      value={formState.location}
+                      onChange={(e) => setFormState({ ...formState, location: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="date">Date</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-[240px] justify-start text-left font-normal",
+                            !formState.date && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {formState.date ? (
+                            format(formState.date, "PPP")
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={formState.date}
+                          onSelect={(date) => setFormState({ ...formState, date: date || new Date() })}
+                          disabled={(date) =>
+                            date < new Date()
+                          }
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div>
+                    <Label htmlFor="image_url">Image URL</Label>
+                    <Input
+                      type="text"
+                      id="image_url"
+                      value={formState.image_url}
+                      readOnly
+                    />
+                    <Input
+                      type="file"
+                      id="image_upload"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          uploadEventImage(file);
+                        }
+                      }}
+                      className="mt-2"
+                    />
+                    {isUploading && (
+                      <div className="flex justify-center mt-2">
+                        <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-meow-primary"></div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex justify-end gap-4">
+                    <Button type="button" variant="ghost" onClick={closeModal}>
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={createOrUpdateEvent.isLoading}>
+                      {createOrUpdateEvent.isLoading ? 'Saving...' : 'Save'}
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 };

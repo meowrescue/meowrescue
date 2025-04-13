@@ -357,27 +357,33 @@ export type Database = {
       chat_sessions: {
         Row: {
           created_at: string
+          guest_name: string | null
+          guest_reason: string | null
           id: string
           last_message_at: string
           status: string
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
+          guest_name?: string | null
+          guest_reason?: string | null
           id?: string
           last_message_at?: string
           status?: string
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
+          guest_name?: string | null
+          guest_reason?: string | null
           id?: string
           last_message_at?: string
           status?: string
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }

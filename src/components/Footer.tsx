@@ -7,6 +7,26 @@ const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
   const lastUpdated = new Date().toISOString(); // For SEO content freshness
 
+  // Split quick links into two columns
+  const quickLinksColumn1 = [
+    { path: "/", label: "Home" },
+    { path: "/about", label: "About Us" },
+    { path: "/cats", label: "Available Cats" },
+    { path: "/adopt", label: "Adoption Process" },
+    { path: "/success-stories", label: "Success Stories" },
+    { path: "/volunteer", label: "Volunteer" },
+    { path: "/foster", label: "Foster" }
+  ];
+  
+  const quickLinksColumn2 = [
+    { path: "/donate", label: "Donate" },
+    { path: "/events", label: "Events" },
+    { path: "/blog", label: "Blog" },
+    { path: "/lost-found", label: "Lost & Found" },
+    { path: "/resources", label: "Resources" },
+    { path: "/contact", label: "Contact" }
+  ];
+
   return (
     <footer className="bg-meow-primary text-white">
       <div className="container mx-auto px-4 py-12">
@@ -56,49 +76,31 @@ const Footer: React.FC = () => {
             </div>
           </div>
           
-          {/* Quick Links */}
+          {/* Quick Links - Column 1 */}
           <div>
             <h3 className="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Quick Links</h3>
             <ul className="space-y-2">
-              <li>
-                <Link to="/" className="text-white/80 hover:text-white transition-colors">Home</Link>
-              </li>
-              <li>
-                <Link to="/about" className="text-white/80 hover:text-white transition-colors">About Us</Link>
-              </li>
-              <li>
-                <Link to="/cats" className="text-white/80 hover:text-white transition-colors">Available Cats</Link>
-              </li>
-              <li>
-                <Link to="/adopt" className="text-white/80 hover:text-white transition-colors">Adoption Process</Link>
-              </li>
-              <li>
-                <Link to="/success-stories" className="text-white/80 hover:text-white transition-colors">Success Stories</Link>
-              </li>
-              <li>
-                <Link to="/volunteer" className="text-white/80 hover:text-white transition-colors">Volunteer</Link>
-              </li>
-              <li>
-                <Link to="/foster" className="text-white/80 hover:text-white transition-colors">Foster</Link>
-              </li>
-              <li>
-                <Link to="/donate" className="text-white/80 hover:text-white transition-colors">Donate</Link>
-              </li>
-              <li>
-                <Link to="/events" className="text-white/80 hover:text-white transition-colors">Events</Link>
-              </li>
-              <li>
-                <Link to="/blog" className="text-white/80 hover:text-white transition-colors">Blog</Link>
-              </li>
-              <li>
-                <Link to="/lost-found" className="text-white/80 hover:text-white transition-colors">Lost & Found</Link>
-              </li>
-              <li>
-                <Link to="/resources" className="text-white/80 hover:text-white transition-colors">Resources</Link>
-              </li>
-              <li>
-                <Link to="/contact" className="text-white/80 hover:text-white transition-colors">Contact</Link>
-              </li>
+              {quickLinksColumn1.map((link, index) => (
+                <li key={index}>
+                  <Link to={link.path} className="text-white/80 hover:text-white transition-colors">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          
+          {/* Quick Links - Column 2 */}
+          <div className="lg:col-start-3 md:col-start-2 lg:col-auto">
+            <h3 className="text-lg font-semibold mb-4 border-b border-white/20 pb-2 lg:invisible lg:h-0 md:visible md:h-auto">Quick Links</h3>
+            <ul className="space-y-2">
+              {quickLinksColumn2.map((link, index) => (
+                <li key={index}>
+                  <Link to={link.path} className="text-white/80 hover:text-white transition-colors">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
           
@@ -128,8 +130,8 @@ const Footer: React.FC = () => {
             </ul>
           </div>
           
-          {/* Newsletter */}
-          <div>
+          {/* Newsletter/Support */}
+          <div className="md:col-span-2 lg:col-span-1">
             <h3 className="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Support Our Mission</h3>
             <p className="text-white/80 mb-4">
               Your donations help us save more cats and provide them with the medical care, food, and love they need.
