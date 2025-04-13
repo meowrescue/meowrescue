@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import SectionHeading from './ui/SectionHeading';
 import CatCard from './CatCard';
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,13 @@ const FeaturedCatsSection: React.FC = () => {
   const featuredCats = cats
     .filter(cat => cat.status === 'Available')
     .slice(0, 3);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
 
   return (
     <section className="py-16">
@@ -37,10 +45,10 @@ const FeaturedCatsSection: React.FC = () => {
         
         <div className="mt-12 text-center">
           <Button 
-            className="bg-meow-primary hover:bg-meow-primary/90 px-8"
             asChild
+            className="bg-meow-primary hover:bg-meow-primary/90 px-8"
           >
-            <a href="/cats">See All Cats</a>
+            <Link to="/cats" onClick={scrollToTop}>See All Cats</Link>
           </Button>
         </div>
       </div>

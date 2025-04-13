@@ -1,10 +1,18 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import SectionHeading from './ui/SectionHeading';
 import { Button } from "@/components/ui/button";
 import { HelpingHand, Heart, DollarSign } from 'lucide-react';
 
 const UrgentNeedsSection: React.FC = () => {
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
+
   return (
     <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
@@ -32,8 +40,8 @@ const UrgentNeedsSection: React.FC = () => {
                 $15 feeds a cat for a week
               </p>
             </div>
-            <Button className="w-full bg-meow-secondary hover:bg-meow-secondary/90">
-              Contribute to Food Fund
+            <Button asChild className="w-full bg-meow-secondary hover:bg-meow-secondary/90">
+              <Link to="/donate" onClick={scrollToTop}>Contribute to Food Fund</Link>
             </Button>
           </div>
           
@@ -53,8 +61,8 @@ const UrgentNeedsSection: React.FC = () => {
                 $250 will cover Fluffy's immediate medical needs
               </p>
             </div>
-            <Button className="w-full bg-meow-secondary hover:bg-meow-secondary/90">
-              Help Fluffy Heal
+            <Button asChild className="w-full bg-meow-secondary hover:bg-meow-secondary/90">
+              <Link to="/donate" onClick={scrollToTop}>Help Fluffy Heal</Link>
             </Button>
           </div>
           
@@ -74,18 +82,18 @@ const UrgentNeedsSection: React.FC = () => {
                 Even a short-term foster makes a huge difference
               </p>
             </div>
-            <Button className="w-full bg-meow-secondary hover:bg-meow-secondary/90">
-              Become a Foster
+            <Button asChild className="w-full bg-meow-secondary hover:bg-meow-secondary/90">
+              <Link to="/volunteer" onClick={scrollToTop}>Become a Foster</Link>
             </Button>
           </div>
         </div>
         
         <div className="mt-12 text-center">
           <Button 
-            className="bg-meow-primary hover:bg-meow-primary/90 px-8 py-6 text-lg"
             asChild
+            className="bg-meow-primary hover:bg-meow-primary/90 px-8 py-6 text-lg"
           >
-            <a href="/donate">Make a Donation</a>
+            <Link to="/donate" onClick={scrollToTop}>Make a Donation</Link>
           </Button>
         </div>
       </div>
