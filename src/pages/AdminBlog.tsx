@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
-import AdminLayout from './Admin';
+import { AdminLayout } from '@/pages/Admin';
 import { Button } from '@/components/ui/button';
 import {
   Table,

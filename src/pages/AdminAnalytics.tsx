@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import AdminLayout from '@/pages/Admin';
+import { AdminLayout } from '@/pages/Admin';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TrendingUp, Users, Cat, Calendar, DollarSign, Clock } from 'lucide-react';

@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import AdminLayout from '@/pages/Admin';
+import { AdminLayout } from '@/pages/Admin';
 import { Search, Edit, UserCog, Shield, UserX, Check, Filter } from 'lucide-react';
 import { 
   Table, 
