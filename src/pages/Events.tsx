@@ -30,6 +30,12 @@ const Events: React.FC = () => {
       
       if (error) throw error;
       
+      if (!data || data.length === 0) {
+        setEvents([]);
+        setLoading(false);
+        return;
+      }
+      
       // Transform to match Event interface
       const transformedEvents: Event[] = data.map(event => ({
         id: event.id,

@@ -140,6 +140,81 @@ export type Database = {
           },
         ]
       }
+      cat_feeding_records: {
+        Row: {
+          amount: number
+          cat_food_id: string
+          cat_id: string
+          created_at: string
+          feeding_date: string
+          id: string
+        }
+        Insert: {
+          amount: number
+          cat_food_id: string
+          cat_id: string
+          created_at?: string
+          feeding_date?: string
+          id?: string
+        }
+        Update: {
+          amount?: number
+          cat_food_id?: string
+          cat_id?: string
+          created_at?: string
+          feeding_date?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cat_feeding_records_cat_food_id_fkey"
+            columns: ["cat_food_id"]
+            isOneToOne: false
+            referencedRelation: "cat_food"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cat_feeding_records_cat_id_fkey"
+            columns: ["cat_id"]
+            isOneToOne: false
+            referencedRelation: "cats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cat_food: {
+        Row: {
+          brand: string
+          cost_per_unit: number
+          created_at: string
+          id: string
+          purchase_date: string
+          quantity: number
+          type: string
+          units: string
+        }
+        Insert: {
+          brand: string
+          cost_per_unit: number
+          created_at?: string
+          id?: string
+          purchase_date?: string
+          quantity: number
+          type: string
+          units: string
+        }
+        Update: {
+          brand?: string
+          cost_per_unit?: number
+          created_at?: string
+          id?: string
+          purchase_date?: string
+          quantity?: number
+          type?: string
+          units?: string
+        }
+        Relationships: []
+      }
       cats: {
         Row: {
           age_estimate: string | null

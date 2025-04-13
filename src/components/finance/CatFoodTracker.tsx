@@ -76,22 +76,16 @@ interface FeedingRecord {
 const catFoodSchema = z.object({
   brand: z.string().min(1, { message: 'Brand is required' }),
   type: z.string().min(1, { message: 'Type is required' }),
-  quantity: z.string().transform(val => parseInt(val, 10)).refine(val => !isNaN(val) && val > 0, {
-    message: 'Quantity must be a positive number',
-  }),
+  quantity: z.coerce.number().positive({ message: 'Quantity must be a positive number' }),
   units: z.string().min(1, { message: 'Units are required' }),
-  total_cost: z.string().transform(val => parseFloat(val)).refine(val => !isNaN(val) && val >= 0, {
-    message: 'Cost must be a valid number',
-  }),
+  total_cost: z.coerce.number().min(0, { message: 'Cost must be a valid number' }),
   purchase_date: z.string().min(1, { message: 'Purchase date is required' }),
 });
 
 const feedingSchema = z.object({
   cat_id: z.string().min(1, { message: 'Cat is required' }),
   cat_food_id: z.string().min(1, { message: 'Food type is required' }),
-  amount: z.string().transform(val => parseFloat(val)).refine(val => !isNaN(val) && val > 0, {
-    message: 'Amount must be a positive number',
-  }),
+  amount: z.coerce.number().positive({ message: 'Amount must be a positive number' }),
   feeding_date: z.string().min(1, { message: 'Feeding date is required' }),
 });
 
@@ -106,9 +100,9 @@ const CatFoodTracker: React.FC = () => {
     defaultValues: {
       brand: '',
       type: '',
-      quantity: '',
+      quantity: 0,
       units: 'cans',
-      total_cost: '',
+      total_cost: 0,
       purchase_date: new Date().toISOString().split('T')[0],
     },
   });
@@ -118,7 +112,7 @@ const CatFoodTracker: React.FC = () => {
     defaultValues: {
       cat_id: '',
       cat_food_id: '',
-      amount: '',
+      amount: 0,
       feeding_date: new Date().toISOString().split('T')[0],
     },
   });
@@ -133,6 +127,7 @@ const CatFoodTracker: React.FC = () => {
         .order('purchase_date', { ascending: false });
         
       if (error) throw error;
+      
       return data as CatFood[];
     }
   });
@@ -144,9 +139,13 @@ const CatFoodTracker: React.FC = () => {
       const { data, error } = await supabase
         .from('cat_feeding_records')
         .select(`
-          *,
-          cats(name),
-          cat_food(brand, type)
+          id,
+          cat_id,
+          cat_food_id,
+          amount,
+          feeding_date,
+          cats:cat_id(name),
+          cat_food:cat_food_id(brand, type)
         `)
         .order('feeding_date', { ascending: false });
         
@@ -181,7 +180,7 @@ const CatFoodTracker: React.FC = () => {
 
   // Handle food form submission
   const onSubmitFood = async (values: z.infer<typeof catFoodSchema>) => {
-    const costPerUnit = parseFloat(values.total_cost) / parseInt(values.quantity, 10);
+    const costPerUnit = values.total_cost / values.quantity;
     
     try {
       const { error } = await supabase
@@ -190,7 +189,7 @@ const CatFoodTracker: React.FC = () => {
           {
             brand: values.brand,
             type: values.type,
-            quantity: parseInt(values.quantity, 10),
+            quantity: values.quantity,
             units: values.units,
             cost_per_unit: costPerUnit,
             purchase_date: values.purchase_date,
@@ -226,7 +225,7 @@ const CatFoodTracker: React.FC = () => {
           {
             cat_id: values.cat_id,
             cat_food_id: values.cat_food_id,
-            amount: parseFloat(values.amount),
+            amount: values.amount,
             feeding_date: values.feeding_date,
           }
         ]);
@@ -308,7 +307,13 @@ const CatFoodTracker: React.FC = () => {
                         <FormItem>
                           <FormLabel>Quantity</FormLabel>
                           <FormControl>
-                            <Input type="number" min="1" placeholder="24" {...field} />
+                            <Input 
+                              type="number" 
+                              min="1" 
+                              placeholder="24" 
+                              {...field}
+                              onChange={(e) => field.onChange(e.target.value)}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -351,7 +356,14 @@ const CatFoodTracker: React.FC = () => {
                         <FormItem>
                           <FormLabel>Total Cost ($)</FormLabel>
                           <FormControl>
-                            <Input type="number" step="0.01" min="0" placeholder="18.99" {...field} />
+                            <Input 
+                              type="number" 
+                              step="0.01" 
+                              min="0" 
+                              placeholder="18.99" 
+                              {...field}
+                              onChange={(e) => field.onChange(e.target.value)}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -458,7 +470,7 @@ const CatFoodTracker: React.FC = () => {
                           <FormLabel>Amount (in portions of 1/4 can)</FormLabel>
                           <Select 
                             onValueChange={field.onChange} 
-                            defaultValue={field.value}
+                            defaultValue={field.value.toString()}
                           >
                             <FormControl>
                               <SelectTrigger>
