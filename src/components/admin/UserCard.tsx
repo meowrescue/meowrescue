@@ -40,6 +40,10 @@ const UserCard: React.FC<UserCardProps> = ({ user, onRoleChange, onUserStatusCha
   const [isEditing, setIsEditing] = useState(false);
   const [roleTitle, setRoleTitle] = useState(user.role_title || '');
   const [showInTeam, setShowInTeam] = useState(user.show_in_team || false);
+  const [firstName, setFirstName] = useState(user.first_name || '');
+  const [lastName, setLastName] = useState(user.last_name || '');
+  const [bio, setBio] = useState(user.bio || '');
+  const [avatarUrl, setAvatarUrl] = useState(user.avatar_url || '');
 
   const roleColor = {
     admin: 'bg-red-100 text-red-800',
@@ -60,7 +64,11 @@ const UserCard: React.FC<UserCardProps> = ({ user, onRoleChange, onUserStatusCha
         .from('profiles')
         .update({
           role_title: roleTitle,
-          show_in_team: showInTeam
+          show_in_team: showInTeam,
+          first_name: firstName,
+          last_name: lastName,
+          bio: bio,
+          avatar_url: avatarUrl
         })
         .eq('id', user.id);
         
@@ -73,10 +81,10 @@ const UserCard: React.FC<UserCardProps> = ({ user, onRoleChange, onUserStatusCha
       
       setIsEditing(false);
       refetchUsers();
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: 'Update Failed',
-        description: 'There was an error updating the profile.',
+        description: error.message || 'There was an error updating the profile.',
         variant: 'destructive',
       });
     }
@@ -144,19 +152,53 @@ const UserCard: React.FC<UserCardProps> = ({ user, onRoleChange, onUserStatusCha
         {isEditing && (
           <div className="mt-4 border-t pt-4 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor={`role-title-${user.id}`}>Role Title (shown on About page)</Label>
+              <Label>First Name</Label>
               <Input
-                id={`role-title-${user.id}`}
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="First Name"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Last Name</Label>
+              <Input
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="Last Name"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Role Title (shown on About page)</Label>
+              <Input
                 value={roleTitle}
                 onChange={(e) => setRoleTitle(e.target.value)}
                 placeholder="e.g. Volunteer Coordinator"
               />
             </div>
             
+            <div className="space-y-2">
+              <Label>Bio</Label>
+              <Input
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Short bio for team page"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Avatar URL</Label>
+              <Input
+                value={avatarUrl}
+                onChange={(e) => setAvatarUrl(e.target.value)}
+                placeholder="URL to profile image"
+              />
+            </div>
+            
             <div className="flex items-center justify-between">
-              <Label htmlFor={`show-in-team-${user.id}`}>Show on Team Page</Label>
+              <Label>Show on Team Page</Label>
               <Switch
-                id={`show-in-team-${user.id}`}
                 checked={showInTeam}
                 onCheckedChange={setShowInTeam}
               />

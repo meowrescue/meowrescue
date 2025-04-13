@@ -1065,6 +1065,14 @@ export type Database = {
         Args: { uid: string }
         Returns: boolean
       }
+      log_activity: {
+        Args: {
+          p_activity_type: string
+          p_description: string
+          p_metadata?: Json
+        }
+        Returns: string
+      }
       update_application_status: {
         Args: {
           p_application_id: string

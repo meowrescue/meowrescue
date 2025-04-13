@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -36,22 +35,26 @@ const ChatWidget: React.FC = () => {
   useEffect(() => {
     const checkAdminAvailability = async () => {
       try {
-        // Check for any admin user who is logged in (active)
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('role', 'admin')
-          .eq('is_active', true)
-          .limit(1);
-          
-        if (error) throw error;
+        // Check for any logged-in user with an admin role
+        const { data: { session } } = await supabase.auth.getSession();
         
-        console.log("Admin availability check:", data);
-        setIsAdminAvailable(data && data.length > 0);
+        if (session) {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('id', session.user.id)
+            .eq('role', 'admin')
+            .single();
+          
+          if (error) throw error;
+          
+          setIsAdminAvailable(!!data);
+        } else {
+          setIsAdminAvailable(false);
+        }
       } catch (error) {
         console.error("Error checking admin availability:", error);
-        // Default to available if there's an error checking
-        setIsAdminAvailable(true);
+        setIsAdminAvailable(false);
       }
     };
     
@@ -61,8 +64,8 @@ const ChatWidget: React.FC = () => {
     const interval = setInterval(checkAdminAvailability, 30000);
     
     return () => clearInterval(interval);
-  }, []);
-  
+  }, [user]);
+
   // Scroll to bottom of messages
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

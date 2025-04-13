@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -11,7 +10,11 @@ import SEO from '@/components/SEO';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import ApplicationView from '@/components/admin/ApplicationView';
-import { formatApplicationType, capitalizeWords } from '@/utils/stringUtils';
+import { 
+  formatApplicationType, 
+  capitalizeWords, 
+  capitalizeFirstLetterOfEachWord 
+} from '@/utils/stringUtils';
 
 const AdminApplications = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -114,9 +117,13 @@ const AdminApplications = () => {
                       {application.form_data.firstName} {application.form_data.lastName}
                     </TableCell>
                     <TableCell>{application.form_data.email}</TableCell>
-                    <TableCell>{formatApplicationType(application.application_type)}</TableCell>
                     <TableCell>
-                      <Badge variant="secondary">{capitalizeWords(application.status)}</Badge>
+                      {capitalizeFirstLetterOfEachWord(formatApplicationType(application.application_type))}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">
+                        {capitalizeWords(application.status)}
+                      </Badge>
                     </TableCell>
                     <TableCell>{new Date(application.created_at).toLocaleDateString()}</TableCell>
                     <TableCell className="text-right">
