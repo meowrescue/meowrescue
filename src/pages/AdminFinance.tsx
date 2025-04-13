@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -145,15 +144,22 @@ const AdminFinance: React.FC = () => {
       // Upload receipt if file is selected
       if (newExpenseReceiptFile) {
         const fileName = `${Date.now()}-${newExpenseReceiptFile.name}`;
+        
+        // Set up progress tracker
+        const progressHandler = (progress: { loaded: number; total: number }) => {
+          setUploadProgress((progress.loaded / progress.total) * 100);
+        };
+        
+        // Upload file with modified options that don't use onUploadProgress
         const { data, error } = await supabase.storage
           .from('receipts')
           .upload(fileName, newExpenseReceiptFile, {
             cacheControl: '3600',
-            upsert: false,
-            onUploadProgress: (progress) => {
-              setUploadProgress((progress.loaded / progress.total) * 100);
-            },
+            upsert: false
           });
+
+        // Update progress manually after upload completes
+        setUploadProgress(100);
 
         if (error) throw error;
         
