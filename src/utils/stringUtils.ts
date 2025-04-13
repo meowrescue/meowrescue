@@ -11,3 +11,14 @@ export function slugify(text: string): string {
     .replace(/^-+/, '')           // Trim - from start of text
     .replace(/-+$/, '');          // Trim - from end of text
 }
+
+export function capitalizeFirstLetter(string: string): string {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+export function capitalizeWords(string: string): string {
+  return string
+    .split(' ')
+    .map(word => capitalizeFirstLetter(word))
+    .join(' ');
+}

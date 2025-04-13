@@ -38,7 +38,7 @@ const AdminSidebar: React.FC = () => {
   
   return (
     <div className="fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 text-gray-700 p-4 flex flex-col h-screen z-10">
-      <div className="mb-8 mt-2">
+      <div className="mb-4 mt-2">
         <Link to="/" className="flex items-center gap-2">
           <div className="bg-meow-primary rounded-full p-2">
             <Cat className="h-6 w-6 text-white" />
@@ -50,13 +50,13 @@ const AdminSidebar: React.FC = () => {
         </Link>
       </div>
       
-      <div className="flex-1 overflow-y-auto space-y-5">
+      <div className="flex-1 overflow-y-auto space-y-4">
         {/* Dashboard Section */}
         <div>
           <h3 className="font-semibold text-xs uppercase text-gray-500 mb-2 px-3">Dashboard</h3>
           <Link 
             to="/admin"
-            className={`flex items-center p-3 rounded transition-colors ${
+            className={`flex items-center p-2 rounded transition-colors ${
               isActive('/admin') ? 'bg-gray-100' : 'hover:bg-gray-100'
             }`}
           >
@@ -70,7 +70,7 @@ const AdminSidebar: React.FC = () => {
           <h3 className="font-semibold text-xs uppercase text-gray-500 mb-2 px-3">Management</h3>
           <Link 
             to="/admin/users"
-            className={`flex items-center p-3 rounded transition-colors ${
+            className={`flex items-center p-2 rounded transition-colors ${
               isActive('/admin/users') ? 'bg-gray-100' : 'hover:bg-gray-100'
             }`}
           >
@@ -80,7 +80,7 @@ const AdminSidebar: React.FC = () => {
           
           <Link 
             to="/admin/cats"
-            className={`flex items-center p-3 rounded transition-colors ${
+            className={`flex items-center p-2 rounded transition-colors ${
               isActive('/admin/cats') ? 'bg-gray-100' : 'hover:bg-gray-100'
             }`}
           >
@@ -90,7 +90,7 @@ const AdminSidebar: React.FC = () => {
           
           <Link 
             to="/admin/applications"
-            className={`flex items-center p-3 rounded transition-colors ${
+            className={`flex items-center p-2 rounded transition-colors ${
               isActive('/admin/applications') ? 'bg-gray-100' : 'hover:bg-gray-100'
             }`}
           >
@@ -104,7 +104,7 @@ const AdminSidebar: React.FC = () => {
           <h3 className="font-semibold text-xs uppercase text-gray-500 mb-2 px-3">Content</h3>
           <Link 
             to="/admin/events"
-            className={`flex items-center p-3 rounded transition-colors ${
+            className={`flex items-center p-2 rounded transition-colors ${
               isActive('/admin/events') ? 'bg-gray-100' : 'hover:bg-gray-100'
             }`}
           >
@@ -114,7 +114,7 @@ const AdminSidebar: React.FC = () => {
           
           <Link 
             to="/admin/blog"
-            className={`flex items-center p-3 rounded transition-colors ${
+            className={`flex items-center p-2 rounded transition-colors ${
               isActive('/admin/blog') ? 'bg-gray-100' : 'hover:bg-gray-100'
             }`}
           >
@@ -124,7 +124,7 @@ const AdminSidebar: React.FC = () => {
           
           <Link 
             to="/admin/lost-found"
-            className={`flex items-center p-3 rounded transition-colors ${
+            className={`flex items-center p-2 rounded transition-colors ${
               isActive('/admin/lost-found') ? 'bg-gray-100' : 'hover:bg-gray-100'
             }`}
           >
@@ -138,7 +138,7 @@ const AdminSidebar: React.FC = () => {
           <h3 className="font-semibold text-xs uppercase text-gray-500 mb-2 px-3">Operations</h3>
           <Link 
             to="/admin/finance"
-            className={`flex items-center p-3 rounded transition-colors ${
+            className={`flex items-center p-2 rounded transition-colors ${
               isActive('/admin/finance') ? 'bg-gray-100' : 'hover:bg-gray-100'
             }`}
           >
@@ -148,7 +148,7 @@ const AdminSidebar: React.FC = () => {
           
           <Link 
             to="/admin/chat"
-            className={`flex items-center p-3 rounded transition-colors ${
+            className={`flex items-center p-2 rounded transition-colors ${
               isActive('/admin/chat') ? 'bg-gray-100' : 'hover:bg-gray-100'
             }`}
           >
@@ -158,7 +158,7 @@ const AdminSidebar: React.FC = () => {
           
           <Link 
             to="/admin/messages"
-            className={`flex items-center p-3 rounded transition-colors ${
+            className={`flex items-center p-2 rounded transition-colors ${
               isActive('/admin/messages') ? 'bg-gray-100' : 'hover:bg-gray-100'
             }`}
           >
@@ -172,7 +172,7 @@ const AdminSidebar: React.FC = () => {
           <h3 className="font-semibold text-xs uppercase text-gray-500 mb-2 px-3">System</h3>
           <Link 
             to="/admin/security"
-            className={`flex items-center p-3 rounded transition-colors ${
+            className={`flex items-center p-2 rounded transition-colors ${
               isActive('/admin/security') ? 'bg-gray-100' : 'hover:bg-gray-100'
             }`}
           >
@@ -182,7 +182,7 @@ const AdminSidebar: React.FC = () => {
           
           <Link 
             to="/admin/settings"
-            className={`flex items-center p-3 rounded transition-colors ${
+            className={`flex items-center p-2 rounded transition-colors ${
               isActive('/admin/settings') ? 'bg-gray-100' : 'hover:bg-gray-100'
             }`}
           >
@@ -194,7 +194,7 @@ const AdminSidebar: React.FC = () => {
       
       <button 
         onClick={handleLogout}
-        className="mt-auto flex items-center p-3 rounded transition-colors hover:bg-gray-100 w-full text-gray-700"
+        className="mt-auto flex items-center p-2 rounded transition-colors hover:bg-gray-100 w-full text-gray-700"
       >
         <LogOut className="mr-3 h-5 w-5 text-gray-600" />
         <span>Logout</span>
