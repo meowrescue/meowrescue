@@ -37,7 +37,7 @@ const registerSchema = z.object({
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 const Register: React.FC = () => {
-  const { signUp, isLoading } = useAuth();
+  const { signUp, isLoading: authLoading } = useAuth();
   const [registerLoading, setRegisterLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -55,14 +55,26 @@ const Register: React.FC = () => {
 
   const onSubmit = async (values: RegisterFormValues) => {
     console.log("Registration attempt with email:", values.email);
+    
+    if (registerLoading || authLoading) {
+      console.log("Already processing registration, skipping");
+      return;
+    }
+    
     setRegisterLoading(true);
     
     try {
       // Pass first and last name as user metadata
-      await signUp(values.email, values.password, {
+      const result = await signUp(values.email, values.password, {
         first_name: values.firstName,
         last_name: values.lastName
       });
+      
+      console.log("Registration result:", result);
+      
+      if (result.error) {
+        throw result.error;
+      }
       
       toast({
         title: "Registration Successful",
@@ -188,9 +200,9 @@ const Register: React.FC = () => {
               <Button 
                 type="submit" 
                 className="w-full" 
-                disabled={registerLoading || isLoading}
+                disabled={registerLoading || authLoading}
               >
-                {registerLoading ? 'Registering...' : 'Register'}
+                {registerLoading || authLoading ? 'Registering...' : 'Register'}
               </Button>
             </form>
           </Form>

@@ -34,7 +34,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // If user is not logged in, redirect to login
-  if (!user) {
+  if (!user || !session) {
     return <Navigate to="/login" />;
   }
 

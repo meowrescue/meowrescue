@@ -30,7 +30,7 @@ const Login: React.FC = () => {
   const location = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const { user, signIn } = useAuth();
+  const { user, session, signIn, isLoading: authLoading } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -42,20 +42,31 @@ const Login: React.FC = () => {
 
   // Redirect if already logged in
   useEffect(() => {
-    if (user) {
+    if (user && !isLoading && !authLoading) {
       console.log("User is logged in, redirecting", user);
       const redirectTo = location.state?.from || (user.email?.endsWith('@meowrescue.org') ? '/admin' : '/profile');
       navigate(redirectTo);
     }
-  }, [user, navigate, location.state]);
+  }, [user, navigate, location.state, isLoading, authLoading]);
 
   const handleLogin = async (values: z.infer<typeof formSchema>) => {
     console.log("Login attempt with email:", values.email);
+    
+    if (isLoading || authLoading) {
+      console.log("Already processing login, skipping");
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
+      console.log("Calling signIn method with:", values.email);
       const result = await signIn(values.email, values.password);
       console.log("Sign in result:", result);
+      
+      if (result.error) {
+        throw result.error;
+      }
       
       toast({
         title: "Login Successful",
@@ -92,7 +103,6 @@ const Login: React.FC = () => {
                 <span className="text-meow-secondary">Rescue</span>
               </span>
             </div>
-            {/* Removed "Sign In" text */}
             <CardTitle className="text-2xl font-bold text-center"></CardTitle>
           </CardHeader>
           <CardContent>
@@ -124,8 +134,8 @@ const Login: React.FC = () => {
                     </FormItem>
                   )}
                 />
-                <Button disabled={isLoading} className="w-full" type="submit">
-                  {isLoading ? "Signing in..." : "Sign In"}
+                <Button disabled={isLoading || authLoading} className="w-full" type="submit">
+                  {isLoading || authLoading ? "Signing in..." : "Sign In"}
                 </Button>
               </form>
             </Form>

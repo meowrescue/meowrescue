@@ -31,15 +31,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       console.log('Auth state changed:', event, newSession?.user?.id);
       
-      if (event === 'SIGNED_IN' && newSession) {
+      if (newSession) {
         setSession(newSession);
-        await fetchUserProfile(newSession);
+        
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          // Fetch user data on sign in or token refresh
+          fetchUserProfile(newSession).catch(console.error);
+        }
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
         setSession(null);
-      } else if (event === 'PASSWORD_RECOVERY') {
-        // Handle password recovery event
-        console.log('Password recovery initiated');
       }
     });
     
@@ -47,7 +48,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const checkUser = async () => {
       try {
         console.log("Checking for existing session...");
-        const { data } = await supabase.auth.getSession();
+        const { data, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error("Error fetching session:", sessionError);
+          setIsLoading(false);
+          return;
+        }
         
         if (data.session) {
           console.log("Found existing session:", data.session.user?.id);
@@ -85,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .from('profiles')
         .select('*')
         .eq('id', currentSession.user.id)
-        .single();
+        .maybeSingle();
       
       if (profileError) {
         console.error("Error fetching profile:", profileError);
@@ -131,11 +138,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       console.log("Sign in attempt for:", email);
       setIsLoading(true);
-      const { error, data } = await supabase.auth.signInWithPassword({ email, password });
+      
+      const { data, error } = await supabase.auth.signInWithPassword({ 
+        email, 
+        password 
+      });
       
       if (error) {
         console.error("Sign in error:", error);
-        throw error;
+        setIsLoading(false);
+        return { error };
       }
       
       console.log("Sign in successful:", data);
@@ -144,16 +156,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error: any) {
       console.error("Sign in catch error:", error);
       setError(error);
-      throw error;
-    } finally {
-      // We'll set loading to false in the fetchUserProfile function
-      // This prevents the UI from flickering if the user is redirected quickly
-      setTimeout(() => {
-        if (isLoading) {
-          console.log("Setting isLoading to false after timeout");
-          setIsLoading(false);
-        }
-      }, 3000);
+      setIsLoading(false);
+      return { error };
     }
   };
 
@@ -162,7 +166,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       console.log("Sign up attempt for:", email);
       setIsLoading(true);
-      const { error, data } = await supabase.auth.signUp({ 
+      
+      const { data, error } = await supabase.auth.signUp({ 
         email, 
         password,
         options: {
@@ -172,7 +177,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (error) {
         console.error("Sign up error:", error);
-        throw error;
+        setIsLoading(false);
+        return { error };
       }
       
       console.log("Sign up successful:", data);
@@ -180,9 +186,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error: any) {
       console.error("Sign up catch error:", error);
       setError(error);
-      throw error;
-    } finally {
       setIsLoading(false);
+      return { error };
     }
   };
 
@@ -203,7 +208,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error: any) {
       console.error("Sign out catch error:", error);
       setError(error);
-      throw error;
     } finally {
       setIsLoading(false);
     }
