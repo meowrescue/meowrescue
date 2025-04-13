@@ -1,5 +1,7 @@
 
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface BusinessHoursContextType {
   isBusinessHours: boolean;
@@ -16,6 +18,9 @@ interface BusinessHoursProviderProps {
 }
 
 export const BusinessHoursProvider: React.FC<BusinessHoursProviderProps> = ({ children }) => {
+  const { user } = useAuth();
+  const [isAdminOnline, setIsAdminOnline] = useState(false);
+  
   // Check if current time is within business hours
   // Business hours: Monday-Friday, 9:00 AM to 5:00 PM
   const checkBusinessHours = (): boolean => {
@@ -32,10 +37,43 @@ export const BusinessHoursProvider: React.FC<BusinessHoursProviderProps> = ({ ch
     return isBusinessDay && isBusinessTime;
   };
   
-  const isBusinessHours = checkBusinessHours();
+  // Check if admin is online
+  useEffect(() => {
+    if (!user) {
+      setIsAdminOnline(false);
+      return;
+    }
+
+    const checkIfAdmin = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+        
+        if (error) {
+          console.error("Error checking admin status:", error);
+          setIsAdminOnline(false);
+          return;
+        }
+        
+        // Set admin online if the user's role is 'admin'
+        setIsAdminOnline(data.role === 'admin');
+      } catch (err) {
+        console.error("Error in admin check:", err);
+        setIsAdminOnline(false);
+      }
+    };
+    
+    checkIfAdmin();
+  }, [user]);
+  
+  // Either during business hours OR an admin is online
+  const isAvailableForChat = checkBusinessHours() || isAdminOnline;
   
   return (
-    <BusinessHoursContext.Provider value={{ isBusinessHours }}>
+    <BusinessHoursContext.Provider value={{ isBusinessHours: isAvailableForChat }}>
       {children}
     </BusinessHoursContext.Provider>
   );

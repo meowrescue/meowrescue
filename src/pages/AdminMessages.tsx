@@ -48,24 +48,24 @@ const AdminMessages: React.FC = () => {
 
   // Fetch messages from Supabase
   const { data: messages, isLoading, error, refetch } = useQuery({
-    queryKey: ['messages'],
+    queryKey: ['contact-messages'],
     queryFn: async () => {
       try {
-        console.log("Fetching messages from Supabase");
+        console.log("Fetching contact form messages from Supabase");
         const { data, error } = await supabase
           .from('contact_messages')
           .select('*')
           .order('received_at', { ascending: false });
 
         if (error) {
-          console.error("Error fetching messages:", error);
+          console.error("Error fetching contact messages:", error);
           throw error;
         }
         
-        console.log("Messages fetched successfully:", data);
+        console.log("Contact messages fetched successfully:", data);
         return data || [];
       } catch (err) {
-        console.error("Error in messages query:", err);
+        console.error("Error in contact messages query:", err);
         throw err;
       }
     },
@@ -85,7 +85,7 @@ const AdminMessages: React.FC = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['messages'] });
+      queryClient.invalidateQueries({ queryKey: ['contact-messages'] });
       toast({
         title: "Message Updated",
         description: "Message status updated successfully.",
@@ -119,7 +119,7 @@ const AdminMessages: React.FC = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['messages'] });
+      queryClient.invalidateQueries({ queryKey: ['contact-messages'] });
       toast({
         title: "Reply Sent",
         description: "Reply sent successfully.",
@@ -155,7 +155,7 @@ const AdminMessages: React.FC = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['messages'] });
+      queryClient.invalidateQueries({ queryKey: ['contact-messages'] });
       toast({
         title: "Test Message Created",
         description: "A test message has been created to help with testing.",
@@ -211,12 +211,12 @@ const AdminMessages: React.FC = () => {
   };
 
   return (
-    <AdminLayout title="Messages">
-      <SEO title="Messages | Meow Rescue Admin" />
+    <AdminLayout title="Contact Form Messages">
+      <SEO title="Contact Form Messages | Meow Rescue Admin" />
 
       <div className="container mx-auto py-10">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-meow-primary">Messages</h1>
+          <h1 className="text-3xl font-bold text-meow-primary">Contact Form Messages</h1>
           <Button onClick={handleCreateTestMessage}>
             Create Test Message
           </Button>
@@ -250,7 +250,7 @@ const AdminMessages: React.FC = () => {
         ) : (
           <div className="overflow-x-auto">
             <Table>
-              <TableCaption>A list of all contact messages received.</TableCaption>
+              <TableCaption>A list of all contact form messages received.</TableCaption>
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
@@ -319,7 +319,7 @@ const AdminMessages: React.FC = () => {
         <Dialog open={openMessageId !== null} onOpenChange={() => handleCloseMessage()}>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>View Message</DialogTitle>
+              <DialogTitle>View Contact Form Message</DialogTitle>
               <DialogDescription>
                 View the complete message and send a reply.
               </DialogDescription>
