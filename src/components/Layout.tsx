@@ -1,27 +1,36 @@
 
-// I can't directly modify the Layout component as it's read-only,
-// So I'll create a new LayoutWithChat component that wraps around it
-
 import React from 'react';
-import Layout from '@/components/Layout'; // Original Layout
-import ChatWidget from '@/components/ChatWidget';
-import { useAuth } from '@/contexts/AuthContext';
+import Navbar from './Navbar';
+import Footer from './Footer';
+import SEO from './SEO';
 
-interface LayoutWithChatProps {
+interface LayoutProps {
   children: React.ReactNode;
+  title?: string;
+  description?: string;
+  image?: string;
 }
 
-const LayoutWithChat: React.FC<LayoutWithChatProps> = ({ children }) => {
-  const { user } = useAuth();
-  
+const Layout: React.FC<LayoutProps> = ({
+  children,
+  title,
+  description,
+  image
+}) => {
   return (
-    <>
-      <Layout>
+    <div className="flex flex-col min-h-screen">
+      {title && <SEO title={title} description={description} ogImage={image} />}
+      
+      {/* Add a top margin to account for fixed navbar */}
+      <Navbar />
+      
+      <main className="flex-grow pt-16">
         {children}
-      </Layout>
-      {user && <ChatWidget />}
-    </>
+      </main>
+      
+      <Footer />
+    </div>
   );
 };
 
-export default LayoutWithChat;
+export default Layout;
