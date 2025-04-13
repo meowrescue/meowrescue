@@ -15,11 +15,9 @@ export const getStatusBadgeClass = (status: string): string => {
   }
 };
 
-// Function to get icon component based on status
 export const getStatusIcon = (status: string): React.ReactNode => {
-  switch (status?.toLowerCase()) { // Added safety with toLowerCase()
+  switch (status?.toLowerCase()) {
     case "lost":
-      // Using correct props for Lucide React Icons
       return <AlertCircle size={16} strokeWidth={2} />;
     case "found":
       return <Search size={16} strokeWidth={2} />;
