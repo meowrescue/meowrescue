@@ -32,11 +32,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({
       </div>
       
       {/* Content */}
-      <div className="container relative h-full mx-auto px-4 flex items-center">
-        <div className="max-w-3xl text-white animate-fade-in">
+      <div className="container relative h-full mx-auto px-4 flex items-center justify-center">
+        <div className="max-w-3xl text-white animate-fade-in text-center">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight">{title}</h1>
           <p className="text-xl md:text-2xl mb-8">{subtitle}</p>
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap gap-4 justify-center">
             <Button 
               className="bg-meow-secondary hover:bg-meow-secondary/90 text-white px-8 py-3 text-lg"
               asChild

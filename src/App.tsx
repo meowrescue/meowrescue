@@ -13,6 +13,8 @@ import About from "./pages/About";
 import Cats from "./pages/Cats";
 import CatDetail from "./pages/CatDetail";
 import Adopt from "./pages/Adopt";
+import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
 import Events from "./pages/Events";
 import EventDetail from "./pages/EventDetail";
 import Resources from "./pages/Resources";
@@ -36,6 +38,8 @@ import ForumPostForm from "./pages/ForumPostForm";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminCats from "./pages/AdminCats";
 import AdminCatForm from "./pages/AdminCatForm";
+import AdminBlog from "./pages/AdminBlog";
+import AdminBlogForm from "./pages/AdminBlogForm";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +57,8 @@ const App = () => (
               <Route path="/cats" element={<Cats />} />
               <Route path="/cats/:id" element={<CatDetail />} />
               <Route path="/adopt" element={<Adopt />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:slug" element={<BlogPost />} />
               <Route path="/events" element={<Events />} />
               <Route path="/events/:id" element={<EventDetail />} />
               <Route path="/resources" element={<Resources />} />
@@ -107,6 +113,9 @@ const App = () => (
               <Route path="/admin/users" element={<AdminDashboard />} />
               <Route path="/admin/finance" element={<AdminDashboard />} />
               <Route path="/admin/forum" element={<AdminDashboard />} />
+              <Route path="/admin/blog" element={<AdminBlog />} />
+              <Route path="/admin/blog/new" element={<AdminBlogForm />} />
+              <Route path="/admin/blog/edit/:id" element={<AdminBlogForm />} />
               <Route path="/admin/pages" element={<AdminDashboard />} />
               <Route path="/admin/events" element={<AdminDashboard />} />
               <Route path="/admin/lost-found" element={<AdminDashboard />} />

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Layout from '@/components/Layout';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -12,7 +12,7 @@ import {
   CardTitle 
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Pencil, KeyRound, Trash2 } from 'lucide-react';
+import { User, Pencil, KeyRound, Trash2, MessageSquare, Search } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -21,6 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import SEO from '@/components/SEO';
+import { useQuery } from '@tanstack/react-query';
 
 const Profile: React.FC = () => {
   const { user, signOut, session } = useAuth();
@@ -32,7 +33,8 @@ const Profile: React.FC = () => {
   const editProfileForm = useForm({
     defaultValues: {
       email: user?.email || '',
-      name: user?.user_metadata?.name || ''
+      firstName: user?.user_metadata?.first_name || '',
+      lastName: user?.user_metadata?.last_name || ''
     }
   });
 
@@ -41,6 +43,38 @@ const Profile: React.FC = () => {
       password: '',
       confirmPassword: ''
     }
+  });
+
+  // Fetch user's posts
+  const { data: forumPosts } = useQuery({
+    queryKey: ['forumPosts', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from('forum_posts')
+        .select('*')
+        .eq('profile_id', user.id);
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user
+  });
+
+  // Fetch lost & found posts
+  const { data: lostFoundPosts } = useQuery({
+    queryKey: ['lostFoundPosts', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from('lost_found_posts')
+        .select('*')
+        .eq('profile_id', user.id);
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user
   });
 
   const handleEditProfile = async (data: any) => {
@@ -52,7 +86,10 @@ const Profile: React.FC = () => {
       }
       
       const { error } = await supabase.auth.updateUser({
-        data: { name: data.name }
+        data: { 
+          first_name: data.firstName,
+          last_name: data.lastName 
+        }
       });
       
       if (error) throw error;
@@ -161,8 +198,8 @@ const Profile: React.FC = () => {
             <TabsList className="mb-8">
               <TabsTrigger value="profile">Profile</TabsTrigger>
               <TabsTrigger value="applications">Adoption Applications</TabsTrigger>
+              <TabsTrigger value="posts">My Posts</TabsTrigger>
               <TabsTrigger value="donations">Donations</TabsTrigger>
-              {/* More tabs can be added here based on user role */}
             </TabsList>
             
             <TabsContent value="profile">
@@ -177,7 +214,10 @@ const Profile: React.FC = () => {
                       <User size={40} className="text-gray-400" />
                     </div>
                     <div className="text-center">
-                      <h3 className="font-medium text-lg">{user?.email}</h3>
+                      <h3 className="font-medium text-lg">
+                        {user?.user_metadata?.first_name || ''} {user?.user_metadata?.last_name || ''}
+                      </h3>
+                      <p className="text-gray-500 text-sm">{user?.email}</p>
                       <p className="text-gray-500 text-sm mb-6">Member since {new Date(user?.created_at || '').toLocaleDateString()}</p>
                       
                       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
@@ -210,12 +250,25 @@ const Profile: React.FC = () => {
                               />
                               <FormField
                                 control={editProfileForm.control}
-                                name="name"
+                                name="firstName"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>Name</FormLabel>
+                                    <FormLabel>First Name</FormLabel>
                                     <FormControl>
-                                      <Input {...field} placeholder="Your name" />
+                                      <Input {...field} placeholder="Your first name" />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={editProfileForm.control}
+                                name="lastName"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Last Name</FormLabel>
+                                    <FormControl>
+                                      <Input {...field} placeholder="Your last name" />
                                     </FormControl>
                                     <FormMessage />
                                   </FormItem>
@@ -253,8 +306,8 @@ const Profile: React.FC = () => {
                         <p>{user?.email}</p>
                       </div>
                       <div>
-                        <h4 className="text-sm font-medium text-gray-500 mb-2">User ID</h4>
-                        <p className="text-sm truncate">{user?.id}</p>
+                        <h4 className="text-sm font-medium text-gray-500 mb-2">Name</h4>
+                        <p>{user?.user_metadata?.first_name || 'Not provided'} {user?.user_metadata?.last_name || ''}</p>
                       </div>
                       <div className="pt-8 flex flex-wrap gap-4">
                         <Dialog open={isPasswordOpen} onOpenChange={setIsPasswordOpen}>
@@ -370,6 +423,66 @@ const Profile: React.FC = () => {
                   </div>
                 </CardContent>
               </Card>
+            </TabsContent>
+            
+            <TabsContent value="posts">
+              <div className="grid grid-cols-1 gap-8">
+                <Card>
+                  <CardHeader className="pb-6">
+                    <CardTitle className="flex items-center gap-2">
+                      <MessageSquare className="h-5 w-5" />
+                      Your Forum Posts
+                    </CardTitle>
+                    <CardDescription>Posts you've made in our community forum</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {forumPosts && forumPosts.length > 0 ? (
+                      <div className="divide-y">
+                        {forumPosts.map((post: any) => (
+                          <div key={post.id} className="py-4">
+                            <h3 className="font-medium">{post.title}</h3>
+                            <p className="text-sm text-gray-500 mt-1">
+                              Posted on {new Date(post.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-center py-6 text-gray-500">
+                        You haven't created any forum posts yet.
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="pb-6">
+                    <CardTitle className="flex items-center gap-2">
+                      <Search className="h-5 w-5" />
+                      Your Lost & Found Posts
+                    </CardTitle>
+                    <CardDescription>Posts you've made in the lost & found section</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {lostFoundPosts && lostFoundPosts.length > 0 ? (
+                      <div className="divide-y">
+                        {lostFoundPosts.map((post: any) => (
+                          <div key={post.id} className="py-4">
+                            <h3 className="font-medium">{post.title}</h3>
+                            <p className="text-sm text-gray-500 mt-1">
+                              {post.status} • Posted on {new Date(post.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-center py-6 text-gray-500">
+                        You haven't created any lost & found posts yet.
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
             
             <TabsContent value="donations">

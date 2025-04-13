@@ -20,15 +20,15 @@ import {
   Users,
   DollarSign,
   MessageSquare,
-  PanelLeft,
-  Bell,
-  Settings,
-  LogOut,
-  BarChart3,
-  ShieldCheck,
   FileText,
   Calendar,
-  Search
+  Search,
+  BarChart3,
+  ShieldCheck,
+  Settings,
+  LogOut,
+  Bell,
+  PenSquare
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from './ui/button';
@@ -54,7 +54,13 @@ const AdminNavbar: React.FC = () => {
         <div className="flex items-center justify-between p-4">
           <Link to="/admin" className="flex items-center gap-2">
             <img src="/logo.svg" alt="Meow Rescue Logo" className="h-8" />
-            <div className="font-bold text-xl">Admin</div>
+            <div>
+              <span className="font-bold text-xl">
+                <span className="text-meow-primary">Meow</span>
+                <span className="text-meow-secondary">Rescue</span>
+              </span>
+              <span className="text-xs block text-gray-500">Admin Dashboard</span>
+            </div>
           </Link>
           <SidebarTrigger />
         </div>
@@ -125,6 +131,14 @@ const AdminNavbar: React.FC = () => {
                   <Link to="/admin/pages">
                     <FileText size={18} />
                     <span>Pages</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild className={isActive('/admin/blog') ? 'bg-meow-primary/10 text-meow-primary font-medium' : ''}>
+                  <Link to="/admin/blog">
+                    <PenSquare size={18} />
+                    <span>Blog</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

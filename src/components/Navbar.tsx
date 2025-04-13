@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -58,10 +59,13 @@ const Navbar: React.FC = () => {
       }`}
     >
       <nav className="container mx-auto px-4 py-3 flex items-center justify-between">
-        {/* Logo */}
+        {/* Logo with two-tone text */}
         <Link to="/" className="flex items-center gap-2">
-          <img src="/logo.svg" alt="Meow Rescue" className="h-10" />
-          <span className="font-bold text-xl text-meow-primary">Meow Rescue</span>
+          <img src="/logo.svg" alt="Meow Rescue Logo" className="h-10" />
+          <span className="font-bold text-xl">
+            <span className="text-meow-primary">Meow</span>
+            <span className="text-meow-secondary">Rescue</span>
+          </span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -103,6 +107,9 @@ const Navbar: React.FC = () => {
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link to="/events" className="w-full cursor-pointer">Events</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/blog" className="w-full cursor-pointer">Blog</Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -176,7 +183,7 @@ const Navbar: React.FC = () => {
                 </DropdownMenuItem>
                 
                 {/* Admin Link */}
-                {user && (user.email === 'patrick@meowrescue.org' || user.user_metadata?.role === 'admin') && (
+                {user && (user.email === 'info@meowrescue.org' || user.user_metadata?.role === 'admin') && (
                   <DropdownMenuItem asChild>
                     <Link to="/admin" className="cursor-pointer w-full">
                       <Settings className="mr-2 h-4 w-4" />
