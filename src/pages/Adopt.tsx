@@ -4,6 +4,7 @@ import Layout from '../components/Layout';
 import SectionHeading from '../components/ui/SectionHeading';
 import { Button } from "@/components/ui/button";
 import CtaSection from '../components/CtaSection';
+import { Link } from 'react-router-dom';
 
 const Adopt: React.FC = () => {
   return (
@@ -24,7 +25,7 @@ const Adopt: React.FC = () => {
             <div className="bg-white p-6 rounded-lg shadow-md">
               <h3 className="text-xl font-bold mb-4 text-meow-primary">1. Browse Available Cats</h3>
               <p className="text-gray-700 mb-4">
-                Start by browsing our <a href="/cats" className="text-meow-primary hover:underline">Adoptable Cats</a> page to see which cats are currently available. Each profile includes information about the cat's personality, history, and specific needs.
+                Start by browsing our <Link to="/cats" className="text-meow-primary hover:underline">Adoptable Cats</Link> page to see which cats are currently available. Each profile includes information about the cat's personality, history, and specific needs.
               </p>
               <p className="text-gray-700">
                 If you're not sure what type of cat would be the best fit for your home, please contact us—we're happy to help you find a good match based on your lifestyle and preferences.
@@ -45,8 +46,8 @@ const Adopt: React.FC = () => {
                 <li>Discussion about your expectations and lifestyle</li>
               </ul>
               <div className="text-center mt-6">
-                <Button className="bg-meow-primary hover:bg-meow-primary/90">
-                  Adoption Application
+                <Button className="bg-meow-primary hover:bg-meow-primary/90" asChild>
+                  <Link to="/volunteer/apply">Adoption Application</Link>
                 </Button>
               </div>
             </div>
@@ -162,13 +163,14 @@ const Adopt: React.FC = () => {
               className="bg-meow-primary hover:bg-meow-primary/90"
               asChild
             >
-              <a href="/cats">View Available Cats</a>
+              <Link to="/cats">View Available Cats</Link>
             </Button>
             <Button 
               variant="outline" 
               className="border-meow-primary text-meow-primary hover:bg-meow-primary/10"
+              asChild
             >
-              Adoption Application
+              <Link to="/volunteer/apply">Adoption Application</Link>
             </Button>
           </div>
         </div>
