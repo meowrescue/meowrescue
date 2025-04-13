@@ -32,6 +32,7 @@ const LostFound = () => {
       let query = supabase
         .from("lost_found_posts")
         .select("*")
+        .neq("status", "archived") // Exclude archived posts
         .order("created_at", { ascending: false });
 
       if (filter !== "all") {

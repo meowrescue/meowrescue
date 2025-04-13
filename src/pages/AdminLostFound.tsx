@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -46,50 +47,30 @@ const AdminLostFound: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [archiveId, setArchiveId] = useState<string | null>(null);
+  const [includeArchived, setIncludeArchived] = useState(false);
 
   // Fetch lost and found posts
   const { data: posts, isLoading, error, refetch } = useQuery({
-    queryKey: ['admin-lost-found-posts'],
+    queryKey: ['admin-lost-found-posts', includeArchived],
     queryFn: async () => {
       try {
-        // First fetch the posts
-        const { data: postsData, error: postsError } = await supabase
+        // Build the query based on whether we want to include archived posts
+        let query = supabase
           .from('lost_found_posts')
-          .select('*')
-          .order('created_at', { ascending: false });
+          .select('*, profiles:profile_id(email, first_name, last_name)');
           
-        if (postsError) throw postsError;
+        if (!includeArchived) {
+          query = query.neq('status', 'archived');
+        }
         
-        // Then fetch profile data separately and combine it
-        const enhancedPosts = await Promise.all(postsData.map(async post => {
-          if (post.profile_id) {
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('email, first_name, last_name')
-              .eq('id', post.profile_id)
-              .single();
-              
-            return {
-              ...post,
-              profiles: profileData || {
-                email: 'Unknown',
-                first_name: null,
-                last_name: null
-              }
-            };
-          }
+        query = query.order('created_at', { ascending: false });
+        
+        const { data, error } = await query;
           
-          return {
-            ...post,
-            profiles: {
-              email: 'Unknown',
-              first_name: null,
-              last_name: null
-            }
-          };
-        }));
+        if (error) throw error;
         
-        return enhancedPosts as LostFoundPost[];
+        return data as unknown as LostFoundPost[];
       } catch (err: any) {
         console.error("Error fetching lost and found posts:", err);
         toast({
@@ -137,6 +118,73 @@ const AdminLostFound: React.FC = () => {
     }
   };
 
+  const handleArchivePost = async () => {
+    if (!archiveId) return;
+    
+    try {
+      const { error } = await supabase
+        .from('lost_found_posts')
+        .update({ status: 'archived' })
+        .eq('id', archiveId);
+        
+      if (error) throw error;
+      
+      toast({
+        title: "Post Archived",
+        description: "The lost & found post has been archived successfully."
+      });
+      
+      refetch();
+    } catch (err: any) {
+      toast({
+        title: "Error Archiving Post",
+        description: err.message || "Failed to archive post",
+        variant: "destructive"
+      });
+    } finally {
+      setArchiveId(null);
+    }
+  };
+
+  const handleRestorePost = async (id: string) => {
+    try {
+      // Get the original status first
+      const { data, error: fetchError } = await supabase
+        .from('lost_found_posts')
+        .select('*')
+        .eq('id', id)
+        .single();
+        
+      if (fetchError) throw fetchError;
+      
+      // Restore to 'lost' or 'found' status based on original before archiving
+      // Default to 'lost' if we can't determine
+      const originalStatus = data.status === 'archived' 
+        ? (data.pet_name ? 'lost' : 'found') // Simple heuristic: if it has a name, it was likely lost
+        : data.status;
+      
+      const { error } = await supabase
+        .from('lost_found_posts')
+        .update({ status: originalStatus })
+        .eq('id', id);
+        
+      if (error) throw error;
+      
+      toast({
+        title: "Post Restored",
+        description: "The post has been restored and is now visible on the public site."
+      });
+      
+      refetch();
+    } catch (err: any) {
+      toast({
+        title: "Error Restoring Post",
+        description: err.message || "Failed to restore post",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <AdminLayout title="Lost & Found">
       <SEO title="Lost & Found | Meow Rescue Admin" />
@@ -154,6 +202,15 @@ const AdminLostFound: React.FC = () => {
                 className="pl-10 w-full md:w-64"
               />
             </div>
+            <Button 
+              variant="outline"
+              onClick={() => {
+                setIncludeArchived(!includeArchived);
+                refetch();
+              }}
+            >
+              {includeArchived ? "Hide Archived" : "Show Archived"}
+            </Button>
           </div>
         </div>
         
@@ -188,13 +245,14 @@ const AdminLostFound: React.FC = () => {
               </TableHeader>
               <TableBody>
                 {filteredPosts.map((post) => (
-                  <TableRow key={post.id}>
+                  <TableRow key={post.id} className={post.status === 'archived' ? 'bg-gray-100' : ''}>
                     <TableCell className="font-medium">{post.title}</TableCell>
                     <TableCell>
                       <Badge variant={
                         post.status === 'lost' ? 'destructive' : 
                         post.status === 'found' ? 'default' : 
-                        'outline'
+                        post.status === 'archived' ? 'outline' :
+                        'secondary'
                       }>
                         {post.status.charAt(0).toUpperCase() + post.status.slice(1)}
                       </Badge>
@@ -210,9 +268,29 @@ const AdminLostFound: React.FC = () => {
                       <Link to={`/lost-found/${post.id}`}>
                         <Button variant="ghost" size="sm">View</Button>
                       </Link>
-                      <Link to={`/lost-found/edit/${post.id}`}>
-                        <Button variant="ghost" size="sm">Edit</Button>
-                      </Link>
+                      {post.status !== 'archived' && (
+                        <>
+                          <Link to={`/lost-found/edit/${post.id}`}>
+                            <Button variant="ghost" size="sm">Edit</Button>
+                          </Link>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => setArchiveId(post.id)}
+                          >
+                            Archive
+                          </Button>
+                        </>
+                      )}
+                      {post.status === 'archived' && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleRestorePost(post.id)}
+                        >
+                          Restore
+                        </Button>
+                      )}
                       <Button 
                         variant="ghost" 
                         size="sm" 
@@ -232,13 +310,16 @@ const AdminLostFound: React.FC = () => {
             <div className="text-center py-12">
               <h2 className="text-2xl font-semibold text-gray-700 mb-4">No Lost & Found Posts</h2>
               <p className="text-gray-500 mb-8">
-                There are no lost and found posts in the database yet. Posts created on the public site will appear here for moderation.
+                {includeArchived 
+                  ? "There are no lost and found posts in the database yet. Posts created on the public site will appear here for moderation."
+                  : "There are no active lost and found posts. Try showing archived posts or check back later."}
               </p>
             </div>
           </div>
         )}
       </div>
 
+      {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -251,6 +332,24 @@ const AdminLostFound: React.FC = () => {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeletePost} className="bg-red-500 hover:bg-red-600">
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Archive Confirmation Dialog */}
+      <AlertDialog open={!!archiveId} onOpenChange={(open) => !open && setArchiveId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Archive this post?</AlertDialogTitle>
+            <AlertDialogDescription>
+              The post will be archived and no longer visible on the public site, but you can restore it later if needed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleArchivePost}>
+              Archive
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

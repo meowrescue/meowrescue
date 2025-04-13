@@ -38,7 +38,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           <p className="text-xl md:text-2xl mb-8">{subtitle}</p>
           <div className="flex flex-wrap gap-4 justify-center">
             <Button 
-              className="bg-meow-secondary hover:bg-meow-secondary/90 text-white px-8 py-3 text-lg"
+              className="bg-meow-secondary hover:bg-meow-secondary/80 text-white px-8 py-3 text-lg transition-colors"
               asChild
             >
               <a href={ctaLink}>{ctaText}</a>

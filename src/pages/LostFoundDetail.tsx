@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import Layout from '@/components/Layout';
@@ -21,6 +22,10 @@ const LostFoundDetail: React.FC = () => {
       try {
         console.log("Fetching lost & found post with ID:", id);
         
+        if (!id) {
+          throw new Error("Post ID is missing");
+        }
+        
         const { data, error } = await supabase
           .from('lost_found_posts')
           .select(`
@@ -33,23 +38,22 @@ const LostFoundDetail: React.FC = () => {
             )
           `)
           .eq('id', id)
+          .neq('status', 'archived') // Don't show archived posts to the public
           .single();
         
         if (error) {
           console.error("Error fetching lost & found post:", error);
-          if (error.code === 'PGRST116') {
-            return null; // Not found
-          }
           throw error;
         }
         
         console.log("Post retrieved:", data);
         return data;
-      } catch (err) {
+      } catch (err: any) {
         console.error("Error in lostFoundPost query:", err);
         throw err;
       }
-    }
+    },
+    retry: 1,
   });
   
   // If post not found or not published
@@ -296,7 +300,10 @@ const LostFoundDetail: React.FC = () => {
                     </p>
                     <Button variant="outline" className="w-full" onClick={() => {
                       navigator.clipboard.writeText(window.location.href);
-                      alert('Link copied to clipboard! Share it with others to help.');
+                      toast({
+                        title: "Link Copied",
+                        description: "The link has been copied to your clipboard. Share it to help spread the word!"
+                      });
                     }}>
                       Copy Link to Share
                     </Button>
