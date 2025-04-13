@@ -54,7 +54,7 @@ const AdminApplications: React.FC = () => {
           .rpc('get_applications', {
             p_status: statusFilter,
             p_type: typeFilter
-          }) as any; // Using 'as any' to fix TypeScript error
+          }) as { data: Application[] | null, error: Error | null };
         
         if (error) throw error;
         
@@ -83,7 +83,7 @@ const AdminApplications: React.FC = () => {
           p_application_id: viewingApplication.id,
           p_status: newStatus,
           p_feedback: feedback
-        }) as any; // Using 'as any' to fix TypeScript error
+        }) as { data: null, error: Error | null };
         
       if (error) throw error;
       

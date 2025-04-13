@@ -6,7 +6,7 @@ export async function getCatFood(): Promise<CatFood[]> {
   try {
     // Using type assertion to bypass TypeScript's strict checking
     const { data, error } = await supabase
-      .rpc('get_cat_food') as unknown as {data: CatFood[] | null, error: Error | null};
+      .rpc('get_cat_food') as { data: CatFood[] | null, error: Error | null };
       
     if (error) {
       throw error;
@@ -37,7 +37,7 @@ export async function addCatFood(
         p_units: units,
         p_cost_per_unit: costPerUnit,
         p_purchase_date: purchaseDate.toISOString()
-      }) as unknown as {data: CatFood | null, error: Error | null};
+      }) as { data: CatFood | null, error: Error | null };
       
     if (error) {
       throw error;
@@ -54,7 +54,7 @@ export async function getCatFeedingRecords(): Promise<CatFeedingRecord[]> {
   try {
     // Using type assertion to bypass TypeScript's strict checking
     const { data, error } = await supabase
-      .rpc('get_cat_feeding_records') as unknown as {data: CatFeedingRecord[] | null, error: Error | null};
+      .rpc('get_cat_feeding_records') as { data: CatFeedingRecord[] | null, error: Error | null };
       
     if (error) {
       throw error;
@@ -81,7 +81,7 @@ export async function addCatFeedingRecord(
         p_cat_food_id: catFoodId,
         p_amount: amount,
         p_feeding_date: feedingDate.toISOString()
-      }) as unknown as {data: CatFeedingRecord | null, error: Error | null};
+      }) as { data: CatFeedingRecord | null, error: Error | null };
       
     if (error) {
       throw error;

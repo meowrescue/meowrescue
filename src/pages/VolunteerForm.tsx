@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -84,7 +85,7 @@ const VolunteerForm: React.FC = () => {
           p_application_type: 'volunteer',
           p_status: 'pending',
           p_form_data: { ...data }
-        }) as any; // Using 'as any' to fix TypeScript error
+        }) as { data: string | null, error: Error | null };
 
       if (error) throw error;
 
