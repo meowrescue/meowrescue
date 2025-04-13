@@ -1,102 +1,83 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
-import SectionHeading from './ui/SectionHeading';
 import { Button } from "@/components/ui/button";
-import { HelpingHand, Heart, DollarSign } from 'lucide-react';
+import SectionHeading from './ui/SectionHeading';
+import { Heart } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const UrgentNeedsSection: React.FC = () => {
-  const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
-  };
-
   return (
-    <section className="py-20 bg-gray-50">
+    <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
         <SectionHeading 
           title="Urgent Needs" 
-          subtitle="We need your help to continue our mission"
+          subtitle="Critical items we need now" 
           centered
         />
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
-          {/* Food Fund */}
-          <div className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow flex flex-col h-full">
-            <div className="flex justify-center mb-6">
-              <div className="p-4 bg-meow-primary/10 rounded-full">
-                <DollarSign size={32} className="text-meow-primary" />
-              </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="bg-white p-6 rounded-lg shadow-md text-center flex flex-col">
+            <div className="p-4 bg-meow-primary/10 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+              <Heart className="h-8 w-8 text-meow-primary" />
             </div>
-            <h3 className="text-xl font-bold text-center mb-6">Monthly Food Fund</h3>
-            <p className="text-gray-700 mb-6 flex-grow">
-              We currently spend nearly $1,000 per month just on quality cat food. Your contribution helps 
-              ensure our 24 cats and kittens are well-fed and nourished.
+            <h3 className="text-xl font-bold text-meow-primary mb-2">Kitten Formula</h3>
+            <p className="text-gray-700 mb-auto">
+              We urgently need KMR kitten formula for our orphaned bottle babies. We currently have 12 kittens under 4 weeks old.
             </p>
-            <div className="bg-gray-100 p-5 rounded-lg mb-6">
-              <p className="font-medium text-center">
-                $15 feeds a cat for a week
-              </p>
+            <div className="mt-4 flex justify-center">
+              <Button 
+                variant="meow" 
+                className="w-full"
+                asChild
+              >
+                <a href="https://www.amazon.com/hz/wishlist/ls/example" target="_blank" rel="noopener noreferrer">
+                  Donate KMR
+                </a>
+              </Button>
             </div>
-            <Button asChild size="full" className="mt-auto">
-              <Link to="/donate" onClick={scrollToTop}>Contribute to Food Fund</Link>
-            </Button>
           </div>
           
-          {/* Urgent Medical Care */}
-          <div className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow flex flex-col h-full">
-            <div className="flex justify-center mb-6">
-              <div className="p-4 bg-meow-primary/10 rounded-full">
-                <Heart size={32} className="text-meow-primary" />
-              </div>
+          <div className="bg-white p-6 rounded-lg shadow-md text-center flex flex-col">
+            <div className="p-4 bg-meow-primary/10 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+              <Heart className="h-8 w-8 text-meow-primary" />
             </div>
-            <h3 className="text-xl font-bold text-center mb-6">Fluffy's Medical Care</h3>
-            <p className="text-gray-700 mb-6 flex-grow">
-              Fluffy was rescued after a suspected coyote attack with severe injuries. He needs veterinary assessment, treatment for a skin condition, neutering, and flea treatment.
+            <h3 className="text-xl font-bold text-meow-primary mb-2">Foster Homes</h3>
+            <p className="text-gray-700 mb-auto">
+              We need temporary foster homes for 6 adult cats who were recently rescued from a hoarding situation. Can you help?
             </p>
-            <div className="bg-gray-100 p-5 rounded-lg mb-6">
-              <p className="font-medium text-center">
-                $250 will cover Fluffy's immediate medical needs
-              </p>
+            <div className="mt-4 flex justify-center">
+              <Button 
+                variant="meow" 
+                className="w-full"
+                asChild
+              >
+                <Link to="/volunteer#volunteer-form">
+                  Apply to Foster
+                </Link>
+              </Button>
             </div>
-            <Button asChild size="full" variant="meowSecondary" className="mt-auto">
-              <Link to="/donate?amount=250&cause=fluffys-care" onClick={scrollToTop}>Help Fluffy Heal</Link>
-            </Button>
           </div>
           
-          {/* Foster Homes */}
-          <div className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow flex flex-col h-full">
-            <div className="flex justify-center mb-6">
-              <div className="p-4 bg-meow-primary/10 rounded-full">
-                <HelpingHand size={32} className="text-meow-primary" />
-              </div>
+          <div className="bg-white p-6 rounded-lg shadow-md text-center flex flex-col">
+            <div className="p-4 bg-meow-primary/10 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+              <Heart className="h-8 w-8 text-meow-primary" />
             </div>
-            <h3 className="text-xl font-bold text-center mb-6">Foster Homes Needed</h3>
-            <p className="text-gray-700 mb-6 flex-grow">
-              We urgently need foster homes to alleviate space constraints and allow us to help more cats in need. Currently, we have 5 kittens who will need homes in the coming weeks.
+            <h3 className="text-xl font-bold text-meow-primary mb-2">Medical Funds</h3>
+            <p className="text-gray-700 mb-auto">
+              Fluffy needs dental surgery that will cost $450. Your donation of any amount helps cover his medical care.
             </p>
-            <div className="bg-gray-100 p-5 rounded-lg mb-6">
-              <p className="font-medium text-center">
-                Even a short-term foster makes a huge difference
-              </p>
+            <div className="mt-4 flex justify-center">
+              <Button 
+                variant="meow" 
+                className="w-full"
+                asChild
+              >
+                <Link to="/donate">
+                  Donate Now
+                </Link>
+              </Button>
             </div>
-            <Button asChild size="full" variant="meowSecondary" className="mt-auto">
-              <Link to="/volunteer?type=foster" onClick={scrollToTop}>Become a Foster</Link>
-            </Button>
           </div>
-        </div>
-        
-        <div className="mt-16 text-center">
-          <Button 
-            asChild
-            variant="meow"
-            size="xl"
-            className="px-10"
-          >
-            <Link to="/donate" onClick={scrollToTop}>Make a Donation</Link>
-          </Button>
         </div>
       </div>
     </section>

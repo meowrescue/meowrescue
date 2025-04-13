@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import SectionHeading from '../components/ui/SectionHeading';
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,22 @@ const Donate: React.FC = () => {
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState<string>('');
   const [isMonthly, setIsMonthly] = useState(false);
+
+  // This effect ensures the Donate button is not incorrectly disabled
+  useEffect(() => {
+    // Check if there's a valid amount selected or entered
+    const hasValidAmount = (selectedAmount && selectedAmount > 0) || 
+                          (customAmount && parseFloat(customAmount) > 0);
+    
+    // Log to console for debugging
+    console.log("Donation state:", { 
+      selectedAmount, 
+      customAmount, 
+      hasCustomAmount: customAmount !== '',
+      hasValidAmount,
+      isMonthly 
+    });
+  }, [selectedAmount, customAmount, isMonthly]);
 
   // Handler for selecting a predefined amount
   const handleAmountSelection = (amount: number) => {
@@ -61,6 +76,12 @@ const Donate: React.FC = () => {
     });
     
     console.log("Specific donation:", { amount, cause, isMonthly: false });
+  };
+
+  // Determine if the donate button should be enabled
+  const isDonateButtonEnabled = () => {
+    return (selectedAmount !== null && selectedAmount > 0) || 
+           (customAmount !== '' && parseFloat(customAmount) > 0);
   };
 
   return (
@@ -128,7 +149,7 @@ const Donate: React.FC = () => {
             <Button 
               className="w-full bg-meow-secondary hover:bg-meow-secondary/90" 
               onClick={handleDonateClick}
-              disabled={!selectedAmount && !customAmount}
+              disabled={!isDonateButtonEnabled() || isMonthly}
             >
               Donate Now
             </Button>

@@ -109,15 +109,15 @@ const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/volunteer" className="flex items-center space-x-2 text-gray-200 hover:text-meow-secondary transition-colors">
+                <Link to="/volunteer#volunteer-form" className="flex items-center space-x-2 text-gray-200 hover:text-meow-secondary transition-colors">
                   <Heart className="w-5 h-5 text-meow-secondary" />
                   <span>Foster</span>
                 </Link>
               </li>
               <li>
-                <Link to="/subscribe" className="flex items-center space-x-2 text-gray-200 hover:text-meow-secondary transition-colors">
+                <Link to="/contact" className="flex items-center space-x-2 text-gray-200 hover:text-meow-secondary transition-colors">
                   <Heart className="w-5 h-5 text-meow-secondary" />
-                  <span>Subscribe</span>
+                  <span>Contact Us</span>
                 </Link>
               </li>
             </ul>
@@ -130,7 +130,7 @@ const Footer: React.FC = () => {
             <Link to="/terms-of-service" className="hover:text-meow-secondary mx-3">Terms of Service</Link>
           </div>
           <p>
-            &copy; {currentYear} Meow Rescue. All rights reserved. Meow Rescue is a 501(c)(3) nonprofit organization. EIN: XX-XXXXXXX
+            &copy; {currentYear} Meow Rescue. All rights reserved.
           </p>
         </div>
       </div>
