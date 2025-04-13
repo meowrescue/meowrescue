@@ -1,38 +1,40 @@
 
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
-import AdminLayout from '@/pages/Admin';
+import { useQuery } from '@tanstack/react-query';
+import { Link, useNavigate } from 'react-router-dom';
+import AdminLayout from './Admin';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, Plus, Eye, EyeOff } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
-import SEO from '@/components/SEO';
-import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger 
-} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
+import { PenSquare, Trash2, MoreHorizontal, Plus, Search, ExternalLink, Eye, EyeOff } from 'lucide-react';
 
 const AdminBlog: React.FC = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { toast } = useToast();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [postToDelete, setPostToDelete] = useState<string | null>(null);
-  
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+
   // Fetch blog posts
-  const { data: posts, isLoading, error } = useQuery({
-    queryKey: ['blogPosts'],
+  const { data: posts, isLoading, refetch } = useQuery({
+    queryKey: ['adminBlogPosts'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('blog_posts')
@@ -43,192 +45,206 @@ const AdminBlog: React.FC = () => {
       return data;
     }
   });
-  
-  // Delete post mutation
-  const deletePostMutation = useMutation({
-    mutationFn: async (id: string) => {
+
+  // Delete post
+  const deletePost = async () => {
+    if (!postToDelete) return;
+
+    try {
       const { error } = await supabase
         .from('blog_posts')
         .delete()
-        .eq('id', id);
-      
+        .eq('id', postToDelete);
+
       if (error) throw error;
-      return id;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['blogPosts'] });
+
       toast({
-        title: "Post Deleted",
-        description: "The blog post has been successfully deleted."
+        title: 'Success',
+        description: 'Blog post deleted successfully',
       });
-      setPostToDelete(null);
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error Deleting Post",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  });
-  
-  // Toggle publish status mutation
-  const togglePublishMutation = useMutation({
-    mutationFn: async ({ id, isPublished }: { id: string, isPublished: boolean }) => {
-      const updates = {
-        is_published: isPublished,
-        published_at: isPublished ? new Date().toISOString() : null
-      };
       
+      refetch();
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete blog post',
+        variant: 'destructive',
+      });
+    } finally {
+      setPostToDelete(null);
+      setIsDeleteAlertOpen(false);
+    }
+  };
+
+  // Toggle post publish status
+  const togglePublishStatus = async (id: string, currentStatus: boolean) => {
+    const now = new Date().toISOString();
+    const updateData = {
+      is_published: !currentStatus,
+      published_at: !currentStatus ? now : null,
+      updated_at: now,
+    };
+
+    try {
       const { error } = await supabase
         .from('blog_posts')
-        .update(updates)
+        .update(updateData)
         .eq('id', id);
-      
+
       if (error) throw error;
-      return { id, isPublished };
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['blogPosts'] });
+
       toast({
-        title: data.isPublished ? "Post Published" : "Post Unpublished",
-        description: `The blog post has been ${data.isPublished ? "published" : "unpublished"}.`
+        title: 'Success',
+        description: `Blog post ${!currentStatus ? 'published' : 'unpublished'} successfully`,
       });
-    },
-    onError: (error: any) => {
+      
+      refetch();
+    } catch (error: any) {
       toast({
-        title: "Error Updating Post",
-        description: error.message,
-        variant: "destructive"
+        title: 'Error',
+        description: error.message || 'Failed to update publish status',
+        variant: 'destructive',
       });
     }
-  });
-  
-  // Handle delete post
-  const handleDeletePost = (id: string) => {
-    setPostToDelete(id);
   };
-  
-  const confirmDeletePost = () => {
-    if (postToDelete) {
-      deletePostMutation.mutate(postToDelete);
-    }
-  };
-  
-  // Handle toggle publish
-  const handleTogglePublish = (id: string, currentStatus: boolean) => {
-    togglePublishMutation.mutate({ id, isPublished: !currentStatus });
-  };
-  
-  // Filter posts based on search query
-  const filteredPosts = posts?.filter(post =>
-    post.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+
+  // Filter posts based on search term
+  const filteredPosts = posts ? posts.filter(post => 
+    post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    post.content.toLowerCase().includes(searchTerm.toLowerCase())
+  ) : [];
 
   return (
-    <AdminLayout title="Blog Posts">
-      <SEO title="Blog Posts | Meow Rescue Admin" />
-      
-      <div className="container mx-auto py-10">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-meow-primary">Blog Posts</h1>
-          <div className="flex items-center space-x-4">
-            <Input
-              placeholder="Search posts..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="max-w-sm"
-            />
-            <Button onClick={() => navigate('/admin/blog/new')}>
-              <Plus className="mr-2 h-4 w-4" />
-              New Post
-            </Button>
-          </div>
+    <AdminLayout title="Blog Management">
+      <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
+        <div className="w-full md:w-auto">
+          <Input
+            placeholder="Search blog posts..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full md:w-80"
+            icon={<Search className="h-4 w-4 text-gray-400" />}
+          />
         </div>
-        
-        {isLoading ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
-          </div>
-        ) : error ? (
-          <div className="text-center py-12">
-            <p className="text-red-500">Error loading blog posts. Please try again later.</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableCaption>A list of all blog posts.</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredPosts?.map((post) => (
-                  <TableRow key={post.id}>
-                    <TableCell className="font-medium">{post.title}</TableCell>
-                    <TableCell>
-                      <Badge className={post.is_published ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>
-                        {post.is_published ? "Published" : "Draft"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{new Date(post.created_at).toLocaleDateString()}</TableCell>
-                    <TableCell className="text-right">
+        <Button onClick={() => navigate('/admin/blog/new')} className="w-full md:w-auto">
+          <Plus className="h-4 w-4 mr-2" /> Create New Post
+        </Button>
+      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
+        </div>
+      ) : filteredPosts.length > 0 ? (
+        <div className="bg-white rounded-md shadow overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Title</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredPosts.map((post) => (
+                <TableRow key={post.id}>
+                  <TableCell className="font-medium">{post.title}</TableCell>
+                  <TableCell>
+                    <Badge variant={post.is_published ? "success" : "outline"}>
+                      {post.is_published ? 'Published' : 'Draft'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {post.is_published && post.published_at
+                      ? new Date(post.published_at).toLocaleDateString()
+                      : new Date(post.created_at).toLocaleDateString() + ' (Created)'}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
                       <Button 
                         variant="ghost" 
-                        size="icon" 
-                        onClick={() => handleTogglePublish(post.id, post.is_published)}
+                        size="icon"
+                        onClick={() => togglePublishStatus(post.id, post.is_published)}
                         title={post.is_published ? "Unpublish" : "Publish"}
                       >
                         {post.is_published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
+                      
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => navigate(`/admin/blog/edit/${post.id}`)}
-                        title="Edit"
+                        title="Edit post"
                       >
-                        <Edit className="h-4 w-4" />
+                        <PenSquare className="h-4 w-4" />
                       </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => handleDeletePost(post.id)}
-                        title="Delete"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                
-                {filteredPosts?.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8">
-                      No blog posts found. Create a new post to get started.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-      </div>
-      
-      <AlertDialog open={!!postToDelete} onOpenChange={(open) => !open && setPostToDelete(null)}>
+                      
+                      {post.is_published && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          asChild
+                          title="View on site"
+                        >
+                          <Link to={`/blog/${post.slug}`} target="_blank">
+                            <ExternalLink className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                      )}
+                      
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem 
+                            onClick={() => {
+                              setPostToDelete(post.id);
+                              setIsDeleteAlertOpen(true);
+                            }}
+                            className="text-red-600 focus:text-red-600"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      ) : (
+        <div className="bg-white rounded-md shadow p-8 text-center">
+          <p className="text-gray-500 mb-4">
+            {searchTerm ? 'No blog posts matching your search' : 'No blog posts yet'}
+          </p>
+          <Button onClick={() => navigate('/admin/blog/new')}>
+            <Plus className="h-4 w-4 mr-2" /> Create Your First Post
+          </Button>
+        </div>
+      )}
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the blog post.
+              This action cannot be undone. This will permanently delete the blog post
+              and all of its content.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeletePost} className="bg-red-500 hover:bg-red-600">Delete</AlertDialogAction>
+            <AlertDialogAction onClick={deletePost} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

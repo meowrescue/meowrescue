@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -19,7 +20,7 @@ import {
 import { useMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
 
-const Navbar: React.FC = () => {
+const CustomNavbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
@@ -187,4 +188,4 @@ const Navbar: React.FC = () => {
   );
 };
 
-export default Navbar;
+export default CustomNavbar;

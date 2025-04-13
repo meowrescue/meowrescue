@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Layout from '@/components/Layout';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -45,13 +44,13 @@ const Profile: React.FC = () => {
     }
   });
 
-  // Fetch user's posts
-  const { data: forumPosts } = useQuery({
-    queryKey: ['forumPosts', user?.id],
+  // Fixed: Fetch lost & found posts from the correct table
+  const { data: lostFoundPosts } = useQuery({
+    queryKey: ['lostFoundPosts', user?.id],
     queryFn: async () => {
       if (!user) return [];
       const { data, error } = await supabase
-        .from('forum_posts')
+        .from('lost_found_posts')
         .select('*')
         .eq('profile_id', user.id);
       
@@ -61,15 +60,18 @@ const Profile: React.FC = () => {
     enabled: !!user
   });
 
-  // Fetch lost & found posts
-  const { data: lostFoundPosts } = useQuery({
-    queryKey: ['lostFoundPosts', user?.id],
+  // Fixed: Don't fetch forum posts since the table doesn't exist yet
+  const forumPosts = [];
+
+  // Fixed: Fetch blog posts authored by the user
+  const { data: blogPosts } = useQuery({
+    queryKey: ['blogPosts', user?.id],
     queryFn: async () => {
       if (!user) return [];
       const { data, error } = await supabase
-        .from('lost_found_posts')
+        .from('blog_posts')
         .select('*')
-        .eq('profile_id', user.id);
+        .eq('author_profile_id', user.id);
       
       if (error) throw error;
       return data;
@@ -431,25 +433,28 @@ const Profile: React.FC = () => {
                   <CardHeader className="pb-6">
                     <CardTitle className="flex items-center gap-2">
                       <MessageSquare className="h-5 w-5" />
-                      Your Forum Posts
+                      Your Blog Posts
                     </CardTitle>
-                    <CardDescription>Posts you've made in our community forum</CardDescription>
+                    <CardDescription>Posts you've authored in our blog</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    {forumPosts && forumPosts.length > 0 ? (
+                    {blogPosts && blogPosts.length > 0 ? (
                       <div className="divide-y">
-                        {forumPosts.map((post: any) => (
+                        {blogPosts.map((post: any) => (
                           <div key={post.id} className="py-4">
                             <h3 className="font-medium">{post.title}</h3>
                             <p className="text-sm text-gray-500 mt-1">
-                              Posted on {new Date(post.created_at).toLocaleDateString()}
+                              {post.is_published ? 'Published' : 'Draft'} • 
+                              {post.published_at 
+                                ? ` Published on ${new Date(post.published_at).toLocaleDateString()}` 
+                                : ` Created on ${new Date(post.created_at).toLocaleDateString()}`}
                             </p>
                           </div>
                         ))}
                       </div>
                     ) : (
                       <p className="text-center py-6 text-gray-500">
-                        You haven't created any forum posts yet.
+                        You haven't created any blog posts yet.
                       </p>
                     )}
                   </CardContent>

@@ -40,7 +40,7 @@ const Blog: React.FC = () => {
       />
 
       {/* Hero Section */}
-      <div className="bg-meow-primary/10 py-16 md:py-24">
+      <div className="bg-meow-primary/10 py-16 md:py-24 text-center">
         <div className="container mx-auto px-4">
           <SectionHeading
             title="Our Blog"
@@ -51,7 +51,7 @@ const Blog: React.FC = () => {
       </div>
 
       {/* Blog Posts */}
-      <div className="container mx-auto px-4 py-16">
+      <div id="posts" className="container mx-auto px-4 py-16">
         {isLoading ? (
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
