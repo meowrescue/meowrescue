@@ -2,8 +2,58 @@
 import React from 'react';
 import { Cat, Heart, Home, Award } from 'lucide-react';
 import CountUp from './CountUp';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const StatsSection: React.FC = () => {
+  // Fetch cats in care
+  const { data: catsInCare = 0 } = useQuery({
+    queryKey: ['cats-in-care-count'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('cats')
+        .select('*', { count: 'exact', head: true });
+      
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
+  // Fetch total cats rescued (based on all cats ever entered in the system)
+  const { data: totalRescued = 0 } = useQuery({
+    queryKey: ['cats-rescued-count'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('cats')
+        .select('*', { count: 'exact', head: true });
+      
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
+  // Fetch total adoptions
+  const { data: totalAdoptions = 0 } = useQuery({
+    queryKey: ['adoptions-count'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('cats')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'Adopted');
+      
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
+  // Calculate years of service (from current date to when rescue was founded)
+  const calculateYearsOfService = () => {
+    const foundingDate = new Date('2022-01-01'); // Set to actual founding date
+    const currentDate = new Date();
+    const yearDiff = currentDate.getFullYear() - foundingDate.getFullYear();
+    return yearDiff;
+  };
+
   return (
     <section className="py-16 bg-meow-primary/5">
       <div className="container mx-auto px-4">
@@ -15,7 +65,7 @@ const StatsSection: React.FC = () => {
                 <Cat className="w-8 h-8 text-meow-primary" />
               </div>
               <div className="text-4xl font-bold text-meow-primary mb-2">
-                <CountUp end={24} suffix="+" />
+                <CountUp end={catsInCare} suffix="+" />
               </div>
               <p className="text-gray-600">Cats in Care</p>
             </div>
@@ -26,7 +76,7 @@ const StatsSection: React.FC = () => {
                 <Heart className="w-8 h-8 text-meow-primary" />
               </div>
               <div className="text-4xl font-bold text-meow-primary mb-2">
-                <CountUp end={147} />
+                <CountUp end={totalRescued} />
               </div>
               <p className="text-gray-600">Cats Rescued</p>
             </div>
@@ -37,7 +87,7 @@ const StatsSection: React.FC = () => {
                 <Home className="w-8 h-8 text-meow-primary" />
               </div>
               <div className="text-4xl font-bold text-meow-primary mb-2">
-                <CountUp end={112} />
+                <CountUp end={totalAdoptions} />
               </div>
               <p className="text-gray-600">Adoptions</p>
             </div>
@@ -48,7 +98,7 @@ const StatsSection: React.FC = () => {
                 <Award className="w-8 h-8 text-meow-primary" />
               </div>
               <div className="text-4xl font-bold text-meow-primary mb-2">
-                <CountUp end={3} />
+                <CountUp end={calculateYearsOfService()} />
               </div>
               <p className="text-gray-600">Years Serving</p>
             </div>

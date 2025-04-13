@@ -4,13 +4,25 @@ import { Link } from 'react-router-dom';
 import SectionHeading from './ui/SectionHeading';
 import CatCard from './CatCard';
 import { Button } from "@/components/ui/button";
-import { cats } from '../data/cats';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const FeaturedCatsSection: React.FC = () => {
-  // Display only available cats, limited to 3
-  const featuredCats = cats
-    .filter(cat => cat.status === 'Available')
-    .slice(0, 3);
+  // Fetch available cats from the database
+  const { data: featuredCats = [], isLoading } = useQuery({
+    queryKey: ['featured-cats'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('cats')
+        .select('*')
+        .eq('status', 'Available')
+        .order('created_at', { ascending: false })
+        .limit(3);
+      
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
   const scrollToTop = () => {
     window.scrollTo({
@@ -18,6 +30,11 @@ const FeaturedCatsSection: React.FC = () => {
       behavior: 'smooth'
     });
   };
+
+  // Show nothing if there are no available cats
+  if (!isLoading && featuredCats.length === 0) {
+    return null;
+  }
 
   return (
     <section className="py-16">
@@ -34,11 +51,11 @@ const FeaturedCatsSection: React.FC = () => {
               key={cat.id}
               id={cat.id}
               name={cat.name}
-              imageUrl={cat.imageUrl}
-              age={cat.age}
-              gender={cat.gender}
-              description={cat.description}
-              status={cat.status}
+              imageUrl={cat.photos_urls ? cat.photos_urls[0] : ''}
+              age={cat.age_estimate || 'Unknown'}
+              gender={cat.gender || 'Unknown'}
+              description={cat.description || ''}
+              status={'Available'} // They're all available since we filtered them
             />
           ))}
         </div>
