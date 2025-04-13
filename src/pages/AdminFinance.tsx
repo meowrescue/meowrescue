@@ -704,7 +704,7 @@ const AdminFinance: React.FC = () => {
         
         <Tabs defaultValue="donations" onValueChange={setActiveTab}>
           <TabsList className="mb-6">
-            <TabsTrigger value="donations">Donations</TabsTrigger>
+            <TabsTrigger value="donations">Income</TabsTrigger>
             <TabsTrigger value="expenses">Expenses</TabsTrigger>
           </TabsList>
           

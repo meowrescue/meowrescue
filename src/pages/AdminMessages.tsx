@@ -41,6 +41,7 @@ interface Message {
   message_subject: string;
   message_body: string;
   message_status: MessageStatus;
+  source: 'contact_form' | 'direct_message';
 }
 
 // Update the status type to include 'Archived'
@@ -74,7 +75,8 @@ const AdminMessages: React.FC = () => {
         sender_email: msg.email,
         message_subject: 'Contact Form Message', // Default subject
         message_body: msg.message,
-        message_status: msg.status as MessageStatus
+        message_status: msg.status as MessageStatus,
+        source: 'contact_form' as const
       }));
       
       return transformedData as Message[];
@@ -204,6 +206,7 @@ const AdminMessages: React.FC = () => {
                   <TableHead>Sender</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Subject</TableHead>
+                  <TableHead>Source</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -215,6 +218,11 @@ const AdminMessages: React.FC = () => {
                     <TableCell>{message.sender_name}</TableCell>
                     <TableCell>{message.sender_email}</TableCell>
                     <TableCell>{message.message_subject}</TableCell>
+                    <TableCell>
+                      <Badge className={message.source === 'contact_form' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}>
+                        {message.source === 'contact_form' ? 'Contact Form' : 'Direct Message'}
+                      </Badge>
+                    </TableCell>
                     <TableCell>
                       <Badge
                         className={
@@ -263,7 +271,7 @@ const AdminMessages: React.FC = () => {
                 ))}
                 {filteredMessages?.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                    <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                       No messages found.
                     </TableCell>
                   </TableRow>

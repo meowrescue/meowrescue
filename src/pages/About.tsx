@@ -61,6 +61,30 @@ const About = () => {
         
         <section>
           <SectionHeading 
+            title="Our Founder's Story" 
+            subtitle="How Meow Rescue came to be" 
+            centered={true}
+          />
+          <div className="max-w-3xl mx-auto text-center text-lg text-gray-700 leading-relaxed">
+            <p className="mb-4">
+              Meow Rescue began in 2010 when our founder, Sarah, found a litter of abandoned kittens behind her apartment complex. 
+              Unable to find a shelter with space to take them in, she decided to care for them herself.
+            </p>
+            <p className="mb-4">
+              What started as a small act of kindness soon grew into a passion. Sarah began networking with local veterinarians 
+              and animal lovers to create a foster network. Within a year, she had helped rescue and rehome over 50 cats.
+            </p>
+            <p>
+              In 2012, Meow Rescue officially became a registered non-profit organization. Today, we operate with a network of 
+              dedicated volunteers, foster homes, and community partners who share our commitment to improving the lives of cats in need.
+            </p>
+          </div>
+        </section>
+        
+        <hr className="section-divider" />
+        
+        <section>
+          <SectionHeading 
             title="Meet the Team" 
             subtitle="The dedicated individuals behind Meow Rescue" 
             centered={true}

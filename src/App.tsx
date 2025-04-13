@@ -45,6 +45,7 @@ import AdminPages from "./pages/AdminPages";
 import AdminEvents from "./pages/AdminEvents";
 import AdminLostFound from "./pages/AdminLostFound";
 import AdminMessages from "./pages/AdminMessages";
+import AdminChat from "./pages/AdminChat";
 import AdminSecurity from "./pages/AdminSecurity";
 import AdminSettings from "./pages/AdminSettings";
 import AdminApplications from "./pages/AdminApplications";
@@ -117,6 +118,7 @@ const App = () => (
               <Route path="/admin/events" element={<AdminEvents />} />
               <Route path="/admin/lost-found" element={<AdminLostFound />} />
               <Route path="/admin/messages" element={<AdminMessages />} />
+              <Route path="/admin/chat" element={<AdminChat />} />
               <Route path="/admin/security" element={<AdminSecurity />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
               <Route path="/admin/applications" element={<AdminApplications />} />

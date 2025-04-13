@@ -10,19 +10,17 @@ import {
   MessageSquare, 
   FileText, 
   Settings, 
-  Menu, 
   Lock,
   Search,
   ClipboardList,
-  ChevronLeft,
-  ChevronRight
+  MessageCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSidebarContext } from '@/components/ui/sidebar';
 
 const AdminNavbar: React.FC = () => {
   const location = useLocation();
-  const { isSidebarOpen, toggleSidebar } = useSidebarContext();
+  const { isSidebarOpen } = useSidebarContext();
   
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -36,6 +34,7 @@ const AdminNavbar: React.FC = () => {
     { path: '/admin/events', label: 'Events', icon: <Calendar size={20} /> },
     { path: '/admin/finance', label: 'Finance', icon: <DollarSign size={20} /> },
     { path: '/admin/messages', label: 'Messages', icon: <MessageSquare size={20} /> },
+    { path: '/admin/chat', label: 'Chat', icon: <MessageCircle size={20} /> },
     { path: '/admin/lost-found', label: 'Lost & Found', icon: <Search size={20} /> },
     { path: '/admin/blog', label: 'Blog', icon: <FileText size={20} /> },
     { path: '/admin/security', label: 'Security', icon: <Lock size={20} /> },
@@ -44,33 +43,23 @@ const AdminNavbar: React.FC = () => {
   
   return (
     <aside 
-      className={`bg-white border-r border-gray-200 ${
-        isSidebarOpen ? 'w-64' : 'w-20'
-      } transition-all duration-300 h-screen sticky top-0 z-40 overflow-y-auto`}
+      className="bg-white border-r border-gray-200 w-64 transition-all duration-300 h-screen sticky top-0 z-40 overflow-y-auto"
     >
       <div className="flex flex-col h-full">
         <div className="p-4 border-b border-gray-200 flex items-center justify-between">
           <Link 
             to="/" 
-            className={`font-bold text-xl text-meow-primary flex items-center ${
-              !isSidebarOpen && 'justify-center'
-            }`}
+            className="font-bold text-xl text-meow-primary flex items-center"
           >
-            {isSidebarOpen ? (
-              <div className="flex items-center gap-2">
-                <div className="bg-meow-primary rounded-full p-1">
-                  <Cat className="h-5 w-5 text-white" />
-                </div>
-                <span>
-                  <span className="text-meow-primary">Meow</span>
-                  <span className="text-meow-secondary">Rescue</span>
-                </span>
-              </div>
-            ) : (
+            <div className="flex items-center gap-2">
               <div className="bg-meow-primary rounded-full p-1">
                 <Cat className="h-5 w-5 text-white" />
               </div>
-            )}
+              <span>
+                <span className="text-meow-primary">Meow</span>
+                <span className="text-meow-secondary">Rescue</span>
+              </span>
+            </div>
           </Link>
         </div>
         
@@ -84,10 +73,10 @@ const AdminNavbar: React.FC = () => {
                     isActive(item.path)
                       ? 'bg-meow-primary/10 text-meow-primary'
                       : 'text-gray-700 hover:bg-gray-100 hover:text-meow-primary'
-                  } ${!isSidebarOpen && 'justify-center'}`}
+                  }`}
                 >
                   <span className="mr-3">{item.icon}</span>
-                  {isSidebarOpen && <span>{item.label}</span>}
+                  <span>{item.label}</span>
                 </Link>
               </li>
             ))}
@@ -95,30 +84,12 @@ const AdminNavbar: React.FC = () => {
         </nav>
         
         <div className="p-4 border-t border-gray-200">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={toggleSidebar} 
-            className="w-full flex items-center justify-center p-2 h-auto"
-          >
-            {isSidebarOpen ? (
-              <>
-                <ChevronLeft size={20} className="mr-2" />
-                <span>Collapse Sidebar</span>
-              </>
-            ) : (
-              <ChevronRight size={20} />
-            )}
-          </Button>
-          
           <Link 
             to="/admin/settings" 
-            className={`flex items-center text-gray-700 hover:text-meow-primary mt-4 ${
-              !isSidebarOpen && 'justify-center'
-            }`}
+            className="flex items-center text-gray-700 hover:text-meow-primary"
           >
             <Settings size={20} className="mr-2" />
-            {isSidebarOpen && <span>Admin Settings</span>}
+            <span>Admin Settings</span>
           </Link>
         </div>
       </div>

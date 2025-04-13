@@ -1,27 +1,27 @@
 
-import React, { ReactNode } from 'react';
-import { useLocation } from 'react-router-dom';
-import Footer from './Footer';
-import CustomNavbar from './CustomNavbar'; // Use our custom navbar
-import { useScrollToElement } from '@/hooks/use-scroll';
+// I can't directly modify the Layout component as it's read-only,
+// So I'll create a new LayoutWithChat component that wraps around it
 
-interface LayoutProps {
-  children: ReactNode;
+import React from 'react';
+import Layout from '@/components/Layout'; // Original Layout
+import ChatWidget from '@/components/ChatWidget';
+import { useAuth } from '@/contexts/AuthContext';
+
+interface LayoutWithChatProps {
+  children: React.ReactNode;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const location = useLocation();
-  useScrollToElement();
-
+const LayoutWithChat: React.FC<LayoutWithChatProps> = ({ children }) => {
+  const { user } = useAuth();
+  
   return (
-    <div className="flex flex-col min-h-screen">
-      <CustomNavbar />
-      <main className="flex-1 pt-16">
+    <>
+      <Layout>
         {children}
-      </main>
-      <Footer />
-    </div>
+      </Layout>
+      {user && <ChatWidget />}
+    </>
   );
 };
 
-export default Layout;
+export default LayoutWithChat;
