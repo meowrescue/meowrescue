@@ -20,9 +20,8 @@ import { supabase } from '@/integrations/supabase/client';
 const contactFormSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
   email: z.string().email({ message: 'Please enter a valid email address.' }),
-  phone: z.string().optional(),
-  message: z.string().min(10, { message: 'Message must be at least 10 characters.' }),
   subject: z.string().min(2, { message: 'Subject must be at least 2 characters.' }),
+  message: z.string().min(10, { message: 'Message must be at least 10 characters.' }),
 });
 
 type ContactFormValues = z.infer<typeof contactFormSchema>;
@@ -36,7 +35,6 @@ export default function ContactForm() {
     defaultValues: {
       name: '',
       email: '',
-      phone: '',
       subject: '',
       message: '',
     },
@@ -54,7 +52,6 @@ export default function ContactForm() {
         .insert([{
           name: values.name,
           email: values.email,
-          phone: values.phone || null,
           subject: values.subject,
           message: values.message,
           status: 'New',
@@ -77,7 +74,6 @@ export default function ContactForm() {
       form.reset({
         name: '',
         email: '',
-        phone: '',
         subject: '',
         message: '',
       });
@@ -125,34 +121,19 @@ export default function ContactForm() {
             )}
           />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
-            control={form.control}
-            name="phone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Phone (Optional)</FormLabel>
-                <FormControl>
-                  <Input placeholder="Your phone number" {...field} className="h-12" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="subject"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Subject</FormLabel>
-                <FormControl>
-                  <Input placeholder="Message subject" {...field} className="h-12" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name="subject"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Subject</FormLabel>
+              <FormControl>
+                <Input placeholder="Message subject" {...field} className="h-12" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <FormField
           control={form.control}
           name="message"

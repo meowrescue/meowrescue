@@ -393,30 +393,36 @@ export type Database = {
           id: string
           message: string
           name: string
+          phone: string | null
           received_at: string
           responded_at: string | null
           response: string | null
           status: Database["public"]["Enums"]["message_status"]
+          subject: string | null
         }
         Insert: {
           email: string
           id?: string
           message: string
           name: string
+          phone?: string | null
           received_at?: string
           responded_at?: string | null
           response?: string | null
           status?: Database["public"]["Enums"]["message_status"]
+          subject?: string | null
         }
         Update: {
           email?: string
           id?: string
           message?: string
           name?: string
+          phone?: string | null
           received_at?: string
           responded_at?: string | null
           response?: string | null
           status?: Database["public"]["Enums"]["message_status"]
+          subject?: string | null
         }
         Relationships: []
       }
@@ -766,6 +772,8 @@ export type Database = {
           role_title: string | null
           show_in_team: boolean | null
           state: string | null
+          unread_chat_count: number | null
+          unread_message_count: number | null
           updated_at: string
           zip: string | null
         }
@@ -785,6 +793,8 @@ export type Database = {
           role_title?: string | null
           show_in_team?: boolean | null
           state?: string | null
+          unread_chat_count?: number | null
+          unread_message_count?: number | null
           updated_at?: string
           zip?: string | null
         }
@@ -804,6 +814,8 @@ export type Database = {
           role_title?: string | null
           show_in_team?: boolean | null
           state?: string | null
+          unread_chat_count?: number | null
+          unread_message_count?: number | null
           updated_at?: string
           zip?: string | null
         }
@@ -1054,6 +1066,10 @@ export type Database = {
           type: string
           units: string
         }[]
+      }
+      get_unread_counts: {
+        Args: { user_id: string }
+        Returns: Json
       }
       get_user_status: {
         Args: { user_id: string }

@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,6 +46,7 @@ interface LostFoundPost {
 const AdminLostFound: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [archiveId, setArchiveId] = useState<string | null>(null);
   const [includeArchived, setIncludeArchived] = useState(false);
@@ -68,8 +69,12 @@ const AdminLostFound: React.FC = () => {
         
         const { data, error } = await query;
           
-        if (error) throw error;
+        if (error) {
+          console.error("Error fetching lost and found posts:", error);
+          throw error;
+        }
         
+        console.log("Fetched lost and found posts:", data);
         return data as unknown as LostFoundPost[];
       } catch (err: any) {
         console.error("Error fetching lost and found posts:", err);
@@ -83,6 +88,11 @@ const AdminLostFound: React.FC = () => {
     }
   });
 
+  // Force refetch on mount
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
+
   // Filter posts based on search query
   const filteredPosts = posts?.filter(post =>
     post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -90,64 +100,67 @@ const AdminLostFound: React.FC = () => {
     post.location.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleDeletePost = async () => {
-    if (!deleteId) return;
-    
-    try {
+  // Delete mutation
+  const deletePostMutation = useMutation({
+    mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('lost_found_posts')
         .delete()
-        .eq('id', deleteId);
+        .eq('id', id);
         
       if (error) throw error;
-      
+      return id;
+    },
+    onSuccess: () => {
       toast({
         title: "Post Deleted",
         description: "The lost & found post has been deleted successfully."
       });
-      
-      refetch();
-    } catch (err: any) {
+      queryClient.invalidateQueries({ queryKey: ['admin-lost-found-posts'] });
+      setDeleteId(null);
+    },
+    onError: (error: any) => {
       toast({
         title: "Error Deleting Post",
-        description: err.message || "Failed to delete post",
+        description: error.message || "Failed to delete post",
         variant: "destructive"
       });
-    } finally {
       setDeleteId(null);
     }
-  };
+  });
 
-  const handleArchivePost = async () => {
-    if (!archiveId) return;
-    
-    try {
+  // Archive mutation
+  const archivePostMutation = useMutation({
+    mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('lost_found_posts')
         .update({ status: 'archived' })
-        .eq('id', archiveId);
+        .eq('id', id);
         
       if (error) throw error;
-      
+      return id;
+    },
+    onSuccess: () => {
       toast({
         title: "Post Archived",
         description: "The lost & found post has been archived successfully."
       });
-      
-      refetch();
-    } catch (err: any) {
+      queryClient.invalidateQueries({ queryKey: ['admin-lost-found-posts'] });
+      setArchiveId(null);
+    },
+    onError: (error: any) => {
       toast({
         title: "Error Archiving Post",
-        description: err.message || "Failed to archive post",
+        description: error.message || "Failed to archive post",
         variant: "destructive"
       });
-    } finally {
       setArchiveId(null);
     }
-  };
+  });
 
-  const handleRestorePost = async (id: string) => {
-    try {
+  // Restore mutation
+  const restorePostMutation = useMutation({
+    mutationFn: async (id: string) => {
       // Get the original status first
       const { data, error: fetchError } = await supabase
         .from('lost_found_posts')
@@ -169,20 +182,38 @@ const AdminLostFound: React.FC = () => {
         .eq('id', id);
         
       if (error) throw error;
-      
+      return id;
+    },
+    onSuccess: (id) => {
       toast({
         title: "Post Restored",
         description: "The post has been restored and is now visible on the public site."
       });
-      
-      refetch();
-    } catch (err: any) {
+      queryClient.invalidateQueries({ queryKey: ['admin-lost-found-posts'] });
+    },
+    onError: (error: any) => {
       toast({
         title: "Error Restoring Post",
-        description: err.message || "Failed to restore post",
+        description: error.message || "Failed to restore post",
         variant: "destructive"
       });
     }
+  });
+
+  const handleDeletePost = () => {
+    if (deleteId) {
+      deletePostMutation.mutate(deleteId);
+    }
+  };
+
+  const handleArchivePost = () => {
+    if (archiveId) {
+      archivePostMutation.mutate(archiveId);
+    }
+  };
+
+  const handleRestorePost = (id: string) => {
+    restorePostMutation.mutate(id);
   };
 
   return (
@@ -210,6 +241,9 @@ const AdminLostFound: React.FC = () => {
               }}
             >
               {includeArchived ? "Hide Archived" : "Show Archived"}
+            </Button>
+            <Button onClick={() => refetch()}>
+              Refresh
             </Button>
           </div>
         </div>

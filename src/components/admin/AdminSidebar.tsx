@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   BarChart3,
@@ -17,11 +17,57 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const AdminSidebar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut } = useAuth();
+  const [unreadChat, setUnreadChat] = useState(0);
+  const [unreadMessages, setUnreadMessages] = useState(0);
+  
+  // Fetch unread counts
+  const { data: unreadCounts } = useQuery({
+    queryKey: ['unreadCounts'],
+    queryFn: async () => {
+      try {
+        // Count unread chat messages
+        const { data: chatData, error: chatError } = await supabase
+          .from('chat_messages')
+          .select('id')
+          .eq('is_admin', false)
+          .is('read_at', null);
+          
+        if (chatError) throw chatError;
+        
+        // Count unread contact messages
+        const { data: messageData, error: messageError } = await supabase
+          .from('contact_messages')
+          .select('id')
+          .eq('status', 'new');
+          
+        if (messageError) throw messageError;
+        
+        return {
+          chatCount: chatData?.length || 0,
+          messageCount: messageData?.length || 0
+        };
+      } catch (err) {
+        console.error("Error fetching unread counts:", err);
+        return { chatCount: 0, messageCount: 0 };
+      }
+    },
+    refetchInterval: 30000 // Refresh every 30 seconds
+  });
+  
+  // Update badges when data changes
+  useEffect(() => {
+    if (unreadCounts) {
+      setUnreadChat(unreadCounts.chatCount);
+      setUnreadMessages(unreadCounts.messageCount);
+    }
+  }, [unreadCounts]);
   
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -151,12 +197,15 @@ const AdminSidebar: React.FC = () => {
             className={`flex items-center justify-between p-2 rounded transition-colors ${
               isActive('/admin/chat') ? 'bg-gray-100' : 'hover:bg-gray-100'
             }`}
+            onClick={() => setUnreadChat(0)} // Reset when clicked
           >
             <div className="flex items-center">
               <MessageCircle className="mr-3 h-5 w-5 text-gray-600" />
               <span>Live Chat</span>
             </div>
-            <Badge variant="default" className="bg-meow-secondary">3</Badge>
+            {unreadChat > 0 && (
+              <Badge variant="default" className="bg-meow-secondary">{unreadChat}</Badge>
+            )}
           </Link>
           
           <Link 
@@ -164,12 +213,15 @@ const AdminSidebar: React.FC = () => {
             className={`flex items-center justify-between p-2 rounded transition-colors ${
               isActive('/admin/messages') ? 'bg-gray-100' : 'hover:bg-gray-100'
             }`}
+            onClick={() => setUnreadMessages(0)} // Reset when clicked
           >
             <div className="flex items-center">
               <Mail className="mr-3 h-5 w-5 text-gray-600" />
               <span>Contact Messages</span>
             </div>
-            <Badge variant="default" className="bg-meow-secondary">5</Badge>
+            {unreadMessages > 0 && (
+              <Badge variant="default" className="bg-meow-secondary">{unreadMessages}</Badge>
+            )}
           </Link>
         </div>
         

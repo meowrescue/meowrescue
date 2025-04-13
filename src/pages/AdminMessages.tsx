@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
 import { Button } from '@/components/ui/button';
@@ -41,6 +41,9 @@ interface ContactMessage {
   status: 'new' | 'read' | 'replied' | 'archived';
   created_at: string;
   updated_at: string;
+  received_at: string;
+  reply_text?: string;
+  replied_at?: string;
 }
 
 const AdminMessages: React.FC = () => {
@@ -56,7 +59,7 @@ const AdminMessages: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('');
   
   // Fetch contact messages
-  const { data: messages, isLoading } = useQuery({
+  const { data: messages, isLoading, refetch } = useQuery({
     queryKey: ['contactMessages', statusFilter],
     queryFn: async () => {
       let query = supabase
@@ -67,11 +70,16 @@ const AdminMessages: React.FC = () => {
         query = query.eq('status', statusFilter);
       }
       
-      query = query.order('created_at', { ascending: false });
+      query = query.order('received_at', { ascending: false });
       
       const { data, error } = await query;
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching contact messages:", error);
+        throw error;
+      }
+      
+      console.log("Fetched contact messages:", data);
       return data as ContactMessage[];
     },
   });
@@ -81,7 +89,12 @@ const AdminMessages: React.FC = () => {
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const { error } = await supabase
         .from('contact_messages')
-        .update({ status, updated_at: new Date().toISOString() })
+        .update({ 
+          status, 
+          // Update the appropriate fields based on status
+          ...(status === 'read' && { updated_at: new Date().toISOString() }),
+          ...(status === 'replied' && { replied_at: new Date().toISOString() })
+        })
         .eq('id', id);
         
       if (error) throw error;
@@ -93,6 +106,9 @@ const AdminMessages: React.FC = () => {
         title: 'Success',
         description: 'Message status updated',
       });
+      
+      // Also update unread count in the sidebar
+      queryClient.invalidateQueries({ queryKey: ['unreadCounts'] });
     },
     onError: (error: any) => {
       toast({
@@ -122,6 +138,9 @@ const AdminMessages: React.FC = () => {
         title: 'Success',
         description: 'Message deleted successfully',
       });
+      
+      // Also update unread count in the sidebar
+      queryClient.invalidateQueries({ queryKey: ['unreadCounts'] });
     },
     onError: (error: any) => {
       toast({
@@ -161,6 +180,9 @@ const AdminMessages: React.FC = () => {
         title: 'Success',
         description: 'Reply sent successfully',
       });
+      
+      // Also update unread count in the sidebar
+      queryClient.invalidateQueries({ queryKey: ['unreadCounts'] });
     },
     onError: (error: any) => {
       toast({
@@ -210,7 +232,7 @@ const AdminMessages: React.FC = () => {
   const filteredMessages = messages?.filter(message => 
     message.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     message.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    message.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    message.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     message.message.toLowerCase().includes(searchTerm.toLowerCase())
   );
   
@@ -242,6 +264,11 @@ const AdminMessages: React.FC = () => {
     }
   };
   
+  useEffect(() => {
+    // Force refresh the data on component mount
+    refetch();
+  }, [refetch]);
+  
   return (
     <AdminLayout title="Contact Messages">
       <SEO title="Contact Messages | Meow Rescue Admin" />
@@ -272,6 +299,10 @@ const AdminMessages: React.FC = () => {
               <option value="replied">Replied</option>
               <option value="archived">Archived</option>
             </select>
+            
+            <Button onClick={() => refetch()}>
+              Refresh
+            </Button>
           </div>
         </div>
         
@@ -302,8 +333,8 @@ const AdminMessages: React.FC = () => {
                       {message.name}
                       <div className="text-xs text-gray-500">{message.email}</div>
                     </TableCell>
-                    <TableCell>{message.subject}</TableCell>
-                    <TableCell>{formatDate(message.created_at)}</TableCell>
+                    <TableCell>{message.subject || 'No Subject'}</TableCell>
+                    <TableCell>{formatDate(message.received_at || message.created_at)}</TableCell>
                     <TableCell>{getStatusBadge(message.status)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
@@ -355,7 +386,7 @@ const AdminMessages: React.FC = () => {
       <Dialog open={viewModalOpen} onOpenChange={setViewModalOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>{selectedMessage?.subject}</DialogTitle>
+            <DialogTitle>{selectedMessage?.subject || 'No Subject'}</DialogTitle>
             <DialogDescription>
               From: {selectedMessage?.name} ({selectedMessage?.email})
             </DialogDescription>
@@ -369,15 +400,9 @@ const AdminMessages: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4" />
-                <span>{selectedMessage?.created_at ? formatDate(selectedMessage.created_at) : ''}</span>
+                <span>{selectedMessage?.received_at ? formatDate(selectedMessage.received_at) : ''}</span>
               </div>
             </div>
-            
-            {selectedMessage?.phone && (
-              <div className="text-sm text-gray-500">
-                <span className="font-medium">Phone:</span> {selectedMessage.phone}
-              </div>
-            )}
             
             <div className="border rounded-md p-4 min-h-[150px] whitespace-pre-line">
               {selectedMessage?.message}
@@ -434,7 +459,7 @@ const AdminMessages: React.FC = () => {
           <DialogHeader>
             <DialogTitle>Reply to {selectedMessage?.name}</DialogTitle>
             <DialogDescription>
-              Re: {selectedMessage?.subject}
+              Re: {selectedMessage?.subject || 'No Subject'}
             </DialogDescription>
           </DialogHeader>
           
@@ -446,7 +471,7 @@ const AdminMessages: React.FC = () => {
             
             <div className="grid grid-cols-3 gap-4">
               <div className="font-medium text-right">Subject:</div>
-              <div className="col-span-2">Re: {selectedMessage?.subject}</div>
+              <div className="col-span-2">Re: {selectedMessage?.subject || 'No Subject'}</div>
             </div>
             
             <Textarea
