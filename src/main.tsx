@@ -9,6 +9,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from './contexts/AuthContext';
 
+// Console log for debugging
+console.log('Main.tsx is initializing...');
+
 // Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,6 +36,7 @@ function QueryDevTools() {
     // Only enable devtools in development
     if (import.meta.env.DEV) {
       setShowDevtools(true);
+      console.log('ReactQuery DevTools enabled');
     }
   }, []);
 
@@ -42,6 +46,8 @@ function QueryDevTools() {
     </React.Suspense>
   ) : null;
 }
+
+console.log('Rendering app to DOM...');
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -58,3 +64,5 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     </HelmetProvider>
   </React.StrictMode>,
 );
+
+console.log('App mounted successfully');
