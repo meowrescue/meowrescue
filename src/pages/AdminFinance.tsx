@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -46,7 +47,7 @@ const AdminFinance: React.FC = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState<'income' | 'expenses'>('income');
+  const [activeTab, setActiveTab] = useState<'all' | 'income' | 'expenses'>('all');
   
   // Income form state
   const [isCreateIncomeDialogOpen, setIsCreateIncomeDialogOpen] = useState(false);
@@ -203,6 +204,32 @@ const AdminFinance: React.FC = () => {
     },
   });
 
+  // Combine and sort transactions for All tab
+  const allTransactions = React.useMemo(() => {
+    const combined = [];
+    
+    if (donations) {
+      combined.push(...donations.map(donation => ({
+        ...donation,
+        type: 'income',
+        date: new Date(donation.donation_date),
+        displayAmount: parseFloat(donation.amount.toString()).toFixed(2)
+      })));
+    }
+    
+    if (expenses) {
+      combined.push(...expenses.map(expense => ({
+        ...expense,
+        type: 'expense',
+        date: new Date(expense.expense_date),
+        displayAmount: parseFloat(expense.amount.toString()).toFixed(2)
+      })));
+    }
+    
+    // Sort by date (newest first)
+    return combined.sort((a, b) => b.date.getTime() - a.date.getTime());
+  }, [donations, expenses]);
+
   // Filter data based on search query
   const filteredDonations = donations?.filter((donation) =>
     donation.notes?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -216,6 +243,21 @@ const AdminFinance: React.FC = () => {
     expense.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     expense.vendor?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const filteredAllTransactions = allTransactions.filter((transaction) => {
+    if (transaction.type === 'income') {
+      const donation = transaction as any;
+      return donation.notes?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        donation.payment_gateway_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        donation.status?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        donation.income_type?.toLowerCase().includes(searchQuery.toLowerCase());
+    } else {
+      const expense = transaction as any;
+      return expense.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        expense.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        expense.vendor?.toLowerCase().includes(searchQuery.toLowerCase());
+    }
+  });
 
   // Reset form states
   const resetIncomeDialog = () => {
@@ -298,12 +340,8 @@ const AdminFinance: React.FC = () => {
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-meow-primary">Finance</h1>
           <div className="flex gap-2">
-            {activeTab === 'income' && (
-              <Button onClick={() => setIsCreateIncomeDialogOpen(true)}>Add Income</Button>
-            )}
-            {activeTab === 'expenses' && (
-              <Button onClick={() => setIsCreateExpenseDialogOpen(true)}>Add Expense</Button>
-            )}
+            <Button onClick={() => setIsCreateIncomeDialogOpen(true)}>Add Income</Button>
+            <Button onClick={() => setIsCreateExpenseDialogOpen(true)}>Add Expense</Button>
           </div>
         </div>
 
@@ -350,8 +388,9 @@ const AdminFinance: React.FC = () => {
 
         {/* Tabs and Search */}
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-          <Tabs defaultValue="income" className="w-full" onValueChange={(value) => setActiveTab(value as 'income' | 'expenses')}>
+          <Tabs defaultValue="all" className="w-full" onValueChange={(value) => setActiveTab(value as 'all' | 'income' | 'expenses')}>
             <TabsList>
+              <TabsTrigger value="all">All Transactions</TabsTrigger>
               <TabsTrigger value="income">Income</TabsTrigger>
               <TabsTrigger value="expenses">Expenses</TabsTrigger>
             </TabsList>
@@ -359,13 +398,125 @@ const AdminFinance: React.FC = () => {
           
           <div className="w-full md:w-auto">
             <Input
-              placeholder={`Search ${activeTab}...`}
+              placeholder={`Search transactions...`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="max-w-sm"
             />
           </div>
         </div>
+
+        {/* All Transactions Tab Content */}
+        {activeTab === 'all' && (
+          (isLoadingDonations || isLoadingExpenses) ? (
+            <div className="flex justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
+            </div>
+          ) : (donationsError || expensesError) ? (
+            <div className="text-center py-12">
+              <p className="text-red-500">Error loading transactions. Please try again later.</p>
+              <Button 
+                variant="outline" 
+                className="mt-4"
+                onClick={() => {
+                  refetchDonations();
+                  refetchExpenses();
+                }}
+              >
+                Try Again
+              </Button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto bg-white rounded-lg shadow">
+              <Table>
+                <TableCaption>A list of all transactions.</TableCaption>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Category/Income Type</TableHead>
+                    <TableHead>Vendor/Payment Gateway</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredAllTransactions.map((transaction) => (
+                    <TableRow key={transaction.id}>
+                      <TableCell>{transaction.date.toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
+                          transaction.type === 'income' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
+                          {transaction.type === 'income' ? 'Income' : 'Expense'}
+                        </span>
+                      </TableCell>
+                      <TableCell className={transaction.type === 'income' ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
+                        ${transaction.displayAmount}
+                      </TableCell>
+                      <TableCell>
+                        {transaction.type === 'income' 
+                          ? (transaction as any).notes || 'N/A'
+                          : (transaction as any).description
+                        }
+                      </TableCell>
+                      <TableCell>
+                        {transaction.type === 'income' 
+                          ? (transaction as any).income_type || 'Donation'
+                          : (transaction as any).category
+                        }
+                      </TableCell>
+                      <TableCell>
+                        {transaction.type === 'income' 
+                          ? (transaction as any).payment_gateway_id || 'N/A'
+                          : (transaction as any).vendor
+                        }
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              Actions
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Transaction Actions</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => 
+                              transaction.type === 'income' ? refetchDonations() : refetchExpenses()
+                            }>
+                              Refresh
+                            </DropdownMenuItem>
+                            {transaction.type === 'expense' && (transaction as any).receipt_url && (
+                              <DropdownMenuItem>
+                                <a 
+                                  href={(transaction as any).receipt_url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="w-full text-left"
+                                >
+                                  View Receipt
+                                </a>
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {filteredAllTransactions.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                        No transactions found.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )
+        )}
 
         {/* Income Tab Content */}
         {activeTab === 'income' && (

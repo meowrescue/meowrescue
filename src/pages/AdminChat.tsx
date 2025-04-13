@@ -53,34 +53,54 @@ const AdminChat: React.FC = () => {
     queryFn: async () => {
       try {
         console.log("Fetching chat sessions");
-        const { data, error } = await supabase
+        
+        // First get chat sessions
+        const { data: sessionsData, error: sessionsError } = await supabase
           .from('chat_sessions')
-          .select(`
-            *,
-            user_profile:user_id (
-              id,
-              first_name,
-              last_name,
-              email
-            )
-          `)
+          .select('*')
           .eq('status', 'active')
           .order('last_message_at', { ascending: false });
         
-        if (error) {
-          console.error("Error fetching chat sessions:", error);
-          toast({
-            title: "Error Loading Chats",
-            description: error.message,
-            variant: "destructive",
-          });
-          return [] as ChatSession[];
+        if (sessionsError) {
+          console.error("Error fetching chat sessions:", sessionsError);
+          throw sessionsError;
         }
         
-        console.log("Chat sessions fetched:", data);
-        return data as ChatSession[];
+        // Then get user profiles separately
+        if (sessionsData && sessionsData.length > 0) {
+          const userIds = sessionsData.map(session => session.user_id);
+          
+          const { data: profilesData, error: profilesError } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name, email')
+            .in('id', userIds);
+            
+          if (profilesError) {
+            console.error("Error fetching user profiles:", profilesError);
+            throw profilesError;
+          }
+          
+          // Combine the data
+          const sessionsWithProfiles = sessionsData.map(session => {
+            const userProfile = profilesData?.find(profile => profile.id === session.user_id);
+            return {
+              ...session,
+              user_profile: userProfile || undefined
+            };
+          });
+          
+          console.log("Chat sessions fetched and combined with profiles:", sessionsWithProfiles);
+          return sessionsWithProfiles as ChatSession[];
+        }
+        
+        return (sessionsData || []) as ChatSession[];
       } catch (err) {
         console.error("Error in chat sessions query:", err);
+        toast({
+          title: "Error Loading Chats",
+          description: err instanceof Error ? err.message : "Failed to load chat sessions",
+          variant: "destructive",
+        });
         return [] as ChatSession[];
       }
     },

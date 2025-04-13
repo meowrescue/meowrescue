@@ -55,7 +55,7 @@ const AdminMessages: React.FC = () => {
         const { data, error } = await supabase
           .from('contact_messages')
           .select('*')
-          .order('received_at', { ascending: false }); // Changed from created_at to received_at
+          .order('received_at', { ascending: false });
 
         if (error) {
           console.error("Error fetching messages:", error);
@@ -137,11 +137,44 @@ const AdminMessages: React.FC = () => {
     },
   });
 
+  // Create a test message mutation to help with testing if no messages are present
+  const createTestMessage = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase
+        .from('contact_messages')
+        .insert({
+          name: 'Test User',
+          email: 'test@example.com',
+          message: 'This is a test message to check if the contact messages feature is working correctly.',
+          status: 'New' as MessageStatus,
+          received_at: new Date().toISOString()
+        })
+        .select();
+
+      if (error) throw new Error(`Failed to create test message: ${error.message}`);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['messages'] });
+      toast({
+        title: "Test Message Created",
+        description: "A test message has been created to help with testing.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Creation Failed",
+        description: `Failed to create test message: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
   // Filter messages based on search query
   const filteredMessages = messages?.filter(message =>
-    message.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    message.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    message.message.toLowerCase().includes(searchQuery.toLowerCase())
+    message.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    message.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    message.message?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleStatusChange = (id: string, status: MessageStatus) => {
@@ -173,6 +206,10 @@ const AdminMessages: React.FC = () => {
     }
   };
 
+  const handleCreateTestMessage = () => {
+    createTestMessage.mutate();
+  };
+
   return (
     <AdminLayout title="Messages">
       <SEO title="Messages | Meow Rescue Admin" />
@@ -180,6 +217,9 @@ const AdminMessages: React.FC = () => {
       <div className="container mx-auto py-10">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-meow-primary">Messages</h1>
+          <Button onClick={handleCreateTestMessage}>
+            Create Test Message
+          </Button>
         </div>
 
         <div className="flex items-center mb-6">
@@ -263,10 +303,10 @@ const AdminMessages: React.FC = () => {
                     </TableCell>
                   </TableRow>
                 ))}
-                {filteredMessages?.length === 0 && (
+                {(!filteredMessages || filteredMessages.length === 0) && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                      No messages found.
+                    <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                      No messages found. You can create a test message using the button above.
                     </TableCell>
                   </TableRow>
                 )}
