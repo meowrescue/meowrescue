@@ -2,48 +2,28 @@
 import { supabase } from '@/integrations/supabase/client';
 import { CatFood, CatFeedingRecord, CatFoodAPI } from '@/types/finance';
 
-// This is a workaround for tables that aren't in the TypeScript definitions
-// Using a function for better type safety
-const safeFetch = async <T>(tableName: string): Promise<T[]> => {
+// Helper function to call Supabase RPC functions
+const callRpcFunction = async <T>(functionName: string, params: any = {}): Promise<T[]> => {
   try {
-    // Using 'any' to bypass TypeScript's table name checking
-    const { data, error } = await (supabase as any)
-      .from(tableName)
-      .select('*');
+    const { data, error } = await supabase.rpc(functionName, params);
     
     if (error) {
-      console.error(`Error fetching from ${tableName}:`, error);
+      console.error(`Error calling RPC function ${functionName}:`, error);
       return [];
     }
     
-    return (data as T[]) || [];
+    return data as T[] || [];
   } catch (error) {
-    console.error(`Error in safeFetch for ${tableName}:`, error);
+    console.error(`Error in RPC function ${functionName}:`, error);
     return [];
-  }
-};
-
-// Same approach for insert operations
-const safeInsert = async <T>(tableName: string, data: any): Promise<void> => {
-  try {
-    const { error } = await (supabase as any)
-      .from(tableName)
-      .insert(data);
-    
-    if (error) {
-      console.error(`Error inserting into ${tableName}:`, error);
-      throw error;
-    }
-  } catch (error) {
-    console.error(`Error in safeInsert for ${tableName}:`, error);
-    throw error;
   }
 };
 
 export const catFoodApi: CatFoodAPI = {
   getCatFood: async () => {
     try {
-      const data = await safeFetch<CatFood>('cat_food');
+      // Use RPC function to get cat food
+      const data = await callRpcFunction<CatFood>('get_cat_food');
       return data;
     } catch (error) {
       console.error('Error in getCatFood:', error);
@@ -53,14 +33,20 @@ export const catFoodApi: CatFoodAPI = {
   
   addCatFood: async (food) => {
     try {
-      await safeInsert('cat_food', {
-        brand: food.brand,
-        type: food.type,
-        quantity: food.quantity,
-        units: food.units,
-        cost_per_unit: food.cost_per_unit,
-        purchase_date: food.purchase_date
+      // Use RPC function to add cat food
+      const { data, error } = await supabase.rpc('add_cat_food', {
+        p_brand: food.brand,
+        p_type: food.type,
+        p_quantity: food.quantity,
+        p_units: food.units,
+        p_cost_per_unit: food.cost_per_unit,
+        p_purchase_date: food.purchase_date
       });
+      
+      if (error) {
+        console.error('Error adding cat food:', error);
+        throw error;
+      }
     } catch (error) {
       console.error('Error in addCatFood:', error);
       throw error;
@@ -69,34 +55,9 @@ export const catFoodApi: CatFoodAPI = {
   
   getCatFeedingRecords: async () => {
     try {
-      // For joined data, we need a more specific approach
-      const { data, error } = await (supabase as any)
-        .from('cat_feeding_records')
-        .select(`
-          *,
-          cats:cat_id(name),
-          cat_food:cat_food_id(brand, type)
-        `);
-      
-      if (error) {
-        console.error('Error fetching feeding records:', error);
-        return [];
-      }
-      
-      // Map the data to match our expected type
-      const records = data.map((record: any) => ({
-        id: record.id,
-        cat_id: record.cat_id,
-        cat_food_id: record.cat_food_id,
-        amount: record.amount,
-        feeding_date: record.feeding_date,
-        created_at: record.created_at,
-        cat_name: record.cats?.name,
-        food_brand: record.cat_food?.brand,
-        food_type: record.cat_food?.type
-      }));
-      
-      return records as CatFeedingRecord[];
+      // Use RPC function to get feeding records
+      const data = await callRpcFunction<CatFeedingRecord>('get_cat_feeding_records');
+      return data;
     } catch (error) {
       console.error('Error in getCatFeedingRecords:', error);
       return [];
@@ -105,12 +66,18 @@ export const catFoodApi: CatFoodAPI = {
   
   addCatFeedingRecord: async (record) => {
     try {
-      await safeInsert('cat_feeding_records', {
-        cat_id: record.cat_id,
-        cat_food_id: record.cat_food_id,
-        amount: record.amount,
-        feeding_date: record.feeding_date
+      // Use RPC function to add feeding record
+      const { data, error } = await supabase.rpc('add_cat_feeding_record', {
+        p_cat_id: record.cat_id,
+        p_cat_food_id: record.cat_food_id,
+        p_amount: record.amount,
+        p_feeding_date: record.feeding_date
       });
+      
+      if (error) {
+        console.error('Error recording feeding:', error);
+        throw error;
+      }
     } catch (error) {
       console.error('Error in addCatFeedingRecord:', error);
       throw error;
