@@ -13,6 +13,8 @@ import * as z from 'zod';
 import { Mail, Phone, MapPin, MessageSquare } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import SectionHeading from '@/components/ui/SectionHeading';
+import NetlifyFormHiddenInput from '@/components/NetlifyFormHiddenInput';
 
 // Define the form schema
 const formSchema = z.object({
@@ -60,12 +62,72 @@ const Contact = () => {
           const map = new window.google.maps.Map(mapRef.current, {
             center: newPortRicheyLocation,
             zoom: 12,
+            styles: [
+              {
+                "featureType": "all",
+                "elementType": "geometry.fill",
+                "stylers": [{ "weight": "2.00" }]
+              },
+              {
+                "featureType": "all",
+                "elementType": "geometry.stroke",
+                "stylers": [{ "color": "#9c9c9c" }]
+              },
+              {
+                "featureType": "all",
+                "elementType": "labels.text",
+                "stylers": [{ "visibility": "on" }]
+              },
+              {
+                "featureType": "administrative",
+                "elementType": "all",
+                "stylers": [{ "visibility": "on" }]
+              },
+              {
+                "featureType": "landscape",
+                "elementType": "all",
+                "stylers": [{ "color": "#f2f2f2" }]
+              },
+              {
+                "featureType": "poi",
+                "elementType": "all",
+                "stylers": [{ "visibility": "on" }]
+              },
+              {
+                "featureType": "road",
+                "elementType": "all",
+                "stylers": [{ "saturation": -100 }, { "lightness": 45 }]
+              },
+              {
+                "featureType": "road.highway",
+                "elementType": "all",
+                "stylers": [{ "visibility": "simplified" }]
+              },
+              {
+                "featureType": "road.arterial",
+                "elementType": "labels.icon",
+                "stylers": [{ "visibility": "off" }]
+              },
+              {
+                "featureType": "water",
+                "elementType": "all",
+                "stylers": [{ "color": "#4A6FA5" }, { "visibility": "on" }]
+              }
+            ]
           });
           
           new window.google.maps.Marker({
             position: newPortRicheyLocation,
             map: map,
             title: "Meow Rescue Center",
+            icon: {
+              path: window.google.maps.SymbolPath.CIRCLE,
+              scale: 10,
+              fillColor: "#E27D60",
+              fillOpacity: 1,
+              strokeColor: "#ffffff",
+              strokeWeight: 2
+            }
           });
         } catch (error) {
           console.error("Error initializing map:", error);
@@ -142,7 +204,7 @@ const Contact = () => {
     <Layout>
       <SEO title="Contact Us | Meow Rescue" description="Get in touch with Meow Rescue. We're here to answer your questions about cat adoption, fostering, volunteering, and more." />
       
-      <div className="bg-meow-primary/10 py-16 md:py-24 text-center">
+      <div className="bg-gradient-to-r from-meow-primary/10 to-meow-secondary/10 py-16 md:py-24 text-center">
         <div className="container mx-auto px-4">
           <h1 className="text-4xl font-bold text-meow-primary mb-6">Contact Us</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -154,9 +216,9 @@ const Contact = () => {
       <div className="container mx-auto py-16">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 mb-20">
           <div>
-            <Card className="bg-white shadow-lg border-none h-full">
+            <Card className="bg-white shadow-lg border-none h-full hover-card-effect">
               <CardHeader className="pb-6">
-                <CardTitle className="text-2xl">Send Us a Message</CardTitle>
+                <CardTitle className="text-2xl text-meow-primary">Send Us a Message</CardTitle>
                 <CardDescription className="text-base">
                   Fill out the form below and we'll get back to you as soon as possible.
                 </CardDescription>
@@ -164,6 +226,7 @@ const Contact = () => {
               <CardContent>
                 <Form {...form}>
                   <form id="contact-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                    <NetlifyFormHiddenInput formName="contact" />
                     <FormField
                       control={form.control}
                       name="name"
@@ -213,7 +276,7 @@ const Contact = () => {
                   type="submit" 
                   form="contact-form"
                   disabled={isSubmitting || isSubmitted}
-                  className="w-full h-12 text-base"
+                  className="w-full h-12 text-base bg-meow-primary hover:bg-meow-primary/90 text-white"
                 >
                   {isSubmitting ? 'Sending...' : isSubmitted ? 'Message Sent' : 'Send Message'}
                 </Button>
@@ -222,7 +285,7 @@ const Contact = () => {
           </div>
           
           <div>
-            <Card className="bg-gradient-to-r from-purple-600 to-meow-primary text-white shadow-lg border-none h-full">
+            <Card className="bg-gradient-to-r from-meow-primary to-meow-primary/80 text-white shadow-lg border-none h-full hover-card-effect">
               <CardHeader className="pb-6">
                 <CardTitle className="text-2xl text-white">Contact Information</CardTitle>
                 <CardDescription className="text-white/90 text-base">
@@ -299,13 +362,12 @@ const Contact = () => {
         </div>
         
         <div className="my-20">
+          <SectionHeading 
+            title="Find Us" 
+            subtitle="Visit our rescue center and meet our cats in person"
+            centered={true}
+          />
           <Card className="bg-white shadow-lg border-none overflow-hidden">
-            <CardHeader>
-              <CardTitle className="text-2xl">Find Us</CardTitle>
-              <CardDescription className="text-base">
-                Visit our rescue center and meet our cats in person
-              </CardDescription>
-            </CardHeader>
             <CardContent className="p-0">
               <div 
                 ref={mapRef} 

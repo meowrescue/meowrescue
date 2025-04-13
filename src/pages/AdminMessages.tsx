@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Mail, Check, X, Eye, EyeOff } from 'lucide-react';
+import { Search, Mail, Check, X, Eye, EyeOff, Trash } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -17,7 +17,19 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogClose
 } from "@/components/ui/dialog";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Textarea } from '@/components/ui/textarea';
 import { 
   Card,
@@ -35,7 +47,7 @@ interface ContactMessage {
   received_at: string;
   responded_at: string | null;
   response: string | null;
-  status: 'New' | 'Read' | 'Replied' | 'Archived'; // Update the type to include 'Archived'
+  status: 'New' | 'Read' | 'Replied' | 'Archived'; // Type already includes 'Archived'
 }
 
 const AdminMessages: React.FC = () => {
@@ -145,6 +157,31 @@ const AdminMessages: React.FC = () => {
     }
   };
 
+  // Add delete message function
+  const handleDeleteMessage = async (messageId: string) => {
+    try {
+      const { error } = await supabase
+        .from('contact_messages')
+        .delete()
+        .eq('id', messageId);
+        
+      if (error) throw error;
+      
+      toast({
+        title: "Message Deleted",
+        description: "The message has been permanently deleted."
+      });
+      
+      refetch();
+    } catch (err: any) {
+      toast({
+        title: "Error Deleting Message",
+        description: err.message || "Failed to delete message",
+        variant: "destructive"
+      });
+    }
+  };
+
   // Get badge variant based on message status
   const getStatusBadgeVariant = (status: ContactMessage['status']): "default" | "outline" | "secondary" | "destructive" => {
     switch(status) {
@@ -237,6 +274,35 @@ const AdminMessages: React.FC = () => {
                             Mark Unread
                           </Button>
                         ) : null}
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="text-destructive hover:bg-destructive/10 flex items-center"
+                            >
+                              <Trash className="h-4 w-4 mr-1" />
+                              Delete
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Message</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete this message? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction 
+                                className="bg-destructive hover:bg-destructive/90"
+                                onClick={() => handleDeleteMessage(message.id)}
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -303,8 +369,41 @@ const AdminMessages: React.FC = () => {
                   Mark Unread
                 </Button>
               ) : null}
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    variant="outline"
+                    className="text-destructive hover:bg-destructive/10 flex items-center"
+                  >
+                    <Trash className="h-4 w-4 mr-2" />
+                    Delete
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Message</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete this message? This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction 
+                      className="bg-destructive hover:bg-destructive/90"
+                      onClick={() => {
+                        if (selectedMessage) {
+                          handleDeleteMessage(selectedMessage.id);
+                          setSelectedMessage(null);
+                        }
+                      }}
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
               <Button variant="outline" onClick={() => setSelectedMessage(null)}>Cancel</Button>
-              <Button onClick={handleSendResponse} disabled={!response.trim()}>
+              <Button onClick={handleSendResponse} disabled={!response.trim()} className="bg-meow-primary hover:bg-meow-primary/90">
                 <Mail className="mr-2 h-4 w-4" />
                 Send Response
               </Button>

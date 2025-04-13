@@ -1,12 +1,13 @@
 
 export interface TeamMember {
   id: string;
-  first_name: string | null;
-  last_name: string | null;
-  avatar_url: string | null;
-  role: string;
-  role_title: string | null;
-  bio: string | null;
-  email: string;
-  show_in_team: boolean;
+  first_name: string;
+  last_name: string;
+  avatar_url?: string;
+  email?: string;
+  role?: 'user' | 'volunteer' | 'foster' | 'admin';
+  role_title?: string; // Add this property
+  show_in_team?: boolean; // Add this property
+  bio?: string;
+  created_at?: string;
 }

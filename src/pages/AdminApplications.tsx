@@ -79,7 +79,7 @@ const AdminApplications: React.FC = () => {
         toast({
           title: "Error",
           description: "Failed to update application status.",
-          variant: "destructive",
+          variant: "destructive"
         });
         throw error;
       }
@@ -206,7 +206,7 @@ const AdminApplications: React.FC = () => {
                 </p>
               </div>
             ) : (
-              <div className="rounded-md border overflow-hidden">
+              <div className="rounded-md border overflow-hidden bg-white shadow-sm">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -293,7 +293,7 @@ const AdminApplications: React.FC = () => {
                 </p>
               </div>
             ) : (
-              <div className="rounded-md border overflow-hidden">
+              <div className="rounded-md border overflow-hidden bg-white shadow-sm">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -374,7 +374,7 @@ const AdminApplications: React.FC = () => {
                 </p>
               </div>
             ) : (
-              <div className="rounded-md border overflow-hidden">
+              <div className="rounded-md border overflow-hidden bg-white shadow-sm">
                 <Table>
                   {/* Similar table structure as the volunteer tab */}
                   <TableHeader>
@@ -455,7 +455,7 @@ const AdminApplications: React.FC = () => {
                 </p>
               </div>
             ) : (
-              <div className="rounded-md border overflow-hidden">
+              <div className="rounded-md border overflow-hidden bg-white shadow-sm">
                 <Table>
                   {/* Similar table structure as the other tabs */}
                   <TableHeader>

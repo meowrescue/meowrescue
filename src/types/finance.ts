@@ -1,64 +1,47 @@
 
 export interface Donation {
   id: string;
-  amount: number | string;
+  donor_profile_id: string;
+  amount: number;
   donation_date: string;
+  created_at: string;
+  is_recurring: boolean;
+  notes: string;
+  payment_gateway_id: string;
+  status: string;
+  income_type: string; // Add this property
   donor_name?: string;
   donor_email?: string;
-  is_recurring: boolean;
-  status: string;
-  notes?: string;
-  donor_profile_id?: string;
-  income_type: string; // Field for donation/grant/personal funds
 }
 
 export interface Expense {
   id: string;
-  amount: number | string;
+  amount: number;
   expense_date: string;
-  description: string;
+  created_at: string;
   category: string;
   vendor: string;
-  payment_method: string;
+  notes: string;
   receipt_url?: string;
-  donation_id?: string;
-  created_at: string;
-  created_by?: string;
+  status: string;
+  expense_type: string;
 }
 
-export interface CatFood {
+export interface Budget {
   id: string;
-  brand: string;
-  type: string;
-  quantity: number;
-  units: string;
-  cost_per_unit: number;
-  purchase_date: string;
-  created_at?: string;
-}
-
-export interface CatFeedingRecord {
-  id: string;
-  cat_id: string;
-  cat_food_id: string;
+  category: string;
   amount: number;
-  feeding_date: string;
-  created_at?: string;
-  cat_name?: string;
-  food_brand?: string;
-  food_type?: string;
+  period: 'monthly' | 'quarterly' | 'annual';
+  created_at: string;
+  updated_at: string;
+  notes?: string;
 }
 
-export interface Cat {
-  id: string;
-  name: string;
-}
-
-// Fix the CatFoodAPI interface to match the implementation
-export interface CatFoodAPI {
-  getCatFood: () => Promise<CatFood[]>;
-  addCatFood: (food: Omit<CatFood, 'id' | 'created_at'>) => Promise<CatFood>;
-  getCatFeedingRecords: () => Promise<CatFeedingRecord[]>;
-  addCatFeedingRecord: (record: Omit<CatFeedingRecord, 'id' | 'created_at' | 'cat_name' | 'food_brand' | 'food_type'>) => Promise<CatFeedingRecord>;
-  getCats: () => Promise<Cat[]>;
+export interface FinancialSummary {
+  total_income: number;
+  total_expenses: number;
+  net_income: number;
+  donations_count: number;
+  recurring_donations: number;
+  expenses_count: number;
 }
