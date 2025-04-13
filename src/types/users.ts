@@ -14,5 +14,9 @@ export interface User {
   state: string | null;
   zip: string | null;
   bio: string | null;
-  is_active?: boolean; // Added as optional for backward compatibility
+  is_active: boolean; // Now a required field
+}
+
+export interface ExtendedUser extends User {
+  is_active: boolean;
 }

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import Layout from '@/components/Layout';
@@ -384,7 +383,7 @@ const VolunteerForm: React.FC = () => {
                             <SelectItem value="apartment">Apartment/Condo</SelectItem>
                             <SelectItem value="mobile">Mobile Home</SelectItem>
                             <SelectItem value="other">Other</SelectItem>
-                          </SelectContent>
+                          </FormControl>
                         </Select>
                         <FormMessage />
                       </FormItem>

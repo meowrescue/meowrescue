@@ -93,6 +93,45 @@ export type Database = {
           },
         ]
       }
+      applications: {
+        Row: {
+          applicant_id: string | null
+          application_type: string
+          created_at: string
+          feedback: string | null
+          form_data: Json
+          id: string
+          reviewed_at: string | null
+          reviewer_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          applicant_id?: string | null
+          application_type: string
+          created_at?: string
+          feedback?: string | null
+          form_data: Json
+          id?: string
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          applicant_id?: string | null
+          application_type?: string
+          created_at?: string
+          feedback?: string | null
+          form_data?: Json
+          id?: string
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       blog_posts: {
         Row: {
           author_profile_id: string | null
@@ -643,6 +682,7 @@ export type Database = {
           email: string
           first_name: string | null
           id: string
+          is_active: boolean | null
           last_name: string | null
           phone: string | null
           role: Database["public"]["Enums"]["app_role"]
@@ -659,6 +699,7 @@ export type Database = {
           email: string
           first_name?: string | null
           id: string
+          is_active?: boolean | null
           last_name?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["app_role"]
@@ -675,6 +716,7 @@ export type Database = {
           email?: string
           first_name?: string | null
           id?: string
+          is_active?: boolean | null
           last_name?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["app_role"]
@@ -781,6 +823,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_status: {
+        Row: {
+          created_at: string
+          is_active: boolean
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          is_active?: boolean
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          is_active?: boolean
+          user_id?: string
+        }
+        Relationships: []
       }
       volunteer_logs: {
         Row: {

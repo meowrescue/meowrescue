@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -34,11 +33,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import SEO from '@/components/SEO';
-import { User } from '@/types/users';
-
-interface ExtendedUser extends User {
-  is_active: boolean;
-}
+import { User, ExtendedUser } from '@/types/users';
 
 const AdminUsers: React.FC = () => {
   const { toast } = useToast();
@@ -47,19 +42,29 @@ const AdminUsers: React.FC = () => {
   const [newRole, setNewRole] = useState<string>('');
   const [newEmail, setNewEmail] = useState<string>('');
 
-  // Query to get users from profiles table
+  // Query to get users from profiles table with user_status
   const { data: users, isLoading, error, refetch } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
       try {
+        // Join profiles with user_status to get is_active status
         const { data, error } = await supabase
           .from('profiles')
-          .select('*, is_active')
+          .select(`
+            *,
+            user_status (is_active)
+          `)
           .order('created_at', { ascending: false });
         
         if (error) throw error;
         
-        return data as ExtendedUser[];
+        // Transform the data to include is_active
+        const extendedUsers = data.map(user => ({
+          ...user,
+          is_active: user.user_status?.is_active ?? true
+        })) as ExtendedUser[];
+        
+        return extendedUsers;
       } catch (err: any) {
         console.error("Error fetching users:", err);
         throw err;
@@ -84,7 +89,8 @@ const AdminUsers: React.FC = () => {
     if (!editingUser) return;
 
     try {
-      const { error } = await supabase
+      // Update user profile
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({
           role: newRole as 'user' | 'volunteer' | 'foster' | 'admin',
@@ -92,16 +98,19 @@ const AdminUsers: React.FC = () => {
         })
         .eq('id', editingUser.id);
 
-      if (error) throw error;
+      if (profileError) throw profileError;
 
-      // Update is_active in separate table or column
-      const { error: activeError } = await supabase
-        .from('user_status')  // Assuming there's a user_status table
-        .update({ is_active: editingUser.is_active })
-        .eq('user_id', editingUser.id);
+      // Update user status
+      const { error: statusError } = await supabase
+        .from('user_status')
+        .upsert({
+          user_id: editingUser.id,
+          is_active: editingUser.is_active
+        })
+        .select();
 
-      if (activeError) {
-        console.error("Error updating active status:", activeError);
+      if (statusError) {
+        console.error("Error updating active status:", statusError);
       }
 
       toast({
@@ -125,9 +134,12 @@ const AdminUsers: React.FC = () => {
       const newStatus = !user.is_active;
       
       const { error } = await supabase
-        .from('user_status')  // Assuming there's a user_status table
-        .update({ is_active: newStatus })
-        .eq('user_id', user.id);
+        .from('user_status')
+        .upsert({ 
+          user_id: user.id, 
+          is_active: newStatus 
+        })
+        .select();
 
       if (error) throw error;
 
