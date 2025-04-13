@@ -36,7 +36,7 @@ const VolunteerForm: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     
-    // Type guard to ensure we have an HTMLInputElement for checkbox
+    // Improved type guard for checkbox inputs
     if (type === 'checkbox' && e.target instanceof HTMLInputElement) {
       setFormData(prev => ({
         ...prev,
