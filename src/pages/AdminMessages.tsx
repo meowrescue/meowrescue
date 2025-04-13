@@ -1,415 +1,298 @@
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Mail, Check, X, Eye, EyeOff, Trash } from 'lucide-react';
-import SEO from '@/components/SEO';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/integrations/supabase/client';
+import { Mail, CheckCircle, Send, Archive, RefreshCcw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { 
+import { supabase } from '@/integrations/supabase/client';
+import SEO from '@/components/SEO';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogClose
-} from "@/components/ui/dialog";
-import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+  DialogTrigger,
+  DialogFooter
+} from "@/components/ui/dialog"
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card';
 
-interface ContactMessage {
+// Define the type for messages
+interface Message {
   id: string;
-  name: string;
-  email: string;
-  message: string;
-  received_at: string;
-  responded_at: string | null;
-  response: string | null;
-  status: 'New' | 'Read' | 'Replied' | 'Archived'; 
+  created_at: string;
+  sender_id: string;
+  sender_name: string;
+  sender_email: string;
+  message_subject: string;
+  message_body: string;
+  message_status: MessageStatus;
 }
 
-const AdminMessages: React.FC = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const { toast } = useToast();
-  const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
-  const [response, setResponse] = useState('');
+// Update the status type to include 'Archived'
+type MessageStatus = 'New' | 'Read' | 'Replied' | 'Archived';
 
-  // Fetch contact messages
+const AdminMessages: React.FC = () => {
+  const { toast } = useToast();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [replyDialogOpen, setReplyDialogOpen] = useState(false);
+  const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+  const [replyText, setReplyText] = useState('');
+  const queryClient = useQueryClient();
+
+  // Fetch messages from Supabase
   const { data: messages, isLoading, error, refetch } = useQuery({
-    queryKey: ['admin-contact-messages'],
+    queryKey: ['messages'],
     queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .from('contact_messages')
-          .select('*')
-          .order('received_at', { ascending: false });
-          
-        if (error) throw error;
-        return data as ContactMessage[];
-      } catch (err: any) {
-        console.error("Error fetching contact messages:", err);
-        toast({
-          title: "Error fetching messages",
-          description: err.message || "Failed to load contact messages",
-          variant: "destructive"
-        });
-        return [] as ContactMessage[];
-      }
-    }
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data as Message[];
+    },
   });
 
-  // Filter messages based on search query
-  const filteredMessages = messages?.filter(message =>
-    message.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    message.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    message.message.toLowerCase().includes(searchQuery.toLowerCase())
+  useEffect(() => {
+    refetch(); // Refresh messages on component mount
+  }, [refetch]);
+
+  // Mutation to update message status
+  const updateMessageStatus = useMutation(
+    async ({ messageId, newStatus }: { messageId: string; newStatus: MessageStatus }) => {
+      const { error } = await supabase
+        .from('messages')
+        .update({ message_status: newStatus })
+        .eq('id', messageId);
+
+      if (error) throw error;
+    },
+    {
+      onSuccess: () => {
+        // Invalidate the query to refetch messages
+        queryClient.invalidateQueries(['messages']);
+        toast({
+          title: "Status Updated",
+          description: "Message status updated successfully.",
+        });
+      },
+      onError: (error: any) => {
+        toast({
+          title: "Update Failed",
+          description: `Failed to update message status: ${error.message}`,
+          variant: "destructive",
+        });
+      },
+    }
   );
 
-  const handleSendResponse = async () => {
-    if (!selectedMessage) return;
-    
-    try {
-      const { error } = await supabase
-        .from('contact_messages')
-        .update({
-          response: response,
-          responded_at: new Date().toISOString(),
-          status: 'Replied'
-        })
-        .eq('id', selectedMessage.id);
-        
-      if (error) throw error;
-      
-      toast({
-        title: "Response Sent",
-        description: "Your response has been saved and will be sent to the user."
-      });
-      
-      setSelectedMessage(null);
-      setResponse('');
-      refetch();
+  // Filter messages based on search query
+  const filteredMessages = messages?.filter((message) =>
+    message.sender_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    message.sender_email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    message.message_subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    message.message_body.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-      // In a real application, you would also send an email here
-      // using an edge function that calls an email service
-
-    } catch (err: any) {
-      toast({
-        title: "Error Sending Response",
-        description: err.message || "Failed to send response",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleViewMessage = (message: ContactMessage) => {
-    // If the message is new, mark it as read when viewing
-    if (message.status === 'New') {
-      updateMessageStatus(message.id, 'Read');
-    }
-    
+  // Handle opening the reply dialog
+  const handleReplyClick = (message: Message) => {
     setSelectedMessage(message);
-    setResponse(message.response || '');
+    setReplyDialogOpen(true);
   };
 
-  const updateMessageStatus = async (messageId: string, status: ContactMessage['status']) => {
+  // Handle sending a reply (mock implementation)
+  const handleSendReply = async () => {
+    if (!selectedMessage) return;
+
+    // Here you would typically send the reply and update the message status
+    // For this example, we'll just update the status to "Replied"
     try {
-      const { error } = await supabase
-        .from('contact_messages')
-        .update({ status })
-        .eq('id', messageId);
-        
-      if (error) throw error;
-      
+      await updateMessageStatus.mutateAsync({ messageId: selectedMessage.id, newStatus: 'Replied' });
+      setReplyDialogOpen(false);
+      setSelectedMessage(null);
+      setReplyText('');
       toast({
-        title: "Status Updated",
-        description: `Message marked as ${status.toLowerCase()}.`
+        title: "Reply Sent",
+        description: "Reply sent and message status updated.",
       });
-      
-      refetch();
-    } catch (err: any) {
+    } catch (error: any) {
       toast({
-        title: "Error Updating Status",
-        description: err.message || "Failed to update message status",
-        variant: "destructive"
+        title: "Reply Failed",
+        description: `Failed to send reply: ${error.message}`,
+        variant: "destructive",
       });
     }
   };
 
-  // Add delete message function
-  const handleDeleteMessage = async (messageId: string) => {
+  // Function to handle status change
+  const handleStatusChange = async (messageId: string, newStatus: MessageStatus) => {
     try {
-      const { error } = await supabase
-        .from('contact_messages')
-        .delete()
-        .eq('id', messageId);
-        
-      if (error) throw error;
-      
+      await updateMessageStatus.mutateAsync({ messageId: messageId, newStatus: newStatus });
+    } catch (error: any) {
       toast({
-        title: "Message Deleted",
-        description: "The message has been permanently deleted."
+        title: "Status Update Failed",
+        description: `Failed to update status: ${error.message}`,
+        variant: "destructive",
       });
-      
-      refetch();
-    } catch (err: any) {
-      toast({
-        title: "Error Deleting Message",
-        description: err.message || "Failed to delete message",
-        variant: "destructive"
-      });
-    }
-  };
-
-  // Get badge variant based on message status
-  const getStatusBadgeVariant = (status: ContactMessage['status']): "default" | "outline" | "secondary" | "destructive" => {
-    switch(status) {
-      case 'New': return 'destructive';
-      case 'Read': return 'secondary';
-      case 'Replied': return 'default';
-      case 'Archived': return 'outline';
-      default: return 'default';
     }
   };
 
   return (
-    <AdminLayout title="Contact Messages">
-      <SEO title="Contact Messages | Meow Rescue Admin" />
-      
+    <AdminLayout title="Messages">
+      <SEO title="Messages | Meow Rescue Admin" />
+
       <div className="container mx-auto py-10">
-        <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
-          <h1 className="text-3xl font-bold text-meow-primary">Contact Messages</h1>
-          <div className="flex items-center gap-4 w-full md:w-auto">
-            <div className="relative w-full md:w-auto">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search messages..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 w-full md:w-64"
-              />
-            </div>
-          </div>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold text-meow-primary">Messages</h1>
         </div>
-        
+
+        <div className="flex items-center mb-6">
+          <Input
+            placeholder="Search messages..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="max-w-sm"
+          />
+        </div>
+
         {isLoading ? (
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
           </div>
         ) : error ? (
           <div className="text-center py-12">
-            <p className="text-red-500">Error loading contact messages. Please try again later.</p>
-            <Button 
-              variant="outline" 
-              className="mt-4"
-              onClick={() => refetch()}
-            >
-              Try Again
-            </Button>
+            <p className="text-red-500">Error loading messages. Please try again later.</p>
           </div>
-        ) : filteredMessages && filteredMessages.length > 0 ? (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+        ) : (
+          <div className="overflow-x-auto">
             <Table>
-              <TableCaption>All contact form submissions.</TableCaption>
+              <TableCaption>A list of all messages received.</TableCaption>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Sender</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Date Received</TableHead>
+                  <TableHead>Subject</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredMessages.map((message) => (
-                  <TableRow key={message.id} className={message.status === 'New' ? 'bg-gray-50' : ''}>
-                    <TableCell className="font-medium">{message.name}</TableCell>
-                    <TableCell>{message.email}</TableCell>
-                    <TableCell>{new Date(message.received_at).toLocaleDateString()}</TableCell>
+                {filteredMessages?.map((message) => (
+                  <TableRow key={message.id}>
+                    <TableCell>{new Date(message.created_at).toLocaleDateString()}</TableCell>
+                    <TableCell>{message.sender_name}</TableCell>
+                    <TableCell>{message.sender_email}</TableCell>
+                    <TableCell>{message.message_subject}</TableCell>
                     <TableCell>
-                      <Badge variant={getStatusBadgeVariant(message.status)}>
-                        {message.status}
+                      <Badge
+                        className={
+                          message.message_status === 'New'
+                            ? 'bg-blue-100 text-blue-800'
+                            : message.message_status === 'Read'
+                              ? 'bg-gray-100 text-gray-800'
+                              : message.message_status === 'Replied'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-red-100 text-red-800' // Archived
+                        }
+                      >
+                        {message.message_status}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleViewMessage(message)}
-                          className="flex items-center"
-                        >
-                          <Eye className="h-4 w-4 mr-1" />
-                          View/Reply
-                        </Button>
-                        {message.status !== 'New' ? (
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => updateMessageStatus(message.id, 'New')}
-                            className="flex items-center"
-                          >
-                            <EyeOff className="h-4 w-4 mr-1" />
-                            Mark Unread
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            Actions
                           </Button>
-                        ) : null}
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              className="text-destructive hover:bg-destructive/10 flex items-center"
-                            >
-                              <Trash className="h-4 w-4 mr-1" />
-                              Delete
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Message</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete this message? This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction 
-                                className="bg-destructive hover:bg-destructive/90"
-                                onClick={() => handleDeleteMessage(message.id)}
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Message Actions</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleReplyClick(message)}>
+                            <Send className="mr-2 h-4 w-4" />
+                            <span>Reply</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleStatusChange(message.id, 'Read')}>
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                            <span>Mark as Read</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleStatusChange(message.id, 'Archived')}>
+                            <Archive className="mr-2 h-4 w-4" />
+                            <span>Archive</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => refetch()}>
+                            <RefreshCcw className="mr-2 h-4 w-4" />
+                            <span>Refresh</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}
+                {filteredMessages?.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                      No messages found.
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>
-        ) : (
-          <div className="bg-white p-6 rounded-lg shadow">
-            <div className="text-center py-12">
-              <h2 className="text-2xl font-semibold text-gray-700 mb-4">No Contact Messages</h2>
-              <p className="text-gray-500 mb-8">
-                There are no contact form submissions in the database yet.
-              </p>
-            </div>
-          </div>
         )}
-      </div>
 
-      <Dialog open={!!selectedMessage} onOpenChange={(open) => !open && setSelectedMessage(null)}>
-        <DialogContent className="sm:max-w-[625px]">
-          <DialogHeader>
-            <DialogTitle>Message from {selectedMessage?.name}</DialogTitle>
-            <DialogDescription>
-              Received on {selectedMessage && new Date(selectedMessage.received_at).toLocaleString()}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid gap-4 py-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Message</CardTitle>
-                <CardDescription>From: {selectedMessage?.email}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="whitespace-pre-wrap">{selectedMessage?.message}</p>
-              </CardContent>
-            </Card>
-            
-            <div className="space-y-2">
-              <label htmlFor="response" className="text-sm font-medium">Your Response</label>
-              <Textarea
-                id="response"
-                value={response}
-                onChange={(e) => setResponse(e.target.value)}
-                placeholder="Type your response here..."
-                rows={6}
-              />
+        {/* Reply Dialog */}
+        <Dialog open={replyDialogOpen} onOpenChange={setReplyDialogOpen}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Reply to Message</DialogTitle>
+              <DialogDescription>
+                Write your reply to the message.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              {selectedMessage && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="subject">Subject</Label>
+                    <Input id="subject" value={`RE: ${selectedMessage.message_subject}`} readOnly />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="message">Message</Label>
+                    <Textarea
+                      id="message"
+                      placeholder="Enter your reply here"
+                      value={replyText}
+                      onChange={(e) => setReplyText(e.target.value)}
+                    />
+                  </div>
+                </>
+              )}
             </div>
-          </div>
-          
-          <DialogFooter>
-            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-              {selectedMessage?.status !== 'New' ? (
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    updateMessageStatus(selectedMessage?.id || '', 'New');
-                    setSelectedMessage(null);
-                  }}
-                  className="flex items-center"
-                >
-                  <EyeOff className="h-4 w-4 mr-2" />
-                  Mark Unread
-                </Button>
-              ) : null}
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button 
-                    variant="outline"
-                    className="text-destructive hover:bg-destructive/10 flex items-center"
-                  >
-                    <Trash className="h-4 w-4 mr-2" />
-                    Delete
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Message</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to delete this message? This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction 
-                      className="bg-destructive hover:bg-destructive/90"
-                      onClick={() => {
-                        if (selectedMessage) {
-                          handleDeleteMessage(selectedMessage.id);
-                          setSelectedMessage(null);
-                        }
-                      }}
-                    >
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-              <Button variant="outline" onClick={() => setSelectedMessage(null)}>Cancel</Button>
-              <Button onClick={handleSendResponse} disabled={!response.trim()} className="bg-meow-primary hover:bg-meow-primary/90">
-                <Mail className="mr-2 h-4 w-4" />
-                Send Response
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setReplyDialogOpen(false)}>
+                Cancel
               </Button>
-            </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              <Button onClick={handleSendReply}>Send Reply</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </AdminLayout>
   );
 };
