@@ -922,6 +922,42 @@ export type Database = {
           },
         ]
       }
+      supplies: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          minimum_quantity: number
+          name: string
+          quantity: number
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          minimum_quantity?: number
+          name: string
+          quantity?: number
+          unit: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          minimum_quantity?: number
+          name?: string
+          quantity?: number
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_status: {
         Row: {
           created_at: string
@@ -1018,6 +1054,26 @@ export type Database = {
               p_purchase_date: string
             }
         Returns: string
+      }
+      add_supply: {
+        Args: {
+          p_name: string
+          p_description: string
+          p_category: string
+          p_unit: string
+          p_minimum_quantity: number
+        }
+        Returns: {
+          id: string
+          name: string
+          description: string
+          category: string
+          unit: string
+          quantity: number
+          minimum_quantity: number
+          created_at: string
+          updated_at: string
+        }[]
       }
       create_application: {
         Args: {

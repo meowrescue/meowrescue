@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -232,6 +231,16 @@ const AdminSidebar: React.FC = () => {
           >
             <FileText className="mr-3 h-5 w-5 text-gray-600" />
             <span>Applications</span>
+          </Link>
+
+          <Link 
+            to="/admin/supplies"
+            className={`flex items-center p-2 rounded transition-colors ${
+              isActive('/admin/supplies') ? 'bg-gray-100' : 'hover:bg-gray-100'
+            }`}
+          >
+            <FileText className="mr-3 h-5 w-5 text-gray-600" />
+            <span>Supplies</span>
           </Link>
         </div>
         
