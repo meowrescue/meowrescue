@@ -1,6 +1,6 @@
 
 import React from "react";
-import { AlertCircle, Search, CheckCircle } from "lucide-react";
+import { AlertCircle, Search, CheckCircle, Archive } from "lucide-react";
 
 export const getStatusBadgeClass = (status: string | null | undefined): string => {
   switch (status?.toLowerCase()) {
@@ -10,6 +10,8 @@ export const getStatusBadgeClass = (status: string | null | undefined): string =
       return "bg-amber-100 text-amber-800 border-amber-200";
     case "reunited":
       return "bg-green-100 text-green-800 border-green-200";
+    case "archived":
+      return "bg-gray-100 text-gray-600 border-gray-200";
     default:
       return "bg-gray-100 text-gray-800 border-gray-200";
   }
@@ -23,6 +25,8 @@ export const getStatusIcon = (status: string | null | undefined): React.ReactNod
       return React.createElement(Search, { size: 16, strokeWidth: 2 });
     case "reunited":
       return React.createElement(CheckCircle, { size: 16, strokeWidth: 2 });
+    case "archived":
+      return React.createElement(Archive, { size: 16, strokeWidth: 2 });
     default:
       return null;
   }
