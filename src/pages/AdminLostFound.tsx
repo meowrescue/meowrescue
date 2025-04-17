@@ -41,20 +41,47 @@ const AdminLostFound = () => {
     queryKey: ['admin-lost-found-posts'],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase
+        // First fetch the posts
+        const { data: postsData, error: postsError } = await supabase
           .from('lost_found_posts')
-          .select(`
-            *,
-            profiles (
-              first_name,
-              last_name,
-              email
-            )
-          `)
+          .select('*')
           .order('created_at', { ascending: false });
 
-        if (error) throw error;
-        return data as LostFoundPost[];
+        if (postsError) throw postsError;
+        
+        // Then fetch profile information separately
+        const posts = postsData as LostFoundPost[];
+        
+        // Get unique profile IDs
+        const profileIds = [...new Set(posts.map(post => post.profile_id))];
+        
+        // Fetch profiles if there are any profile IDs
+        let profilesMap: Record<string, any> = {};
+        
+        if (profileIds.length > 0) {
+          const { data: profilesData, error: profilesError } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name, email')
+            .in('id', profileIds);
+            
+          if (profilesError) {
+            console.error('Error fetching profiles:', profilesError);
+          } else if (profilesData) {
+            // Create a map of profile ID to profile data
+            profilesMap = profilesData.reduce((acc, profile) => {
+              acc[profile.id] = profile;
+              return acc;
+            }, {} as Record<string, any>);
+          }
+        }
+        
+        // Add profile information to posts
+        const postsWithProfiles = posts.map(post => ({
+          ...post,
+          profiles: profilesMap[post.profile_id] || null
+        }));
+        
+        return postsWithProfiles;
       } catch (err: any) {
         console.error('Error fetching lost and found posts:', err);
         return [] as LostFoundPost[];

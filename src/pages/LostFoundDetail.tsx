@@ -1,319 +1,223 @@
-import React from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import Layout from '@/components/Layout';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { supabase } from '@/integrations/supabase/client';
-import SEO from '@/components/SEO';
-import { Calendar, ArrowLeft, MapPin, User, Phone, Mail, Tag, Info } from 'lucide-react';
-import NotFound from './NotFound';
-import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
-import { scrollToTop } from '@/utils/scrollUtils';
-import { toast } from '@/hooks/use-toast'; // Import toast from the correct location
+import React, { useState } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import Layout from "../components/Layout";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ChevronLeft, AlertCircle, RefreshCw } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { LostFoundPost } from "@/types/supabase";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import SEO from "@/components/SEO";
 
-const LostFoundDetail: React.FC = () => {
+const LostFoundDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [errorRetries, setErrorRetries] = useState(0);
+
+  // Fetch post details
   const { data: post, isLoading, error, refetch } = useQuery({
-    queryKey: ['lostFoundPost', id],
+    queryKey: ['lost-found-post', id, errorRetries],
     queryFn: async () => {
+      console.log(`Fetching lost & found post with ID: ${id}`);
+      
       try {
-        console.log("Fetching lost & found post with ID:", id);
-        
-        if (!id) {
-          throw new Error("Post ID is missing");
-        }
-        
         const { data, error } = await supabase
           .from('lost_found_posts')
-          .select(`
-            *,
-            profiles:profile_id (
-              email,
-              first_name,
-              last_name,
-              phone
-            )
-          `)
+          .select('*')
           .eq('id', id)
-          .neq('status', 'archived') // Don't show archived posts to the public
           .single();
+
+        if (error) throw error;
         
-        if (error) {
-          console.error("Error fetching lost & found post:", error);
-          throw error;
+        // Fetch author profile separately
+        let authorProfile = null;
+        if (data.profile_id) {
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('first_name, last_name, email')
+            .eq('id', data.profile_id)
+            .single();
+            
+          if (!profileError && profileData) {
+            authorProfile = profileData;
+          }
         }
         
-        console.log("Post retrieved:", data);
-        return data;
-      } catch (err: any) {
-        console.error("Error in lostFoundPost query:", err);
-        throw err;
+        // Return post with author profile
+        return {
+          ...data,
+          profiles: authorProfile
+        } as LostFoundPost;
+      } catch (error: any) {
+        console.error("Error fetching lost & found post:", error);
+        throw error;
       }
     },
-    retry: 1,
+    retry: false
   });
-  
-  // If post not found or not published
-  if (!isLoading && !post && !error) {
-    return <NotFound />;
+
+  // Function to handle retry
+  const handleRetry = () => {
+    setErrorRetries(prev => prev + 1);
+  };
+
+  // Function to handle going back to the list
+  const handleBackToList = () => {
+    navigate("/lost-found");
+  };
+
+  // Determine if current user is the author
+  const isAuthor = user && post?.profile_id === user.id;
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-4xl mx-auto animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+            <div className="h-64 bg-gray-200 rounded mb-6"></div>
+            <div className="space-y-4">
+              <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+              <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+              <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
   }
-  
+
+  // Error state
+  if (error) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex flex-col items-center justify-center text-center py-12">
+            <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
+            <h2 className="text-2xl font-bold mb-2">Error loading post details</h2>
+            <p className="text-gray-600 mb-6">Please try again later.</p>
+            <div className="flex gap-4">
+              <Button onClick={handleRetry} className="flex items-center gap-2">
+                <RefreshCw size={16} />
+                Try Again
+              </Button>
+              <Button variant="outline" onClick={handleBackToList}>
+                Return to Lost & Found
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
-      <SEO 
-        title={post ? `${post.status === 'lost' ? 'Lost' : 'Found'}: ${post.title} | Meow Rescue` : 'Lost & Found | Meow Rescue'} 
-        description={post ? post.description.substring(0, 160) : 'Details about a lost or found pet'}
-        image={post?.photos_urls ? post.photos_urls[0] : undefined}
+      <SEO
+        title={`${post.title} | Lost & Found`}
+        description={post.description}
       />
-      
-      {isLoading ? (
-        <div className="container mx-auto px-4 py-16">
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
+
+      <div className="container mx-auto px-4 py-8">
+        <Button
+          asChild
+          variant="outline"
+          className="mb-6"
+          size="sm"
+        >
+          <Link to="/lost-found">
+            <ChevronLeft className="mr-1" size={16} /> Back to Lost & Found
+          </Link>
+        </Button>
+
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-3xl font-bold text-meow-primary mb-4">{post.title}</h1>
+          <div className="mb-4">
+            <Badge variant={
+              post.status === 'lost' ? 'destructive' :
+              post.status === 'found' ? 'outline' :
+              post.status === 'reunited' ? 'default' :
+              'secondary'
+            }>
+              {post.status.charAt(0).toUpperCase() + post.status.slice(1)}
+            </Badge>
           </div>
-        </div>
-      ) : error ? (
-        <div className="container mx-auto px-4 py-16">
-          <div className="text-center py-12">
-            <p className="text-red-500">Error loading post details. Please try again later.</p>
-            <Button variant="outline" className="mt-4" onClick={() => refetch()}>
-              Try Again
-            </Button>
-            <Button variant="outline" className="mt-4 ml-2" onClick={() => navigate('/lost-found')}>
-              Return to Lost & Found
-            </Button>
-          </div>
-        </div>
-      ) : post ? (
-        <>
-          {/* Hero Section */}
-          <div className="w-full py-20 bg-gradient-to-r from-meow-primary/10 to-meow-secondary/10">
-            <div className="container mx-auto px-4">
-              <div className="max-w-3xl mx-auto text-center">
-                <span className={`inline-block px-4 py-1 rounded-full text-white text-sm font-medium mb-4 ${
-                  post.status === 'lost' ? 'bg-red-500' : 'bg-green-500'
-                }`}>
-                  {post.status === 'lost' ? 'Lost Pet' : 'Found Pet'}
-                </span>
-                <h1 className="text-3xl md:text-4xl font-bold text-meow-primary mb-4">{post.title}</h1>
-                <div className="flex items-center justify-center text-gray-600 mb-4">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  <span>
-                    {new Date(post.date_occurred).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </span>
-                </div>
-                <div className="flex items-center justify-center text-gray-600">
-                  <MapPin className="h-4 w-4 mr-2" />
-                  <span>{post.location}</span>
-                </div>
+
+          {post.photos_urls && post.photos_urls.length > 0 && (
+            <div className="mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {post.photos_urls.map((url, index) => (
+                  <img
+                    key={index}
+                    src={url}
+                    alt={`${post.pet_type} ${index + 1}`}
+                    className="rounded-md w-full h-64 object-cover"
+                  />
+                ))}
               </div>
             </div>
-          </div>
-          
-          {/* Content */}
-          <div className="container mx-auto px-4 py-12">
-            {/* Navigation */}
-            <div className="mb-8">
-              <Link to="/lost-found">
-                <Button variant="ghost" className="flex items-center">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to Lost & Found
-                </Button>
-              </Link>
+          )}
+
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-xl font-semibold mb-2">Details</h2>
+              <p>
+                <span className="font-medium">Pet Type:</span> {post.pet_type}
+              </p>
+              {post.pet_name && (
+                <p>
+                  <span className="font-medium">Pet Name:</span> {post.pet_name}
+                </p>
+              )}
+              <p>
+                <span className="font-medium">Location:</span> {post.location}
+              </p>
+              <p>
+                <span className="font-medium">Date:</span> {new Date(post.date_occurred).toLocaleDateString()}
+              </p>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Main Content */}
-              <div className="md:col-span-2">
-                {/* Photos */}
-                {post.photos_urls && post.photos_urls.length > 0 && (
-                  <Card className="mb-8 overflow-hidden">
-                    <CardContent className="p-0">
-                      <Carousel className="w-full">
-                        <CarouselContent>
-                          {post.photos_urls.map((url, index) => (
-                            <CarouselItem key={index}>
-                              <div className="p-1 h-80 md:h-96">
-                                <img 
-                                  src={url} 
-                                  alt={`${post.title} - image ${index + 1}`} 
-                                  className="w-full h-full object-cover rounded-md"
-                                />
-                              </div>
-                            </CarouselItem>
-                          ))}
-                        </CarouselContent>
-                      </Carousel>
-                    </CardContent>
-                  </Card>
-                )}
-                
-                {/* Description */}
-                <Card className="mb-8">
-                  <CardContent className="p-6">
-                    <h2 className="text-xl font-semibold mb-4">Description</h2>
-                    <p className="text-gray-700 whitespace-pre-line">{post.description}</p>
-                  </CardContent>
-                </Card>
-                
-                {/* Details */}
-                <Card>
-                  <CardContent className="p-6">
-                    <h2 className="text-xl font-semibold mb-4">Details</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="flex items-center">
-                        <Tag className="h-5 w-5 mr-3 text-meow-primary" />
-                        <div>
-                          <p className="text-sm text-gray-500">Pet Type</p>
-                          <p className="font-medium">{post.pet_type}</p>
-                        </div>
-                      </div>
-                      
-                      {post.pet_name && (
-                        <div className="flex items-center">
-                          <Info className="h-5 w-5 mr-3 text-meow-primary" />
-                          <div>
-                            <p className="text-sm text-gray-500">Pet Name</p>
-                            <p className="font-medium">{post.pet_name}</p>
-                          </div>
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center">
-                        <Calendar className="h-5 w-5 mr-3 text-meow-primary" />
-                        <div>
-                          <p className="text-sm text-gray-500">Date</p>
-                          <p className="font-medium">
-                            {new Date(post.date_occurred).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center">
-                        <MapPin className="h-5 w-5 mr-3 text-meow-primary" />
-                        <div>
-                          <p className="text-sm text-gray-500">Location</p>
-                          <p className="font-medium">
-                            <a 
-                              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(post.location)}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="hover:underline text-meow-primary"
-                            >
-                              {post.location}
-                            </a>
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-              
-              {/* Sidebar */}
+
+            <div>
+              <h2 className="text-xl font-semibold mb-2">Description</h2>
+              <p className="whitespace-pre-wrap">{post.description}</p>
+            </div>
+
+            <div>
+              <h2 className="text-xl font-semibold mb-2">Contact Information</h2>
+              {post.profiles ? (
+                <>
+                  <p>
+                    <span className="font-medium">Name:</span> {post.profiles.first_name} {post.profiles.last_name}
+                  </p>
+                  <p>
+                    <span className="font-medium">Email:</span> {post.profiles.email}
+                  </p>
+                  {post.contact_info && (
+                    <p>
+                      <span className="font-medium">Additional Contact Info:</span> {post.contact_info}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p>No contact information available.</p>
+              )}
+            </div>
+
+            {isAuthor && (
               <div>
-                {/* Contact Information */}
-                <Card className="mb-6">
-                  <CardContent className="p-6">
-                    <h2 className="text-xl font-semibold mb-4">Contact Information</h2>
-                    
-                    <div className="space-y-4">
-                      {post.profiles && (
-                        <div className="flex items-center">
-                          <User className="h-5 w-5 mr-3 text-meow-primary" />
-                          <div>
-                            <p className="text-sm text-gray-500">Contact Person</p>
-                            <p className="font-medium">
-                              {post.profiles.first_name || post.profiles.last_name
-                                ? `${post.profiles.first_name || ''} ${post.profiles.last_name || ''}`.trim()
-                                : 'Anonymous'
-                              }
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {post.contact_info && (
-                        <div className="flex items-center">
-                          <Phone className="h-5 w-5 mr-3 text-meow-primary" />
-                          <div>
-                            <p className="text-sm text-gray-500">Phone</p>
-                            <p className="font-medium">
-                              <a href={`tel:${post.contact_info}`} className="hover:underline text-meow-primary">
-                                {post.contact_info}
-                              </a>
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {post.profiles && post.profiles.email && (
-                        <div className="flex items-center">
-                          <Mail className="h-5 w-5 mr-3 text-meow-primary" />
-                          <div>
-                            <p className="text-sm text-gray-500">Email</p>
-                            <p className="font-medium">
-                              <a href={`mailto:${post.profiles.email}`} className="hover:underline text-meow-primary">
-                                {post.profiles.email}
-                              </a>
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="mt-6">
-                      {post.profiles && post.profiles.email && (
-                        <Button className="w-full" asChild>
-                          <a href={`mailto:${post.profiles.email}?subject=Regarding your ${post.status} pet post: ${post.title}`}>
-                            <Mail className="mr-2 h-4 w-4" />
-                            Contact
-                          </a>
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                {/* Help Section */}
-                <Card>
-                  <CardContent className="p-6">
-                    <h2 className="text-xl font-semibold mb-4">How You Can Help</h2>
-                    <p className="text-gray-700 mb-4">
-                      {post.status === 'lost' 
-                        ? "If you've seen this pet or have any information, please contact the owner directly." 
-                        : "If this is your pet, please contact the finder directly with proof of ownership."}
-                    </p>
-                    <p className="text-gray-700 mb-4">
-                      Share this post on social media to increase visibility.
-                    </p>
-                    <Button variant="outline" className="w-full" onClick={() => {
-                      navigator.clipboard.writeText(window.location.href);
-                      toast({
-                        title: "Link Copied",
-                        description: "The link has been copied to your clipboard. Share it to help spread the word!"
-                      });
-                    }}>
-                      Copy Link to Share
-                    </Button>
-                  </CardContent>
-                </Card>
+                <Button asChild variant="meow">
+                  <Link to={`/lost-found/edit/${id}`}>Edit Post</Link>
+                </Button>
               </div>
-            </div>
+            )}
           </div>
-        </>
-      ) : null}
+        </div>
+      </div>
     </Layout>
   );
 };
