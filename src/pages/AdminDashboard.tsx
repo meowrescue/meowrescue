@@ -1,432 +1,305 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import AdminLayout from './Admin';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { DollarSign, Cat, Users, FileText, TrendingUp, Calendar, Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import SEO from '@/components/SEO';
+import AdminLayout from '@/pages/Admin';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Chat, User, Cat, Calendar, DollarSign, FileText, Info, AlertTriangle } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Application } from '@/types/applications';
 
+// Dashboard component for admin users
 const AdminDashboard: React.FC = () => {
-  const [currentDate, setCurrentDate] = useState('');
-
-  useEffect(() => {
-    // Set current date in format like "April 13, 2025"
-    const now = new Date();
-    setCurrentDate(now.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    }));
-  }, []);
-
-  // Get counts from Supabase
-  const { data: catCount = 0, isLoading: isLoadingCats } = useQuery({
-    queryKey: ['cats-count'],
-    queryFn: async () => {
-      const { count, error } = await supabase
-        .from('cats')
-        .select('*', { count: 'exact', head: true });
-      
-      if (error) throw error;
-      return count || 0;
-    }
-  });
-
-  const { data: userCount = 0, isLoading: isLoadingUsers } = useQuery({
-    queryKey: ['users-count'],
-    queryFn: async () => {
-      const { count, error } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true });
-      
-      if (error) throw error;
-      return count || 0;
-    }
-  });
-
-  const { data: donationTotal = 0, isLoading: isLoadingDonations } = useQuery({
-    queryKey: ['donations-total'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('donations')
-        .select('amount');
-      
-      if (error) throw error;
-      
-      return data.reduce((sum, donation) => sum + parseFloat(donation.amount.toString()), 0) || 0;
-    }
-  });
-
-  // Recent events
-  const { data: events = [], isLoading: isLoadingEvents } = useQuery({
-    queryKey: ['recent-events'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('events')
-        .select('*')
-        .order('event_date_start', { ascending: true })
-        .limit(3);
-      
-      if (error) throw error;
-      return data || [];
-    }
-  });
-
-  // Recent applications
-  const { data: applications = [], isLoading: isLoadingApplications } = useQuery({
+  // Fetch recent applications
+  const { data: recentApplications } = useQuery({
     queryKey: ['recent-applications'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('adoption_applications')
-        .select('*, cats(*), profiles(*)')
-        .order('submitted_at', { ascending: false })
-        .limit(3);
-      
-      if (error) throw error;
-      return data || [];
+      try {
+        const { data, error } = await supabase
+          .from('applications')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(5);
+          
+        if (error) throw error;
+        
+        return data as Application[];
+      } catch (error) {
+        console.error("Error fetching recent applications:", error);
+        return [] as Application[];
+      }
     }
   });
 
-  // Recent donations
-  const { data: recentDonations = [], isLoading: isLoadingRecentDonations } = useQuery({
-    queryKey: ['recent-donations'],
+  // Fetch recent contact messages
+  const { data: recentMessages } = useQuery({
+    queryKey: ['recent-messages'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('donations')
-        .select('*, profiles(*)')
-        .order('donation_date', { ascending: false })
-        .limit(3);
-      
-      if (error) throw error;
-      return data || [];
+      try {
+        const { data, error } = await supabase
+          .from('contact_messages')
+          .select('*')
+          .order('received_at', { ascending: false })
+          .limit(5);
+          
+        if (error) throw error;
+        
+        return data;
+      } catch (error) {
+        console.error("Error fetching recent messages:", error);
+        return [];
+      }
     }
   });
 
-  // Recent adoptions
-  const { data: adoptions = [], isLoading: isLoadingAdoptions } = useQuery({
-    queryKey: ['recent-adoptions'],
+  // Fetch recent activity logs
+  const { data: recentActivity } = useQuery({
+    queryKey: ['recent-activity'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('success_stories')
-        .select('*, cats(*)')
-        .order('adoption_date', { ascending: false })
-        .limit(3);
-      
-      if (error) throw error;
-      return data || [];
+      try {
+        const { data, error } = await supabase
+          .from('activity_logs')
+          .select('*, profiles:user_id(first_name, last_name)')
+          .order('created_at', { ascending: false })
+          .limit(10);
+          
+        if (error) throw error;
+        
+        return data;
+      } catch (error) {
+        console.error("Error fetching recent activity:", error);
+        return [];
+      }
     }
   });
 
-  // Recent lost & found
-  const { data: lostFoundPosts = [], isLoading: isLoadingLostFound } = useQuery({
-    queryKey: ['recent-lost-found'],
+  // Fetch total counts
+  const { data: counts } = useQuery({
+    queryKey: ['dashboard-counts'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('lost_found_posts')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(1);
-      
-      if (error) throw error;
-      return data || [];
+      try {
+        // Get cats count
+        const { count: catsCount, error: catsError } = await supabase
+          .from('cats')
+          .select('*', { count: 'exact', head: true });
+          
+        if (catsError) throw catsError;
+        
+        // Get users count
+        const { count: usersCount, error: usersError } = await supabase
+          .from('profiles')
+          .select('*', { count: 'exact', head: true });
+          
+        if (usersError) throw usersError;
+        
+        // Get applications count
+        const { count: applicationsCount, error: applicationsError } = await supabase
+          .from('applications')
+          .select('*', { count: 'exact', head: true });
+          
+        if (applicationsError) throw applicationsError;
+        
+        // Get pending applications count
+        const { count: pendingCount, error: pendingError } = await supabase
+          .from('applications')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'pending');
+          
+        if (pendingError) throw pendingError;
+        
+        return {
+          cats: catsCount || 0,
+          users: usersCount || 0,
+          applications: applicationsCount || 0,
+          pending: pendingCount || 0
+        };
+      } catch (error) {
+        console.error("Error fetching counts:", error);
+        return { cats: 0, users: 0, applications: 0, pending: 0 };
+      }
     }
   });
 
   return (
     <AdminLayout title="Dashboard">
-      <SEO title="Dashboard | Meow Rescue Admin" />
-      
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-2">
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Dashboard</h1>
-        <div className="text-xs sm:text-sm text-gray-500">Last updated: {currentDate}</div>
-      </div>
-      
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between p-3 sm:pb-2">
-            <CardTitle className="text-sm font-medium">Total Donations</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent className="p-3 pt-0">
-            <div className="text-lg sm:text-xl md:text-2xl font-bold">
-              {isLoadingDonations ? (
-                <span className="text-gray-400">Loading...</span>
-              ) : (
-                `$${donationTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-              )}
-            </div>
-            <p className="text-xs text-gray-500 mt-1">Total donations to date</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between p-3 sm:pb-2">
-            <CardTitle className="text-sm font-medium">Adoptable Cats</CardTitle>
-            <Cat className="h-4 w-4 text-meow-primary" />
-          </CardHeader>
-          <CardContent className="p-3 pt-0">
-            <div className="text-lg sm:text-xl md:text-2xl font-bold">
-              {isLoadingCats ? (
-                <span className="text-gray-400">Loading...</span>
-              ) : (
-                catCount
-              )}
-            </div>
-            <p className="text-xs text-gray-500 mt-1">Total cats in system</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between p-3 sm:pb-2">
-            <CardTitle className="text-sm font-medium">Registered Users</CardTitle>
-            <Users className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent className="p-3 pt-0">
-            <div className="text-lg sm:text-xl md:text-2xl font-bold">
-              {isLoadingUsers ? (
-                <span className="text-gray-400">Loading...</span>
-              ) : (
-                userCount
-              )}
-            </div>
-            <p className="text-xs text-gray-500 mt-1">Total registered users</p>
-          </CardContent>
-        </Card>
-      </div>
-      
-      <Tabs defaultValue="overview" className="w-full mb-4 sm:mb-6">
-        <TabsList className="w-full flex overflow-x-auto pb-1 mb-2 no-scrollbar">
-          <TabsTrigger value="overview" className="flex-1 text-xs sm:text-sm">Overview</TabsTrigger>
-          <TabsTrigger value="donations" className="flex-1 text-xs sm:text-sm">Donations</TabsTrigger>
-          <TabsTrigger value="adoptions" className="flex-1 text-xs sm:text-sm">Adoptions</TabsTrigger>
-          <TabsTrigger value="activity" className="flex-1 text-xs sm:text-sm">Recent Activity</TabsTrigger>
-        </TabsList>
+      <div className="container mx-auto py-10">
+        <h1 className="text-3xl font-bold text-meow-primary mb-8">Dashboard</h1>
         
-        <TabsContent value="overview" className="mt-3 sm:mt-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
-            <Card className="col-span-1">
-              <CardHeader className="p-3 sm:p-4">
-                <CardTitle className="text-base sm:text-lg font-medium">Upcoming Events</CardTitle>
-              </CardHeader>
-              <CardContent className="p-3 sm:p-4 pt-0">
-                {isLoadingEvents ? (
-                  <div className="flex justify-center py-4">
-                    <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-meow-primary"></div>
-                  </div>
-                ) : events.length > 0 ? (
-                  <div className="space-y-3 sm:space-y-4">
-                    {events.map(event => (
-                      <div key={event.id} className="flex items-start gap-3">
-                        <div className="bg-gray-100 rounded p-1 sm:p-2 flex-shrink-0">
-                          <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-medium text-sm sm:text-base truncate">{event.title}</p>
-                          <p className="text-xs sm:text-sm text-gray-500 truncate">
-                            {new Date(event.event_date_start).toLocaleDateString()} • 
-                            {new Date(event.event_date_start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-center py-3 text-gray-500 text-sm">No upcoming events</p>
-                )}
-              </CardContent>
-            </Card>
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Total Cats</p>
+                  <h3 className="text-2xl font-bold">{counts?.cats || 0}</h3>
+                </div>
+                <div className="h-12 w-12 bg-meow-light/20 rounded-full flex items-center justify-center">
+                  <Cat className="h-6 w-6 text-meow-primary" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Total Users</p>
+                  <h3 className="text-2xl font-bold">{counts?.users || 0}</h3>
+                </div>
+                <div className="h-12 w-12 bg-meow-light/20 rounded-full flex items-center justify-center">
+                  <User className="h-6 w-6 text-meow-primary" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Applications</p>
+                  <h3 className="text-2xl font-bold">{counts?.applications || 0}</h3>
+                </div>
+                <div className="h-12 w-12 bg-meow-light/20 rounded-full flex items-center justify-center">
+                  <FileText className="h-6 w-6 text-meow-primary" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Pending Applications</p>
+                  <h3 className="text-2xl font-bold">{counts?.pending || 0}</h3>
+                </div>
+                <div className="h-12 w-12 bg-meow-light/20 rounded-full flex items-center justify-center">
+                  <AlertTriangle className="h-6 w-6 text-amber-500" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* Quick Actions */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Button asChild variant="outline" className="h-24 flex flex-col items-center justify-center gap-2">
+              <Link to="/admin/cats/new">
+                <Cat className="h-6 w-6" />
+                <span>Add Cat</span>
+              </Link>
+            </Button>
             
-            <Card className="col-span-1">
-              <CardHeader className="p-3 sm:p-4">
-                <CardTitle className="text-base sm:text-lg font-medium">Recent Applications</CardTitle>
-              </CardHeader>
-              <CardContent className="p-3 sm:p-4 pt-0">
-                {isLoadingApplications ? (
-                  <div className="flex justify-center py-4">
-                    <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-meow-primary"></div>
-                  </div>
-                ) : applications.length > 0 ? (
-                  <div className="space-y-3 sm:space-y-4">
-                    {applications.map(app => (
-                      <div key={app.id} className="flex items-start gap-3">
-                        <div className="bg-gray-100 rounded p-1 sm:p-2 flex-shrink-0">
-                          <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-medium text-sm sm:text-base truncate">
-                            {app.profiles?.first_name} {app.profiles?.last_name}
-                          </p>
-                          <p className="text-xs sm:text-sm text-gray-500 truncate">
-                            Applied to adopt {app.cats?.name} • 
-                            {new Date(app.submitted_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-center py-3 text-gray-500 text-sm">No adoption applications yet</p>
-                )}
-              </CardContent>
-            </Card>
+            <Button asChild variant="outline" className="h-24 flex flex-col items-center justify-center gap-2">
+              <Link to="/admin/blog/new">
+                <FileText className="h-6 w-6" />
+                <span>New Blog Post</span>
+              </Link>
+            </Button>
+            
+            <Button asChild variant="outline" className="h-24 flex flex-col items-center justify-center gap-2">
+              <Link to="/admin/events">
+                <Calendar className="h-6 w-6" />
+                <span>Manage Events</span>
+              </Link>
+            </Button>
+            
+            <Button asChild variant="outline" className="h-24 flex flex-col items-center justify-center gap-2">
+              <Link to="/admin/finance">
+                <DollarSign className="h-6 w-6" />
+                <span>Record Donation</span>
+              </Link>
+            </Button>
           </div>
-        </TabsContent>
+        </div>
         
-        <TabsContent value="donations" className="mt-3 sm:mt-4">
+        {/* Recent Activity and Applications */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Recent Applications */}
           <Card>
-            <CardHeader className="p-3 sm:p-4">
-              <CardTitle className="text-base sm:text-lg font-medium">Recent Donations</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex justify-between items-center">
+                <span>Recent Applications</span>
+                <Button asChild variant="link" size="sm" className="text-meow-primary">
+                  <Link to="/admin/applications">View All</Link>
+                </Button>
+              </CardTitle>
             </CardHeader>
-            <CardContent className="p-3 sm:p-4 pt-0">
-              {isLoadingRecentDonations ? (
-                <div className="flex justify-center py-4">
-                  <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-meow-primary"></div>
-                </div>
-              ) : recentDonations.length > 0 ? (
-                <div className="space-y-3 sm:space-y-4">
-                  {recentDonations.map(donation => (
-                    <div key={donation.id} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="bg-green-100 text-green-600 rounded p-1 sm:p-2 flex-shrink-0">
-                          <DollarSign className="h-4 w-4 sm:h-5 sm:w-5" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-medium text-sm sm:text-base truncate">
-                            {donation.profiles ? 
-                              `${donation.profiles.first_name || ''} ${donation.profiles.last_name || ''}`.trim() : 
-                              'Anonymous Donor'}
+            <CardContent>
+              {recentApplications && recentApplications.length > 0 ? (
+                <div className="space-y-4">
+                  {recentApplications.map((app) => (
+                    <div key={app.id} className="border-b pb-2 last:border-0">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-medium">
+                            {app.form_data.firstName} {app.form_data.lastName}
                           </p>
-                          <p className="text-xs sm:text-sm text-gray-500 truncate">{new Date(donation.donation_date).toLocaleDateString()}</p>
+                          <p className="text-sm text-gray-500">
+                            {app.application_type} Application
+                          </p>
+                        </div>
+                        <div>
+                          <span className={`inline-block px-2 py-1 text-xs rounded-full ${
+                            app.status === 'approved' ? 'bg-green-100 text-green-800' :
+                            app.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                            app.status === 'in-review' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-blue-100 text-blue-800'
+                          }`}>
+                            {app.status.toUpperCase()}
+                          </span>
                         </div>
                       </div>
-                      <div className="font-semibold text-sm sm:text-base">
-                        ${parseFloat(donation.amount.toString()).toFixed(2)}
+                      <p className="text-xs text-gray-500 mt-1">
+                        {new Date(app.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center py-4 text-gray-500">No recent applications</p>
+              )}
+            </CardContent>
+          </Card>
+          
+          {/* Recent Activity */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle>Recent Activity</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {recentActivity && recentActivity.length > 0 ? (
+                <div className="space-y-4">
+                  {recentActivity.map((activity: any) => (
+                    <div key={activity.id} className="border-b pb-2 last:border-0">
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5">
+                          <Info className="h-4 w-4 text-meow-primary" />
+                        </div>
+                        <div>
+                          <p className="text-sm">{activity.description}</p>
+                          <p className="text-xs text-gray-500">
+                            {activity.profiles ? `${activity.profiles.first_name} ${activity.profiles.last_name}` : 'System'} • {new Date(activity.created_at).toLocaleString()}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-center py-3 text-gray-500 text-sm">No donations received yet</p>
+                <p className="text-center py-4 text-gray-500">No recent activity</p>
               )}
             </CardContent>
           </Card>
-        </TabsContent>
-        
-        <TabsContent value="adoptions" className="mt-3 sm:mt-4">
-          <Card>
-            <CardHeader className="p-3 sm:p-4">
-              <CardTitle className="text-base sm:text-lg font-medium">Recent Adoptions</CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 sm:p-4 pt-0">
-              {isLoadingAdoptions ? (
-                <div className="flex justify-center py-4">
-                  <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-meow-primary"></div>
-                </div>
-              ) : adoptions.length > 0 ? (
-                <div className="space-y-3 sm:space-y-4">
-                  {adoptions.map(adoption => (
-                    <div key={adoption.id} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="bg-meow-primary/20 text-meow-primary rounded p-1 sm:p-2 flex-shrink-0">
-                          <Cat className="h-4 w-4 sm:h-5 sm:w-5" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-medium text-sm sm:text-base truncate">{adoption.cats?.name}</p>
-                          <p className="text-xs sm:text-sm text-gray-500 truncate">
-                            Adopted • {adoption.adoption_date ? 
-                              new Date(adoption.adoption_date).toLocaleDateString() : 
-                              'Date not recorded'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-center py-3 text-gray-500 text-sm">No adoptions recorded yet</p>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="activity" className="mt-3 sm:mt-4">
-          <Card>
-            <CardHeader className="p-3 sm:p-4">
-              <CardTitle className="text-base sm:text-lg font-medium">Recent Activity</CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 sm:p-4 pt-0">
-              {isLoadingUsers || isLoadingDonations || isLoadingLostFound ? (
-                <div className="flex justify-center py-4">
-                  <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-meow-primary"></div>
-                </div>
-              ) : (
-                <div className="relative">
-                  <div className="absolute left-3 sm:left-4 top-0 bottom-0 w-px bg-gray-200"></div>
-                  <div className="space-y-4 sm:space-y-6">
-                    {recentDonations.length > 0 && (
-                      <div className="flex gap-3 sm:gap-4">
-                        <div className="relative z-10 mt-1 flex-shrink-0">
-                          <div className="bg-green-500 text-white rounded-full p-1">
-                            <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
-                          </div>
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-medium text-sm sm:text-base">Donation received</p>
-                          <p className="text-xs sm:text-sm text-gray-500 truncate">
-                            {recentDonations[0].profiles ? 
-                              `${recentDonations[0].profiles.first_name || ''} ${recentDonations[0].profiles.last_name || ''}`.trim() : 
-                              'Anonymous donor'} • 
-                            ${parseFloat(recentDonations[0].amount.toString()).toFixed(2)} • 
-                            {new Date(recentDonations[0].donation_date).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {lostFoundPosts.length > 0 && (
-                      <div className="flex gap-3 sm:gap-4">
-                        <div className="relative z-10 mt-1 flex-shrink-0">
-                          <div className="bg-amber-500 text-white rounded-full p-1">
-                            <Search className="h-3 w-3 sm:h-4 sm:w-4" />
-                          </div>
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-medium text-sm sm:text-base">New {lostFoundPosts[0].status} pet report</p>
-                          <p className="text-xs sm:text-sm text-gray-500 truncate">
-                            {lostFoundPosts[0].title} • {lostFoundPosts[0].location} • 
-                            {new Date(lostFoundPosts[0].created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {applications.length > 0 && (
-                      <div className="flex gap-3 sm:gap-4">
-                        <div className="relative z-10 mt-1 flex-shrink-0">
-                          <div className="bg-blue-500 text-white rounded-full p-1">
-                            <Users className="h-3 w-3 sm:h-4 sm:w-4" />
-                          </div>
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-medium text-sm sm:text-base">New adoption application</p>
-                          <p className="text-xs sm:text-sm text-gray-500 truncate">
-                            For {applications[0].cats?.name} • 
-                            {new Date(applications[0].submitted_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {applications.length === 0 && recentDonations.length === 0 && lostFoundPosts.length === 0 && (
-                      <p className="text-center py-3 text-gray-500 text-sm">No recent activity</p>
-                    )}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
     </AdminLayout>
   );
 };

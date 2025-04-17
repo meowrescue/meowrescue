@@ -1,109 +1,79 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Link } from 'react-router-dom';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LostFoundPost } from '@/types/supabase';
 import { supabase } from '@/integrations/supabase/client';
+import { LostFoundPost } from '@/types/supabase';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { EyeIcon, ArchiveIcon, RotateCcw, Trash2, Search } from 'lucide-react';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { 
-  MoreHorizontal, 
-  PlusCircle, 
-  Search, 
-  Trash2, 
-  Archive, 
-  FileEdit,
-  ArchiveRestore
-} from 'lucide-react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import SEO from '@/components/SEO';
 
 const AdminLostFound = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-  const [confirmArchiveId, setConfirmArchiveId] = useState<string | null>(null);
-  const [confirmRestoreId, setConfirmRestoreId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<string>('active');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [selectedPost, setSelectedPost] = useState<LostFoundPost | null>(null);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
 
-  // Fetch all lost and found posts
+  // Fetch lost and found posts
   const { data: posts, isLoading, error } = useQuery({
-    queryKey: ['admin-lost-found', activeTab],
+    queryKey: ['admin-lost-found-posts'],
     queryFn: async () => {
       try {
-        console.log(`Fetching lost and found posts with status ${activeTab === 'archived' ? 'archived' : 'not archived'}`);
-        let query = supabase
+        const { data, error } = await supabase
           .from('lost_found_posts')
-          .select('*');
-          
-        if (activeTab === 'archived') {
-          query = query.eq('status', 'archived');
-        } else {
-          query = query.neq('status', 'archived');
-        }
-        
-        const { data, error } = await query.order('created_at', { ascending: false });
-        
-        if (error) {
-          console.error("Error fetching lost and found posts:", error);
-          throw error;
-        }
-        
-        console.log(`Fetched ${data?.length} lost and found posts`);
-        return data || [];
-      } catch (err) {
-        console.error("Error in lost and found posts query:", err);
-        return [];
+          .select(`
+            *,
+            profiles (
+              first_name,
+              last_name,
+              email
+            )
+          `)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        return data as LostFoundPost[];
+      } catch (err: any) {
+        console.error('Error fetching lost and found posts:', err);
+        return [] as LostFoundPost[];
       }
-    },
+    }
   });
 
-  // Delete post mutation
-  const deletePost = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('lost_found_posts')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-lost-found'] });
-      toast({
-        title: "Post Deleted",
-        description: "The post has been permanently deleted.",
-      });
-      setConfirmDeleteId(null);
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: `Failed to delete post: ${error.message}`,
-        variant: "destructive",
-      });
-    },
-  });
+  // Filter posts
+  const filteredPosts = posts?.filter(post => 
+    (statusFilter === 'all' || post.status === statusFilter) &&
+    (
+      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.pet_type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (post.pet_name && post.pet_name.toLowerCase().includes(searchQuery.toLowerCase()))
+    )
+  );
 
   // Archive post mutation
   const archivePost = useMutation({
@@ -114,22 +84,28 @@ const AdminLostFound = () => {
         .eq('id', id);
       
       if (error) throw error;
+      return id;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-lost-found'] });
+    onSuccess: (id) => {
       toast({
         title: "Post Archived",
-        description: "The post has been archived.",
+        description: "The post has been archived successfully."
       });
-      setConfirmArchiveId(null);
+      queryClient.invalidateQueries({ queryKey: ['admin-lost-found-posts'] });
+      
+      // If we archived the currently selected post, close the detail view
+      if (selectedPost?.id === id) {
+        setViewDialogOpen(false);
+        setSelectedPost(null);
+      }
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: `Failed to archive post: ${error.message}`,
-        variant: "destructive",
+        description: error.message || "Failed to archive post",
+        variant: "destructive"
       });
-    },
+    }
   });
 
   // Restore post mutation
@@ -154,120 +130,177 @@ const AdminLostFound = () => {
         .eq('id', id);
       
       if (error) throw error;
+      return id;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-lost-found'] });
+    onSuccess: (id) => {
       toast({
         title: "Post Restored",
-        description: "The post has been restored from the archive.",
+        description: "The post has been restored successfully."
       });
-      setConfirmRestoreId(null);
+      queryClient.invalidateQueries({ queryKey: ['admin-lost-found-posts'] });
+      
+      // If we restored the currently selected post, update the detail view
+      if (selectedPost?.id === id) {
+        const updatedPost = posts?.find(p => p.id === id);
+        if (updatedPost) {
+          setSelectedPost({ ...updatedPost, status: 'lost' });
+        }
+      }
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: `Failed to restore post: ${error.message}`,
-        variant: "destructive",
+        description: error.message || "Failed to restore post",
+        variant: "destructive"
       });
+    }
+  });
+
+  // Delete post mutation
+  const deletePost = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('lost_found_posts')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      return id;
     },
+    onSuccess: (id) => {
+      toast({
+        title: "Post Deleted",
+        description: "The post has been permanently deleted."
+      });
+      queryClient.invalidateQueries({ queryKey: ['admin-lost-found-posts'] });
+      
+      // If we deleted the currently selected post, close the detail view
+      if (selectedPost?.id === id) {
+        setViewDialogOpen(false);
+        setSelectedPost(null);
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete post",
+        variant: "destructive"
+      });
+    }
   });
 
-  // Filter posts based on search term
-  const filteredPosts = posts?.filter((post) => {
-    const searchString = searchTerm.toLowerCase();
-    return (
-      post.title.toLowerCase().includes(searchString) ||
-      post.description.toLowerCase().includes(searchString) ||
-      post.location.toLowerCase().includes(searchString) ||
-      post.pet_type.toLowerCase().includes(searchString) ||
-      (post.pet_name && post.pet_name.toLowerCase().includes(searchString))
-    );
-  });
-
-  // Format date for display
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    }).format(date);
+  // Show post details
+  const handleViewPost = (post: LostFoundPost) => {
+    setSelectedPost(post);
+    setViewDialogOpen(true);
   };
 
-  // Get status badge color
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'lost':
-        return <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">Lost</span>;
-      case 'found':
-        return <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Found</span>;
-      case 'reunited':
-        return <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">Reunited</span>;
-      case 'archived':
-        return <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">Archived</span>;
-      default:
-        return <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">{status}</span>;
+  // Handle archive action
+  const handleArchive = (id: string) => {
+    if (window.confirm("Are you sure you want to archive this post?")) {
+      archivePost.mutate(id);
     }
   };
 
+  // Handle restore action
+  const handleRestore = (id: string) => {
+    if (window.confirm("Are you sure you want to restore this post?")) {
+      restorePost.mutate(id);
+    }
+  };
+
+  // Handle delete action
+  const handleDelete = (id: string) => {
+    if (window.confirm("Are you sure you want to permanently delete this post? This action cannot be undone.")) {
+      deletePost.mutate(id);
+    }
+  };
+
+  // Counts by status
+  const lostCount = posts?.filter(p => p.status === 'lost').length || 0;
+  const foundCount = posts?.filter(p => p.status === 'found').length || 0;
+  const reunitedCount = posts?.filter(p => p.status === 'reunited').length || 0;
+  const archivedCount = posts?.filter(p => p.status === 'archived').length || 0;
+
   return (
     <AdminLayout title="Lost & Found">
-      <SEO title="Manage Lost & Found Posts | Meow Rescue Admin" />
+      <SEO title="Lost & Found | Meow Rescue Admin" />
       
       <div className="container mx-auto py-10">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-meow-primary mb-4 sm:mb-0">Lost & Found Posts</h1>
-          <div className="flex gap-4 w-full sm:w-auto">
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+        <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
+          <h1 className="text-3xl font-bold text-meow-primary">Lost & Found Posts</h1>
+          <div className="flex items-center gap-4 w-full md:w-auto">
+            <div className="relative w-full md:w-auto">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                type="search"
                 placeholder="Search posts..."
-                className="pl-8"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 w-full md:w-64"
               />
             </div>
-            <Button asChild>
-              <Link to="/lost-found/new">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                New Post
-              </Link>
-            </Button>
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList>
-            <TabsTrigger value="active">Active</TabsTrigger>
-            <TabsTrigger value="archived">Archived</TabsTrigger>
-          </TabsList>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <Card className={`cursor-pointer ${statusFilter === 'all' ? 'bg-slate-100' : ''}`} onClick={() => setStatusFilter('all')}>
+            <CardContent className="p-4">
+              <div>
+                <p className="text-sm font-medium text-gray-500">All Posts</p>
+                <p className="text-2xl font-bold">{posts?.length || 0}</p>
+              </div>
+            </CardContent>
+          </Card>
           
-          <TabsContent value="active" className="space-y-4">
+          <Card className={`cursor-pointer ${statusFilter === 'lost' ? 'bg-slate-100' : ''}`} onClick={() => setStatusFilter('lost')}>
+            <CardContent className="p-4">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Lost</p>
+                <p className="text-2xl font-bold">{lostCount}</p>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className={`cursor-pointer ${statusFilter === 'found' ? 'bg-slate-100' : ''}`} onClick={() => setStatusFilter('found')}>
+            <CardContent className="p-4">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Found</p>
+                <p className="text-2xl font-bold">{foundCount}</p>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className={`cursor-pointer ${statusFilter === 'archived' ? 'bg-slate-100' : ''}`} onClick={() => setStatusFilter('archived')}>
+            <CardContent className="p-4">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Archived</p>
+                <p className="text-2xl font-bold">{archivedCount}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {statusFilter === 'all' ? 'All Posts' : 
+               statusFilter === 'lost' ? 'Lost Pets' : 
+               statusFilter === 'found' ? 'Found Pets' : 
+               statusFilter === 'reunited' ? 'Reunited Pets' : 
+               'Archived Posts'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
             {isLoading ? (
-              <div className="flex justify-center py-10">
-                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-meow-primary"></div>
+              <div className="flex justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
               </div>
             ) : error ? (
-              <div className="text-center py-10">
-                <p className="text-red-500">Error loading lost and found posts.</p>
-                <Button
-                  variant="outline"
-                  onClick={() => queryClient.invalidateQueries({ queryKey: ['admin-lost-found'] })}
-                  className="mt-4"
-                >
-                  Try Again
-                </Button>
+              <div className="text-center py-12">
+                <p className="text-red-500">Error loading posts</p>
               </div>
-            ) : filteredPosts?.length === 0 ? (
-              <div className="text-center py-10">
-                <p className="text-gray-500">No active lost and found posts found.</p>
-                <Button asChild className="mt-4">
-                  <Link to="/lost-found/new">Create a new post</Link>
-                </Button>
-              </div>
-            ) : (
-              <div className="border rounded-md">
+            ) : filteredPosts && filteredPosts.length > 0 ? (
+              <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -275,207 +308,207 @@ const AdminLostFound = () => {
                       <TableHead>Status</TableHead>
                       <TableHead>Pet Type</TableHead>
                       <TableHead>Location</TableHead>
-                      <TableHead>Date</TableHead>
                       <TableHead>Date Posted</TableHead>
-                      <TableHead></TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredPosts?.map((post) => (
+                    {filteredPosts.map((post) => (
                       <TableRow key={post.id}>
-                        <TableCell className="font-medium">
-                          <Link to={`/lost-found/${post.id}`} className="text-meow-primary hover:underline">
-                            {post.title}
-                          </Link>
+                        <TableCell>
+                          <div className="font-medium">{post.title}</div>
+                          <div className="text-sm text-gray-500">
+                            by {post.profiles?.first_name} {post.profiles?.last_name}
+                          </div>
                         </TableCell>
-                        <TableCell>{getStatusBadge(post.status)}</TableCell>
+                        <TableCell>
+                          <Badge variant={
+                            post.status === 'lost' ? 'destructive' :
+                            post.status === 'found' ? 'outline' :
+                            post.status === 'reunited' ? 'success' :
+                            'secondary'
+                          }>
+                            {post.status.charAt(0).toUpperCase() + post.status.slice(1)}
+                          </Badge>
+                        </TableCell>
                         <TableCell>{post.pet_type}</TableCell>
                         <TableCell>{post.location}</TableCell>
-                        <TableCell>{formatDate(post.date_occurred)}</TableCell>
-                        <TableCell>{formatDate(post.created_at)}</TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Open menu</span>
-                                <MoreHorizontal className="h-4 w-4" />
+                        <TableCell>{new Date(post.created_at).toLocaleDateString()}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              title="View Details"
+                              onClick={() => handleViewPost(post)}
+                            >
+                              <EyeIcon className="h-4 w-4" />
+                            </Button>
+                            
+                            {post.status !== 'archived' ? (
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                title="Archive Post"
+                                onClick={() => handleArchive(post.id)}
+                              >
+                                <ArchiveIcon className="h-4 w-4" />
                               </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem asChild>
-                                <Link to={`/lost-found/${post.id}`}>
-                                  <Search className="mr-2 h-4 w-4" />
-                                  View
-                                </Link>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem asChild>
-                                <Link to={`/lost-found/edit/${post.id}`}>
-                                  <FileEdit className="mr-2 h-4 w-4" />
-                                  Edit
-                                </Link>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setConfirmArchiveId(post.id)}>
-                                <Archive className="mr-2 h-4 w-4" />
-                                Archive
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setConfirmDeleteId(post.id)}>
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                title="Restore Post"
+                                onClick={() => handleRestore(post.id)}
+                              >
+                                <RotateCcw className="h-4 w-4" />
+                              </Button>
+                            )}
+                            
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              title="Delete Post"
+                              onClick={() => handleDelete(post.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="archived" className="space-y-4">
-            {isLoading ? (
-              <div className="flex justify-center py-10">
-                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-meow-primary"></div>
-              </div>
-            ) : error ? (
-              <div className="text-center py-10">
-                <p className="text-red-500">Error loading archived posts.</p>
-                <Button
-                  variant="outline"
-                  onClick={() => queryClient.invalidateQueries({ queryKey: ['admin-lost-found'] })}
-                  className="mt-4"
-                >
-                  Try Again
-                </Button>
-              </div>
-            ) : filteredPosts?.length === 0 ? (
-              <div className="text-center py-10">
-                <p className="text-gray-500">No archived posts found.</p>
               </div>
             ) : (
-              <div className="border rounded-md">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Original Status</TableHead>
-                      <TableHead>Pet Type</TableHead>
-                      <TableHead>Location</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Date Posted</TableHead>
-                      <TableHead></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredPosts?.map((post) => (
-                      <TableRow key={post.id}>
-                        <TableCell className="font-medium">
-                          <Link to={`/lost-found/${post.id}`} className="text-meow-primary hover:underline">
-                            {post.title}
-                          </Link>
-                        </TableCell>
-                        <TableCell>{getStatusBadge(post.status)}</TableCell>
-                        <TableCell>{post.pet_type}</TableCell>
-                        <TableCell>{post.location}</TableCell>
-                        <TableCell>{formatDate(post.date_occurred)}</TableCell>
-                        <TableCell>{formatDate(post.created_at)}</TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Open menu</span>
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem asChild>
-                                <Link to={`/lost-found/${post.id}`}>
-                                  <Search className="mr-2 h-4 w-4" />
-                                  View
-                                </Link>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setConfirmRestoreId(post.id)}>
-                                <ArchiveRestore className="mr-2 h-4 w-4" />
-                                Restore
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setConfirmDeleteId(post.id)}>
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+              <div className="text-center py-12">
+                <p className="text-xl text-gray-700">
+                  {searchQuery ? 'No posts match your search.' : 'No posts found for this status.'}
+                </p>
               </div>
             )}
-          </TabsContent>
-        </Tabs>
-        
-        {/* Delete Confirmation Dialog */}
-        <AlertDialog open={!!confirmDeleteId} onOpenChange={() => setConfirmDeleteId(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the post from the database.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction 
-                onClick={() => confirmDeleteId && deletePost.mutate(confirmDeleteId)}
-                className="bg-red-600 hover:bg-red-700"
-              >
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-        
-        {/* Archive Confirmation Dialog */}
-        <AlertDialog open={!!confirmArchiveId} onOpenChange={() => setConfirmArchiveId(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Archive this post?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will archive the post so it no longer appears on the public site. You can restore it later.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction 
-                onClick={() => confirmArchiveId && archivePost.mutate(confirmArchiveId)}
-              >
-                Archive
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-        
-        {/* Restore Confirmation Dialog */}
-        <AlertDialog open={!!confirmRestoreId} onOpenChange={() => setConfirmRestoreId(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Restore this post?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will restore the post and make it visible on the public site again.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction 
-                onClick={() => confirmRestoreId && restorePost.mutate(confirmRestoreId)}
-              >
-                Restore
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+          </CardContent>
+        </Card>
       </div>
+      
+      {/* Post Details Dialog */}
+      {selectedPost && (
+        <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{selectedPost.title}</DialogTitle>
+              <DialogDescription>
+                Posted by {selectedPost.profiles?.first_name} {selectedPost.profiles?.last_name} on {new Date(selectedPost.created_at).toLocaleDateString()}
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Post Details</h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Status</p>
+                    <Badge variant={
+                      selectedPost.status === 'lost' ? 'destructive' :
+                      selectedPost.status === 'found' ? 'outline' :
+                      selectedPost.status === 'reunited' ? 'success' :
+                      'secondary'
+                    } className="mt-1">
+                      {selectedPost.status.charAt(0).toUpperCase() + selectedPost.status.slice(1)}
+                    </Badge>
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Pet Type</p>
+                    <p>{selectedPost.pet_type}</p>
+                  </div>
+                  
+                  {selectedPost.pet_name && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Pet Name</p>
+                      <p>{selectedPost.pet_name}</p>
+                    </div>
+                  )}
+                  
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Location</p>
+                    <p>{selectedPost.location}</p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Date Occurred</p>
+                    <p>{new Date(selectedPost.date_occurred).toLocaleDateString()}</p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Contact Information</p>
+                    <p>{selectedPost.contact_info || selectedPost.profiles?.email}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Description</h3>
+                <p className="whitespace-pre-wrap">{selectedPost.description}</p>
+                
+                {selectedPost.photos_urls && selectedPost.photos_urls.length > 0 && (
+                  <div className="mt-6">
+                    <h3 className="text-lg font-semibold mb-4">Photos</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      {selectedPost.photos_urls.map((url, index) => (
+                        <img 
+                          key={index} 
+                          src={url} 
+                          alt={`${selectedPost.pet_type} ${index + 1}`} 
+                          className="rounded-md w-full h-40 object-cover"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <DialogFooter className="flex-col sm:flex-row sm:justify-between gap-2">
+              <div className="flex gap-2">
+                <Button
+                  variant="destructive"
+                  onClick={() => handleDelete(selectedPost.id)}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </Button>
+                
+                {selectedPost.status !== 'archived' ? (
+                  <Button
+                    variant="outline"
+                    onClick={() => handleArchive(selectedPost.id)}
+                  >
+                    <ArchiveIcon className="mr-2 h-4 w-4" />
+                    Archive
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    onClick={() => handleRestore(selectedPost.id)}
+                  >
+                    <RotateCcw className="mr-2 h-4 w-4" />
+                    Restore
+                  </Button>
+                )}
+              </div>
+              
+              <Button 
+                variant="outline" 
+                onClick={() => setViewDialogOpen(false)}
+              >
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </AdminLayout>
   );
 };

@@ -397,6 +397,7 @@ export type Database = {
           received_at: string
           responded_at: string | null
           response: string | null
+          status: string
           subject: string | null
         }
         Insert: {
@@ -408,6 +409,7 @@ export type Database = {
           received_at?: string
           responded_at?: string | null
           response?: string | null
+          status?: string
           subject?: string | null
         }
         Update: {
@@ -419,6 +421,7 @@ export type Database = {
           received_at?: string
           responded_at?: string | null
           response?: string | null
+          status?: string
           subject?: string | null
         }
         Relationships: []
@@ -511,6 +514,7 @@ export type Database = {
       events: {
         Row: {
           created_at: string
+          date: string | null
           date_end: string
           date_start: string
           description: string
@@ -522,6 +526,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          date?: string | null
           date_end: string
           date_start: string
           description: string
@@ -533,6 +538,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          date?: string | null
           date_end?: string
           date_start?: string
           description?: string

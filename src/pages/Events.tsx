@@ -26,7 +26,7 @@ const Events: React.FC = () => {
       const { data, error } = await supabase
         .from('events')
         .select('*')
-        .order('event_date_start', { ascending: true });
+        .order('date_start', { ascending: true });
       
       if (error) throw error;
       
@@ -40,15 +40,15 @@ const Events: React.FC = () => {
       const transformedEvents: Event[] = data.map(event => ({
         id: event.id,
         title: event.title,
-        date: new Date(event.event_date_start).toLocaleDateString('en-US', { 
+        date: new Date(event.date_start).toLocaleDateString('en-US', { 
           year: 'numeric', 
           month: 'long', 
           day: 'numeric' 
         }),
-        time: `${new Date(event.event_date_start).toLocaleTimeString('en-US', { 
+        time: `${new Date(event.date_start).toLocaleTimeString('en-US', { 
           hour: '2-digit', 
           minute: '2-digit' 
-        })} - ${new Date(event.event_date_end).toLocaleTimeString('en-US', { 
+        })} - ${new Date(event.date_end).toLocaleTimeString('en-US', { 
           hour: '2-digit', 
           minute: '2-digit' 
         })}`,
