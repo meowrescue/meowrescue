@@ -12,11 +12,33 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 
+// Define type for supply
+interface Supply {
+  id: string;
+  name: string;
+  description?: string;
+  category: string;
+  unit: string;
+  quantity: number;
+  minimum_quantity: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// Define type for new supply
+interface NewSupply {
+  name: string;
+  description: string;
+  category: string;
+  unit: string;
+  minimumQuantity: number;
+}
+
 const AdminSupplies = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isAddSupplyDialogOpen, setIsAddSupplyDialogOpen] = useState(false);
-  const [newSupply, setNewSupply] = useState({
+  const [newSupply, setNewSupply] = useState<NewSupply>({
     name: '',
     description: '',
     category: '',
@@ -34,13 +56,13 @@ const AdminSupplies = () => {
         .order('name', { ascending: true });
 
       if (error) throw error;
-      return data;
+      return data as Supply[];
     }
   });
 
   // Add supply mutation
   const addSupplyMutation = useMutation({
-    mutationFn: async (supplyData) => {
+    mutationFn: async (supplyData: NewSupply) => {
       const { data, error } = await supabase.rpc('add_supply', {
         p_name: supplyData.name,
         p_description: supplyData.description,
