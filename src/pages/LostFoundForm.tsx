@@ -17,7 +17,7 @@ type FormData = {
   title: string;
   description: string;
   location: string;
-  status: "lost" | "found" | "reunited";
+  status: "lost" | "found" | "reunited" | "archived";
   pet_type: string;
   pet_name: string;
   date_occurred: string;
