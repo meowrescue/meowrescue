@@ -6,7 +6,7 @@ import AdminLayout from '@/pages/Admin';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Chat, User, Cat, Calendar, DollarSign, FileText, Info, AlertTriangle } from 'lucide-react';
+import { Cat, User, Calendar, DollarSign, FileText, Info, AlertTriangle, MessageCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Application } from '@/types/applications';
 

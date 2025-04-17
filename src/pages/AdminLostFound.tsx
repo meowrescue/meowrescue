@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -325,7 +324,7 @@ const AdminLostFound = () => {
                           <Badge variant={
                             post.status === 'lost' ? 'destructive' :
                             post.status === 'found' ? 'outline' :
-                            post.status === 'reunited' ? 'success' :
+                            post.status === 'reunited' ? 'default' :
                             'secondary'
                           }>
                             {post.status.charAt(0).toUpperCase() + post.status.slice(1)}
@@ -412,7 +411,7 @@ const AdminLostFound = () => {
                     <Badge variant={
                       selectedPost.status === 'lost' ? 'destructive' :
                       selectedPost.status === 'found' ? 'outline' :
-                      selectedPost.status === 'reunited' ? 'success' :
+                      selectedPost.status === 'reunited' ? 'default' :
                       'secondary'
                     } className="mt-1">
                       {selectedPost.status.charAt(0).toUpperCase() + selectedPost.status.slice(1)}

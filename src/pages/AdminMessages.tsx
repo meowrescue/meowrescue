@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -379,7 +378,7 @@ const AdminMessages: React.FC = () => {
                         <Badge variant={
                           message.status === 'new' ? 'default' :
                           message.status === 'read' ? 'secondary' :
-                          message.status === 'replied' ? 'success' :
+                          message.status === 'replied' ? 'default' :
                           'outline'
                         }>
                           {message.status.charAt(0).toUpperCase() + message.status.slice(1)}
@@ -501,7 +500,7 @@ const AdminMessages: React.FC = () => {
                         <Badge variant={
                           selectedMessage.status === 'new' ? 'default' :
                           selectedMessage.status === 'read' ? 'secondary' :
-                          selectedMessage.status === 'replied' ? 'success' :
+                          selectedMessage.status === 'replied' ? 'default' :
                           'outline'
                         }>
                           {selectedMessage.status.charAt(0).toUpperCase() + selectedMessage.status.slice(1)}
