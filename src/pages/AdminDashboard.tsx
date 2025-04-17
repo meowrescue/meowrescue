@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -6,7 +5,7 @@ import AdminLayout from '@/pages/Admin';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Cat, User, Calendar, DollarSign, FileText, Info, AlertTriangle, MessageCircle } from 'lucide-react';
+import { Cat, User, Calendar, DollarSign, FileText, Info, AlertTriangle, MessageCircle, Package } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Application } from '@/types/applications';
 
@@ -215,6 +214,13 @@ const AdminDashboard: React.FC = () => {
               <Link to="/admin/finance">
                 <DollarSign className="h-6 w-6" />
                 <span>Record Donation</span>
+              </Link>
+            </Button>
+            
+            <Button asChild variant="outline" className="h-24 flex flex-col items-center justify-center gap-2">
+              <Link to="/admin/supplies">
+                <Package className="h-6 w-6" />
+                <span>Manage Supplies</span>
               </Link>
             </Button>
           </div>
