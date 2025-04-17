@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -50,6 +49,7 @@ import AdminChat from "./pages/AdminChat";
 import AdminSecurity from "./pages/AdminSecurity";
 import AdminApplications from "./pages/AdminApplications";
 import SuccessStories from "./pages/SuccessStories";
+import AdminSupplies from "./pages/AdminSupplies";
 
 const queryClient = new QueryClient();
 
@@ -185,6 +185,11 @@ const App = () => (
               <Route path="/admin/applications" element={
                 <ProtectedRoute requireAdmin={true}>
                   <AdminApplications />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/supplies" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminSupplies />
                 </ProtectedRoute>
               } />
               

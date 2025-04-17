@@ -78,7 +78,7 @@ const AdminSupplies = () => {
   });
 
   const handleAddSupply = () => {
-    addSupplyMutation.mutate(newSupply as any);
+    addSupplyMutation.mutate(newSupply);
   };
 
   if (isLoading) return <div>Loading...</div>;
