@@ -463,47 +463,51 @@ const AdminChat: React.FC = () => {
                 )}
               </CardHeader>
               
-              <CardContent className="flex-1 p-0 flex flex-col">
+              <CardContent className="flex-1 p-0 flex flex-col overflow-hidden">
                 {selectedChatId ? (
                   <>
-                    {/* Messages Area - with scroll event handler */}
+                    {/* Messages Area - improved with max-height and overflow handling */}
                     <div 
-                      className="flex-1 overflow-y-auto p-4" 
-                      ref={scrollAreaRef}
-                      onScroll={handleScroll}
+                      className="flex-1 overflow-hidden p-4 relative" 
                     >
-                      {messagesLoading ? (
-                        <div className="flex justify-center py-6">
-                          <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-meow-primary"></div>
-                        </div>
-                      ) : chatMessages && chatMessages.length > 0 ? (
-                        <div className="space-y-4">
-                          {chatMessages.map((message) => (
-                            <div 
-                              key={message.id} 
-                              className={`flex ${message.is_admin ? 'justify-end' : 'justify-start'}`}
-                            >
+                      <div 
+                        ref={scrollAreaRef}
+                        onScroll={handleScroll}
+                        className="h-full overflow-y-auto pr-2"
+                      >
+                        {messagesLoading ? (
+                          <div className="flex justify-center py-6">
+                            <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-meow-primary"></div>
+                          </div>
+                        ) : chatMessages && chatMessages.length > 0 ? (
+                          <div className="space-y-4">
+                            {chatMessages.map((message) => (
                               <div 
-                                className={`max-w-[80%] p-3 rounded-lg ${
-                                  message.is_admin 
-                                    ? 'bg-meow-primary text-white' 
-                                    : 'bg-gray-100 text-gray-800'
-                                }`}
+                                key={message.id} 
+                                className={`flex ${message.is_admin ? 'justify-end' : 'justify-start'}`}
                               >
-                                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                                <p className="text-xs mt-1 opacity-70">
-                                  {new Date(message.created_at).toLocaleTimeString()}
-                                </p>
+                                <div 
+                                  className={`max-w-[80%] p-3 rounded-lg overflow-hidden break-words ${
+                                    message.is_admin 
+                                      ? 'bg-meow-primary text-white' 
+                                      : 'bg-gray-100 text-gray-800'
+                                  }`}
+                                >
+                                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                                  <p className="text-xs mt-1 opacity-70">
+                                    {new Date(message.created_at).toLocaleTimeString()}
+                                  </p>
+                                </div>
                               </div>
-                            </div>
-                          ))}
-                          <div ref={messagesEndRef} />
-                        </div>
-                      ) : (
-                        <div className="h-full flex items-center justify-center text-gray-500">
-                          <p>No messages yet</p>
-                        </div>
-                      )}
+                            ))}
+                            <div ref={messagesEndRef} />
+                          </div>
+                        ) : (
+                          <div className="h-full flex items-center justify-center text-gray-500">
+                            <p>No messages yet</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     
                     {/* Auto-scroll toggle */}

@@ -12,7 +12,8 @@ import {
   Shield,
   FileImage,
   Search,
-  LogOut
+  LogOut,
+  Package
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
@@ -239,7 +240,7 @@ const AdminSidebar: React.FC = () => {
               isActive('/admin/supplies') ? 'bg-gray-100' : 'hover:bg-gray-100'
             }`}
           >
-            <FileText className="mr-3 h-5 w-5 text-gray-600" />
+            <Package className="mr-3 h-5 w-5 text-gray-600" />
             <span>Supplies</span>
           </Link>
         </div>

@@ -107,19 +107,27 @@ const AdminMessages: React.FC = () => {
   const deleteMessage = useMutation({
     mutationFn: async (id: string) => {
       try {
-        const { error } = await supabase
+        console.log('Deleting message with ID:', id);
+        const { error, data } = await supabase
           .from('contact_messages')
           .delete()
-          .eq('id', id);
+          .eq('id', id)
+          .select();
           
-        if (error) throw error;
+        if (error) {
+          console.error('Error deleting message:', error);
+          throw error;
+        }
+        
+        console.log('Delete response:', data);
         return id;
       } catch (error: any) {
-        console.error('Error deleting message:', error);
+        console.error('Error in delete mutation:', error);
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (id) => {
+      console.log('Message deleted successfully:', id);
       queryClient.invalidateQueries({ queryKey: ['contact-messages'] });
       setSelectedMessage(null);
       toast({
@@ -128,6 +136,7 @@ const AdminMessages: React.FC = () => {
       });
     },
     onError: (error: any) => {
+      console.error('Delete error:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to delete message",
@@ -192,9 +201,10 @@ const AdminMessages: React.FC = () => {
     updateMessageStatus.mutate({ id, status });
   };
   
-  // Handle delete confirmation
+  // Handle delete confirmation with improved error handling
   const handleDelete = (id: string) => {
     if (window.confirm("Are you sure you want to delete this message? This action cannot be undone.")) {
+      console.log('Confirming deletion of message:', id);
       deleteMessage.mutate(id);
     }
   };
