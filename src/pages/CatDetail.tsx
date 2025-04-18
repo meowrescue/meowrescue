@@ -78,6 +78,18 @@ const CatDetail: React.FC = () => {
     enabled: !!id
   });
 
+  const formatAge = (ageEstimate: string | null, birthday: string | null): string => {
+    if (birthday) {
+      const years = Math.floor((new Date().getTime() - new Date(birthday).getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+      if (years === 0) {
+        const months = Math.floor((new Date().getTime() - new Date(birthday).getTime()) / (30.44 * 24 * 60 * 60 * 1000));
+        return `${months} month${months === 1 ? '' : 's'} old`;
+      }
+      return `${years} year${years === 1 ? '' : 's'} old`;
+    }
+    return ageEstimate || 'Unknown age';
+  };
+
   if (isLoading) {
     return (
       <Layout>
@@ -110,7 +122,7 @@ const CatDetail: React.FC = () => {
         <div className="container mx-auto px-4">
           <SectionHeading
             title={cat.name}
-            subtitle={`Meet ${cat.name}, a ${cat.age_estimate} ${cat.gender} looking for a loving home.`}
+            subtitle={`Meet ${cat.name}, a ${formatAge(cat.age_estimate, cat.birthday)} ${cat.gender.toLowerCase()} looking for a loving home.`}
           />
         </div>
       </div>
