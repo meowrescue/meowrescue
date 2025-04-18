@@ -19,29 +19,36 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
-    // Optimize for production
+    sourcemap: mode === 'development',
+    // Optimize for Netlify deployment
     assetsInlineLimit: 4096,
     cssCodeSplit: true,
-    minify: 'terser', // Explicitly use Terser
+    minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: mode === 'production', // Only drop console in production
+        drop_console: mode === 'production',
         drop_debugger: mode === 'production',
       },
     },
+    // Improve chunk handling for Netlify
     rollupOptions: {
       output: {
-        manualChunks: {
-          react: ['react', 'react-dom'],
-          reactRouter: ['react-router-dom'],
-          ui: [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-toast',
-          ],
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            if (id.includes('react')) return 'vendor-react';
+            if (id.includes('@radix-ui')) return 'vendor-radix';
+            if (id.includes('tailwind')) return 'vendor-tailwind';
+            if (id.includes('tanstack')) return 'vendor-tanstack';
+            return 'vendor'; // all other packages
+          }
         },
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
       },
     },
+    // Reduce memory usage during build
+    emptyOutDir: true,
+    target: 'es2015',
+    reportCompressedSize: false,
   },
 }));
