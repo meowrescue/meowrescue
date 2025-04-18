@@ -1,12 +1,11 @@
 
 [build]
   publish = "dist"
-  command = "node scripts/update-package-type.js && npm run build"
+  command = "npm run build"
 
 [build.environment]
   NODE_VERSION = "18.18.0"
   NPM_VERSION = "9.8.1"
-  NODE_OPTIONS = "--max_old_space_size=4096"
   
 [[redirects]]
   from = "/*"
