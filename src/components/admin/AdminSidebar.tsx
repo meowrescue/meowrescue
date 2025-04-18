@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -229,7 +228,7 @@ const AdminSidebar = () => {
 
   return (
     <div className="fixed left-0 top-0 w-64 h-screen bg-white border-r z-40 shadow-md">
-      <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+      <div className="p-4 border-b border-gray-200 flex items-center justify-center">
         <div className="flex items-center gap-2">
           <div className="bg-meow-primary rounded-full p-1">
             <Cat className="h-5 w-5 text-white" />
@@ -241,20 +240,7 @@ const AdminSidebar = () => {
         </div>
       </div>
       
-      <div className="pt-4 border-b border-gray-200 pb-4">
-        <div className="px-4 flex items-center">
-          <Avatar className="h-10 w-10 mr-3">
-            <AvatarImage src={user?.avatar_url || ''} alt={user?.first_name || 'User'} />
-            <AvatarFallback>{getUserInitials()}</AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="font-medium text-sm">{user?.first_name} {user?.last_name}</p>
-            <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
-          </div>
-        </div>
-      </div>
-      
-      <div className="py-4 px-3 overflow-y-auto max-h-[calc(100vh-180px)] pb-32">
+      <div className="py-4 px-3 overflow-y-auto max-h-[calc(100vh-100px)] pb-32">
         <ul className="space-y-1">
           {menuGroups.map((group) => (
             <li key={group.id} className="mb-2">
