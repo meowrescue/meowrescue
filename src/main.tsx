@@ -4,6 +4,10 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
+import { AuthProvider } from './contexts/AuthContext';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { Toaster } from '@/components/ui/toaster';
+import { Toaster as Sonner } from '@/components/ui/sonner';
 import App from './App';
 import './index.css';
 
@@ -26,7 +30,13 @@ export async function render() {
       <BrowserRouter>
         <QueryClientProvider client={queryClient}>
           <HelmetProvider>
-            <App />
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <AuthProvider>
+                <App />
+              </AuthProvider>
+            </TooltipProvider>
           </HelmetProvider>
         </QueryClientProvider>
       </BrowserRouter>

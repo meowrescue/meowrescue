@@ -4,6 +4,8 @@ import ReactDOMServer from 'react-dom/server';
 import { StaticRouter } from 'react-router-dom/server';
 import { HelmetProvider } from 'react-helmet-async';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AuthProvider } from './contexts/AuthContext';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import App from './App';
 
 export function render(url: string) {
@@ -22,7 +24,11 @@ export function render(url: string) {
     <StaticRouter location={url}>
       <HelmetProvider context={helmetContext}>
         <QueryClientProvider client={queryClient}>
-          <App />
+          <TooltipProvider>
+            <AuthProvider>
+              <App />
+            </AuthProvider>
+          </TooltipProvider>
         </QueryClientProvider>
       </HelmetProvider>
     </StaticRouter>

@@ -5,6 +5,10 @@ import ssr from 'vite-plugin-ssr/plugin';
 import path from 'path';
 
 export default defineConfig(({ mode }) => ({
+  server: {
+    port: 8080,
+    host: "::",
+  },
   plugins: [
     react(),
     ssr({
