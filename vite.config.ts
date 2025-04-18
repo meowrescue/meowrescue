@@ -13,8 +13,8 @@ export default defineConfig(({ mode }) => ({
     react(),
     ssr({
       prerender: true,
-      // Configure the SSR plugin to use the correct paths
-      includedAssetsDir: 'client',
+      // Use the correct configuration supported by vite-plugin-ssr
+      // Removed the unsupported 'includedAssetsDir' property
     }),
   ],
   resolve: {
@@ -54,7 +54,7 @@ export default defineConfig(({ mode }) => ({
             if (id.includes('tanstack')) {
               return 'vendor-tanstack';
             }
-            // Don't include React in manualChunks as it's treated as external
+            // Skip React as it's treated as external
             if (id.includes('react') || id.includes('react-dom')) {
               return; // Skip creating manual chunk for React
             }
