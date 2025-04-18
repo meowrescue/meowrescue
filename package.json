@@ -50,7 +50,7 @@
     "tailwindcss-animate": "^1.0.7",
     "vite-imagetools": "^6.2.9",
     "vite-plugin-pwa": "^0.19.2",
-    "vite-react-ssg": "^0.23.3",
+    "vite-react-ssg": "^0.8.5",
     "zod": "^3.22.4"
   },
   "devDependencies": {
