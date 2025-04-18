@@ -4,16 +4,23 @@ import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 
 export default defineConfig(({ mode }) => {
-  // Import componentTagger only in development mode
+  // Initialize plugins array with react
   let plugins = [react()];
   
+  // Only try to use componentTagger in development mode
   if (mode === 'development') {
-    // Dynamically import in dev mode only
     try {
-      const { componentTagger } = require("lovable-tagger");
-      plugins.push(componentTagger());
+      // Dynamic import attempt within a try/catch block
+      import('lovable-tagger')
+        .then(({ componentTagger }) => {
+          plugins.push(componentTagger());
+          console.log('Lovable tagger plugin loaded successfully');
+        })
+        .catch(e => {
+          console.warn('lovable-tagger not available, continuing without it:', e.message);
+        });
     } catch (e) {
-      console.warn('lovable-tagger not available, continuing without it');
+      console.warn('lovable-tagger import failed, continuing without it');
     }
   }
 
