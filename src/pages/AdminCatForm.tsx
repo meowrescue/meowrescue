@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -363,7 +362,7 @@ const AdminCatForm: React.FC = () => {
                       </div>
                     )}
                     
-                    {/* Existing photos preview */}
+                    {/* Existing photos preview with click to view full size */}
                     {photoUrls.length > 0 && (
                       <div className="mt-4">
                         <h4 className="text-sm font-medium mb-2">Uploaded Photos:</h4>
@@ -373,7 +372,8 @@ const AdminCatForm: React.FC = () => {
                               <img 
                                 src={url} 
                                 alt={`Cat photo ${index + 1}`} 
-                                className="w-24 h-24 object-cover rounded-md shadow-sm"
+                                className="w-24 h-24 object-cover rounded-md shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
+                                onClick={() => window.open(url, '_blank')}
                               />
                               {editMode && (
                                 <Button

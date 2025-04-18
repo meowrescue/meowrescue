@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Upload, Image as ImageIcon, X, FileUp } from 'lucide-react';
+import { Upload, Image as ImageIcon, X, FileUp, ZoomIn } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface ImageUploaderProps {
@@ -110,44 +110,62 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     document.getElementById('file-upload')?.click();
   };
 
+  const handleViewFullSize = (url: string) => {
+    if (url && url !== 'document') {
+      window.open(url, '_blank');
+    }
+  };
+
   const isDocument = previewUrl === 'document';
 
   return (
     <div className="flex flex-col items-center space-y-4">
       {previewUrl ? (
-        <div className="relative w-full max-w-md">
+        <div className="relative w-full max-w-md group">
           {isDocument ? (
             <div className="flex items-center justify-center w-full h-24 bg-gray-50 border border-gray-200 rounded-lg">
               <FileUp className="h-8 w-8 text-meow-primary" />
               <span className="ml-2 text-sm text-gray-600">Document uploaded successfully</span>
             </div>
           ) : (
-            <img
-              src={previewUrl}
-              alt="Preview"
-              className="w-full h-auto rounded-lg object-cover shadow-md"
-            />
+            <div className="relative overflow-hidden rounded-lg shadow-md group">
+              <img
+                src={previewUrl}
+                alt="Preview"
+                className="w-full h-auto rounded-lg object-cover transition-all duration-300 group-hover:brightness-90"
+              />
+              <div 
+                className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                onClick={() => handleViewFullSize(previewUrl)}
+              >
+                <div className="bg-black/60 p-2 rounded-full">
+                  <ZoomIn className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </div>
           )}
           <button
             type="button"
-            className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full shadow-sm hover:bg-red-600 transition-colors"
+            className="absolute -top-2 -right-2 bg-red-500 text-white p-1.5 rounded-full shadow-md hover:bg-red-600 transition-colors"
             onClick={handleRemoveImage}
           >
             <X className="h-4 w-4" />
           </button>
         </div>
       ) : (
-        <div className="border-2 border-dashed border-meow-primary/30 rounded-lg p-6 flex flex-col items-center w-full max-w-md bg-gradient-to-b from-meow-primary/5 to-transparent hover:from-meow-primary/10 transition-all duration-300">
-          <ImageIcon className="h-12 w-12 text-meow-primary/60 mb-4" />
+        <div className="border-2 border-dashed border-meow-primary/40 rounded-lg p-6 flex flex-col items-center w-full max-w-md bg-gradient-to-b from-meow-primary/5 to-transparent hover:from-meow-primary/10 transition-all duration-300 group hover:border-meow-primary/60">
+          <div className="bg-meow-primary/10 p-4 rounded-full mb-4 group-hover:scale-110 transition-transform">
+            <ImageIcon className="h-8 w-8 text-meow-primary group-hover:text-meow-primary/80" />
+          </div>
           <p className="text-sm text-gray-500 text-center mb-4">
             Drag and drop your file here or click to browse
           </p>
           <Button
-            type="button" // Explicitly set as button type to prevent form submission
+            type="button"
             variant="outline"
             disabled={isUploading}
             onClick={handleBrowseClick}
-            className="border-meow-primary/50 text-meow-primary hover:text-meow-primary hover:bg-meow-primary/10"
+            className="border-meow-primary/50 text-meow-primary hover:text-meow-primary hover:bg-meow-primary/10 hover:scale-105 transition-all"
           >
             {isUploading ? (
               <>

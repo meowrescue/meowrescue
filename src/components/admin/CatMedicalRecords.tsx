@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import ImageUploader from '@/components/ImageUploader';
+import SectionHeading from '@/components/ui/SectionHeading';
 
 interface CatMedicalRecordsProps {
   catId: string;
@@ -27,7 +28,7 @@ const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId }) => {
   });
   const [documentFile, setDocumentFile] = React.useState<File | null>(null);
 
-  const { data: medicalRecords, isLoading } = useQuery({
+  const { data: medicalRecords, isLoading, isError, refetch } = useQuery({
     queryKey: ['cat-medical-records', catId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -37,7 +38,7 @@ const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId }) => {
         .order('record_date', { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data || [];
     }
   });
 
@@ -102,6 +103,7 @@ const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId }) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cat-medical-records', catId] });
+      refetch(); // Explicitly refetch the records after adding
       setNewRecord({
         procedure_type: '',
         description: '',
@@ -136,6 +138,7 @@ const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId }) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cat-medical-records', catId] });
+      refetch(); // Explicitly refetch after deletion
       toast({
         title: "Medical Record Deleted",
         description: "The medical record has been successfully deleted."
@@ -168,10 +171,21 @@ const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId }) => {
 
   return (
     <div className="space-y-6">
+      <SectionHeading 
+        title="Medical Records" 
+        centered={false} 
+        className="flex items-center pt-2"
+      />
+      
+      {/* Display existing medical records */}
       <div className="space-y-4">
         {isLoading ? (
           <div className="flex justify-center py-4">
             <div className="animate-spin h-6 w-6 border-2 border-meow-primary border-t-transparent rounded-full"></div>
+          </div>
+        ) : isError ? (
+          <div className="text-center py-4 text-red-500">
+            Error loading medical records. Please try again.
           </div>
         ) : medicalRecords && medicalRecords.length > 0 ? (
           <>
@@ -257,22 +271,29 @@ const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId }) => {
                 <SelectValue placeholder="Select procedure type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Spay/Neuter">Spay/Neuter</SelectItem>
+                <SelectItem value="Spay">Spay</SelectItem>
+                <SelectItem value="Neuter">Neuter</SelectItem>
                 <SelectItem value="Rabies Vaccination">Rabies Vaccination</SelectItem>
                 <SelectItem value="FVRCP Vaccination">FVRCP Vaccination</SelectItem>
-                <SelectItem value="Feline Leukemia Vaccination">Feline Leukemia Vaccination</SelectItem>
+                <SelectItem value="FeLV Vaccination">FeLV (Feline Leukemia) Vaccination</SelectItem>
                 <SelectItem value="Microchipping">Microchipping</SelectItem>
                 <SelectItem value="Deworming">Deworming</SelectItem>
                 <SelectItem value="Flea/Tick Treatment">Flea/Tick Treatment</SelectItem>
                 <SelectItem value="Dental Cleaning">Dental Cleaning</SelectItem>
-                <SelectItem value="Injury Treatment">Injury Treatment</SelectItem>
-                <SelectItem value="Surgery">Surgery</SelectItem>
+                <SelectItem value="Upper Respiratory Infection">Upper Respiratory Infection</SelectItem>
+                <SelectItem value="Eye Infection">Eye Infection</SelectItem>
+                <SelectItem value="Ear Infection">Ear Infection</SelectItem>
+                <SelectItem value="Wound Treatment">Wound Treatment</SelectItem>
+                <SelectItem value="Fracture Treatment">Fracture Treatment</SelectItem>
                 <SelectItem value="Emergency Care">Emergency Care</SelectItem>
+                <SelectItem value="Amputation">Amputation</SelectItem>
+                <SelectItem value="Mass Removal">Mass Removal</SelectItem>
                 <SelectItem value="Euthanasia">Euthanasia</SelectItem>
-                <SelectItem value="Wellness Exam">Wellness Exam</SelectItem>
                 <SelectItem value="Bloodwork">Bloodwork</SelectItem>
                 <SelectItem value="X-Ray/Imaging">X-Ray/Imaging</SelectItem>
+                <SelectItem value="Ultrasound">Ultrasound</SelectItem>
                 <SelectItem value="Medication">Medication</SelectItem>
+                <SelectItem value="Specialist Consultation">Specialist Consultation</SelectItem>
                 <SelectItem value="Grooming">Grooming</SelectItem>
                 <SelectItem value="Other">Other</SelectItem>
               </SelectContent>
