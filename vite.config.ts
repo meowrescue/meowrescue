@@ -11,8 +11,10 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react({
-      // Enable fast refresh and proper hydration
-      fastRefresh: true,
+      // Use swc options instead of fastRefresh
+      swc: {
+        plugins: []
+      }
     }),
     ssr({
       prerender: true,
