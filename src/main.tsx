@@ -23,28 +23,11 @@ const queryClient = new QueryClient({
   },
 });
 
-// Setup the app with providers
-const RootProvider = ({ children }: { children: React.ReactNode }) => (
-  <HelmetProvider>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          {children}
-          <Toaster />
-          <Sonner />
-        </TooltipProvider>
-      </AuthProvider>
-    </QueryClientProvider>
-  </HelmetProvider>
-);
-
 // Mount the app to the DOM
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <RootProvider>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </RootProvider>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
   </React.StrictMode>
 );
