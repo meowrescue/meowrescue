@@ -78,7 +78,13 @@ const SEO: React.FC<SEOProps> = ({
       )}
       
       {/* Content Freshness for SEO */}
-      {modifiedTime && <meta name="last-modified" content={modifiedTime} />}
+      {modifiedTime && (
+        <>
+          <meta name="last-modified" content={modifiedTime} />
+          <meta property="og:updated_time" content={modifiedTime} />
+          <meta http-equiv="last-modified" content={modifiedTime} />
+        </>
+      )}
       
       {/* Structured Data JSON-LD */}
       {structuredDataArray.map((data, index) => (

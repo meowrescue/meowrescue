@@ -42,9 +42,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({
       
       {/* Hero content */}
       <div className="container mx-auto px-4 relative z-10 text-center max-w-4xl">
-        <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
           {title}
-        </h2>
+        </h1>
         <p className="text-xl md:text-2xl text-white/90 mb-10 max-w-3xl mx-auto">
           {subtitle}
         </p>
