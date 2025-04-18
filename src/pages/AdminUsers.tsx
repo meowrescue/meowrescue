@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,7 +23,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Label } from '@/components/ui/label';
 import SEO from '@/components/SEO';
 
-type UserRole = 'admin' | 'staff' | 'volunteer' | 'foster' | 'user';
+type UserRole = 'admin' | 'volunteer' | 'foster' | 'user';
 
 interface UserProfile {
   id: string;
@@ -455,7 +454,6 @@ const AdminUsers = () => {
                     <SelectItem value="user">User</SelectItem>
                     <SelectItem value="volunteer">Volunteer</SelectItem>
                     <SelectItem value="foster">Foster</SelectItem>
-                    <SelectItem value="staff">Staff</SelectItem>
                     <SelectItem value="admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>

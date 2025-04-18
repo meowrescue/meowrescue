@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   email: string;
@@ -17,6 +16,8 @@ export interface User {
   city?: string | null;
   state?: string | null;
   zip?: string | null;
+  unread_chat_count?: number;
+  unread_message_count?: number;
 }
 
 export interface ExtendedUser extends User {

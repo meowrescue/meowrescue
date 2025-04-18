@@ -18,7 +18,7 @@ const ChatWidget = () => {
   const [step, setStep] = useState<'info' | 'chat'>('info');
   const [session, setSession] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { user, setUser } = useAuth();
+  const { user } = useAuth(); // Remove setUser as we don't use it here
   const { toast } = useToast();
   const chatBoxRef = useRef<HTMLDivElement>(null);
 
