@@ -122,7 +122,7 @@ const AdminCats: React.FC = () => {
     <AdminLayout title="Cats">
       <SEO title="Cats | Meow Rescue Admin" />
       
-      <div className="container mx-auto py-10 mt-16 sm:mt-0"> {/* Added top margin for mobile view */}
+      <div className="container mx-auto py-10 pt-20 sm:pt-10"> {/* Fixed top padding for mobile view */}
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-meow-primary">Cats</h1>
           <div className="flex items-center space-x-4">

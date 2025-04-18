@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Upload, Image as ImageIcon, X } from 'lucide-react';
+import { Upload, Image as ImageIcon, X, FileUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface ImageUploaderProps {
@@ -27,9 +27,9 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     console.log('Starting upload to bucket:', bucketName, 'folder:', folderPath);
 
     try {
-      // Make sure the file is an image
-      if (!file.type.match('image.*')) {
-        throw new Error('Only image files are allowed');
+      // Make sure the file is an image or document
+      if (!file.type.match('image.*') && !file.type.match('application/pdf') && !file.type.match('application/msword') && !file.type.match('application/vnd.openxmlformats-officedocument.*')) {
+        throw new Error('Only image or document files are allowed');
       }
 
       // Create a unique filename
@@ -60,26 +60,31 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         .getPublicUrl(filePath);
 
       if (!urlData.publicUrl) {
-        throw new Error('Failed to get public URL for uploaded image');
+        throw new Error('Failed to get public URL for uploaded file');
       }
 
       console.log('Public URL:', urlData.publicUrl);
 
-      // Create a preview image
-      setPreviewUrl(urlData.publicUrl);
+      // Create a preview image for image files
+      if (file.type.match('image.*')) {
+        setPreviewUrl(urlData.publicUrl);
+      } else {
+        // For documents, just set a placeholder or the filename
+        setPreviewUrl('document');
+      }
       
       // Call the callback function with the public URL
       onImageUploaded(urlData.publicUrl);
 
       toast({
-        title: 'Image uploaded',
-        description: 'Your image was uploaded successfully.',
+        title: 'File uploaded',
+        description: 'Your file was uploaded successfully.',
       });
     } catch (error: any) {
-      console.error('Error uploading image:', error);
+      console.error('Error uploading file:', error);
       toast({
         title: 'Upload failed',
-        description: error.message || 'There was an error uploading your image.',
+        description: error.message || 'There was an error uploading your file.',
         variant: 'destructive',
       });
     } finally {
@@ -105,44 +110,54 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     document.getElementById('file-upload')?.click();
   };
 
+  const isDocument = previewUrl === 'document';
+
   return (
     <div className="flex flex-col items-center space-y-4">
       {previewUrl ? (
         <div className="relative w-full max-w-md">
-          <img
-            src={previewUrl}
-            alt="Preview"
-            className="w-full h-auto rounded-lg object-cover"
-          />
+          {isDocument ? (
+            <div className="flex items-center justify-center w-full h-24 bg-gray-50 border border-gray-200 rounded-lg">
+              <FileUp className="h-8 w-8 text-meow-primary" />
+              <span className="ml-2 text-sm text-gray-600">Document uploaded successfully</span>
+            </div>
+          ) : (
+            <img
+              src={previewUrl}
+              alt="Preview"
+              className="w-full h-auto rounded-lg object-cover shadow-md"
+            />
+          )}
           <button
             type="button"
-            className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full"
+            className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full shadow-sm hover:bg-red-600 transition-colors"
             onClick={handleRemoveImage}
           >
             <X className="h-4 w-4" />
           </button>
         </div>
       ) : (
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center w-full max-w-md">
-          <ImageIcon className="h-12 w-12 text-gray-400 mb-4" />
+        <div className="border-2 border-dashed border-meow-primary/30 rounded-lg p-6 flex flex-col items-center w-full max-w-md bg-gradient-to-b from-meow-primary/5 to-transparent hover:from-meow-primary/10 transition-all duration-300">
+          <ImageIcon className="h-12 w-12 text-meow-primary/60 mb-4" />
           <p className="text-sm text-gray-500 text-center mb-4">
-            Drag and drop your image here or click to browse
+            Drag and drop your file here or click to browse
           </p>
           <Button
             type="button" // Explicitly set as button type to prevent form submission
             variant="outline"
             disabled={isUploading}
             onClick={handleBrowseClick}
+            className="border-meow-primary/50 text-meow-primary hover:text-meow-primary hover:bg-meow-primary/10"
           >
             {isUploading ? (
               <>
-                <div className="animate-spin mr-2 h-4 w-4 border-2 border-b-transparent border-white rounded-full" />
+                <div className="animate-spin mr-2 h-4 w-4 border-2 border-b-transparent border-meow-primary rounded-full" />
                 Uploading...
               </>
             ) : (
               <>
                 <Upload className="mr-2 h-4 w-4" />
-                Upload Image
+                Upload File
               </>
             )}
           </Button>
@@ -151,7 +166,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       <input
         id="file-upload"
         type="file"
-        accept="image/*"
+        accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         onChange={handleFileChange}
         className="hidden"
       />

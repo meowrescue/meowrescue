@@ -1,221 +1,269 @@
+
 import React, { useState } from 'react';
-import Layout from '@/components/Layout';
-import SEO from '@/components/SEO';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import Layout from '@/components/Layout';
+import SEO from '@/components/SEO';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@/contexts/AuthContext';
 
+// Define form schema with Zod
 const formSchema = z.object({
-  name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
-  email: z.string().email({ message: 'Please enter a valid email address.' }),
-  phone: z.string().min(10, { message: 'Phone number must be at least 10 characters.' }),
-  address: z.string().min(5, { message: 'Address must be at least 5 characters.' }),
-  whyFoster: z.string().min(10, { message: 'Please tell us why you want to foster.' }),
-  catCareExperience: z.string().min(10, { message: 'Please describe your cat care experience.' }),
-  otherPets: z.string().optional(),
-  housingType: z.string().min(2, { message: 'Please specify your housing type.' }),
-  fosterAgreement: z.boolean().refine((value) => value === true, {
-    message: 'You must agree to the foster agreement.',
-  }),
-  timeCommitment: z.string().min(2, { message: 'Please specify your time commitment.' }),
-  fosterTypePreference: z.enum(['kittens', 'adults', 'both'], {
-    required_error: 'Please select your foster type preference.',
+  firstName: z.string().min(2, 'First name is required'),
+  lastName: z.string().min(2, 'Last name is required'),
+  email: z.string().email('Please enter a valid email'),
+  phone: z.string().min(10, 'Please enter a valid phone number'),
+  address: z.string().min(5, 'Address is required'),
+  city: z.string().min(2, 'City is required'),
+  state: z.string().min(2, 'State is required'),
+  zip: z.string().min(5, 'ZIP code is required'),
+  hasExperience: z.enum(['yes', 'no']),
+  experienceDetails: z.string().optional(),
+  hasOtherPets: z.enum(['yes', 'no']),
+  otherPetsDetails: z.string().optional(),
+  homeType: z.enum(['apartment', 'house', 'condo', 'other']),
+  hasYard: z.enum(['yes', 'no']),
+  hoursAtHome: z.string(),
+  commitment: z.enum(['short', 'medium', 'long']),
+  additionalInfo: z.string().optional(),
+  agreeToTerms: z.boolean().refine(value => value === true, {
+    message: 'You must agree to the terms and conditions',
   }),
 });
 
-const FosterForm: React.FC = () => {
+type FormData = z.infer<typeof formSchema>;
+
+const FosterForm = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  // Initialize the form with default values
+  const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: '',
-      email: '',
+      firstName: '',
+      lastName: '',
+      email: user?.email || '',
       phone: '',
       address: '',
-      whyFoster: '',
-      catCareExperience: '',
-      otherPets: '',
-      housingType: '',
-      fosterAgreement: false,
-      timeCommitment: '',
-      fosterTypePreference: 'both',
+      city: '',
+      state: '',
+      zip: '',
+      hasExperience: 'no',
+      experienceDetails: '',
+      hasOtherPets: 'no',
+      otherPetsDetails: '',
+      homeType: 'apartment',
+      hasYard: 'no',
+      hoursAtHome: '',
+      commitment: 'medium',
+      additionalInfo: '',
+      agreeToTerms: false,
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  // Handle form submission
+  const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
-    // Here you would typically handle the form submission, e.g., sending the data to a server.
-    console.log('Form values:', values);
-    // Simulate a submission delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsSubmitting(false);
-    alert('Form submitted successfully!');
+    try {
+      // Submit to Supabase
+      const { error } = await supabase.from('applications').insert({
+        applicant_id: user?.id,
+        application_type: 'foster',
+        status: 'pending',
+        form_data: data,
+      });
+
+      if (error) throw error;
+
+      // Show success toast without the alert popup
+      toast({
+        title: "Application Submitted",
+        description: "Your foster application has been submitted successfully. We'll contact you soon.",
+      });
+
+      // Navigate to thank you or profile page
+      navigate('/profile');
+    } catch (error: any) {
+      console.error('Error submitting application:', error);
+      toast({
+        title: "Submission Error",
+        description: error.message || "Failed to submit application. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <Layout>
-      <SEO title="Foster Application | Meow Rescue" description="Apply to become a foster parent for cats in need. Provide a temporary loving home until they find their forever families." />
-      
-      <div className="bg-gradient-to-r from-meow-primary/10 to-meow-secondary/10 py-16 md:py-24 text-center">
-        <div className="container mx-auto px-4">
-          <h1 className="text-4xl font-bold text-meow-primary mb-6">Foster Application</h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Help us save more lives by becoming a foster parent. Please complete the form below to apply.
-          </p>
-        </div>
-      </div>
-      
-      <div className="container mx-auto py-16">
-        <Card className="bg-white shadow-lg border-none max-w-3xl mx-auto">
-          <CardHeader className="pb-6">
-            <CardTitle className="text-2xl text-meow-primary">Foster Application</CardTitle>
-            <CardDescription className="text-base">
-              Fostering saves lives by providing temporary homes for cats until they find their forever families.
+      <SEO title="Foster Application | Meow Rescue" />
+      <div className="container mx-auto py-8 px-4 md:px-6 max-w-4xl">
+        <h1 className="text-3xl font-bold text-center mb-2">Foster Application</h1>
+        <p className="text-center mb-8 text-gray-600">
+          Thank you for your interest in fostering a cat! Please fill out this form so we can find the perfect match.
+        </p>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Personal Information</CardTitle>
+            <CardDescription>
+              Please provide your contact information so we can reach out to you.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base">Full Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Your full name" {...field} className="h-12" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base">Email Address</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Your email address" {...field} className="h-12" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base">Phone Number</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Your phone number" {...field} className="h-12" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="firstName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>First Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="John" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="lastName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Last Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Doe" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input placeholder="john.doe@example.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone Number</FormLabel>
+                        <FormControl>
+                          <Input placeholder="(123) 456-7890" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
                 <FormField
                   control={form.control}
                   name="address"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-base">Address</FormLabel>
+                      <FormLabel>Address</FormLabel>
                       <FormControl>
-                        <Input placeholder="Your street address" {...field} className="h-12" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="whyFoster"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base">Why Do You Want to Foster a Cat?</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Please tell us why you would like to foster a cat from Meow Rescue." className="min-h-40" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="catCareExperience"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base">Cat Care Experience</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Please describe your previous experience caring for cats." className="min-h-40" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="otherPets"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base">Other Pets</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Do you have any other pets? If so, please list them and their ages." className="min-h-40" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="housingType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base">Housing Type</FormLabel>
-                      <FormControl>
-                        <Input placeholder="House, Apartment, etc." {...field} className="h-12" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="timeCommitment"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base">Time Commitment</FormLabel>
-                      <FormControl>
-                        <Input placeholder="How much time can you commit to fostering?" {...field} className="h-12" />
+                        <Input placeholder="123 Main St" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="city"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>City</FormLabel>
+                        <FormControl>
+                          <Input placeholder="New York" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="state"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>State</FormLabel>
+                        <FormControl>
+                          <Input placeholder="NY" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="zip"
+                    render={({ field }) => (
+                      <FormItem className="md:col-span-2">
+                        <FormLabel>ZIP Code</FormLabel>
+                        <FormControl>
+                          <Input placeholder="10001" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <CardHeader className="px-0">
+                  <CardTitle>Foster Information</CardTitle>
+                  <CardDescription>Tell us more about your fostering capabilities.</CardDescription>
+                </CardHeader>
+
                 <FormField
                   control={form.control}
-                  name="fosterTypePreference"
+                  name="hasExperience"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-base">Foster Type Preference</FormLabel>
+                      <FormLabel>Do you have experience fostering cats?</FormLabel>
                       <FormControl>
                         <RadioGroup
                           onValueChange={field.onChange}
@@ -224,21 +272,15 @@ const FosterForm: React.FC = () => {
                         >
                           <FormItem className="flex items-center space-x-3 space-y-0">
                             <FormControl>
-                              <RadioGroupItem value="kittens" id="kittens" />
+                              <RadioGroupItem value="yes" />
                             </FormControl>
-                            <FormLabel htmlFor="kittens">Kittens</FormLabel>
+                            <FormLabel className="font-normal">Yes</FormLabel>
                           </FormItem>
                           <FormItem className="flex items-center space-x-3 space-y-0">
                             <FormControl>
-                              <RadioGroupItem value="adults" id="adults" />
+                              <RadioGroupItem value="no" />
                             </FormControl>
-                            <FormLabel htmlFor="adults">Adults</FormLabel>
-                          </FormItem>
-                          <FormItem className="flex items-center space-x-3 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="both" id="both" />
-                            </FormControl>
-                            <FormLabel htmlFor="both">Both</FormLabel>
+                            <FormLabel className="font-normal">No</FormLabel>
                           </FormItem>
                         </RadioGroup>
                       </FormControl>
@@ -246,12 +288,223 @@ const FosterForm: React.FC = () => {
                     </FormItem>
                   )}
                 />
-                
+
+                {form.watch('hasExperience') === 'yes' && (
+                  <FormField
+                    control={form.control}
+                    name="experienceDetails"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Please describe your experience</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Tell us about your previous fostering experience..."
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
                 <FormField
                   control={form.control}
-                  name="fosterAgreement"
+                  name="hasOtherPets"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormItem>
+                      <FormLabel>Do you have other pets at home?</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="flex flex-col space-y-1"
+                        >
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="yes" />
+                            </FormControl>
+                            <FormLabel className="font-normal">Yes</FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="no" />
+                            </FormControl>
+                            <FormLabel className="font-normal">No</FormLabel>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {form.watch('hasOtherPets') === 'yes' && (
+                  <FormField
+                    control={form.control}
+                    name="otherPetsDetails"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Please describe your other pets</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Tell us about your other pets, including their species, breed, age, and temperament..."
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                <FormField
+                  control={form.control}
+                  name="homeType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>What type of home do you live in?</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="flex flex-col space-y-1"
+                        >
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="apartment" />
+                            </FormControl>
+                            <FormLabel className="font-normal">Apartment</FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="house" />
+                            </FormControl>
+                            <FormLabel className="font-normal">House</FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="condo" />
+                            </FormControl>
+                            <FormLabel className="font-normal">Condo</FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="other" />
+                            </FormControl>
+                            <FormLabel className="font-normal">Other</FormLabel>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="hasYard"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Do you have a yard?</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="flex flex-col space-y-1"
+                        >
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="yes" />
+                            </FormControl>
+                            <FormLabel className="font-normal">Yes</FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="no" />
+                            </FormControl>
+                            <FormLabel className="font-normal">No</FormLabel>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="hoursAtHome"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>How many hours per day are you typically at home?</FormLabel>
+                      <FormControl>
+                        <Input placeholder="8" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="commitment"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>How long are you willing to foster?</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="flex flex-col space-y-1"
+                        >
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="short" />
+                            </FormControl>
+                            <FormLabel className="font-normal">Short-term (1-4 weeks)</FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="medium" />
+                            </FormControl>
+                            <FormLabel className="font-normal">Medium-term (1-3 months)</FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="long" />
+                            </FormControl>
+                            <FormLabel className="font-normal">Long-term (3+ months)</FormLabel>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="additionalInfo"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Additional Information</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Is there anything else you'd like us to know about your fostering interest?"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="agreeToTerms"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                       <FormControl>
                         <Checkbox
                           checked={field.value}
@@ -259,17 +512,22 @@ const FosterForm: React.FC = () => {
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel className="text-base">I agree to abide by the Meow Rescue foster guidelines and policies.</FormLabel>
-                        <FormMessage />
+                        <FormLabel>
+                          I agree to the terms and conditions of fostering
+                        </FormLabel>
+                        <FormDescription>
+                          By checking this box, you agree to provide proper care for any cats placed in your foster home.
+                        </FormDescription>
                       </div>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
-                
-                <Button 
-                  type="submit" 
+
+                <Button
+                  type="submit"
+                  className="w-full"
                   disabled={isSubmitting}
-                  className="w-full h-12 text-base bg-meow-primary hover:bg-meow-primary/90 text-white"
                 >
                   {isSubmitting ? 'Submitting...' : 'Submit Application'}
                 </Button>

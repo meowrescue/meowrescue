@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -9,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Upload, Loader2, Edit } from 'lucide-react';
+import { ArrowLeft, Upload, Loader2, Edit, ImageIcon, FileCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import SEO from '@/components/SEO';
@@ -199,7 +200,7 @@ const AdminCatForm: React.FC = () => {
     <AdminLayout title={isEditing ? (editMode ? "Edit Cat" : "View Cat") : "Add Cat"}>
       <SEO title={`${isEditing ? (editMode ? "Edit" : "View") : "Add"} Cat | Meow Rescue Admin`} />
       
-      <div className="w-full mx-auto py-4 sm:py-6 mt-16 sm:mt-0"> {/* Added top margin for mobile view */}
+      <div className="w-full mx-auto py-4 sm:py-6 pt-20 sm:pt-6"> {/* Fixed top padding for mobile view */}
         <Button 
           variant="outline" 
           onClick={() => navigate('/admin/cats')} 
@@ -348,7 +349,10 @@ const AdminCatForm: React.FC = () => {
                 
                 <div className="space-y-3 sm:space-y-4">
                   <div>
-                    <Label htmlFor="photos">Photos</Label>
+                    <h3 className="text-xl font-semibold text-meow-primary mb-4 flex items-center">
+                      <ImageIcon className="mr-2 h-5 w-5" />
+                      Photos
+                    </h3>
                     {editMode && (
                       <div className="mt-2">
                         <ImageUploader 
@@ -362,21 +366,21 @@ const AdminCatForm: React.FC = () => {
                     {/* Existing photos preview */}
                     {photoUrls.length > 0 && (
                       <div className="mt-4">
-                        <h4 className="text-sm font-medium mb-2">Photos:</h4>
-                        <div className="flex flex-wrap gap-2">
+                        <h4 className="text-sm font-medium mb-2">Uploaded Photos:</h4>
+                        <div className="flex flex-wrap gap-3">
                           {photoUrls.map((url, index) => (
                             <div key={index} className="relative">
                               <img 
                                 src={url} 
                                 alt={`Cat photo ${index + 1}`} 
-                                className="w-24 h-24 object-cover rounded-md"
+                                className="w-24 h-24 object-cover rounded-md shadow-sm"
                               />
                               {editMode && (
                                 <Button
                                   type="button"
                                   variant="destructive"
                                   size="sm"
-                                  className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full"
+                                  className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full shadow-sm"
                                   onClick={() => handleRemovePhoto(index)}
                                 >
                                   &times;
@@ -416,7 +420,6 @@ const AdminCatForm: React.FC = () => {
           
             {isEditing && id && (
               <div className="mt-8">
-                <h3 className="text-lg font-semibold mb-4">Medical Records</h3>
                 <CatMedicalRecords catId={id} />
               </div>
             )}

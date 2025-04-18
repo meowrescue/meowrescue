@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,13 +12,15 @@ import { format, formatDistanceToNow } from 'date-fns';
 import SEO from '@/components/SEO';
 import { Badge } from '@/components/ui/badge';
 import { Application } from '@/types/applications';
+import { useToast } from '@/hooks/use-toast';
 
 const AdminApplications = () => {
   const [selectedTab, setSelectedTab] = useState<string>('all');
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
+  const { toast } = useToast();
   
-  // Fetch applications with better error handling
-  const { data: applications, isLoading, error } = useQuery({
+  // Fetch applications with improved error handling and logging
+  const { data: applications, isLoading, error, refetch } = useQuery({
     queryKey: ['admin-applications'],
     queryFn: async () => {
       console.log("Fetching applications data...");
@@ -42,7 +43,12 @@ const AdminApplications = () => {
           `)
           .order('created_at', { ascending: false });
         
-        if (!adoptionError && adoptionData) {
+        if (adoptionError) {
+          console.error("Error fetching adoption applications:", adoptionError);
+          throw adoptionError;
+        }
+        
+        if (adoptionData && adoptionData.length > 0) {
           console.log("Adoption applications data received:", adoptionData);
           
           // Transform adoption_applications data to match Application type
@@ -65,10 +71,12 @@ const AdminApplications = () => {
           }));
           
           allApplications = [...allApplications, ...transformedData];
+        } else {
+          console.log("No adoption applications found");
         }
         
-        // Then try the original applications table to ensure backward compatibility
-        const { data: appData, error: appError } = await supabase
+        // Also query the foster applications
+        const { data: fosterData, error: fosterError } = await supabase
           .from('applications')
           .select(`
             *,
@@ -78,20 +86,90 @@ const AdminApplications = () => {
               last_name
             )
           `)
+          .eq('application_type', 'foster')
           .order('created_at', { ascending: false });
           
-        if (!appError && appData) {
-          console.log("Legacy applications data received:", appData);
-          allApplications = [...allApplications, ...appData];
+        if (fosterError) {
+          console.error("Error fetching foster applications:", fosterError);
+          throw fosterError;
+        }
+        
+        if (fosterData && fosterData.length > 0) {
+          console.log("Foster applications data received:", fosterData);
+          allApplications = [...allApplications, ...fosterData];
+        } else {
+          console.log("No foster applications found");
+        }
+        
+        // Query volunteer applications
+        const { data: volunteerData, error: volunteerError } = await supabase
+          .from('applications')
+          .select(`
+            *,
+            profiles:applicant_id (
+              email,
+              first_name,
+              last_name
+            )
+          `)
+          .eq('application_type', 'volunteer')
+          .order('created_at', { ascending: false });
+          
+        if (volunteerError) {
+          console.error("Error fetching volunteer applications:", volunteerError);
+          throw volunteerError;
+        }
+        
+        if (volunteerData && volunteerData.length > 0) {
+          console.log("Volunteer applications data received:", volunteerData);
+          allApplications = [...allApplications, ...volunteerData];
+        } else {
+          console.log("No volunteer applications found");
+        }
+        
+        // Finally, check any other application types in the applications table
+        const { data: otherApps, error: otherError } = await supabase
+          .from('applications')
+          .select(`
+            *,
+            profiles:applicant_id (
+              email,
+              first_name,
+              last_name
+            )
+          `)
+          .not('application_type', 'in', '("foster","volunteer")')
+          .order('created_at', { ascending: false });
+          
+        if (otherError) {
+          console.error("Error fetching other applications:", otherError);
+          throw otherError;
+        }
+        
+        if (otherApps && otherApps.length > 0) {
+          console.log("Other applications data received:", otherApps);
+          allApplications = [...allApplications, ...otherApps];
         }
         
         if (allApplications.length === 0) {
-          console.error("No applications found in either table.");
+          console.warn("No applications found in any table.");
+          toast({
+            title: "No Applications Found",
+            description: "No applications were found in the database. This might be due to a connection issue.",
+            variant: "destructive"
+          });
+        } else {
+          console.log(`Total of ${allApplications.length} applications loaded:`, allApplications);
         }
         
         return allApplications;
-      } catch (err) {
+      } catch (err: any) {
         console.error("Error fetching applications:", err);
+        toast({
+          title: "Error Loading Applications",
+          description: err.message || "There was an error loading applications",
+          variant: "destructive"
+        });
         throw err;
       }
     }
@@ -103,10 +181,6 @@ const AdminApplications = () => {
       console.log(`${applications.length} total applications loaded:`, applications);
     }
   }, [applications]);
-
-  if (error) {
-    console.error("Error in applications query:", error);
-  }
 
   // Filter applications based on selected tab
   const filteredApplications = applications?.filter(app => {
@@ -154,7 +228,12 @@ const AdminApplications = () => {
       <SEO title="Applications | Meow Rescue Admin" />
       
       <div className="container mx-auto py-10 mt-16 sm:mt-0"> {/* Added top margin for mobile view */}
-        <h1 className="text-3xl font-bold text-meow-primary mb-6">Application Management</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-meow-primary">Application Management</h1>
+          <Button variant="outline" onClick={() => refetch()}>
+            Refresh Applications
+          </Button>
+        </div>
         
         <Tabs defaultValue="all" value={selectedTab} onValueChange={setSelectedTab}>
           <div className="flex flex-wrap items-center gap-4 mb-6">

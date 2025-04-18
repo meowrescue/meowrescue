@@ -1,7 +1,7 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Trash2, File, FileText, Download } from 'lucide-react';
+import { Plus, Trash2, File, FileText, Download, FileSymlink, FileCheck } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -41,8 +41,15 @@ const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId }) => {
     }
   });
 
+  // This effect will run whenever medicalRecords changes
+  useEffect(() => {
+    console.log('Medical records loaded:', medicalRecords);
+  }, [medicalRecords]);
+
   const addMedicalRecord = useMutation({
     mutationFn: async (record: typeof newRecord) => {
+      console.log('Adding medical record:', record);
+      
       // First insert the medical record
       const { data, error } = await supabase
         .from('cat_medical_records')
@@ -57,6 +64,7 @@ const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId }) => {
         .select();
 
       if (error) throw error;
+      console.log('Medical record created:', data);
       
       // If there's a document and we successfully created a medical record, upload the document
       if (documentFile && data?.[0]?.id) {
@@ -108,6 +116,7 @@ const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId }) => {
       });
     },
     onError: (error: any) => {
+      console.error('Error adding medical record:', error);
       toast({
         title: "Error",
         description: error.message,
@@ -166,13 +175,16 @@ const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId }) => {
           </div>
         ) : medicalRecords && medicalRecords.length > 0 ? (
           <>
-            <h3 className="text-lg font-semibold">Existing Medical Records</h3>
+            <h3 className="text-xl font-semibold text-meow-primary mb-4 flex items-center">
+              <FileCheck className="mr-2 h-5 w-5" />
+              Existing Medical Records
+            </h3>
             {medicalRecords.map((record) => (
-              <Card key={record.id}>
+              <Card key={record.id} className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                 <CardContent className="pt-6">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h4 className="font-semibold">{record.procedure_type}</h4>
+                      <h4 className="font-semibold text-meow-primary">{record.procedure_type}</h4>
                       <p className="text-sm text-gray-600">{record.description}</p>
                       {record.veterinarian && (
                         <p className="text-sm text-gray-600">Vet: {record.veterinarian}</p>
@@ -228,9 +240,12 @@ const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId }) => {
         )}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Add Medical Record</CardTitle>
+      <Card className="border border-gray-200 shadow-sm">
+        <CardHeader className="bg-gradient-to-r from-meow-primary/10 to-transparent">
+          <CardTitle className="flex items-center text-meow-primary">
+            <FileSymlink className="mr-2 h-5 w-5" />
+            Add Medical Record
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -238,21 +253,25 @@ const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId }) => {
               value={newRecord.procedure_type}
               onValueChange={(value) => setNewRecord(prev => ({ ...prev, procedure_type: value }))}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select procedure type" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Spay/Neuter">Spay/Neuter</SelectItem>
-                <SelectItem value="Vaccination">Vaccination</SelectItem>
-                <SelectItem value="Deworming">Deworming</SelectItem>
-                <SelectItem value="Dental Cleaning">Dental Cleaning</SelectItem>
-                <SelectItem value="Flea/Tick Treatment">Flea/Tick Treatment</SelectItem>
+                <SelectItem value="Rabies Vaccination">Rabies Vaccination</SelectItem>
+                <SelectItem value="FVRCP Vaccination">FVRCP Vaccination</SelectItem>
+                <SelectItem value="Feline Leukemia Vaccination">Feline Leukemia Vaccination</SelectItem>
                 <SelectItem value="Microchipping">Microchipping</SelectItem>
+                <SelectItem value="Deworming">Deworming</SelectItem>
+                <SelectItem value="Flea/Tick Treatment">Flea/Tick Treatment</SelectItem>
+                <SelectItem value="Dental Cleaning">Dental Cleaning</SelectItem>
                 <SelectItem value="Injury Treatment">Injury Treatment</SelectItem>
                 <SelectItem value="Surgery">Surgery</SelectItem>
+                <SelectItem value="Emergency Care">Emergency Care</SelectItem>
+                <SelectItem value="Euthanasia">Euthanasia</SelectItem>
                 <SelectItem value="Wellness Exam">Wellness Exam</SelectItem>
+                <SelectItem value="Bloodwork">Bloodwork</SelectItem>
                 <SelectItem value="X-Ray/Imaging">X-Ray/Imaging</SelectItem>
-                <SelectItem value="Blood Work">Blood Work</SelectItem>
                 <SelectItem value="Medication">Medication</SelectItem>
                 <SelectItem value="Grooming">Grooming</SelectItem>
                 <SelectItem value="Other">Other</SelectItem>
@@ -264,12 +283,14 @@ const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId }) => {
               value={newRecord.description}
               onChange={(e) => setNewRecord(prev => ({ ...prev, description: e.target.value }))}
               required
+              className="w-full"
             />
 
             <Input
               placeholder="Veterinarian"
               value={newRecord.veterinarian}
               onChange={(e) => setNewRecord(prev => ({ ...prev, veterinarian: e.target.value }))}
+              className="w-full"
             />
 
             <Input
@@ -278,12 +299,14 @@ const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId }) => {
               placeholder="Cost"
               value={newRecord.cost}
               onChange={(e) => setNewRecord(prev => ({ ...prev, cost: e.target.value }))}
+              className="w-full"
             />
 
             <Input
               placeholder="Notes"
               value={newRecord.notes}
               onChange={(e) => setNewRecord(prev => ({ ...prev, notes: e.target.value }))}
+              className="w-full"
             />
 
             <div className="space-y-2">
@@ -295,7 +318,7 @@ const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId }) => {
               />
             </div>
 
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full bg-meow-primary hover:bg-meow-primary/90">
               <Plus className="w-4 h-4 mr-2" />
               Add Record
             </Button>
