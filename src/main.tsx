@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { ViteSSG } from 'vite-ssg';
-import { createBrowserRouter, RouteObject, RouterProvider } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from './contexts/AuthContext';
@@ -57,11 +56,6 @@ export const createApp = ViteSSG(
     
     // Wrap the entire app with our providers
     app.component('RootProvider', RootProvider);
-  },
-  {
-    routerOptions: {
-      scrollBehavior: 'smooth',
-    },
   }
 );
 
