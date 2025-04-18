@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 
 const statusColors = {
-  Available: 'bg-green-100 text-green-800', // Changed from orange to green
+  Available: 'bg-green-100 text-green-800', // Keep green for consistency
   Pending: 'bg-yellow-100 text-yellow-800',
   Adopted: 'bg-blue-100 text-blue-800'
 };
@@ -24,6 +24,7 @@ const CatCard: React.FC<CatCardProps> = ({ id, name, imageUrl, age, gender, desc
     <Link 
       to={`/cats/${id}`} 
       className="group"
+      onClick={() => window.scrollTo(0, 0)}
     >
       <div className="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg h-full flex flex-col">
         <div className="h-48 overflow-hidden">
