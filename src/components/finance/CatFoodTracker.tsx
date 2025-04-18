@@ -16,17 +16,29 @@ interface CatFoodTrackerProps {
 const CatFoodTracker: React.FC<CatFoodTrackerProps> = ({ isAdmin = false }) => {
   const [limit, setLimit] = useState(5);
   
+  // Get cat food data from the supplies table instead of the deprecated cat_food table
   const { data: catFood, isLoading, error } = useQuery({
-    queryKey: ['cat-food-recent'],
+    queryKey: ['cat-food-supplies'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('cat_food')
+        .from('supplies')
         .select('*')
-        .order('purchase_date', { ascending: false })
+        .eq('category', 'food')
+        .order('created_at', { ascending: false })
         .limit(limit);
         
       if (error) throw error;
-      return data as CatFood[];
+      
+      // Map the supplies data to match the expected CatFood interface
+      return data.map(supply => ({
+        id: supply.id,
+        brand: supply.name.split(' ')[0] || 'Generic', // Extract brand from name if possible
+        type: supply.description || 'Cat Food',
+        quantity: supply.quantity,
+        units: supply.unit,
+        cost_per_unit: 0, // This information might not be available in supplies
+        purchase_date: supply.created_at
+      })) as CatFood[];
     }
   });
   
@@ -54,10 +66,10 @@ const CatFoodTracker: React.FC<CatFoodTrackerProps> = ({ isAdmin = false }) => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Brand</TableHead>
-                  <TableHead>Type</TableHead>
+                  <TableHead>Name/Brand</TableHead>
+                  <TableHead>Description</TableHead>
                   <TableHead>Quantity</TableHead>
-                  <TableHead className="text-right">Cost</TableHead>
+                  <TableHead>Unit</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -65,8 +77,8 @@ const CatFoodTracker: React.FC<CatFoodTrackerProps> = ({ isAdmin = false }) => {
                   <TableRow key={food.id}>
                     <TableCell>{food.brand}</TableCell>
                     <TableCell>{food.type}</TableCell>
-                    <TableCell>{food.quantity} {food.units}</TableCell>
-                    <TableCell className="text-right">${parseFloat(food.cost_per_unit.toString()).toFixed(2)}</TableCell>
+                    <TableCell>{food.quantity}</TableCell>
+                    <TableCell>{food.units}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

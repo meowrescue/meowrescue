@@ -91,6 +91,13 @@ export type Database = {
             referencedRelation: "cats"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "adoption_applications_cat_id_fkey"
+            columns: ["cat_id"]
+            isOneToOne: false
+            referencedRelation: "donor_donation_usage"
+            referencedColumns: ["cat_id"]
+          },
         ]
       }
       applications: {
@@ -179,6 +186,53 @@ export type Database = {
           },
         ]
       }
+      business_licenses: {
+        Row: {
+          created_at: string
+          document_id: string | null
+          expiry_date: string | null
+          id: string
+          issue_date: string
+          issuing_authority: string
+          license_number: string
+          license_type: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          document_id?: string | null
+          expiry_date?: string | null
+          id?: string
+          issue_date: string
+          issuing_authority: string
+          license_number: string
+          license_type: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          document_id?: string | null
+          expiry_date?: string | null
+          id?: string
+          issue_date?: string
+          issuing_authority?: string
+          license_number?: string
+          license_type?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_licenses_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cat_feeding_records: {
         Row: {
           amount: number
@@ -218,6 +272,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "cats"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cat_feeding_records_cat_id_fkey"
+            columns: ["cat_id"]
+            isOneToOne: false
+            referencedRelation: "donor_donation_usage"
+            referencedColumns: ["cat_id"]
           },
         ]
       }
@@ -299,6 +360,13 @@ export type Database = {
             referencedRelation: "cats"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "cat_medical_records_cat_id_fkey"
+            columns: ["cat_id"]
+            isOneToOne: false
+            referencedRelation: "donor_donation_usage"
+            referencedColumns: ["cat_id"]
+          },
         ]
       }
       cat_vaccinations: {
@@ -345,6 +413,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "cats"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cat_vaccinations_cat_id_fkey"
+            columns: ["cat_id"]
+            isOneToOne: false
+            referencedRelation: "donor_donation_usage"
+            referencedColumns: ["cat_id"]
           },
         ]
       }
@@ -558,6 +633,255 @@ export type Database = {
           },
         ]
       }
+      direct_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          read_at: string | null
+          recipient_id: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          recipient_id: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          recipient_id?: string
+          sender_id?: string
+        }
+        Relationships: []
+      }
+      document_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      documents: {
+        Row: {
+          cat_id: string | null
+          category_id: string | null
+          created_at: string
+          description: string | null
+          donation_id: string | null
+          expense_id: string | null
+          file_path: string
+          file_size: number | null
+          file_type: string
+          id: string
+          supply_id: string | null
+          title: string
+          updated_at: string
+          uploader_id: string | null
+        }
+        Insert: {
+          cat_id?: string | null
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          donation_id?: string | null
+          expense_id?: string | null
+          file_path: string
+          file_size?: number | null
+          file_type: string
+          id?: string
+          supply_id?: string | null
+          title: string
+          updated_at?: string
+          uploader_id?: string | null
+        }
+        Update: {
+          cat_id?: string | null
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          donation_id?: string | null
+          expense_id?: string | null
+          file_path?: string
+          file_size?: number | null
+          file_type?: string
+          id?: string
+          supply_id?: string | null
+          title?: string
+          updated_at?: string
+          uploader_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_cat_id_fkey"
+            columns: ["cat_id"]
+            isOneToOne: false
+            referencedRelation: "cats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_cat_id_fkey"
+            columns: ["cat_id"]
+            isOneToOne: false
+            referencedRelation: "donor_donation_usage"
+            referencedColumns: ["cat_id"]
+          },
+          {
+            foreignKeyName: "documents_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "document_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_donation_id_fkey"
+            columns: ["donation_id"]
+            isOneToOne: false
+            referencedRelation: "donation_usage_summary"
+            referencedColumns: ["donation_id"]
+          },
+          {
+            foreignKeyName: "documents_donation_id_fkey"
+            columns: ["donation_id"]
+            isOneToOne: false
+            referencedRelation: "donations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_donation_id_fkey"
+            columns: ["donation_id"]
+            isOneToOne: false
+            referencedRelation: "donor_donation_usage"
+            referencedColumns: ["donation_id"]
+          },
+          {
+            foreignKeyName: "documents_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "donor_donation_usage"
+            referencedColumns: ["expense_id"]
+          },
+          {
+            foreignKeyName: "documents_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_supply_id_fkey"
+            columns: ["supply_id"]
+            isOneToOne: false
+            referencedRelation: "supplies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      donation_allocations: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string
+          description: string | null
+          donation_id: string
+          expense_id: string | null
+          id: string
+          supply_transaction_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by: string
+          description?: string | null
+          donation_id: string
+          expense_id?: string | null
+          id?: string
+          supply_transaction_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          donation_id?: string
+          expense_id?: string | null
+          id?: string
+          supply_transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "donation_allocations_donation_id_fkey"
+            columns: ["donation_id"]
+            isOneToOne: false
+            referencedRelation: "donation_usage_summary"
+            referencedColumns: ["donation_id"]
+          },
+          {
+            foreignKeyName: "donation_allocations_donation_id_fkey"
+            columns: ["donation_id"]
+            isOneToOne: false
+            referencedRelation: "donations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "donation_allocations_donation_id_fkey"
+            columns: ["donation_id"]
+            isOneToOne: false
+            referencedRelation: "donor_donation_usage"
+            referencedColumns: ["donation_id"]
+          },
+          {
+            foreignKeyName: "donation_allocations_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "donor_donation_usage"
+            referencedColumns: ["expense_id"]
+          },
+          {
+            foreignKeyName: "donation_allocations_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "donation_allocations_supply_transaction_id_fkey"
+            columns: ["supply_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "donor_donation_usage"
+            referencedColumns: ["supply_transaction_id"]
+          },
+          {
+            foreignKeyName: "donation_allocations_supply_transaction_id_fkey"
+            columns: ["supply_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "supply_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       donations: {
         Row: {
           amount: number
@@ -647,6 +971,7 @@ export type Database = {
       expenses: {
         Row: {
           amount: number
+          cat_id: string | null
           category: string
           created_at: string
           created_by: string | null
@@ -660,6 +985,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          cat_id?: string | null
           category: string
           created_at?: string
           created_by?: string | null
@@ -673,6 +999,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          cat_id?: string | null
           category?: string
           created_at?: string
           created_by?: string | null
@@ -686,11 +1013,39 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "expenses_cat_id_fkey"
+            columns: ["cat_id"]
+            isOneToOne: false
+            referencedRelation: "cats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_cat_id_fkey"
+            columns: ["cat_id"]
+            isOneToOne: false
+            referencedRelation: "donor_donation_usage"
+            referencedColumns: ["cat_id"]
+          },
+          {
+            foreignKeyName: "expenses_donation_id_fkey"
+            columns: ["donation_id"]
+            isOneToOne: false
+            referencedRelation: "donation_usage_summary"
+            referencedColumns: ["donation_id"]
+          },
+          {
             foreignKeyName: "expenses_donation_id_fkey"
             columns: ["donation_id"]
             isOneToOne: false
             referencedRelation: "donations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_donation_id_fkey"
+            columns: ["donation_id"]
+            isOneToOne: false
+            referencedRelation: "donor_donation_usage"
+            referencedColumns: ["donation_id"]
           },
         ]
       }
@@ -732,6 +1087,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "cats"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "foster_assignments_cat_id_fkey"
+            columns: ["cat_id"]
+            isOneToOne: false
+            referencedRelation: "donor_donation_usage"
+            referencedColumns: ["cat_id"]
           },
           {
             foreignKeyName: "foster_assignments_foster_profile_id_fkey"
@@ -805,6 +1167,126 @@ export type Database = {
           },
         ]
       }
+      group_members: {
+        Row: {
+          added_by: string
+          created_at: string
+          group_id: string
+          user_id: string
+        }
+        Insert: {
+          added_by: string
+          created_at?: string
+          group_id: string
+          user_id: string
+        }
+        Update: {
+          added_by?: string
+          created_at?: string
+          group_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_group_members_group"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "message_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_message_reads: {
+        Row: {
+          message_id: string
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          message_id: string
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          message_id?: string
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_message_reads_message"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "group_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_messages: {
+        Row: {
+          content: string
+          created_at: string
+          group_id: string
+          id: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          group_id: string
+          id?: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          group_id?: string
+          id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_group_messages_group"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "message_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      income: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          income_date: string
+          income_type: string
+          receipt_url: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          income_date?: string
+          income_type: string
+          receipt_url?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          income_date?: string
+          income_type?: string
+          receipt_url?: string | null
+        }
+        Relationships: []
+      }
       lost_found_posts: {
         Row: {
           contact_info: string | null
@@ -849,6 +1331,33 @@ export type Database = {
           profile_id?: string
           status?: string
           title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      message_groups: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          name?: string
           updated_at?: string
         }
         Relationships: []
@@ -1077,6 +1586,13 @@ export type Database = {
             referencedRelation: "cats"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "success_stories_cat_id_fkey"
+            columns: ["cat_id"]
+            isOneToOne: false
+            referencedRelation: "donor_donation_usage"
+            referencedColumns: ["cat_id"]
+          },
         ]
       }
       supplies: {
@@ -1114,6 +1630,236 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      supply_order_items: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          order_id: string
+          quantity: number
+          supply_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          order_id: string
+          quantity: number
+          supply_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          order_id?: string
+          quantity?: number
+          supply_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supply_order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "supply_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supply_order_items_supply_id_fkey"
+            columns: ["supply_id"]
+            isOneToOne: false
+            referencedRelation: "supplies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supply_orders: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          foster_id: string
+          id: string
+          notes: string | null
+          rejected_reason: string | null
+          status: string
+          tracking_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          foster_id: string
+          id?: string
+          notes?: string | null
+          rejected_reason?: string | null
+          status?: string
+          tracking_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          foster_id?: string
+          id?: string
+          notes?: string | null
+          rejected_reason?: string | null
+          status?: string
+          tracking_number?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      supply_transactions: {
+        Row: {
+          cat_id: string | null
+          created_at: string
+          created_by: string
+          donation_id: string | null
+          expense_id: string | null
+          foster_id: string | null
+          id: string
+          notes: string | null
+          quantity: number
+          supply_id: string
+          transaction_type: string
+        }
+        Insert: {
+          cat_id?: string | null
+          created_at?: string
+          created_by: string
+          donation_id?: string | null
+          expense_id?: string | null
+          foster_id?: string | null
+          id?: string
+          notes?: string | null
+          quantity: number
+          supply_id: string
+          transaction_type: string
+        }
+        Update: {
+          cat_id?: string | null
+          created_at?: string
+          created_by?: string
+          donation_id?: string | null
+          expense_id?: string | null
+          foster_id?: string | null
+          id?: string
+          notes?: string | null
+          quantity?: number
+          supply_id?: string
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supply_transactions_cat_id_fkey"
+            columns: ["cat_id"]
+            isOneToOne: false
+            referencedRelation: "cats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supply_transactions_cat_id_fkey"
+            columns: ["cat_id"]
+            isOneToOne: false
+            referencedRelation: "donor_donation_usage"
+            referencedColumns: ["cat_id"]
+          },
+          {
+            foreignKeyName: "supply_transactions_donation_id_fkey"
+            columns: ["donation_id"]
+            isOneToOne: false
+            referencedRelation: "donation_usage_summary"
+            referencedColumns: ["donation_id"]
+          },
+          {
+            foreignKeyName: "supply_transactions_donation_id_fkey"
+            columns: ["donation_id"]
+            isOneToOne: false
+            referencedRelation: "donations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supply_transactions_donation_id_fkey"
+            columns: ["donation_id"]
+            isOneToOne: false
+            referencedRelation: "donor_donation_usage"
+            referencedColumns: ["donation_id"]
+          },
+          {
+            foreignKeyName: "supply_transactions_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "donor_donation_usage"
+            referencedColumns: ["expense_id"]
+          },
+          {
+            foreignKeyName: "supply_transactions_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supply_transactions_supply_id_fkey"
+            columns: ["supply_id"]
+            isOneToOne: false
+            referencedRelation: "supplies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_members: {
+        Row: {
+          bio: string | null
+          created_at: string
+          display_order: number
+          email: string | null
+          id: string
+          is_active: boolean
+          name: string
+          photo_url: string | null
+          profile_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          display_order?: number
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          photo_url?: string | null
+          profile_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          display_order?: number
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          photo_url?: string | null
+          profile_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_status: {
         Row: {
@@ -1173,7 +1919,57 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      donation_usage_summary: {
+        Row: {
+          allocated_amount: number | null
+          allocation_count: number | null
+          donation_amount: number | null
+          donation_date: string | null
+          donation_id: string | null
+          donor_profile_id: string | null
+          remaining_amount: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "donations_donor_profile_id_fkey"
+            columns: ["donor_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      donor_donation_usage: {
+        Row: {
+          allocation_amount: number | null
+          allocation_description: string | null
+          allocation_id: string | null
+          cat_id: string | null
+          cat_name: string | null
+          donation_amount: number | null
+          donation_date: string | null
+          donation_id: string | null
+          donor_profile_id: string | null
+          expense_category: string | null
+          expense_date: string | null
+          expense_description: string | null
+          expense_id: string | null
+          receipt_url: string | null
+          supply_category: string | null
+          supply_name: string | null
+          supply_transaction_id: string | null
+          vendor: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "donations_donor_profile_id_fkey"
+            columns: ["donor_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       add_cat_feeding_record: {
