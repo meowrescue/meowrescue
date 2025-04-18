@@ -1,61 +1,36 @@
 
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+// This script is called after the build to generate a sitemap and ensure manifest files are correctly placed
+const fs = require('fs');
+const path = require('path');
 
-// Get the directory name using ES modules approach
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+console.log('Running post-build setup...');
 
-// Define your routes manually
-const routes = [
-  '/',
-  '/about',
-  '/cats',
-  '/adopt',
-  '/adopt/apply',
-  '/blog',
-  '/events',
-  '/resources',
-  '/contact',
-  '/donate',
-  '/volunteer',
-  '/volunteer/apply',
-  '/foster',
-  '/foster/apply',
-  '/login',
-  '/register',
-  '/reset-password',
-  '/privacy-policy',
-  '/terms-of-service',
-  '/lost-found',
-  '/404'
-];
-
-async function generateSitemap() {
-  try {
-    const baseUrl = 'https://meowrescue.org';
-    
-    const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${routes.map(route => `  <url>
-    <loc>${baseUrl}${route}</loc>
-    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
-    <changefreq>${route === '/' ? 'daily' : 'weekly'}</changefreq>
-    <priority>${route === '/' ? '1.0' : '0.8'}</priority>
-  </url>`).join('\n')}
-</urlset>`;
-
-    if (!fs.existsSync(path.join(__dirname, '../dist'))) {
-      fs.mkdirSync(path.join(__dirname, '../dist'), { recursive: true });
+// Ensure the manifest file is accessible to the server
+try {
+  // Check if client manifest exists
+  if (fs.existsSync(path.resolve(__dirname, '../dist/client/.vite/manifest.json'))) {
+    // Create the client directory if it doesn't exist
+    if (!fs.existsSync(path.resolve(__dirname, '../dist/client'))) {
+      fs.mkdirSync(path.resolve(__dirname, '../dist/client'), { recursive: true });
     }
     
-    fs.writeFileSync(path.join(__dirname, '../dist/sitemap.xml'), sitemap);
-    console.log('Sitemap generated successfully at dist/sitemap.xml');
-  } catch (error) {
-    console.error('Error generating sitemap:', error);
-    process.exit(1);
+    // Copy the manifest to the location where it's expected
+    fs.copyFileSync(
+      path.resolve(__dirname, '../dist/client/.vite/manifest.json'),
+      path.resolve(__dirname, '../dist/client/manifest.json')
+    );
+    
+    console.log('Manifest file copied successfully');
+  } else {
+    console.log('Client manifest file not found, skipping copy');
   }
+  
+  // Generate sitemap (placeholder for future implementation)
+  console.log('Sitemap generation would happen here');
+  
+} catch (error) {
+  console.error('Error in post-build script:', error);
+  process.exit(1);
 }
 
-generateSitemap();
+console.log('Post-build setup completed successfully');

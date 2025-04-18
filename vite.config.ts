@@ -35,24 +35,29 @@ export default defineConfig(({ mode }) => ({
     },
     rollupOptions: {
       // Important: For vite-plugin-ssr we need to define the entry-server file
-      // and remove the HTML entry points as they're incompatible
       input: {
         'entry-server': './src/entry-server.tsx',
       },
       output: {
-        // Remove the manualChunks configuration that's causing conflicts
-        // with React being treated as external
+        // Use a function for manualChunks to avoid conflicts with external modules
         manualChunks: (id) => {
-          // Create chunks for specific third-party dependencies
           if (id.includes('node_modules')) {
+            // Group by specific package categories
             if (id.includes('@radix-ui')) {
               return 'vendor-radix';
             }
             if (id.includes('react-router')) {
               return 'vendor-router';
             }
-            // Add more specific dependencies as needed
-            return 'vendor'; // All other dependencies
+            if (id.includes('tanstack')) {
+              return 'vendor-tanstack';
+            }
+            // Don't include React in manualChunks as it's treated as external
+            if (id.includes('react') || id.includes('react-dom')) {
+              return; // Skip creating manual chunk for React
+            }
+            // All other node_modules
+            return 'vendor';
           }
         }
       },
