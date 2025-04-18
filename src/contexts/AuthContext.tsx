@@ -29,55 +29,97 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const getSession = async () => {
       setLoading(true);
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      
-      // If there's a session, fetch the extended user profile
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
+      try {
+        console.log('Getting session...');
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        // Merge auth user with profile data
-        if (profile) {
-          setUser({
-            ...session.user,
-            ...profile
-          } as ExtendedUser);
-        } else {
-          // Fall back to basic user if no profile
-          setUser(session.user as unknown as ExtendedUser);
+        if (sessionError) {
+          console.error('Error getting session:', sessionError);
+          setError(sessionError.message);
+          setLoading(false);
+          return;
         }
-      } else {
-        setUser(null);
+        
+        console.log('Session result:', session ? 'Session found' : 'No session');
+        setSession(session);
+        
+        // If there's a session, fetch the extended user profile
+        if (session?.user) {
+          console.log('Fetching user profile for ID:', session.user.id);
+          try {
+            const { data: profile, error: profileError } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+            
+            if (profileError) {
+              console.error('Error fetching profile:', profileError);
+              // Don't throw here, still set basic user info
+            }
+            
+            // Merge auth user with profile data
+            if (profile) {
+              console.log('Profile found, merging with user data');
+              setUser({
+                ...session.user,
+                ...profile
+              } as ExtendedUser);
+            } else {
+              // Fall back to basic user if no profile
+              console.log('No profile found, using basic user data');
+              setUser(session.user as unknown as ExtendedUser);
+            }
+          } catch (profileErr) {
+            console.error('Exception fetching profile:', profileErr);
+            setUser(session.user as unknown as ExtendedUser);
+          }
+        } else {
+          setUser(null);
+        }
+      } catch (err) {
+        console.error('Exception in getSession:', err);
+        setError(err instanceof Error ? err.message : 'Unknown error occurred');
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
     };
 
     getSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      console.log('Auth state changed:', event);
       setSession(newSession);
       
       // If there's a session, fetch the extended user profile
       if (newSession?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', newSession.user.id)
-          .single();
-        
-        // Merge auth user with profile data
-        if (profile) {
-          setUser({
-            ...newSession.user,
-            ...profile
-          } as ExtendedUser);
-        } else {
-          // Fall back to basic user if no profile
+        try {
+          console.log('Auth change: fetching profile for user ID:', newSession.user.id);
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', newSession.user.id)
+            .single();
+          
+          if (profileError) {
+            console.error('Auth change: error fetching profile:', profileError);
+            // Don't throw, still set basic user
+          }
+          
+          // Merge auth user with profile data
+          if (profile) {
+            console.log('Auth change: profile found, merging data');
+            setUser({
+              ...newSession.user,
+              ...profile
+            } as ExtendedUser);
+          } else {
+            // Fall back to basic user if no profile
+            console.log('Auth change: no profile, using basic user data');
+            setUser(newSession.user as unknown as ExtendedUser);
+          }
+        } catch (err) {
+          console.error('Auth change: exception fetching profile:', err);
           setUser(newSession.user as unknown as ExtendedUser);
         }
       } else {
@@ -93,6 +135,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     setLoading(true);
+    setError(null);
     
     try {
       console.info('Attempting to sign in user:', email);
@@ -102,17 +145,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       
       if (error) {
+        console.error('Sign in error:', error);
         setError(error.message);
         return { success: false, error: error.message };
       }
       
+      console.log('Sign in successful, user ID:', data.user?.id);
+      
       // Log the successful login
       if (data.user) {
-        await logAuth.login(data.user.id, data.user.email || email);
+        try {
+          await logAuth.login(data.user.id, data.user.email || email);
+        } catch (logErr) {
+          console.error('Error logging authentication:', logErr);
+          // Don't fail the login if logging fails
+        }
       }
       
       return { success: true };
     } catch (err: any) {
+      console.error('Exception during sign in:', err);
       const errorMessage = err.message || 'An error occurred during sign in';
       setError(errorMessage);
       return { success: false, error: errorMessage };

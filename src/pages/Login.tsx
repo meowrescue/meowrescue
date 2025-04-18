@@ -30,7 +30,18 @@ const Login: React.FC = () => {
   const location = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const { user, session, signIn, isLoading: authLoading } = useAuth();
+  const { user, session, signIn, isLoading: authLoading, error: authError } = useAuth();
+
+  // Add debug info to console
+  useEffect(() => {
+    console.log('Login page - Auth state:', { 
+      user: user ? 'User exists' : 'No user', 
+      session: session ? 'Session exists' : 'No session',
+      isLoading: isLoading,
+      authLoading: authLoading,
+      authError: authError 
+    });
+  }, [user, session, isLoading, authLoading, authError]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -65,7 +76,7 @@ const Login: React.FC = () => {
       console.log("Sign in result:", result);
       
       if (result.error) {
-        throw result.error;
+        throw new Error(result.error);
       }
       
       toast({
@@ -88,6 +99,18 @@ const Login: React.FC = () => {
     }
   };
 
+  // Check for and display persistent auth errors
+  useEffect(() => {
+    if (authError) {
+      console.error("Auth context error:", authError);
+      toast({
+        title: "Authentication Error",
+        description: authError,
+        variant: "destructive",
+      });
+    }
+  }, [authError, toast]);
+
   return (
     <Layout>
       <SEO title="Login | Meow Rescue" />
@@ -103,7 +126,7 @@ const Login: React.FC = () => {
                 <span className="text-meow-secondary">Rescue</span>
               </span>
             </div>
-            <CardTitle className="text-2xl font-bold text-center"></CardTitle>
+            <CardTitle className="text-2xl font-bold text-center">Login to Your Account</CardTitle>
           </CardHeader>
           <CardContent>
             <Form {...form}>

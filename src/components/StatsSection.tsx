@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Cat, Heart, Home, Award } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -6,43 +7,82 @@ import CountUp from './CountUp';
 
 const StatsSection: React.FC = () => {
   // Fetch cats in care
-  const { data: catsInCare = 0 } = useQuery({
+  const { data: catsInCare = 0, isError: isCatsInCareError, error: catsInCareError } = useQuery({
     queryKey: ['cats-in-care-count'],
     queryFn: async () => {
-      const { count, error } = await supabase
-        .from('cats')
-        .select('*', { count: 'exact', head: true });
-      
-      if (error) throw error;
-      return count || 0;
+      try {
+        console.log('Fetching cats in care count...');
+        const { count, error } = await supabase
+          .from('cats')
+          .select('*', { count: 'exact', head: true });
+        
+        if (error) {
+          console.error('Error fetching cats in care:', error);
+          throw error;
+        }
+        
+        console.log('Cats in care count result:', count);
+        return count || 0;
+      } catch (err) {
+        console.error('Exception fetching cats in care:', err);
+        throw err;
+      }
     },
+    retry: 1,
+    retryDelay: 1000,
   });
 
   // Fetch total cats rescued (based on all cats ever entered in the system)
-  const { data: totalRescued = 0 } = useQuery({
+  const { data: totalRescued = 0, isError: isTotalRescuedError, error: totalRescuedError } = useQuery({
     queryKey: ['cats-rescued-count'],
     queryFn: async () => {
-      const { count, error } = await supabase
-        .from('cats')
-        .select('*', { count: 'exact', head: true });
-      
-      if (error) throw error;
-      return count || 0;
+      try {
+        console.log('Fetching total rescued cats count...');
+        const { count, error } = await supabase
+          .from('cats')
+          .select('*', { count: 'exact', head: true });
+        
+        if (error) {
+          console.error('Error fetching total rescued cats:', error);
+          throw error;
+        }
+        
+        console.log('Total rescued cats result:', count);
+        return count || 0;
+      } catch (err) {
+        console.error('Exception fetching total rescued cats:', err);
+        throw err;
+      }
     },
+    retry: 1,
+    retryDelay: 1000,
   });
 
   // Fetch total adoptions
-  const { data: totalAdoptions = 0 } = useQuery({
+  const { data: totalAdoptions = 0, isError: isTotalAdoptionsError, error: totalAdoptionsError } = useQuery({
     queryKey: ['adoptions-count'],
     queryFn: async () => {
-      const { count, error } = await supabase
-        .from('cats')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'Adopted');
-      
-      if (error) throw error;
-      return count || 0;
+      try {
+        console.log('Fetching total adoptions count...');
+        const { count, error } = await supabase
+          .from('cats')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'Adopted');
+        
+        if (error) {
+          console.error('Error fetching total adoptions:', error);
+          throw error;
+        }
+        
+        console.log('Total adoptions result:', count);
+        return count || 0;
+      } catch (err) {
+        console.error('Exception fetching total adoptions:', err);
+        throw err;
+      }
     },
+    retry: 1,
+    retryDelay: 1000,
   });
 
   // Calculate years of service (from current date to when rescue was founded)
@@ -52,6 +92,13 @@ const StatsSection: React.FC = () => {
     const yearDiff = currentDate.getFullYear() - foundingDate.getFullYear();
     return yearDiff;
   };
+
+  // Log any errors for debugging
+  React.useEffect(() => {
+    if (isCatsInCareError) console.error('Cats in care error:', catsInCareError);
+    if (isTotalRescuedError) console.error('Total rescued error:', totalRescuedError);
+    if (isTotalAdoptionsError) console.error('Total adoptions error:', totalAdoptionsError);
+  }, [isCatsInCareError, isTotalRescuedError, isTotalAdoptionsError]);
 
   return (
     <section className="py-16 bg-meow-primary/5">
@@ -64,7 +111,7 @@ const StatsSection: React.FC = () => {
                 <Cat className="w-8 h-8 text-meow-primary" />
               </div>
               <div className="text-4xl font-bold text-meow-primary mb-2">
-                {catsInCare}+
+                {isCatsInCareError ? '?' : `${catsInCare}+`}
               </div>
               <p className="text-gray-600">Cats in Care</p>
             </div>
@@ -75,7 +122,7 @@ const StatsSection: React.FC = () => {
                 <Heart className="w-8 h-8 text-meow-primary" />
               </div>
               <div className="text-4xl font-bold text-meow-primary mb-2">
-                {totalRescued}
+                {isTotalRescuedError ? '?' : totalRescued}
               </div>
               <p className="text-gray-600">Cats Rescued</p>
             </div>
@@ -86,7 +133,7 @@ const StatsSection: React.FC = () => {
                 <Home className="w-8 h-8 text-meow-primary" />
               </div>
               <div className="text-4xl font-bold text-meow-primary mb-2">
-                {totalAdoptions}
+                {isTotalAdoptionsError ? '?' : totalAdoptions}
               </div>
               <p className="text-gray-600">Adoptions</p>
             </div>

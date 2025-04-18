@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -14,6 +15,32 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 }) => {
   const { user, session, loading } = useAuth();
   const [showLoader, setShowLoader] = useState(true);
+  const [connectionChecked, setConnectionChecked] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  
+  // Check Supabase connection
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        console.log('Checking Supabase connection from ProtectedRoute...');
+        const { error } = await supabase.from('cats').select('id').limit(1);
+        
+        if (error) {
+          console.error('Supabase connection error in ProtectedRoute:', error);
+          setConnectionError(error.message);
+        } else {
+          console.log('Supabase connection successful from ProtectedRoute');
+        }
+      } catch (err) {
+        console.error('Exception checking Supabase connection:', err);
+        setConnectionError(err instanceof Error ? err.message : 'Unknown connection error');
+      } finally {
+        setConnectionChecked(true);
+      }
+    };
+    
+    checkConnection();
+  }, []);
   
   // Add a slight delay before showing the loading spinner to prevent flashing
   useEffect(() => {
@@ -25,10 +52,16 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }, [loading]);
   
   // If still loading, show loading indicator
-  if (showLoader) {
+  if (showLoader || !connectionChecked) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
+      <div className="flex flex-col h-screen items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary mb-4"></div>
+        {connectionError && (
+          <div className="text-red-500 text-center max-w-md px-4">
+            <p>Connection error: {connectionError}</p>
+            <p className="mt-2 text-sm">Try refreshing the page or checking your network connection.</p>
+          </div>
+        )}
       </div>
     );
   }
