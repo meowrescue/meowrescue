@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -35,6 +34,9 @@ interface Cat {
   spay_neuter_date: string | null;
   microchip_number: string | null;
   intake_date: string;
+  medical_notes: string | null;
+  birthday: string | null;
+  internal_status: string;
 }
 
 const CatDetail: React.FC = () => {
@@ -57,6 +59,23 @@ const CatDetail: React.FC = () => {
     enabled: !!id,
     retry: 2,
     retryDelay: 1000
+  });
+
+  // Add query for medical records
+  const { data: medicalRecords } = useQuery({
+    queryKey: ['cat-medical-records', id],
+    queryFn: async () => {
+      if (!id) return [];
+      const { data, error } = await supabase
+        .from('cat_medical_records')
+        .select('*')
+        .eq('cat_id', id)
+        .order('record_date', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id
   });
 
   if (isLoading) {
@@ -158,49 +177,43 @@ const CatDetail: React.FC = () => {
               </div>
             </div>
 
-            {/* Medical Information */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold mb-4 flex items-center">
-                <Medal className="mr-2 h-5 w-5 text-meow-primary" />
-                Medical Information
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-600">
-                <div className="space-y-2">
-                  <p className="flex items-center">
-                    <Syringe className="mr-2 h-4 w-4" />
-                    Vaccination: {cat.vaccination_date ? format(new Date(cat.vaccination_date), 'MM/dd/yyyy') : 'Not recorded'}
-                  </p>
-                  <p className="flex items-center">
-                    <PawPrint className="mr-2 h-4 w-4" />
-                    Deworming: {cat.deworming_date ? format(new Date(cat.deworming_date), 'MM/dd/yyyy') : 'Not recorded'}
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <p className="flex items-center">
-                    <Clipboard className="mr-2 h-4 w-4" />
-                    Flea Treatment: {cat.flea_treatment_date ? format(new Date(cat.flea_treatment_date), 'MM/dd/yyyy') : 'Not recorded'}
-                  </p>
-                  <p className="flex items-center">
-                    <User className="mr-2 h-4 w-4" />
-                    Spay/Neuter: {cat.spay_neuter_date ? format(new Date(cat.spay_neuter_date), 'MM/dd/yyyy') : 'Not recorded'}
-                  </p>
-                </div>
-                {cat.microchip_number && (
-                  <div className="col-span-2">
-                    <p><strong>Microchip:</strong> {cat.microchip_number}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Special Care Notes */}
-            {cat.special_care_notes && (
+            {/* Special Care Notes - Only show if there are notes */}
+            {cat.medical_notes && (
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h3 className="text-lg font-semibold mb-4 flex items-center">
                   <Heart className="mr-2 h-5 w-5 text-meow-primary" />
                   Special Care Notes
                 </h3>
-                <p className="text-gray-600">{cat.special_care_notes}</p>
+                <p className="text-gray-600">{cat.medical_notes}</p>
+              </div>
+            )}
+
+            {/* Medical Records from Admin Dashboard */}
+            {medicalRecords && medicalRecords.length > 0 && (
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h3 className="text-lg font-semibold mb-4 flex items-center">
+                  <Medal className="mr-2 h-5 w-5 text-meow-primary" />
+                  Medical History
+                </h3>
+                <div className="space-y-4">
+                  {medicalRecords.map((record) => (
+                    <div key={record.id} className="border-b last:border-b-0 pb-4 last:pb-0">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-medium">{record.procedure_type}</h4>
+                        <span className="text-sm text-gray-500">
+                          {format(new Date(record.record_date), 'MMM d, yyyy')}
+                        </span>
+                      </div>
+                      <p className="text-gray-600 mb-2">{record.description}</p>
+                      {record.veterinarian && (
+                        <p className="text-sm text-gray-500">Veterinarian: {record.veterinarian}</p>
+                      )}
+                      {record.notes && (
+                        <p className="text-sm text-gray-500 mt-1">Notes: {record.notes}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
