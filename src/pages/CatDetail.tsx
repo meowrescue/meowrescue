@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Heart, ArrowLeft, Calendar, MapPin, Users, FileCheck, Star, Stethoscope } from 'lucide-react';
@@ -6,7 +5,6 @@ import { format } from 'date-fns';
 import Layout from '@/components/Layout';
 import SectionHeading from '@/components/ui/SectionHeading';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
@@ -176,10 +174,10 @@ const CatDetail: React.FC = () => {
   return (
     <Layout>
       <SEO 
-        title={`Meet ${cat.name} - Adoptable Cat`} 
+        title={`Meet ${cat?.name || 'Cat'} - Adoptable Cat`} 
         description={metaDescription}
         type="profile"
-        image={cat.photos_urls[0] || '/placeholder.svg'}
+        image={cat?.photos_urls[0] || '/placeholder.svg'}
       />
 
       <div className="container mx-auto px-4 py-12">
@@ -196,14 +194,14 @@ const CatDetail: React.FC = () => {
           <div className="space-y-4">
             <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
               <img 
-                src={cat.photos_urls[activeImageIndex] || '/placeholder.svg'} 
-                alt={cat.name} 
+                src={cat?.photos_urls[activeImageIndex] || '/placeholder.svg'} 
+                alt={cat?.name} 
                 className="w-full h-full object-cover cursor-pointer"
-                onClick={() => setSelectedImage(cat.photos_urls[activeImageIndex])}
+                onClick={() => setSelectedImage(cat?.photos_urls[activeImageIndex])}
               />
             </div>
             
-            {cat.photos_urls.length > 1 && (
+            {cat?.photos_urls.length > 1 && (
               <div className="flex gap-2 overflow-x-auto py-2">
                 {cat.photos_urls.map((photo, index) => (
                   <button 
@@ -227,88 +225,83 @@ const CatDetail: React.FC = () => {
           
           {/* Cat Details */}
           <div>
-            <div className="flex justify-between items-start">
-              <h1 className="text-4xl font-bold text-meow-primary mb-2">{cat.name}</h1>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[cat.status]}`}>
-                {cat.status}
-              </span>
-            </div>
-            
-            <div className="flex flex-wrap gap-x-6 gap-y-2 mb-6 text-gray-600">
-              {cat.age_estimate && <div>{cat.age_estimate}</div>}
-              {cat.gender && <div>{cat.gender}</div>}
-              {cat.breed && <div>{cat.breed}</div>}
-            </div>
-            
-            <div className="mb-8 space-y-2 text-sm text-gray-600">
-              <div className="flex items-center space-x-2">
-                <Calendar size={16} />
-                <span>At Meow Rescue since {formattedIntakeDate}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <MapPin size={16} />
-                <span>
-                  <a 
-                    href="https://www.google.com/maps/place/New+Port+Richey,+FL/"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="hover:text-meow-primary hover:underline"
-                  >
-                    New Port Richey, FL
-                  </a>
+            <div className="bg-white rounded-lg shadow-sm p-8">
+              <div className="flex justify-between items-start mb-6">
+                <h1 className="text-4xl font-bold text-meow-primary">{cat?.name}</h1>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[cat?.status || 'Available']}`}>
+                  {cat?.status}
                 </span>
               </div>
-              <div className="flex items-center space-x-2">
-                <Users size={16} />
-                <span>Foster-based rescue</span>
-              </div>
-            </div>
-            
-            <div className="prose max-w-none mb-8">
-              <h2 className="text-2xl font-semibold mb-2">About {cat.name}</h2>
-              <p>{cat.bio || cat.description}</p>
               
-              {cat.medical_notes && (
-                <>
-                  <h3 className="text-xl font-semibold mt-6 mb-2">Medical Information</h3>
-                  <p>{cat.medical_notes}</p>
-                </>
-              )}
-            </div>
-            
-            {/* Medical Records Section */}
-            {medicalRecords.length > 0 && (
-              <div className="mb-8 bg-gray-50 p-4 rounded-lg">
-                <h3 className="text-xl font-semibold mb-4 flex items-center">
-                  <Stethoscope className="mr-2 h-5 w-5 text-meow-primary" />
-                  Medical History
-                </h3>
-                <div className="space-y-3">
-                  {medicalRecords.map((record) => (
-                    <div key={record.id} className="flex items-start gap-3 border-b border-gray-200 pb-3 last:border-0">
-                      <div className="bg-meow-primary/10 p-2 rounded-full flex-shrink-0">
-                        <FileCheck className="h-4 w-4 text-meow-primary" />
-                      </div>
-                      <div>
-                        <div className="font-medium">{record.procedure_type}</div>
-                        <div className="text-sm text-gray-600">{record.description}</div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          {format(new Date(record.record_date), 'MMM d, yyyy')}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <span className="text-sm text-gray-500">Age</span>
+                  <p className="font-medium">{cat?.age_estimate || 'Unknown'}</p>
                 </div>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <span className="text-sm text-gray-500">Gender</span>
+                  <p className="font-medium">{cat?.gender || 'Unknown'}</p>
+                </div>
+                {cat?.breed && (
+                  <div className="bg-gray-50 p-4 rounded-lg col-span-2">
+                    <span className="text-sm text-gray-500">Breed</span>
+                    <p className="font-medium">{cat.breed}</p>
+                  </div>
+                )}
               </div>
-            )}
-            
-            <div className="mt-8">
-              <Button 
-                onClick={handleAdoptClick}
-                className="bg-meow-secondary hover:bg-meow-secondary/90 w-full md:w-auto text-white py-3 px-8 rounded-md text-lg"
-              >
-                Adopt {cat.name}
-              </Button>
+              
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-xl font-semibold mb-3">About {cat?.name}</h2>
+                  <p className="text-gray-600 leading-relaxed">{cat?.bio || cat?.description}</p>
+                </div>
+
+                {/* Special Care Notes */}
+                {cat?.medical_notes && (
+                  <div className="bg-meow-primary/5 rounded-lg p-6">
+                    <h2 className="text-xl font-semibold mb-3 flex items-center">
+                      <Star className="mr-2 h-5 w-5 text-meow-primary" />
+                      Special Care Notes
+                    </h2>
+                    <p className="text-gray-600">{cat.medical_notes}</p>
+                  </div>
+                )}
+
+                {/* Medical History Section */}
+                {medicalRecords && medicalRecords.length > 0 && (
+                  <div className="bg-gray-50 rounded-lg p-6">
+                    <h2 className="text-xl font-semibold mb-4 flex items-center">
+                      <Stethoscope className="mr-2 h-5 w-5 text-meow-primary" />
+                      Medical History
+                    </h2>
+                    <div className="space-y-4">
+                      {medicalRecords.map((record) => (
+                        <div key={record.id} className="flex items-start gap-4 border-b border-gray-200 last:border-0 pb-4 last:pb-0">
+                          <div className="bg-meow-primary/10 p-2 rounded-full">
+                            <FileCheck className="h-4 w-4 text-meow-primary" />
+                          </div>
+                          <div>
+                            <div className="font-medium">{record.procedure_type}</div>
+                            <div className="text-sm text-gray-600">{record.description}</div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              {format(new Date(record.record_date), 'MMM d, yyyy')}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-8">
+                <Button 
+                  onClick={handleAdoptClick}
+                  className="w-full bg-meow-secondary hover:bg-meow-secondary/90 text-white py-3 px-8 rounded-md text-lg"
+                >
+                  Adopt {cat?.name}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
