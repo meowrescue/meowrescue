@@ -1,12 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import AdminLayout from '@/pages/Admin';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileText, Calendar, User, Mail, Phone, Home, CheckCircle2, XCircle } from 'lucide-react';
+import { FileText, Calendar, User, Mail, Phone, Home, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import ApplicationView from '@/components/admin/ApplicationView';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -18,29 +18,56 @@ const AdminApplications = () => {
   const [selectedTab, setSelectedTab] = useState<string>('all');
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
   
-  // Fetch applications with proper error handling
+  // Fetch applications with better error handling
   const { data: applications, isLoading, error } = useQuery({
     queryKey: ['admin-applications'],
     queryFn: async () => {
       console.log("Fetching applications data...");
+      let allApplications: Application[] = [];
       
-      // Try to query the adoption_applications table instead of applications
-      const { data, error } = await supabase
-        .from('adoption_applications')
-        .select(`
-          *,
-          profiles:applicant_profile_id (
-            email,
-            first_name,
-            last_name
-          )
-        `)
-        .order('created_at', { ascending: false });
-      
-      if (error) {
-        console.error("Error fetching adoption applications:", error);
+      try {
+        // First try to query the adoption_applications table
+        const { data: adoptionData, error: adoptionError } = await supabase
+          .from('adoption_applications')
+          .select(`
+            *,
+            profiles:applicant_profile_id (
+              email,
+              first_name,
+              last_name
+            ),
+            cats:cat_id (
+              name
+            )
+          `)
+          .order('created_at', { ascending: false });
         
-        // If that fails, try the original applications table
+        if (!adoptionError && adoptionData) {
+          console.log("Adoption applications data received:", adoptionData);
+          
+          // Transform adoption_applications data to match Application type
+          const transformedData = adoptionData.map(app => ({
+            id: app.id,
+            user_id: app.applicant_profile_id,
+            applicant_id: app.applicant_profile_id,
+            application_type: 'adoption',
+            status: typeof app.status === 'string' ? app.status.toLowerCase() : 'pending',
+            form_data: {
+              ...(app.applicant_details || {}),
+              catName: app.cats?.name || 'Unknown'
+            },
+            created_at: app.created_at,
+            updated_at: app.updated_at,
+            reviewed_at: app.reviewed_at,
+            reviewer_id: null,
+            feedback: app.notes,
+            profiles: app.profiles
+          }));
+          
+          allApplications = [...allApplications, ...transformedData];
+        }
+        
+        // Then try the original applications table to ensure backward compatibility
         const { data: appData, error: appError } = await supabase
           .from('applications')
           .select(`
@@ -53,36 +80,29 @@ const AdminApplications = () => {
           `)
           .order('created_at', { ascending: false });
           
-        if (appError) {
-          console.error("Error fetching applications:", appError);
-          throw appError;
+        if (!appError && appData) {
+          console.log("Legacy applications data received:", appData);
+          allApplications = [...allApplications, ...appData];
         }
         
-        console.log("Applications data received:", appData);
-        return appData as Application[];
+        if (allApplications.length === 0) {
+          console.error("No applications found in either table.");
+        }
+        
+        return allApplications;
+      } catch (err) {
+        console.error("Error fetching applications:", err);
+        throw err;
       }
-      
-      console.log("Adoption applications data received:", data);
-      
-      // Transform adoption_applications data to match Application type
-      const transformedData = data.map(app => ({
-        id: app.id,
-        user_id: app.applicant_profile_id,
-        applicant_id: app.applicant_profile_id,
-        application_type: 'adoption',
-        status: app.status.toLowerCase(),
-        form_data: app.applicant_details || {},
-        created_at: app.created_at,
-        updated_at: app.updated_at,
-        reviewed_at: app.reviewed_at,
-        reviewer_id: null,
-        feedback: app.notes,
-        profiles: app.profiles
-      }));
-      
-      return transformedData as Application[];
     }
   });
+
+  useEffect(() => {
+    // Log the loaded applications to help debugging
+    if (applications) {
+      console.log(`${applications.length} total applications loaded:`, applications);
+    }
+  }, [applications]);
 
   if (error) {
     console.error("Error in applications query:", error);
@@ -114,7 +134,7 @@ const AdminApplications = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    switch(status) {
+    switch(status.toLowerCase()) {
       case 'pending':
       case 'submitted':
         return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Pending</Badge>;
@@ -133,7 +153,7 @@ const AdminApplications = () => {
     <AdminLayout title="Applications">
       <SEO title="Applications | Meow Rescue Admin" />
       
-      <div className="container mx-auto py-10">
+      <div className="container mx-auto py-10 mt-16 sm:mt-0"> {/* Added top margin for mobile view */}
         <h1 className="text-3xl font-bold text-meow-primary mb-6">Application Management</h1>
         
         <Tabs defaultValue="all" value={selectedTab} onValueChange={setSelectedTab}>
@@ -225,6 +245,11 @@ const AdminApplications = () => {
                             )}
                             <CardTitle className="text-lg capitalize">
                               {application.application_type} Application
+                              {application.form_data?.catName && (
+                                <span className="text-sm font-normal ml-1">
+                                  for {application.form_data.catName}
+                                </span>
+                              )}
                             </CardTitle>
                           </div>
                           <CardDescription>
@@ -239,12 +264,12 @@ const AdminApplications = () => {
                         <div className="flex items-center text-sm">
                           <User className="h-4 w-4 mr-2 text-gray-500" />
                           <span>
-                            {application.form_data?.firstName || application.profiles?.first_name} {application.form_data?.lastName || application.profiles?.last_name}
+                            {application.form_data?.firstName || application.profiles?.first_name || ''} {application.form_data?.lastName || application.profiles?.last_name || ''}
                           </span>
                         </div>
                         <div className="flex items-center text-sm">
                           <Mail className="h-4 w-4 mr-2 text-gray-500" />
-                          <span>{application.form_data?.email || application.profiles?.email}</span>
+                          <span>{application.form_data?.email || application.profiles?.email || ''}</span>
                         </div>
                         {(application.form_data?.phone) && (
                           <div className="flex items-center text-sm">
@@ -276,9 +301,24 @@ const AdminApplications = () => {
             ) : (
               <Card>
                 <CardContent className="py-10 text-center">
-                  <FileText className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500">No applications found in this category.</p>
-                  <p className="text-gray-400 text-sm mt-2">Try selecting a different category or check if applications have been submitted.</p>
+                  {applications && applications.length > 0 ? (
+                    <>
+                      <AlertCircle className="h-12 w-12 text-yellow-300 mx-auto mb-3" />
+                      <p className="text-gray-500">No applications found in this category.</p>
+                      <p className="text-gray-400 text-sm mt-2">
+                        There are {applications.length} total applications, but none match the current filter.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                      <p className="text-gray-500">No applications found.</p>
+                      <p className="text-gray-400 text-sm mt-2">
+                        No applications were found in the database. This could be because no applications have been submitted yet,
+                        or there may be an issue with the database connection.
+                      </p>
+                    </>
+                  )}
                 </CardContent>
               </Card>
             )}

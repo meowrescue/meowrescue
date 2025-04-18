@@ -20,6 +20,7 @@ interface Cat {
   description: string | null;
   photos_urls: string[] | null;
   status: string;
+  internal_status?: string;
   intake_date: string;
 }
 
@@ -43,7 +44,8 @@ const AdminCats: React.FC = () => {
   });
   
   // Delete cat
-  const handleDeleteCat = async (id: string) => {
+  const handleDeleteCat = async (id: string, event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent row click event
     if (!window.confirm("Are you sure you want to delete this cat?")) return;
     
     try {
@@ -91,17 +93,36 @@ const AdminCats: React.FC = () => {
     }
   };
 
+  // Get internal status badge color
+  const getInternalStatusBadgeClass = (status: string) => {
+    switch(status) {
+      case 'Alive':
+        return "bg-green-100 text-green-800";
+      case 'Deceased':
+        return "bg-red-100 text-red-800";
+      case 'Missing':
+        return "bg-purple-100 text-purple-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
   // Get human-readable status
   const getDisplayStatus = (status: string) => {
     if (status === 'NotListed') return 'Not Listed';
     return status;
   };
 
+  // Navigate to cat detail
+  const handleRowClick = (id: string) => {
+    navigate(`/admin/cats/edit/${id}`);
+  };
+
   return (
     <AdminLayout title="Cats">
       <SEO title="Cats | Meow Rescue Admin" />
       
-      <div className="container mx-auto py-10">
+      <div className="container mx-auto py-10 mt-16 sm:mt-0"> {/* Added top margin for mobile view */}
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-meow-primary">Cats</h1>
           <div className="flex items-center space-x-4">
@@ -135,13 +156,18 @@ const AdminCats: React.FC = () => {
                   <TableHead>Name</TableHead>
                   <TableHead>Age</TableHead>
                   <TableHead>Breed</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Public Status</TableHead>
+                  <TableHead>Internal Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredCats?.map((cat) => (
-                  <TableRow key={cat.id}>
+                  <TableRow 
+                    key={cat.id} 
+                    onClick={() => handleRowClick(cat.id)}
+                    className="cursor-pointer hover:bg-gray-50"
+                  >
                     <TableCell>{cat.name}</TableCell>
                     <TableCell>{cat.age_estimate || 'Unknown'}</TableCell>
                     <TableCell>{cat.breed || 'Unknown'}</TableCell>
@@ -150,11 +176,29 @@ const AdminCats: React.FC = () => {
                         {getDisplayStatus(cat.status)}
                       </Badge>
                     </TableCell>
+                    <TableCell>
+                      {cat.internal_status && (
+                        <Badge className={getInternalStatusBadgeClass(cat.internal_status)}>
+                          {cat.internal_status}
+                        </Badge>
+                      )}
+                    </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" onClick={() => navigate(`/admin/cats/edit/${cat.id}`)}>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/admin/cats/edit/${cat.id}`);
+                        }}
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDeleteCat(cat.id)}>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={(e) => handleDeleteCat(cat.id, e)}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>

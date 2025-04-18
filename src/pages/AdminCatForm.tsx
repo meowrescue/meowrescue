@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Upload, Loader2 } from 'lucide-react';
+import { ArrowLeft, Upload, Loader2, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import SEO from '@/components/SEO';
@@ -21,6 +21,7 @@ const AdminCatForm: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const isEditing = !!id;
+  const [editMode, setEditMode] = useState(!id); // Start in edit mode for new cats, view mode for existing
   
   // Form state
   const [name, setName] = useState('');
@@ -30,6 +31,7 @@ const AdminCatForm: React.FC = () => {
   const [description, setDescription] = useState('');
   const [medicalNotes, setMedicalNotes] = useState('');
   const [status, setStatus] = useState('Available');
+  const [internalStatus, setInternalStatus] = useState('Alive');
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showOnAdoptablePage, setShowOnAdoptablePage] = useState(true);
@@ -62,6 +64,7 @@ const AdminCatForm: React.FC = () => {
       setDescription(cat.description || '');
       setMedicalNotes(cat.medical_notes || '');
       setStatus(cat.status || 'Available');
+      setInternalStatus(cat.internal_status || 'Alive');
       setPhotoUrls(cat.photos_urls || []);
       // The showOnAdoptablePage checkbox is tied to the status
       setShowOnAdoptablePage(cat.status === 'Available');
@@ -112,7 +115,7 @@ const AdminCatForm: React.FC = () => {
         title: "Cat Updated",
         description: "The cat has been successfully updated."
       });
-      navigate('/admin/cats');
+      setEditMode(false);
     },
     onError: (error: any) => {
       toast({
@@ -140,6 +143,7 @@ const AdminCatForm: React.FC = () => {
         description,
         medical_notes: medicalNotes,
         status: finalStatus,
+        internal_status: internalStatus,
         photos_urls: photoUrls
       };
       
@@ -182,14 +186,20 @@ const AdminCatForm: React.FC = () => {
     "Ragdoll",
     "British Shorthair",
     "Bengal",
-    "Sphynx"
+    "Sphynx",
+    "Scottish Fold",
+    "Abyssinian",
+    "Norwegian Forest Cat",
+    "Oriental Shorthair",
+    "Burmese",
+    "Mixed Breed"
   ];
   
   return (
-    <AdminLayout title={isEditing ? "Edit Cat" : "Add Cat"}>
-      <SEO title={`${isEditing ? "Edit" : "Add"} Cat | Meow Rescue Admin`} />
+    <AdminLayout title={isEditing ? (editMode ? "Edit Cat" : "View Cat") : "Add Cat"}>
+      <SEO title={`${isEditing ? (editMode ? "Edit" : "View") : "Add"} Cat | Meow Rescue Admin`} />
       
-      <div className="w-full mx-auto py-4 sm:py-6">
+      <div className="w-full mx-auto py-4 sm:py-6 mt-16 sm:mt-0"> {/* Added top margin for mobile view */}
         <Button 
           variant="outline" 
           onClick={() => navigate('/admin/cats')} 
@@ -200,10 +210,19 @@ const AdminCatForm: React.FC = () => {
         </Button>
         
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-xl sm:text-2xl font-bold">
-              {isEditing ? `Edit ${cat?.name || 'Cat'}` : 'Add New Cat'}
+              {isEditing ? `${editMode ? 'Edit' : 'View'} ${cat?.name || 'Cat'}` : 'Add New Cat'}
             </CardTitle>
+            {isEditing && (
+              <Button 
+                variant={editMode ? "outline" : "default"} 
+                onClick={() => setEditMode(!editMode)}
+                className="flex items-center gap-2"
+              >
+                {editMode ? "Cancel Editing" : <><Edit className="h-4 w-4" /> Edit</>}
+              </Button>
+            )}
           </CardHeader>
           <CardContent>
             {isCatLoading ? (
@@ -222,6 +241,7 @@ const AdminCatForm: React.FC = () => {
                         onChange={(e) => setName(e.target.value)}
                         required
                         placeholder="Cat's name"
+                        disabled={!editMode}
                       />
                     </div>
                     
@@ -232,6 +252,7 @@ const AdminCatForm: React.FC = () => {
                         value={ageEstimate}
                         onChange={(e) => setAgeEstimate(e.target.value)}
                         placeholder="e.g. 2 years, 6 months"
+                        disabled={!editMode}
                       />
                     </div>
                     
@@ -240,6 +261,7 @@ const AdminCatForm: React.FC = () => {
                       <Select 
                         value={breed} 
                         onValueChange={setBreed}
+                        disabled={!editMode}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select breed" />
@@ -256,7 +278,7 @@ const AdminCatForm: React.FC = () => {
                     
                     <div className="space-y-2">
                       <Label htmlFor="gender">Gender</Label>
-                      <Select value={gender} onValueChange={setGender}>
+                      <Select value={gender} onValueChange={setGender} disabled={!editMode}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select gender" />
                         </SelectTrigger>
@@ -267,13 +289,31 @@ const AdminCatForm: React.FC = () => {
                       </Select>
                     </div>
                     
+                    <div className="space-y-2">
+                      <Label htmlFor="internalStatus">Internal Status (Not Public)</Label>
+                      <Select value={internalStatus} onValueChange={setInternalStatus} disabled={!editMode}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select internal status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Alive">Alive</SelectItem>
+                          <SelectItem value="Deceased">Deceased</SelectItem>
+                          <SelectItem value="Missing">Missing</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
                     <div className="flex items-center space-x-2 pt-4">
                       <Checkbox 
                         id="showOnAdoptablePage" 
                         checked={showOnAdoptablePage}
                         onCheckedChange={(checked) => setShowOnAdoptablePage(checked as boolean)} 
+                        disabled={!editMode}
                       />
-                      <Label htmlFor="showOnAdoptablePage" className="font-medium cursor-pointer">
+                      <Label 
+                        htmlFor="showOnAdoptablePage" 
+                        className={`font-medium cursor-pointer ${!editMode ? 'opacity-70' : ''}`}
+                      >
                         Show on Adoptable Cats page
                       </Label>
                     </div>
@@ -288,6 +328,7 @@ const AdminCatForm: React.FC = () => {
                         onChange={(e) => setDescription(e.target.value)}
                         placeholder="Cat's personality, preferences, etc."
                         rows={4}
+                        disabled={!editMode}
                       />
                     </div>
                     
@@ -299,6 +340,7 @@ const AdminCatForm: React.FC = () => {
                         onChange={(e) => setMedicalNotes(e.target.value)}
                         placeholder="Any special care requirements or notes"
                         rows={4}
+                        disabled={!editMode}
                       />
                     </div>
                   </div>
@@ -307,15 +349,17 @@ const AdminCatForm: React.FC = () => {
                 <div className="space-y-3 sm:space-y-4">
                   <div>
                     <Label htmlFor="photos">Photos</Label>
-                    <div className="mt-2">
-                      <ImageUploader 
-                        onImageUploaded={handleImageUploaded}
-                        bucketName="cat-photos" 
-                        folderPath="cat-photos"
-                      />
-                    </div>
+                    {editMode && (
+                      <div className="mt-2">
+                        <ImageUploader 
+                          onImageUploaded={handleImageUploaded}
+                          bucketName="cat-photos" 
+                          folderPath="cat-photos"
+                        />
+                      </div>
+                    )}
                     
-                    {/* Existing photos preview (for edit mode) */}
+                    {/* Existing photos preview */}
                     {photoUrls.length > 0 && (
                       <div className="mt-4">
                         <h4 className="text-sm font-medium mb-2">Photos:</h4>
@@ -327,15 +371,17 @@ const AdminCatForm: React.FC = () => {
                                 alt={`Cat photo ${index + 1}`} 
                                 className="w-24 h-24 object-cover rounded-md"
                               />
-                              <Button
-                                type="button"
-                                variant="destructive"
-                                size="sm"
-                                className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full"
-                                onClick={() => handleRemovePhoto(index)}
-                              >
-                                &times;
-                              </Button>
+                              {editMode && (
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="sm"
+                                  className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full"
+                                  onClick={() => handleRemovePhoto(index)}
+                                >
+                                  &times;
+                                </Button>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -344,25 +390,27 @@ const AdminCatForm: React.FC = () => {
                   </div>
                 </div>
                 
-                <CardFooter className="flex flex-col sm:flex-row sm:justify-end gap-3 sm:gap-4 px-0 pt-4 pb-0">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => navigate('/admin/cats')}
-                    disabled={isLoading}
-                    className="w-full sm:w-auto"
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    type="submit" 
-                    disabled={isLoading}
-                    className="w-full sm:w-auto"
-                  >
-                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {isEditing ? 'Update Cat' : 'Add Cat'}
-                  </Button>
-                </CardFooter>
+                {editMode && (
+                  <CardFooter className="flex flex-col sm:flex-row sm:justify-end gap-3 sm:gap-4 px-0 pt-4 pb-0">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => isEditing ? setEditMode(false) : navigate('/admin/cats')}
+                      disabled={isLoading}
+                      className="w-full sm:w-auto"
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      disabled={isLoading}
+                      className="w-full sm:w-auto"
+                    >
+                      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      {isEditing ? 'Update Cat' : 'Add Cat'}
+                    </Button>
+                  </CardFooter>
+                )}
               </form>
             )}
           
