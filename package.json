@@ -9,7 +9,8 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "generate-sitemap": "node scripts/generate-sitemap.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:dev": "vite build --mode development"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
