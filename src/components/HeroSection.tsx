@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -56,7 +55,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           </Button>
           
           {secondaryCtaText && secondaryCtaLink && (
-            <Button asChild variant="outline" size="xl" className="rounded-full text-white border-white hover:bg-white/10">
+            <Button 
+              asChild 
+              variant="outline" 
+              size="xl" 
+              className="rounded-full text-white border-white bg-transparent hover:bg-white/10"
+            >
               <Link to={secondaryCtaLink}>
                 {secondaryCtaText}
               </Link>
