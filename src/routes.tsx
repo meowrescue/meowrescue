@@ -1,7 +1,6 @@
 import React from 'react';
 import { supabase } from './integrations/supabase/client';
 import ProtectedRoute from "./components/ProtectedRoute";
-import Layout from './components/Layout';
 
 // Lazy load components for code splitting
 const Index = React.lazy(() => import('./pages/Index'));
@@ -91,241 +90,226 @@ async function getBlogSlugs() {
 export const routes = [
   {
     path: '/',
-    element: <Layout>
-      <React.Fragment />
-    </Layout>,
-    children: [
-      // Public Routes
-      {
-        index: true,
-        element: <Index />,
-      },
-      {
-        path: 'about',
-        element: <About />,
-      },
-      {
-        path: 'cats',
-        element: <Cats />,
-      },
-      {
-        path: 'cats/:id',
-        element: <CatDetail />,
-      },
-      {
-        path: 'adopt',
-        element: <Adopt />,
-      },
-      {
-        path: 'adopt/apply',
-        element: <AdoptionForm />,
-      },
-      {
-        path: 'foster',
-        element: <Foster />,
-      },
-      {
-        path: 'foster/apply',
-        element: <FosterForm />,
-      },
-      {
-        path: 'success-stories',
-        element: <SuccessStories />,
-      },
-      {
-        path: 'blog',
-        element: <Blog />,
-      },
-      {
-        path: 'blog/:slug',
-        element: <BlogPost />,
-      },
-      {
-        path: 'events',
-        element: <Events />,
-      },
-      {
-        path: 'events/:id',
-        element: <EventDetail />,
-      },
-      {
-        path: 'resources',
-        element: <Resources />,
-      },
-      {
-        path: 'contact',
-        element: <Contact />,
-      },
-      {
-        path: 'donate',
-        element: <Donate />,
-      },
-      {
-        path: 'volunteer',
-        element: <Volunteer />,
-      },
-      {
-        path: 'volunteer/apply',
-        element: <VolunteerForm />,
-      },
-      {
-        path: 'login',
-        element: <Login />,
-      },
-      {
-        path: 'register',
-        element: <Register />,
-      },
-      {
-        path: 'reset-password',
-        element: <ResetPassword />,
-      },
-      {
-        path: 'privacy-policy',
-        element: <PrivacyPolicy />,
-      },
-      {
-        path: 'terms-of-service',
-        element: <TermsOfService />,
-      },
-      {
-        path: 'lost-found',
-        element: <LostFound />,
-      },
-      {
-        path: 'lost-found/:id',
-        element: <LostFoundDetail />,
-      },
-      
-      // Protected Routes (requires login)
-      {
-        path: 'profile',
-        element: <ProtectedRoute><Profile /></ProtectedRoute>,
-      },
-      {
-        path: 'lost-found/new',
-        element: <ProtectedRoute><LostFoundForm /></ProtectedRoute>,
-      },
-      {
-        path: 'lost-found/edit/:id',
-        element: <ProtectedRoute><LostFoundForm /></ProtectedRoute>,
-      },
-      
-      // Admin Routes (requires admin login)
-      {
-        path: 'admin',
-        element: <ProtectedRoute requireAdmin={true}><AdminDashboard /></ProtectedRoute>,
-      },
-      {
-        path: 'admin/cats',
-        element: <ProtectedRoute requireAdmin={true}><AdminCats /></ProtectedRoute>,
-      },
-      {
-        path: 'admin/cats/new',
-        element: <ProtectedRoute requireAdmin={true}><AdminCatForm /></ProtectedRoute>,
-      },
-      {
-        path: 'admin/cats/edit/:id',
-        element: <ProtectedRoute requireAdmin={true}><AdminCatForm /></ProtectedRoute>,
-      },
-      {
-        path: 'admin/users',
-        element: <ProtectedRoute requireAdmin={true}><AdminUsers /></ProtectedRoute>,
-      },
-      {
-        path: 'admin/finance',
-        element: <ProtectedRoute requireAdmin={true}><AdminFinance /></ProtectedRoute>,
-      },
-      {
-        path: 'admin/finance/donations',
-        element: <ProtectedRoute requireAdmin={true}><AdminFinance /></ProtectedRoute>,
-      },
-      {
-        path: 'admin/finance/income',
-        element: <ProtectedRoute requireAdmin={true}><AdminFinance /></ProtectedRoute>,
-      },
-      {
-        path: 'admin/finance/expenses',
-        element: <ProtectedRoute requireAdmin={true}><AdminFinance /></ProtectedRoute>,
-      },
-      {
-        path: 'admin/pages',
-        element: <ProtectedRoute requireAdmin={true}><AdminPages /></ProtectedRoute>,
-      },
-      {
-        path: 'admin/blog',
-        element: <ProtectedRoute requireAdmin={true}><AdminBlog /></ProtectedRoute>,
-      },
-      {
-        path: 'admin/blog/new',
-        element: <ProtectedRoute requireAdmin={true}><AdminBlogForm /></ProtectedRoute>,
-      },
-      {
-        path: 'admin/blog/edit/:id',
-        element: <ProtectedRoute requireAdmin={true}><AdminBlogForm /></ProtectedRoute>,
-      },
-      {
-        path: 'admin/events',
-        element: <ProtectedRoute requireAdmin={true}><AdminEvents /></ProtectedRoute>,
-      },
-      {
-        path: 'admin/lost-found',
-        element: <ProtectedRoute requireAdmin={true}><AdminLostFound /></ProtectedRoute>,
-      },
-      {
-        path: 'admin/messages',
-        element: <ProtectedRoute requireAdmin={true}><AdminMessages /></ProtectedRoute>,
-      },
-      {
-        path: 'admin/chat',
-        element: <ProtectedRoute requireAdmin={true}><AdminChat /></ProtectedRoute>,
-      },
-      {
-        path: 'admin/security',
-        element: <ProtectedRoute requireAdmin={true}><AdminSecurity /></ProtectedRoute>,
-      },
-      {
-        path: 'admin/applications',
-        element: <ProtectedRoute requireAdmin={true}><AdminApplications /></ProtectedRoute>,
-      },
-      {
-        path: 'admin/supplies',
-        element: <ProtectedRoute requireAdmin={true}><AdminSupplies /></ProtectedRoute>,
-      },
-      {
-        path: 'admin/documents',
-        element: <ProtectedRoute requireAdmin={true}><AdminDocuments /></ProtectedRoute>,
-      },
-      {
-        path: 'admin/team',
-        element: <ProtectedRoute requireAdmin={true}><AdminTeam /></ProtectedRoute>,
-      },
-      {
-        path: 'admin/success-stories',
-        element: <ProtectedRoute requireAdmin={true}><AdminSuccessStories /></ProtectedRoute>,
-      },
-      {
-        path: 'admin/business-licenses',
-        element: <ProtectedRoute requireAdmin={true}><AdminBusinessLicenses /></ProtectedRoute>,
-      },
-      {
-        path: 'admin/direct-messages',
-        element: <ProtectedRoute requireAdmin={true}><AdminDirectMessages /></ProtectedRoute>,
-      },
-      {
-        path: 'admin/orders',
-        element: <ProtectedRoute requireAdmin={true}><AdminOrders /></ProtectedRoute>,
-      },
-      {
-        path: 'admin/help',
-        element: <ProtectedRoute requireAdmin={true}><AdminDashboard /></ProtectedRoute>,
-      },
-      
-      // Catch-all route for 404
-      {
-        path: '*',
-        element: <NotFound />,
-      }
-    ]
+    element: <Index />,
+  },
+  {
+    path: '/about',
+    element: <About />,
+  },
+  {
+    path: '/cats',
+    element: <Cats />,
+  },
+  {
+    path: '/cats/:id',
+    element: <CatDetail />,
+  },
+  {
+    path: '/adopt',
+    element: <Adopt />,
+  },
+  {
+    path: '/adopt/apply',
+    element: <AdoptionForm />,
+  },
+  {
+    path: '/foster',
+    element: <Foster />,
+  },
+  {
+    path: '/foster/apply',
+    element: <FosterForm />,
+  },
+  {
+    path: '/success-stories',
+    element: <SuccessStories />,
+  },
+  {
+    path: '/blog',
+    element: <Blog />,
+  },
+  {
+    path: '/blog/:slug',
+    element: <BlogPost />,
+  },
+  {
+    path: '/events',
+    element: <Events />,
+  },
+  {
+    path: '/events/:id',
+    element: <EventDetail />,
+  },
+  {
+    path: '/resources',
+    element: <Resources />,
+  },
+  {
+    path: '/contact',
+    element: <Contact />,
+  },
+  {
+    path: '/donate',
+    element: <Donate />,
+  },
+  {
+    path: '/volunteer',
+    element: <Volunteer />,
+  },
+  {
+    path: '/volunteer/apply',
+    element: <VolunteerForm />,
+  },
+  {
+    path: '/login',
+    element: <Login />,
+  },
+  {
+    path: '/register',
+    element: <Register />,
+  },
+  {
+    path: '/reset-password',
+    element: <ResetPassword />,
+  },
+  {
+    path: '/privacy-policy',
+    element: <PrivacyPolicy />,
+  },
+  {
+    path: '/terms-of-service',
+    element: <TermsOfService />,
+  },
+  {
+    path: '/lost-found',
+    element: <LostFound />,
+  },
+  {
+    path: '/lost-found/:id',
+    element: <LostFoundDetail />,
+  },
+  {
+    path: '/profile',
+    element: <ProtectedRoute><Profile /></ProtectedRoute>,
+  },
+  {
+    path: '/lost-found/new',
+    element: <ProtectedRoute><LostFoundForm /></ProtectedRoute>,
+  },
+  {
+    path: '/lost-found/edit/:id',
+    element: <ProtectedRoute><LostFoundForm /></ProtectedRoute>,
+  },
+  {
+    path: '/admin',
+    element: <ProtectedRoute requireAdmin={true}><AdminDashboard /></ProtectedRoute>,
+  },
+  {
+    path: '/admin/cats',
+    element: <ProtectedRoute requireAdmin={true}><AdminCats /></ProtectedRoute>,
+  },
+  {
+    path: '/admin/cats/new',
+    element: <ProtectedRoute requireAdmin={true}><AdminCatForm /></ProtectedRoute>,
+  },
+  {
+    path: '/admin/cats/edit/:id',
+    element: <ProtectedRoute requireAdmin={true}><AdminCatForm /></ProtectedRoute>,
+  },
+  {
+    path: '/admin/users',
+    element: <ProtectedRoute requireAdmin={true}><AdminUsers /></ProtectedRoute>,
+  },
+  {
+    path: '/admin/finance',
+    element: <ProtectedRoute requireAdmin={true}><AdminFinance /></ProtectedRoute>,
+  },
+  {
+    path: '/admin/finance/donations',
+    element: <ProtectedRoute requireAdmin={true}><AdminFinance /></ProtectedRoute>,
+  },
+  {
+    path: '/admin/finance/income',
+    element: <ProtectedRoute requireAdmin={true}><AdminFinance /></ProtectedRoute>,
+  },
+  {
+    path: '/admin/finance/expenses',
+    element: <ProtectedRoute requireAdmin={true}><AdminFinance /></ProtectedRoute>,
+  },
+  {
+    path: '/admin/pages',
+    element: <ProtectedRoute requireAdmin={true}><AdminPages /></ProtectedRoute>,
+  },
+  {
+    path: '/admin/blog',
+    element: <ProtectedRoute requireAdmin={true}><AdminBlog /></ProtectedRoute>,
+  },
+  {
+    path: '/admin/blog/new',
+    element: <ProtectedRoute requireAdmin={true}><AdminBlogForm /></ProtectedRoute>,
+  },
+  {
+    path: '/admin/blog/edit/:id',
+    element: <ProtectedRoute requireAdmin={true}><AdminBlogForm /></ProtectedRoute>,
+  },
+  {
+    path: '/admin/events',
+    element: <ProtectedRoute requireAdmin={true}><AdminEvents /></ProtectedRoute>,
+  },
+  {
+    path: '/admin/lost-found',
+    element: <ProtectedRoute requireAdmin={true}><AdminLostFound /></ProtectedRoute>,
+  },
+  {
+    path: '/admin/messages',
+    element: <ProtectedRoute requireAdmin={true}><AdminMessages /></ProtectedRoute>,
+  },
+  {
+    path: '/admin/chat',
+    element: <ProtectedRoute requireAdmin={true}><AdminChat /></ProtectedRoute>,
+  },
+  {
+    path: '/admin/security',
+    element: <ProtectedRoute requireAdmin={true}><AdminSecurity /></ProtectedRoute>,
+  },
+  {
+    path: '/admin/applications',
+    element: <ProtectedRoute requireAdmin={true}><AdminApplications /></ProtectedRoute>,
+  },
+  {
+    path: '/admin/supplies',
+    element: <ProtectedRoute requireAdmin={true}><AdminSupplies /></ProtectedRoute>,
+  },
+  {
+    path: '/admin/documents',
+    element: <ProtectedRoute requireAdmin={true}><AdminDocuments /></ProtectedRoute>,
+  },
+  {
+    path: '/admin/team',
+    element: <ProtectedRoute requireAdmin={true}><AdminTeam /></ProtectedRoute>,
+  },
+  {
+    path: '/admin/success-stories',
+    element: <ProtectedRoute requireAdmin={true}><AdminSuccessStories /></ProtectedRoute>,
+  },
+  {
+    path: '/admin/business-licenses',
+    element: <ProtectedRoute requireAdmin={true}><AdminBusinessLicenses /></ProtectedRoute>,
+  },
+  {
+    path: '/admin/direct-messages',
+    element: <ProtectedRoute requireAdmin={true}><AdminDirectMessages /></ProtectedRoute>,
+  },
+  {
+    path: '/admin/orders',
+    element: <ProtectedRoute requireAdmin={true}><AdminOrders /></ProtectedRoute>,
+  },
+  {
+    path: '/admin/help',
+    element: <ProtectedRoute requireAdmin={true}><AdminDashboard /></ProtectedRoute>,
+  },
+  {
+    path: '*',
+    element: <NotFound />,
   }
 ];
