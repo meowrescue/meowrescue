@@ -2,7 +2,7 @@
 import React from 'react';
 import Layout from '@/components/Layout';
 import ContactForm from '@/components/ContactForm';
-import { Mail, Phone, MapPin, Clock } from 'lucide-react';
+import { Mail, Phone, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import SEO from '@/components/SEO';
 import SectionHeading from '@/components/ui/SectionHeading';
@@ -38,16 +38,6 @@ const Contact = () => {
                 <CardContent className="p-8">
                   <h3 className="text-xl font-semibold mb-6 text-gray-900">Contact Information</h3>
                   <div className="space-y-6">
-                    <div className="flex items-start gap-4">
-                      <div className="p-3 rounded-xl bg-meow-primary/10">
-                        <MapPin className="h-6 w-6 text-meow-primary" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">Visit Us</p>
-                        <p className="text-gray-600 mt-1">7726 US Highway 19<br />New Port Richey, FL 34652</p>
-                      </div>
-                    </div>
-                    
                     <div className="flex items-start gap-4">
                       <div className="p-3 rounded-xl bg-meow-primary/10">
                         <Phone className="h-6 w-6 text-meow-primary" />

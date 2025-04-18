@@ -50,15 +50,15 @@ const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* About Section */}
           <div>
-            <div className="flex items-center mb-4">
+            <Link to="/" className="inline-flex items-center mb-4" onClick={scrollToTop}>
               <div className="bg-white rounded-full p-2 mr-2">
                 <Cat className="h-6 w-6 text-meow-primary" />
               </div>
-              <h3 className="text-xl font-bold">
+              <span className="text-xl font-bold">
                 <span className="text-white">Meow</span>
                 <span className="text-meow-secondary">Rescue</span>
-              </h3>
-            </div>
+              </span>
+            </Link>
             <p className="mb-4 text-white/80">
               A home-based cat rescue in Pasco County, Florida, dedicated to rescuing, rehabilitating, and rehoming cats in need.
             </p>
