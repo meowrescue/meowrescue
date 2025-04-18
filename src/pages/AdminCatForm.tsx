@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -20,7 +19,6 @@ import CatMedicalRecords from '@/components/admin/CatMedicalRecords';
 import SectionHeading from '@/components/ui/SectionHeading';
 
 const AdminCatForm: React.FC = () => {
-  // ... keep existing code (state and hooks)
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -375,7 +373,7 @@ const AdminCatForm: React.FC = () => {
                     </div>
                   )}
                   
-                  {/* Existing photos preview with click to view full size */}
+                  {/* Existing photos preview with click to view in modal */}
                   {photoUrls.length > 0 && (
                     <div className="mt-4">
                       <div className="flex flex-wrap gap-3">

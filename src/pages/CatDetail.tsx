@@ -1,9 +1,14 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Heart, ArrowLeft, Calendar, MapPin, Users } from 'lucide-react';
+import { Heart, ArrowLeft, Calendar, MapPin, Users, FileCheck } from 'lucide-react';
+import { format } from 'date-fns';
 import Layout from '@/components/Layout';
 import SectionHeading from '@/components/ui/SectionHeading';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import SEO from '@/components/SEO';
@@ -22,12 +27,26 @@ interface CatDetails {
   intake_date: string;
 }
 
+interface MedicalRecord {
+  id: string;
+  cat_id: string;
+  procedure_type: string;
+  description: string;
+  veterinarian: string | null;
+  cost: number | null;
+  notes: string | null;
+  record_date: string;
+  created_at: string;
+}
+
 const CatDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [cat, setCat] = useState<CatDetails | null>(null);
+  const [medicalRecords, setMedicalRecords] = useState<MedicalRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchCatDetails = async () => {
@@ -70,6 +89,19 @@ const CatDetail: React.FC = () => {
           }
         } else {
           setCat(catData);
+          
+          // Fetch medical records
+          const { data: medicalData, error: medicalError } = await supabase
+            .from('cat_medical_records')
+            .select('*')
+            .eq('cat_id', id)
+            .order('record_date', { ascending: false });
+            
+          if (medicalError) {
+            console.error('Error fetching medical records:', medicalError);
+          } else {
+            setMedicalRecords(medicalData || []);
+          }
         }
       } catch (error) {
         console.error('Error:', error);
@@ -156,7 +188,8 @@ const CatDetail: React.FC = () => {
               <img 
                 src={cat.photos_urls[activeImageIndex] || '/placeholder.svg'} 
                 alt={cat.name} 
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover cursor-pointer"
+                onClick={() => setSelectedImage(cat.photos_urls[activeImageIndex])}
               />
             </div>
             
@@ -244,6 +277,41 @@ const CatDetail: React.FC = () => {
           </div>
         </div>
 
+        {/* Medical Records Section */}
+        {medicalRecords.length > 0 && (
+          <div className="mb-16">
+            <SectionHeading 
+              title="Medical History" 
+              subtitle={`${cat.name}'s medical records and procedures`}
+              centered
+            />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
+              {medicalRecords.map((record) => (
+                <Card key={record.id} className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                  <CardContent className="pt-6">
+                    <div className="flex items-start gap-3">
+                      <div className="bg-meow-primary/10 p-2 rounded-full">
+                        <FileCheck className="h-5 w-5 text-meow-primary" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-meow-primary">{record.procedure_type}</h4>
+                        <p className="text-sm text-gray-600">{record.description}</p>
+                        {record.veterinarian && (
+                          <p className="text-sm text-gray-600">Vet: {record.veterinarian}</p>
+                        )}
+                        <p className="text-xs text-gray-500 mt-2">
+                          {format(new Date(record.record_date), 'MMM d, yyyy')}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
         <SectionHeading 
           title="Adoption Process" 
           subtitle="Here's how you can make this sweet kitty part of your family"
@@ -290,6 +358,28 @@ const CatDetail: React.FC = () => {
             <Link to="/adopt">Start Adoption Process</Link>
           </Button>
         </div>
+
+        {/* Image view modal */}
+        <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
+          <DialogContent className="max-w-4xl w-[90vw] p-0 overflow-hidden bg-transparent border-0">
+            <div className="relative bg-black/80 p-1 rounded-lg">
+              <img 
+                src={selectedImage || ''} 
+                alt="Full size" 
+                className="w-full h-auto max-h-[90vh] object-contain rounded-lg"
+                onClick={() => setSelectedImage(null)}
+              />
+              <Button 
+                className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full bg-black/50 hover:bg-black/70 text-white"
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedImage(null)}
+              >
+                &times;
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Schema.org PetAnimal markup */}
         <script type="application/ld+json" dangerouslySetInnerHTML={{

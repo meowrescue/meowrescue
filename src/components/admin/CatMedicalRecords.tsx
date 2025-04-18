@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Trash2, File, FileText, Download, FileSymlink, FileCheck } from 'lucide-react';
@@ -214,7 +215,7 @@ const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId, editMode =
       <SectionHeading 
         title="Medical Records" 
         centered={false} 
-        className="flex items-center pt-2 text-3xl"
+        className="flex items-center pt-2 text-3xl font-bold text-meow-primary"
       />
       
       {/* Display existing medical records */}
@@ -229,10 +230,6 @@ const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId, editMode =
           </div>
         ) : medicalRecords && medicalRecords.length > 0 ? (
           <>
-            <h3 className="text-xl font-semibold text-meow-primary mb-4 flex items-center">
-              <FileCheck className="mr-2 h-5 w-5" />
-              Existing Medical Records
-            </h3>
             {medicalRecords.map((record) => (
               <Card key={record.id} className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                 <CardContent className="pt-6">

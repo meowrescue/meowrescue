@@ -21,7 +21,7 @@ interface Cat {
   description: string | null;
   photos_urls: string[] | null;
   status: string;
-  internal_status?: string;
+  internal_status: string | null;
   intake_date: string;
 }
 
@@ -110,7 +110,9 @@ const AdminCats: React.FC = () => {
   };
 
   // Get internal status badge color
-  const getInternalStatusBadgeClass = (status: string) => {
+  const getInternalStatusBadgeClass = (status: string | null) => {
+    if (!status) return "bg-gray-100 text-gray-800";
+    
     switch(status) {
       case 'Alive':
         return "bg-green-100 text-green-800";
