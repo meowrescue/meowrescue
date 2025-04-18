@@ -11,7 +11,7 @@ import { Toaster as Sonner } from '@/components/ui/sonner';
 import App from './App';
 import './index.css';
 
-// Create a client with settings
+// Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -23,26 +23,7 @@ const queryClient = new QueryClient({
   },
 });
 
-// Root component with all providers
-const AppWithProviders = () => (
-  <React.StrictMode>
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <HelmetProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <AuthProvider>
-              <App />
-            </AuthProvider>
-          </TooltipProvider>
-        </HelmetProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
-  </React.StrictMode>
-);
-
-// For client side rendering
+// Mount the app to the DOM
 const mountApp = () => {
   const rootElement = document.getElementById('root');
   if (!rootElement) {
@@ -50,12 +31,27 @@ const mountApp = () => {
     return;
   }
   
-  // Create a new root - don't use hydration
-  ReactDOM.createRoot(rootElement).render(<AppWithProviders />);
+  // Create root and render - explicit client-side rendering
+  const root = ReactDOM.createRoot(rootElement);
+  
+  root.render(
+    <React.StrictMode>
+      <BrowserRouter>
+        <QueryClientProvider client={queryClient}>
+          <HelmetProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <AuthProvider>
+                <App />
+              </AuthProvider>
+            </TooltipProvider>
+          </HelmetProvider>
+        </QueryClientProvider>
+      </BrowserRouter>
+    </React.StrictMode>
+  );
 };
 
 // Initialize the app
 mountApp();
-
-// Export for static site generation
-export default AppWithProviders;

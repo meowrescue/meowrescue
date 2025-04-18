@@ -2,19 +2,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
-import { glob } from 'glob';
-
-// Get all routes for pre-rendering
-const pages = glob.sync('src/pages/**/*.tsx')
-  .filter(page => !page.includes('Admin') && !page.includes('_default'))
-  .map(page => {
-    // Convert file paths to route paths
-    const route = page
-      .replace('src/pages/', '/')
-      .replace('.tsx', '')
-      .replace('/index', '/');
-    return route;
-  });
 
 export default defineConfig(({ mode }) => ({
   server: {

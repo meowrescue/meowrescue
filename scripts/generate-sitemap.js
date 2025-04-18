@@ -34,7 +34,7 @@ function generateSitemap() {
 ${urlset}
 </urlset>`;
     
-    // Write sitemap to public directory
+    // Write sitemap to the dist directory
     const sitemapPath = path.resolve(__dirname, '../dist/sitemap.xml');
     fs.writeFileSync(sitemapPath, sitemap);
     console.log('Generated sitemap at:', sitemapPath);
