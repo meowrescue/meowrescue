@@ -97,6 +97,12 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     onImageUploaded('');
   };
 
+  const handleBrowseClick = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent form submission
+    e.stopPropagation(); // Stop event propagation
+    document.getElementById('file-upload')?.click();
+  };
+
   return (
     <div className="flex flex-col items-center space-y-4">
       {previewUrl ? (
@@ -121,9 +127,10 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
             Drag and drop your image here or click to browse
           </p>
           <Button
+            type="button" // Explicitly set as button type to prevent form submission
             variant="outline"
             disabled={isUploading}
-            onClick={() => document.getElementById('file-upload')?.click()}
+            onClick={handleBrowseClick}
           >
             {isUploading ? (
               <>
