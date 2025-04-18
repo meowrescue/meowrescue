@@ -1,6 +1,8 @@
+
 import React from 'react';
 import { supabase } from './integrations/supabase/client';
 import ProtectedRoute from "./components/ProtectedRoute";
+import Layout from "./components/Layout";
 
 // Lazy load components for code splitting
 const Index = React.lazy(() => import('./pages/Index'));
@@ -90,115 +92,115 @@ async function getBlogSlugs() {
 export const routes = [
   {
     path: '/',
-    element: <Index />,
+    element: <Layout><Index /></Layout>,
   },
   {
     path: '/about',
-    element: <About />,
+    element: <Layout><About /></Layout>,
   },
   {
     path: '/cats',
-    element: <Cats />,
+    element: <Layout><Cats /></Layout>,
   },
   {
     path: '/cats/:id',
-    element: <CatDetail />,
+    element: <Layout><CatDetail /></Layout>,
   },
   {
     path: '/adopt',
-    element: <Adopt />,
+    element: <Layout><Adopt /></Layout>,
   },
   {
     path: '/adopt/apply',
-    element: <AdoptionForm />,
+    element: <Layout><AdoptionForm /></Layout>,
   },
   {
     path: '/foster',
-    element: <Foster />,
+    element: <Layout><Foster /></Layout>,
   },
   {
     path: '/foster/apply',
-    element: <FosterForm />,
+    element: <Layout><FosterForm /></Layout>,
   },
   {
     path: '/success-stories',
-    element: <SuccessStories />,
+    element: <Layout><SuccessStories /></Layout>,
   },
   {
     path: '/blog',
-    element: <Blog />,
+    element: <Layout><Blog /></Layout>,
   },
   {
     path: '/blog/:slug',
-    element: <BlogPost />,
+    element: <Layout><BlogPost /></Layout>,
   },
   {
     path: '/events',
-    element: <Events />,
+    element: <Layout><Events /></Layout>,
   },
   {
     path: '/events/:id',
-    element: <EventDetail />,
+    element: <Layout><EventDetail /></Layout>,
   },
   {
     path: '/resources',
-    element: <Resources />,
+    element: <Layout><Resources /></Layout>,
   },
   {
     path: '/contact',
-    element: <Contact />,
+    element: <Layout><Contact /></Layout>,
   },
   {
     path: '/donate',
-    element: <Donate />,
+    element: <Layout><Donate /></Layout>,
   },
   {
     path: '/volunteer',
-    element: <Volunteer />,
+    element: <Layout><Volunteer /></Layout>,
   },
   {
     path: '/volunteer/apply',
-    element: <VolunteerForm />,
+    element: <Layout><VolunteerForm /></Layout>,
   },
   {
     path: '/login',
-    element: <Login />,
+    element: <Layout hideFooter={true}><Login /></Layout>,
   },
   {
     path: '/register',
-    element: <Register />,
+    element: <Layout hideFooter={true}><Register /></Layout>,
   },
   {
     path: '/reset-password',
-    element: <ResetPassword />,
+    element: <Layout hideFooter={true}><ResetPassword /></Layout>,
   },
   {
     path: '/privacy-policy',
-    element: <PrivacyPolicy />,
+    element: <Layout><PrivacyPolicy /></Layout>,
   },
   {
     path: '/terms-of-service',
-    element: <TermsOfService />,
+    element: <Layout><TermsOfService /></Layout>,
   },
   {
     path: '/lost-found',
-    element: <LostFound />,
+    element: <Layout><LostFound /></Layout>,
   },
   {
     path: '/lost-found/:id',
-    element: <LostFoundDetail />,
+    element: <Layout><LostFoundDetail /></Layout>,
   },
   {
     path: '/profile',
-    element: <ProtectedRoute><Profile /></ProtectedRoute>,
+    element: <ProtectedRoute><Layout><Profile /></Layout></ProtectedRoute>,
   },
   {
     path: '/lost-found/new',
-    element: <ProtectedRoute><LostFoundForm /></ProtectedRoute>,
+    element: <ProtectedRoute><Layout><LostFoundForm /></Layout></ProtectedRoute>,
   },
   {
     path: '/lost-found/edit/:id',
-    element: <ProtectedRoute><LostFoundForm /></ProtectedRoute>,
+    element: <ProtectedRoute><Layout><LostFoundForm /></Layout></ProtectedRoute>,
   },
   {
     path: '/admin',
@@ -310,6 +312,6 @@ export const routes = [
   },
   {
     path: '*',
-    element: <NotFound />,
+    element: <Layout><NotFound /></Layout>,
   }
 ];

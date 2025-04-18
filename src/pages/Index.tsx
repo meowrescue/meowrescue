@@ -1,6 +1,5 @@
 
 import React from 'react';
-import Layout from '../components/Layout';
 import HeroSection from '../components/HeroSection';
 import StatsSection from '../components/StatsSection';
 import MissionSection from '../components/MissionSection';
@@ -10,7 +9,7 @@ import TestimonialsSection from '../components/TestimonialsSection';
 
 const Index: React.FC = () => {
   return (
-    <Layout>
+    <>
       <HeroSection 
         title="Saving Local Lives, One Paw at a Time"
         subtitle="We're a home-based cat rescue in Pasco County, Florida, dedicated to rescuing, rehabilitating, and rehoming cats in need."
@@ -26,7 +25,7 @@ const Index: React.FC = () => {
       <UrgentNeedsSection />
       <FeaturedCatsSection />
       <TestimonialsSection />
-    </Layout>
+    </>
   );
 };
 

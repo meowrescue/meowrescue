@@ -2,8 +2,6 @@
 import React, { Suspense } from 'react';
 import { useRoutes } from "react-router-dom";
 import { routes } from "./routes";
-import Layout from "./components/Layout";
-import ProtectedRoute from "./components/ProtectedRoute";
 
 // Loading component for suspense fallback
 const Loading = () => (
@@ -13,14 +11,8 @@ const Loading = () => (
 );
 
 const App = () => {
-  const routing = useRoutes(routes.map(route => ({
-    ...route,
-    element: route.element ? (
-      <Layout>
-        {route.element}
-      </Layout>
-    ) : null
-  })));
+  // Use routes directly without wrapping each one in Layout
+  const routing = useRoutes(routes);
 
   return (
     <Suspense fallback={<Loading />}>
