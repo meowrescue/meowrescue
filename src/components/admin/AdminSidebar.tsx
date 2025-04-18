@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,7 +12,7 @@ import {
 
 const AdminSidebar = () => {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const location = useLocation();
   const [menuExpanded, setMenuExpanded] = useState<Record<string, boolean>>({
     content: true,
