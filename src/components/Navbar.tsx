@@ -5,6 +5,7 @@ import {
   X, 
   ChevronDown, 
   Heart, 
+  Search, 
   UserCircle,
   LogIn,
   Cat
@@ -124,7 +125,7 @@ const Navbar: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 shrink-0" onClick={handleLogoClick}>
+          <Link to="/" className="flex items-center gap-2" onClick={handleLogoClick}>
             <div className="bg-meow-primary rounded-full p-2">
               <Cat className="h-6 w-6 text-white" />
             </div>
@@ -135,10 +136,10 @@ const Navbar: React.FC = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center h-full"> {/* Added items-center and h-full for vertical alignment */}
-            <ul className="flex items-center space-x-8">
+          <nav className="hidden lg:block">
+            <ul className="flex space-x-6">
               {navItems.map((item) => (
-                <li key={item.name} className="relative flex items-center h-16"> {/* Added flex, items-center and h-16 for vertical alignment */}
+                <li key={item.name} className="relative">
                   {item.dropdown ? (
                     <div>
                       <button
@@ -187,7 +188,7 @@ const Navbar: React.FC = () => {
           </nav>
 
           {/* Right Side Links */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2">
             <Link to="/donate">
               <Button variant="meow" size="sm" className="hidden sm:flex">
                 <Heart className="mr-1 h-4 w-4" /> Donate
