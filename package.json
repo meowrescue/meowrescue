@@ -40,6 +40,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "cmdk": "^0.2.1",
+    "cross-env": "^7.0.3",
     "date-fns": "^3.3.1",
     "embla-carousel-react": "^8.0.0",
     "input-otp": "^1.4.2",
@@ -59,6 +60,7 @@
     "vite-imagetools": "^6.2.9",
     "vite-plugin-pwa": "^0.19.2",
     "vite-react-ssg": "^0.8.5",
+    "vite-ssg": "^0.8.5",
     "zod": "^3.22.4"
   },
   "devDependencies": {

@@ -22,6 +22,8 @@ export default defineConfig(({ mode }) => ({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    target: 'esnext',
+    ssrManifest: true,
     rollupOptions: {
       output: {
         manualChunks: {
@@ -49,6 +51,13 @@ export default defineConfig(({ mode }) => ({
           'data-fetching': ['@supabase/supabase-js', '@tanstack/react-query']
         }
       }
+    }
+  },
+  ssgOptions: {
+    script: 'async',
+    formatting: 'minify',
+    crittersOptions: {
+      preload: 'js'
     }
   }
 }));
