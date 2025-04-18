@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Users, FileText, Calendar, PawPrint, 
   DollarSign, Settings, Shield, MessageSquare, Search,
   Package, CircleHelp, Send, BookOpen, Bell, ChevronDown,
-  FileImage, Folder, Award, CreditCard, Receipt
+  FileImage, Folder, Award, CreditCard, Receipt, Mail
 } from 'lucide-react';
 
 const AdminSidebar = () => {
@@ -104,7 +104,7 @@ const AdminSidebar = () => {
         },
         { 
           to: '/admin/messages', 
-          icon: <MessageSquare className="w-5 h-5" />, 
+          icon: <Mail className="w-5 h-5" />, 
           label: 'Contact Form'
         },
         { 
