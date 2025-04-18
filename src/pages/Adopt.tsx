@@ -1,9 +1,7 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import CustomNavbar from '@/components/CustomNavbar';
-import Footer from '@/components/Footer';
 import SEO from '@/components/SEO';
 import { Cat, ArrowRight, Heart, Home, Calendar, ClipboardCheck } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -255,7 +253,7 @@ const Adopt = () => {
         </div>
       </div>
       
-      <Footer />
+      {/* Footer removed to prevent duplication since it's already included in Layout */}
     </>
   );
 };
