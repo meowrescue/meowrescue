@@ -13,7 +13,8 @@ interface SEOProps {
   modifiedTime?: string;
   canonicalUrl?: string;
   children?: React.ReactNode;
-  structuredData?: Record<string, any>;
+  structuredData?: Record<string, any> | Record<string, any>[];
+  noindex?: boolean;
 }
 
 const SEO: React.FC<SEOProps> = ({
@@ -27,11 +28,19 @@ const SEO: React.FC<SEOProps> = ({
   modifiedTime,
   canonicalUrl,
   structuredData,
+  noindex = false,
   children
 }) => {
   const siteUrl = 'https://meowrescue.org';
   const defaultImage = `${siteUrl}/images/meow-rescue-logo.jpg`;
   const fullCanonicalUrl = canonicalUrl ? (canonicalUrl.startsWith('http') ? canonicalUrl : `${siteUrl}${canonicalUrl}`) : url;
+  
+  // Convert single structuredData to array if it's not already
+  const structuredDataArray = structuredData 
+    ? Array.isArray(structuredData) 
+      ? structuredData 
+      : [structuredData] 
+    : [];
   
   return (
     <Helmet>
@@ -39,6 +48,9 @@ const SEO: React.FC<SEOProps> = ({
       <title>{title}</title>
       {description && <meta name="description" content={description} />}
       {keywords && <meta name="keywords" content={keywords} />}
+      
+      {/* Prevent indexing if specified */}
+      {noindex && <meta name="robots" content="noindex,nofollow" />}
       
       {/* Canonical URL */}
       {fullCanonicalUrl && <link rel="canonical" href={fullCanonicalUrl} />}
@@ -69,11 +81,16 @@ const SEO: React.FC<SEOProps> = ({
       {modifiedTime && <meta name="last-modified" content={modifiedTime} />}
       
       {/* Structured Data JSON-LD */}
-      {structuredData && (
-        <script type="application/ld+json">
-          {JSON.stringify(structuredData)}
+      {structuredDataArray.map((data, index) => (
+        <script key={index} type="application/ld+json">
+          {JSON.stringify(data)}
         </script>
-      )}
+      ))}
+      
+      {/* Preconnect to important domains */}
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      <link rel="preconnect" href="https://images.unsplash.com" />
       
       {children}
     </Helmet>

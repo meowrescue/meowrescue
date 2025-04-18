@@ -1,59 +1,67 @@
 
 import React from 'react';
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 interface HeroSectionProps {
   title: string;
   subtitle: string;
   imageSrc: string;
+  imageAlt?: string;
   ctaText: string;
   ctaLink: string;
   secondaryCtaText?: string;
   secondaryCtaLink?: string;
 }
 
-const HeroSection: React.FC<HeroSectionProps> = ({ 
-  title, 
-  subtitle, 
-  imageSrc, 
-  ctaText, 
+const HeroSection: React.FC<HeroSectionProps> = ({
+  title,
+  subtitle,
+  imageSrc,
+  imageAlt = "Hero image",
+  ctaText,
   ctaLink,
   secondaryCtaText,
-  secondaryCtaLink 
+  secondaryCtaLink
 }) => {
   return (
-    <section className="relative h-[80vh] min-h-[500px] max-h-[800px] overflow-hidden">
-      {/* Background Image with Overlay */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${imageSrc})` }}
-      >
-        <div className="absolute inset-0 bg-black opacity-40"></div>
+    <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
+      {/* Hero background image */}
+      <div className="absolute inset-0 z-0">
+        <img 
+          src={imageSrc} 
+          alt={imageAlt}
+          className="w-full h-full object-cover"
+          loading="eager" // Load immediately as it's above the fold
+          fetchPriority="high"
+          width="1920"
+          height="1080"
+        />
+        <div className="absolute inset-0 bg-black/60"></div>
       </div>
       
-      {/* Content */}
-      <div className="container relative h-full mx-auto px-4 flex items-center justify-center">
-        <div className="max-w-3xl text-white animate-fade-in text-center">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight">{title}</h1>
-          <p className="text-xl md:text-2xl mb-8">{subtitle}</p>
-          <div className="flex flex-wrap gap-4 justify-center">
-            <Button 
-              className="bg-meow-secondary hover:bg-meow-secondary/80 text-white px-8 py-3 text-lg transition-colors"
-              asChild
-            >
-              <a href={ctaLink}>{ctaText}</a>
+      {/* Hero content */}
+      <div className="container mx-auto px-4 relative z-10 text-center max-w-4xl">
+        <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+          {title}
+        </h2>
+        <p className="text-xl md:text-2xl text-white/90 mb-10 max-w-3xl mx-auto">
+          {subtitle}
+        </p>
+        <div className="flex flex-col sm:flex-row justify-center gap-4">
+          <Button asChild size="lg" className="rounded-full px-8 py-6 text-lg font-semibold">
+            <Link to={ctaLink}>
+              {ctaText}
+            </Link>
+          </Button>
+          
+          {secondaryCtaText && secondaryCtaLink && (
+            <Button asChild variant="outline" size="lg" className="rounded-full px-8 py-6 text-lg font-semibold border-2 bg-transparent text-white hover:bg-white/10 hover:text-white">
+              <Link to={secondaryCtaLink}>
+                {secondaryCtaText}
+              </Link>
             </Button>
-            
-            {secondaryCtaText && secondaryCtaLink && (
-              <Button 
-                variant="outline" 
-                className="bg-transparent border-2 border-white hover:bg-white/10 text-white px-8 py-3 text-lg"
-                asChild
-              >
-                <a href={secondaryCtaLink}>{secondaryCtaText}</a>
-              </Button>
-            )}
-          </div>
+          )}
         </div>
       </div>
     </section>

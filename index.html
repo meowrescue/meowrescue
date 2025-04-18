@@ -7,23 +7,40 @@
     <title>Meow Rescue - Saving local lives, one paw at a time</title>
     <meta name="description" content="Meow Rescue is a home-based cat rescue in New Port Richey, Florida, dedicated to saving and rehoming cats in need. Adopt, donate, foster, or volunteer today." />
     <meta name="author" content="Meow Rescue" />
+    <meta name="keywords" content="cat rescue, cat adoption, feline rescue, kitten adoption, Florida cat rescue, Pasco County animal rescue, pet adoption" />
 
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://meowrescue.org/" />
     <meta property="og:title" content="Meow Rescue - Cat Adoption & Rescue" />
     <meta property="og:description" content="Saving local lives, one paw at a time. Adopt, donate, foster, or volunteer with our New Port Richey cat rescue." />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta property="og:image" content="https://meowrescue.org/images/meow-rescue-opengraph.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
 
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@meowrescue" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta name="twitter:title" content="Meow Rescue - Cat Adoption & Rescue" />
+    <meta name="twitter:description" content="Saving local lives, one paw at a time. Adopt, donate, foster, or volunteer with our New Port Richey cat rescue." />
+    <meta name="twitter:image" content="https://meowrescue.org/images/meow-rescue-opengraph.jpg" />
     
-    <!-- Updated favicon to match the site logo -->
+    <!-- Favicon -->
     <link rel="icon" href="/src/assets/logo.png" type="image/png">
+    <link rel="apple-touch-icon" href="/src/assets/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
+    
+    <!-- Preload critical assets -->
+    <link rel="preload" href="/src/assets/logo.png" as="image" type="image/png">
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Additional SEO tags -->
+    <link rel="canonical" href="https://meowrescue.org/" />
+    <meta name="theme-color" content="#4A6FA5">
   </head>
 
   <body>
@@ -38,6 +55,27 @@
       <select name="subject"></select>
       <textarea name="message"></textarea>
     </form>
+    
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Meow Rescue",
+        "url": "https://meowrescue.org",
+        "logo": "https://meowrescue.org/images/meow-rescue-logo.jpg",
+        "sameAs": [
+          "https://facebook.com/meowrescue",
+          "https://instagram.com/meowrescue"
+        ],
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "New Port Richey",
+          "addressRegion": "FL",
+          "postalCode": "34653",
+          "addressCountry": "US"
+        }
+      }
+    </script>
     
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>

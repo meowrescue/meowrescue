@@ -1,7 +1,9 @@
 
-# Allow all crawlers for most content
+# Allow all crawlers
 User-agent: *
 Allow: /
+
+# Indicate important sections for faster crawling
 Allow: /about
 Allow: /cats
 Allow: /adopt
