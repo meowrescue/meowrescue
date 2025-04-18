@@ -1,7 +1,7 @@
 
 [build]
   publish = "dist"
-  command = "npm run build"
+  command = "node scripts/update-package-type.js && npm run build"
 
 [build.environment]
   NODE_VERSION = "18.18.0"
