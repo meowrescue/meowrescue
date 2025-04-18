@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,15 +18,17 @@ const AdminApplications = () => {
   const [selectedTab, setSelectedTab] = useState<string>('all');
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
   
-  // Fetch applications
-  const { data: applications, isLoading } = useQuery({
+  // Fetch applications with proper error handling
+  const { data: applications, isLoading, error } = useQuery({
     queryKey: ['admin-applications'],
     queryFn: async () => {
+      console.log("Fetching applications data...");
+      
       const { data, error } = await supabase
         .from('applications')
         .select(`
           *,
-          profiles:applicant_id (
+          profiles:user_id (
             email,
             first_name,
             last_name
@@ -33,15 +36,21 @@ const AdminApplications = () => {
         `)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching applications:", error);
+        throw error;
+      }
+      
+      console.log("Applications data received:", data);
       
       // Make sure the response conforms to our Application type
-      return data.map(app => ({
-        ...app,
-        user_id: app.applicant_id || '' // Ensure user_id is present
-      })) as Application[];
+      return data as Application[];
     }
   });
+
+  if (error) {
+    console.error("Error in applications query:", error);
+  }
 
   // Filter applications based on selected tab
   const filteredApplications = applications?.filter(app => {
@@ -152,6 +161,14 @@ const AdminApplications = () => {
               <div className="flex justify-center py-10">
                 <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-meow-primary"></div>
               </div>
+            ) : error ? (
+              <Card>
+                <CardContent className="py-10 text-center">
+                  <FileText className="h-12 w-12 text-red-300 mx-auto mb-3" />
+                  <p className="text-red-500">Error loading applications. Please try again.</p>
+                  <p className="text-gray-500 text-sm mt-2">{error.message}</p>
+                </CardContent>
+              </Card>
             ) : filteredApplications && filteredApplications.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredApplications.map((application) => (
@@ -185,14 +202,14 @@ const AdminApplications = () => {
                         <div className="flex items-center text-sm">
                           <User className="h-4 w-4 mr-2 text-gray-500" />
                           <span>
-                            {application.profiles?.first_name} {application.profiles?.last_name}
+                            {application.form_data?.firstName || application.profiles?.first_name} {application.form_data?.lastName || application.profiles?.last_name}
                           </span>
                         </div>
                         <div className="flex items-center text-sm">
                           <Mail className="h-4 w-4 mr-2 text-gray-500" />
-                          <span>{application.profiles?.email}</span>
+                          <span>{application.form_data?.email || application.profiles?.email}</span>
                         </div>
-                        {application.form_data?.phone && (
+                        {(application.form_data?.phone) && (
                           <div className="flex items-center text-sm">
                             <Phone className="h-4 w-4 mr-2 text-gray-500" />
                             <span>{application.form_data.phone}</span>
@@ -224,6 +241,7 @@ const AdminApplications = () => {
                 <CardContent className="py-10 text-center">
                   <FileText className="h-12 w-12 text-gray-300 mx-auto mb-3" />
                   <p className="text-gray-500">No applications found in this category.</p>
+                  <p className="text-gray-400 text-sm mt-2">Try selecting a different category or check if applications have been submitted.</p>
                 </CardContent>
               </Card>
             )}
