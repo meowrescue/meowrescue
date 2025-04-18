@@ -30,7 +30,7 @@ const Login: React.FC = () => {
   const location = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const { user, session, signIn, loading: authLoading } = useAuth();
+  const { user, session, signIn, isLoading: authLoading } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -65,7 +65,7 @@ const Login: React.FC = () => {
       console.log("Sign in result:", result);
       
       if (result.error) {
-        throw new Error(result.error);
+        throw result.error;
       }
       
       toast({

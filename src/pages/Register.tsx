@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -29,7 +28,7 @@ const Register: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const { signUp, user, loading: authLoading } = useAuth();
+  const { signUp, user, isLoading: authLoading } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -45,6 +44,7 @@ const Register: React.FC = () => {
     }
   }, [user, navigate, isLoading, authLoading]);
 
+  // Fix the signUp call that has too many arguments
   const handleSignUp = async (values: z.infer<typeof formSchema>) => {
     if (isLoading) return;
     
