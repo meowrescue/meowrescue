@@ -1,15 +1,17 @@
+
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@supabase/supabase-js';
 import { Session, User } from '@supabase/supabase-js';
 import { logAuth } from '@/utils/logActivity';
-
-const supabase = createClientComponentClient();
+import { supabase } from '@/integrations/supabase/client';
+import { User as ExtendedUser } from '@/types/users';
 
 interface AuthContextType {
   session: Session | null;
-  user: User | null;
+  user: ExtendedUser | null;
   loading: boolean;
   error: string | null;
+  isLoading: boolean; // Added for compatibility
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signUp: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
@@ -20,7 +22,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<ExtendedUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,16 +31,64 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
-      setUser(session?.user || null);
+      
+      // If there's a session, fetch the extended user profile
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+        
+        // Merge auth user with profile data
+        if (profile) {
+          setUser({
+            ...session.user,
+            ...profile
+          } as ExtendedUser);
+        } else {
+          // Fall back to basic user if no profile
+          setUser(session.user as unknown as ExtendedUser);
+        }
+      } else {
+        setUser(null);
+      }
+      
       setLoading(false);
     };
 
     getSession();
 
-    supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session);
-      setUser(session?.user || null);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      setSession(newSession);
+      
+      // If there's a session, fetch the extended user profile
+      if (newSession?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', newSession.user.id)
+          .single();
+        
+        // Merge auth user with profile data
+        if (profile) {
+          setUser({
+            ...newSession.user,
+            ...profile
+          } as ExtendedUser);
+        } else {
+          // Fall back to basic user if no profile
+          setUser(newSession.user as unknown as ExtendedUser);
+        }
+      } else {
+        setUser(null);
+      }
     });
+
+    // Cleanup subscription on unmount
+    return () => {
+      subscription?.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
@@ -141,6 +191,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     loading,
     error,
+    isLoading: loading, // Alias for compatibility
     signIn,
     signUp,
     signOut,

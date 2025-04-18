@@ -1,212 +1,142 @@
-
-import React, { useState } from 'react';
-import { z } from 'zod';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import Layout from '@/components/Layout';
-import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import * as z from 'zod';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import Layout from '@/components/Layout';
+import SEO from '@/components/SEO';
+import { Cat } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
-// Form schema
-const registerSchema = z.object({
-  firstName: z.string().min(1, { message: 'First name is required' }),
-  lastName: z.string().min(1, { message: 'Last name is required' }),
-  email: z.string()
-    .email({ message: 'Please enter a valid email address' })
-    .refine(email => !email.toLowerCase().endsWith('@meowrescue.org'), {
-      message: 'You cannot register with a @meowrescue.org email address'
-    }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
-  confirmPassword: z.string().min(6, { message: 'Confirm password is required' }),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
+const formSchema = z.object({
+  email: z.string().email({
+    message: "Please enter a valid email address.",
+  }),
+  password: z.string().min(8, {
+    message: "Password must be at least 8 characters.",
+  }),
 });
 
-type RegisterFormValues = z.infer<typeof registerSchema>;
-
 const Register: React.FC = () => {
-  const { signUp, isLoading: authLoading } = useAuth();
-  const [registerLoading, setRegisterLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const { signUp, user, isLoading: authLoading } = useAuth();
 
-  const form = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerSchema),
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
-      firstName: '',
-      lastName: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
+      email: "",
+      password: "",
     },
   });
 
-  const onSubmit = async (values: RegisterFormValues) => {
-    console.log("Registration attempt with email:", values.email);
-    
-    if (registerLoading || authLoading) {
-      console.log("Already processing registration, skipping");
-      return;
+  useEffect(() => {
+    if (user && !isLoading && !authLoading) {
+      navigate('/profile');
     }
+  }, [user, navigate, isLoading, authLoading]);
+
+  // Fix the signUp call that has too many arguments
+  const handleSignUp = async (values: z.infer<typeof formSchema>) => {
+    if (isLoading) return;
     
-    setRegisterLoading(true);
+    setIsLoading(true);
     
     try {
-      // Pass first and last name as user metadata
-      const result = await signUp(values.email, values.password, {
-        first_name: values.firstName,
-        last_name: values.lastName
-      });
-      
-      console.log("Registration result:", result);
+      const result = await signUp(values.email, values.password);
       
       if (result.error) {
-        throw result.error;
+        throw new Error(result.error);
       }
       
       toast({
         title: "Registration Successful",
-        description: "Your account has been created. You can now sign in.",
+        description: "Please verify your email to log in.",
       });
       
-      // Redirect to login page after successful registration
+      // Redirect to login page
       navigate('/login');
-    } catch (error: any) {
-      console.error("Registration error:", error);
       
+    } catch (error: any) {
       toast({
         title: "Registration Failed",
         description: error.message || "There was a problem with your registration.",
         variant: "destructive",
       });
     } finally {
-      setRegisterLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
     <Layout>
-      <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
-          <div>
-            <h1 className="text-center text-3xl font-extrabold text-meow-primary">
-              Create a new account
-            </h1>
-            <p className="mt-2 text-center text-sm text-gray-600">
-              Or{' '}
-              <Link to="/login" className="font-medium text-meow-secondary hover:text-meow-secondary/80">
-                sign in to your existing account
-              </Link>
-            </p>
-          </div>
-
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="firstName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>First Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="John" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="lastName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Last Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Doe" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+      <SEO title="Register | Meow Rescue" />
+      <div className="flex items-center justify-center h-screen bg-gray-100">
+        <Card className="w-full max-w-md p-4">
+          <CardHeader className="space-y-4">
+            <div className="flex flex-col items-center">
+              <div className="bg-meow-primary rounded-full p-2 mb-2">
+                <Cat className="h-6 w-6 text-white" />
               </div>
-
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email Address</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="email" 
-                        placeholder="your.email@example.com" 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="password" 
-                        placeholder="Create a secure password" 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirm Password</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="password" 
-                        placeholder="Confirm your password" 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <Button 
-                type="submit" 
-                className="w-full" 
-                disabled={registerLoading || authLoading}
-              >
-                {registerLoading || authLoading ? 'Registering...' : 'Register'}
-              </Button>
-            </form>
-          </Form>
-        </div>
+              <span className="font-bold text-xl">
+                <span className="text-meow-primary">Meow</span>
+                <span className="text-meow-secondary">Rescue</span>
+              </span>
+            </div>
+            <CardTitle className="text-2xl font-bold text-center">Create an account</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(handleSignUp)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <Label>Email</Label>
+                      <FormControl>
+                        <Input placeholder="email@example.com" {...field} type="email" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <Label>Password</Label>
+                      <FormControl>
+                        <Input placeholder="Password" {...field} type="password" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button disabled={isLoading || authLoading} className="w-full" type="submit">
+                  {isLoading || authLoading ? "Signing up..." : "Sign Up"}
+                </Button>
+              </form>
+            </Form>
+          </CardContent>
+          <CardFooter className="flex justify-center">
+            <div className="text-center text-sm text-gray-500">
+              Already have an account?{" "}
+              <Link to="/login" className="text-meow-primary hover:underline">
+                Log in
+              </Link>
+            </div>
+          </CardFooter>
+        </Card>
       </div>
     </Layout>
   );
