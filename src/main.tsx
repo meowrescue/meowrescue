@@ -1,3 +1,4 @@
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
@@ -15,7 +16,7 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       // Make SSR-friendly with initial data from staleTime
       staleTime: 60 * 1000, // 1 minute
-      cacheTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 5 * 60 * 1000, // 5 minutes (previously cacheTime)
     },
   },
 });
