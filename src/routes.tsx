@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { supabase } from './integrations/supabase/client';
 import ProtectedRoute from "./components/ProtectedRoute";
+import Layout from './components/Layout';
 
 // Lazy load components for code splitting
-const Layout = React.lazy(() => import('./components/Layout'));
 const Index = React.lazy(() => import('./pages/Index'));
 const About = React.lazy(() => import('./pages/About'));
 const Cats = React.lazy(() => import('./pages/Cats'));
@@ -90,7 +91,7 @@ async function getBlogSlugs() {
 export const routes = [
   {
     path: '/',
-    element: <Layout />,
+    element: <Layout children={<></>} />, // Provide empty children to satisfy TypeScript
     children: [
       // Public Routes
       {
