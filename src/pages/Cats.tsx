@@ -26,6 +26,14 @@ const Cats: React.FC = () => {
   const [ageFilter, setAgeFilter] = useState<string>('all');
   const [genderFilter, setGenderFilter] = useState<string>('all');
   
+  // Function to scroll to top of page
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
+  
   // Fetch cats from Supabase
   const { data: cats = [], isLoading, isError, error, refetch } = useQuery({
     queryKey: ['adoptable-cats'],
@@ -158,6 +166,7 @@ const Cats: React.FC = () => {
                 to={`/cats/${cat.id}`} 
                 key={cat.id}
                 className="group"
+                onClick={scrollToTop}
               >
                 <div className="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg h-full flex flex-col">
                   <div className="h-64 overflow-hidden">
@@ -261,7 +270,7 @@ const Cats: React.FC = () => {
           </div>
           
           <div className="text-center mt-12">
-            <Button asChild size="lg">
+            <Button asChild size="lg" onClick={scrollToTop}>
               <Link to="/adopt">Start Adoption Process</Link>
             </Button>
           </div>

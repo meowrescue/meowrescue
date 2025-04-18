@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -32,6 +33,7 @@ interface Cat {
   flea_treatment_date: string | null;
   spay_neuter_date: string | null;
   microchip_number: string | null;
+  created_at: string; // Added this field to the interface
 }
 
 const CatDetail: React.FC = () => {
@@ -162,8 +164,7 @@ const CatDetail: React.FC = () => {
                 </p>
               </div>
 
-              <Button asChild size="lg">
-                {/* Ensure this link navigates to the top of the page */}
+              <Button asChild size="lg" onClick={() => window.scrollTo(0, 0)}>
                 <a href="/adopt">Start Adoption Process</a>
               </Button>
             </div>
