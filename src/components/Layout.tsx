@@ -15,7 +15,6 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children, hideFooter = false }) => {
   const location = useLocation();
   
-  // Scroll to top on route change
   useEffect(() => {
     scrollToTop();
   }, [location.pathname]);
@@ -24,7 +23,7 @@ const Layout: React.FC<LayoutProps> = ({ children, hideFooter = false }) => {
     <BusinessHoursProvider>
       <div className="flex flex-col min-h-screen">
         <Navbar />
-        <main className="flex-grow pt-16">{children}</main>
+        <main className="flex-grow mt-16">{children}</main>
         {!hideFooter && <Footer />}
         <ChatWidget />
       </div>

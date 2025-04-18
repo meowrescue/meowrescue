@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Trash2, File, FileText, Download, FileSymlink, FileCheck } from 'lucide-react';
@@ -14,9 +13,10 @@ import SectionHeading from '@/components/ui/SectionHeading';
 
 interface CatMedicalRecordsProps {
   catId: string;
+  editMode?: boolean;
 }
 
-const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId }) => {
+const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId, editMode = false }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [newRecord, setNewRecord] = React.useState({
@@ -254,14 +254,15 @@ const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId }) => {
         )}
       </div>
 
-      <Card className="border border-gray-200 shadow-sm">
-        <CardHeader className="bg-gradient-to-r from-meow-primary/10 to-transparent">
-          <CardTitle className="flex items-center text-meow-primary">
-            <FileSymlink className="mr-2 h-5 w-5" />
-            Add Medical Record
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+      {editMode && (
+        <Card className="border border-gray-200 shadow-sm">
+          <CardHeader className="bg-gradient-to-r from-meow-primary/10 to-transparent">
+            <CardTitle className="flex items-center text-meow-primary">
+              <FileSymlink className="mr-2 h-5 w-5" />
+              Add Medical Record
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <Select
               value={newRecord.procedure_type}
@@ -346,6 +347,7 @@ const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId }) => {
           </form>
         </CardContent>
       </Card>
+      )}
     </div>
   );
 };

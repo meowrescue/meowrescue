@@ -365,7 +365,6 @@ const AdminCatForm: React.FC = () => {
                     {/* Existing photos preview with click to view full size */}
                     {photoUrls.length > 0 && (
                       <div className="mt-4">
-                        <h4 className="text-sm font-medium mb-2">Uploaded Photos:</h4>
                         <div className="flex flex-wrap gap-3">
                           {photoUrls.map((url, index) => (
                             <div key={index} className="relative">
@@ -420,7 +419,7 @@ const AdminCatForm: React.FC = () => {
           
             {isEditing && id && (
               <div className="mt-8">
-                <CatMedicalRecords catId={id} />
+                <CatMedicalRecords catId={id} editMode={editMode} />
               </div>
             )}
           </CardContent>

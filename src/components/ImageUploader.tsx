@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Upload, Image as ImageIcon, X, FileUp, ZoomIn } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 interface ImageUploaderProps {
   onImageUploaded: (url: string) => void;
@@ -15,11 +15,12 @@ interface ImageUploaderProps {
 const ImageUploader: React.FC<ImageUploaderProps> = ({
   onImageUploaded,
   currentImage,
-  bucketName = 'cat-photos', // Default to cat-photos bucket
-  folderPath = '' // Default to root of the bucket
+  bucketName = 'cat-photos',
+  folderPath = ''
 }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentImage || null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const { toast } = useToast();
 
   const uploadImage = async (file: File) => {
@@ -112,7 +113,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 
   const handleViewFullSize = (url: string) => {
     if (url && url !== 'document') {
-      window.open(url, '_blank');
+      setSelectedImage(url);
     }
   };
 
@@ -132,7 +133,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
               <img
                 src={previewUrl}
                 alt="Preview"
-                className="w-full h-auto rounded-lg object-cover transition-all duration-300 group-hover:brightness-90"
+                className="w-full h-auto rounded-lg object-cover transition-all duration-300 group-hover:brightness-90 cursor-pointer"
+                onClick={() => handleViewFullSize(previewUrl)}
               />
               <div 
                 className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
@@ -188,6 +190,17 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         onChange={handleFileChange}
         className="hidden"
       />
+
+      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+        <DialogContent className="max-w-4xl w-[90vw] p-0 overflow-hidden bg-transparent border-0">
+          <img 
+            src={selectedImage || ''} 
+            alt="Full size preview" 
+            className="w-full h-auto max-h-[90vh] object-contain rounded-lg"
+            onClick={() => setSelectedImage(null)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
