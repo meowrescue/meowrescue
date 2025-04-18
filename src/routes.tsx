@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { supabase } from './integrations/supabase/client';
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -88,10 +87,13 @@ async function getBlogSlugs() {
   }
 }
 
+// Export routes for potential SSG/SSR usage in the future
 export const routes = [
   {
     path: '/',
-    element: <Layout children={<></>} />, // Provide empty children to satisfy TypeScript
+    element: <Layout>
+      <React.Fragment />
+    </Layout>,
     children: [
       // Public Routes
       {

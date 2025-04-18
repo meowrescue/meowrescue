@@ -1,7 +1,8 @@
 
 import React, { Suspense } from 'react';
-import { BrowserRouter, Routes, Route, useRoutes } from "react-router-dom";
+import { Routes, Route, useRoutes } from "react-router-dom";
 import Layout from "./components/Layout";
+import ProtectedRoute from "./components/ProtectedRoute";
 import { routes } from "./routes";
 
 // Loading component for suspense fallback
@@ -11,9 +12,59 @@ const Loading = () => (
   </div>
 );
 
+// Lazy load components
+const Index = React.lazy(() => import("./pages/Index"));
+const About = React.lazy(() => import("./pages/About"));
+const Cats = React.lazy(() => import("./pages/Cats"));
+const CatDetail = React.lazy(() => import("./pages/CatDetail"));
+const Adopt = React.lazy(() => import("./pages/Adopt"));
+const AdoptionForm = React.lazy(() => import("./pages/AdoptionForm"));
+const Blog = React.lazy(() => import("./pages/Blog"));
+const BlogPost = React.lazy(() => import("./pages/BlogPost"));
+const Events = React.lazy(() => import("./pages/Events"));
+const EventDetail = React.lazy(() => import("./pages/EventDetail"));
+const Resources = React.lazy(() => import("./pages/Resources"));
+const Contact = React.lazy(() => import("./pages/Contact"));
+const Donate = React.lazy(() => import("./pages/Donate"));
+const Volunteer = React.lazy(() => import("./pages/Volunteer"));
+const VolunteerForm = React.lazy(() => import("./pages/VolunteerForm"));
+const Foster = React.lazy(() => import("./pages/Foster"));
+const FosterForm = React.lazy(() => import("./pages/FosterForm"));
+const Login = React.lazy(() => import("./pages/Login"));
+const Register = React.lazy(() => import("./pages/Register"));
+const ResetPassword = React.lazy(() => import("./pages/ResetPassword"));
+const Profile = React.lazy(() => import("./pages/Profile"));
+const PrivacyPolicy = React.lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = React.lazy(() => import("./pages/TermsOfService"));
+const NotFound = React.lazy(() => import("./pages/NotFound"));
+const LostFound = React.lazy(() => import("./pages/LostFound"));
+const LostFoundDetail = React.lazy(() => import("./pages/LostFoundDetail"));
+const LostFoundForm = React.lazy(() => import("./pages/LostFoundForm"));
+const SuccessStories = React.lazy(() => import("./pages/SuccessStories"));
+const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard"));
+const AdminCats = React.lazy(() => import("./pages/AdminCats"));
+const AdminCatForm = React.lazy(() => import("./pages/AdminCatForm"));
+const AdminBlog = React.lazy(() => import("./pages/AdminBlog"));
+const AdminBlogForm = React.lazy(() => import("./pages/AdminBlogForm"));
+const AdminUsers = React.lazy(() => import("./pages/AdminUsers"));
+const AdminFinance = React.lazy(() => import("./pages/AdminFinance"));
+const AdminPages = React.lazy(() => import("./pages/AdminPages"));
+const AdminEvents = React.lazy(() => import("./pages/AdminEvents"));
+const AdminLostFound = React.lazy(() => import("./pages/AdminLostFound"));
+const AdminMessages = React.lazy(() => import("./pages/AdminMessages"));
+const AdminChat = React.lazy(() => import("./pages/AdminChat"));
+const AdminSecurity = React.lazy(() => import("./pages/AdminSecurity"));
+const AdminApplications = React.lazy(() => import("./pages/AdminApplications"));
+const AdminSupplies = React.lazy(() => import("./pages/AdminSupplies"));
+const AdminDocuments = React.lazy(() => import("./pages/AdminDocuments"));
+const AdminTeam = React.lazy(() => import("./pages/AdminTeam"));
+const AdminSuccessStories = React.lazy(() => import("./pages/AdminSuccessStories"));
+const AdminBusinessLicenses = React.lazy(() => import("./pages/AdminBusinessLicenses"));
+const AdminDirectMessages = React.lazy(() => import("./pages/AdminDirectMessages"));
+const AdminOrders = React.lazy(() => import("./pages/AdminOrders"));
+
 const App = () => {
   return (
-    <BrowserRouter>
       <Suspense fallback={<Loading />}>
         <Routes>
           {/* Public Routes */}
@@ -207,59 +258,7 @@ const App = () => {
           <Route path="*" element={<Layout><NotFound /></Layout>} />
         </Routes>
       </Suspense>
-    </BrowserRouter>
   );
 };
-
-// Import all components at the bottom to avoid hoisting issues
-const Index = React.lazy(() => import("./pages/Index"));
-const About = React.lazy(() => import("./pages/About"));
-const Cats = React.lazy(() => import("./pages/Cats"));
-const CatDetail = React.lazy(() => import("./pages/CatDetail"));
-const Adopt = React.lazy(() => import("./pages/Adopt"));
-const AdoptionForm = React.lazy(() => import("./pages/AdoptionForm"));
-const Blog = React.lazy(() => import("./pages/Blog"));
-const BlogPost = React.lazy(() => import("./pages/BlogPost"));
-const Events = React.lazy(() => import("./pages/Events"));
-const EventDetail = React.lazy(() => import("./pages/EventDetail"));
-const Resources = React.lazy(() => import("./pages/Resources"));
-const Contact = React.lazy(() => import("./pages/Contact"));
-const Donate = React.lazy(() => import("./pages/Donate"));
-const Volunteer = React.lazy(() => import("./pages/Volunteer"));
-const VolunteerForm = React.lazy(() => import("./pages/VolunteerForm"));
-const Foster = React.lazy(() => import("./pages/Foster"));
-const FosterForm = React.lazy(() => import("./pages/FosterForm"));
-const Login = React.lazy(() => import("./pages/Login"));
-const Register = React.lazy(() => import("./pages/Register"));
-const ResetPassword = React.lazy(() => import("./pages/ResetPassword"));
-const Profile = React.lazy(() => import("./pages/Profile"));
-const PrivacyPolicy = React.lazy(() => import("./pages/PrivacyPolicy"));
-const TermsOfService = React.lazy(() => import("./pages/TermsOfService"));
-const NotFound = React.lazy(() => import("./pages/NotFound"));
-const LostFound = React.lazy(() => import("./pages/LostFound"));
-const LostFoundDetail = React.lazy(() => import("./pages/LostFoundDetail"));
-const LostFoundForm = React.lazy(() => import("./pages/LostFoundForm"));
-const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard"));
-const AdminCats = React.lazy(() => import("./pages/AdminCats"));
-const AdminCatForm = React.lazy(() => import("./pages/AdminCatForm"));
-const AdminBlog = React.lazy(() => import("./pages/AdminBlog"));
-const AdminBlogForm = React.lazy(() => import("./pages/AdminBlogForm"));
-const AdminUsers = React.lazy(() => import("./pages/AdminUsers"));
-const AdminFinance = React.lazy(() => import("./pages/AdminFinance"));
-const AdminPages = React.lazy(() => import("./pages/AdminPages"));
-const AdminEvents = React.lazy(() => import("./pages/AdminEvents"));
-const AdminLostFound = React.lazy(() => import("./pages/AdminLostFound"));
-const AdminMessages = React.lazy(() => import("./pages/AdminMessages"));
-const AdminChat = React.lazy(() => import("./pages/AdminChat"));
-const AdminSecurity = React.lazy(() => import("./pages/AdminSecurity"));
-const AdminApplications = React.lazy(() => import("./pages/AdminApplications"));
-const AdminSupplies = React.lazy(() => import("./pages/AdminSupplies"));
-const AdminDocuments = React.lazy(() => import("./pages/AdminDocuments"));
-const AdminTeam = React.lazy(() => import("./pages/AdminTeam"));
-const AdminSuccessStories = React.lazy(() => import("./pages/AdminSuccessStories"));
-const AdminBusinessLicenses = React.lazy(() => import("./pages/AdminBusinessLicenses"));
-const AdminDirectMessages = React.lazy(() => import("./pages/AdminDirectMessages"));
-const AdminOrders = React.lazy(() => import("./pages/AdminOrders"));
-const SuccessStories = React.lazy(() => import("./pages/SuccessStories"));
 
 export default App;
