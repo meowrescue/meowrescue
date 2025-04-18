@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { supabase } from './integrations/supabase/client';
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -92,115 +91,115 @@ async function getBlogSlugs() {
 export const routes = [
   {
     path: '/',
-    element: <Layout><Index /></Layout>,
+    element: <Index />,
   },
   {
     path: '/about',
-    element: <Layout><About /></Layout>,
+    element: <About />,
   },
   {
     path: '/cats',
-    element: <Layout><Cats /></Layout>,
+    element: <Cats />,
   },
   {
     path: '/cats/:id',
-    element: <Layout><CatDetail /></Layout>,
+    element: <CatDetail />,
   },
   {
     path: '/adopt',
-    element: <Layout><Adopt /></Layout>,
+    element: <Adopt />,
   },
   {
     path: '/adopt/apply',
-    element: <Layout><AdoptionForm /></Layout>,
+    element: <AdoptionForm />,
   },
   {
     path: '/foster',
-    element: <Layout><Foster /></Layout>,
+    element: <Foster />,
   },
   {
     path: '/foster/apply',
-    element: <Layout><FosterForm /></Layout>,
+    element: <FosterForm />,
   },
   {
     path: '/success-stories',
-    element: <Layout><SuccessStories /></Layout>,
+    element: <SuccessStories />,
   },
   {
     path: '/blog',
-    element: <Layout><Blog /></Layout>,
+    element: <Blog />,
   },
   {
     path: '/blog/:slug',
-    element: <Layout><BlogPost /></Layout>,
+    element: <BlogPost />,
   },
   {
     path: '/events',
-    element: <Layout><Events /></Layout>,
+    element: <Events />,
   },
   {
     path: '/events/:id',
-    element: <Layout><EventDetail /></Layout>,
+    element: <EventDetail />,
   },
   {
     path: '/resources',
-    element: <Layout><Resources /></Layout>,
+    element: <Resources />,
   },
   {
     path: '/contact',
-    element: <Layout><Contact /></Layout>,
+    element: <Contact />,
   },
   {
     path: '/donate',
-    element: <Layout><Donate /></Layout>,
+    element: <Donate />,
   },
   {
     path: '/volunteer',
-    element: <Layout><Volunteer /></Layout>,
+    element: <Volunteer />,
   },
   {
     path: '/volunteer/apply',
-    element: <Layout><VolunteerForm /></Layout>,
+    element: <VolunteerForm />,
   },
   {
     path: '/login',
-    element: <Layout hideFooter={true}><Login /></Layout>,
+    element: <Login />,
   },
   {
     path: '/register',
-    element: <Layout hideFooter={true}><Register /></Layout>,
+    element: <Register />,
   },
   {
     path: '/reset-password',
-    element: <Layout hideFooter={true}><ResetPassword /></Layout>,
+    element: <ResetPassword />,
   },
   {
     path: '/privacy-policy',
-    element: <Layout><PrivacyPolicy /></Layout>,
+    element: <PrivacyPolicy />,
   },
   {
     path: '/terms-of-service',
-    element: <Layout><TermsOfService /></Layout>,
+    element: <TermsOfService />,
   },
   {
     path: '/lost-found',
-    element: <Layout><LostFound /></Layout>,
+    element: <LostFound />,
   },
   {
     path: '/lost-found/:id',
-    element: <Layout><LostFoundDetail /></Layout>,
+    element: <LostFoundDetail />,
   },
   {
     path: '/profile',
-    element: <ProtectedRoute><Layout><Profile /></Layout></ProtectedRoute>,
+    element: <ProtectedRoute><Profile /></ProtectedRoute>,
   },
   {
     path: '/lost-found/new',
-    element: <ProtectedRoute><Layout><LostFoundForm /></Layout></ProtectedRoute>,
+    element: <ProtectedRoute><LostFoundForm /></ProtectedRoute>,
   },
   {
     path: '/lost-found/edit/:id',
-    element: <ProtectedRoute><Layout><LostFoundForm /></Layout></ProtectedRoute>,
+    element: <ProtectedRoute><LostFoundForm /></ProtectedRoute>,
   },
   {
     path: '/admin',
@@ -312,6 +311,6 @@ export const routes = [
   },
   {
     path: '*',
-    element: <Layout><NotFound /></Layout>,
+    element: <NotFound />,
   }
 ];

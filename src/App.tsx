@@ -2,6 +2,7 @@
 import React, { Suspense } from 'react';
 import { useRoutes } from "react-router-dom";
 import { routes } from "./routes";
+import Layout from "./components/Layout";
 
 // Loading component for suspense fallback
 const Loading = () => (
@@ -11,12 +12,21 @@ const Loading = () => (
 );
 
 const App = () => {
-  // Use routes directly without wrapping each one in Layout
+  // Use routes directly
   const routing = useRoutes(routes);
+
+  // Special paths that shouldn't have the Layout applied
+  const isAdminPath = window.location.pathname.startsWith('/admin');
 
   return (
     <Suspense fallback={<Loading />}>
-      {routing}
+      {isAdminPath ? (
+        routing
+      ) : (
+        <Layout>
+          {routing}
+        </Layout>
+      )}
     </Suspense>
   );
 };

@@ -135,7 +135,7 @@ const Navbar: React.FC = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center justify-center flex-1 px-8">
+          <nav className="hidden lg:flex">
             <ul className="flex items-center space-x-8">
               {navItems.map((item) => (
                 <li key={item.name} className="relative">
