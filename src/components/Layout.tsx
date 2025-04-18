@@ -34,7 +34,9 @@ const Layout: React.FC<LayoutProps> = ({ children, hideFooter = false }) => {
     <BusinessHoursProvider>
       <div className="flex flex-col min-h-screen">
         <Navbar />
-        <main className="flex-grow">{children}</main>
+        <main className="flex-grow pt-16">
+          {children}
+        </main>
         {!hideFooter && <Footer />}
         <Suspense fallback={null}>
           <ChatWidget />

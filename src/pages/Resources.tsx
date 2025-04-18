@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Layout from '../components/Layout';
 import SectionHeading from '../components/ui/SectionHeading';
@@ -7,7 +6,7 @@ import { ExternalLink } from 'lucide-react';
 const Resources: React.FC = () => {
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 py-8 mt-2">
         <SectionHeading 
           title="Cat Care Resources" 
           subtitle="Helpful information for cat owners and caregivers"

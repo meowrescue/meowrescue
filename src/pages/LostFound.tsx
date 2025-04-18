@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Layout from "../components/Layout";
 import SectionHeading from "@/components/ui/SectionHeading";
@@ -79,7 +78,7 @@ const LostFound = () => {
         description="Help reunite lost pets with their families. Report lost or found pets in our community."
       />
       
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 mt-2">
         <SectionHeading
           title="Lost & Found Pets"
           subtitle="Help reunite lost pets with their families"
