@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -43,8 +42,10 @@ const BlogPost: React.FC = () => {
     <Layout>
       <SEO 
         title={post ? `${post.title} | Meow Rescue Blog` : 'Blog Post | Meow Rescue'} 
-        description={post ? post.content.substring(0, 160).replace(/<[^>]*>/g, '') : 'Read our latest blog post'}
+        description={post?.meta_description || post?.content?.substring(0, 160).replace(/<[^>]*>/g, '')}
+        keywords={post?.keywords?.join(', ')}
         image={post?.featured_image_url}
+        url={post?.canonical_url}
       />
       
       {isLoading ? (

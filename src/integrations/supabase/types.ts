@@ -142,11 +142,14 @@ export type Database = {
       blog_posts: {
         Row: {
           author_profile_id: string | null
+          canonical_url: string | null
           content: string
           created_at: string
           featured_image_url: string | null
           id: string
           is_published: boolean
+          keywords: string[] | null
+          meta_description: string | null
           published_at: string | null
           slug: string
           summary: string | null
@@ -155,11 +158,14 @@ export type Database = {
         }
         Insert: {
           author_profile_id?: string | null
+          canonical_url?: string | null
           content: string
           created_at?: string
           featured_image_url?: string | null
           id?: string
           is_published?: boolean
+          keywords?: string[] | null
+          meta_description?: string | null
           published_at?: string | null
           slug: string
           summary?: string | null
@@ -168,11 +174,14 @@ export type Database = {
         }
         Update: {
           author_profile_id?: string | null
+          canonical_url?: string | null
           content?: string
           created_at?: string
           featured_image_url?: string | null
           id?: string
           is_published?: boolean
+          keywords?: string[] | null
+          meta_description?: string | null
           published_at?: string | null
           slug?: string
           summary?: string | null

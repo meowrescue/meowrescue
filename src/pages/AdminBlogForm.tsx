@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -32,6 +31,9 @@ const formSchema = z.object({
   content: z.string().min(50, { message: 'Content must be at least 50 characters' }),
   featured_image_url: z.string().optional(),
   is_published: z.boolean().default(false),
+  meta_description: z.string().max(160).optional(),
+  keywords: z.array(z.string()).optional(),
+  canonical_url: z.string().url().optional()
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -54,6 +56,9 @@ const AdminBlogForm: React.FC = () => {
       content: '',
       featured_image_url: '',
       is_published: false,
+      meta_description: '',
+      keywords: [],
+      canonical_url: '',
     },
   });
 
@@ -79,6 +84,9 @@ const AdminBlogForm: React.FC = () => {
             content: data.content,
             featured_image_url: data.featured_image_url || '',
             is_published: data.is_published,
+            meta_description: data.meta_description || '',
+            keywords: data.keywords || [],
+            canonical_url: data.canonical_url || '',
           });
 
           if (data.featured_image_url) {
@@ -161,6 +169,9 @@ const AdminBlogForm: React.FC = () => {
         published_at: values.is_published ? (isEditMode ? undefined : now) : null,
         author_profile_id: user?.id,
         updated_at: now,
+        meta_description: values.meta_description,
+        keywords: values.keywords,
+        canonical_url: values.canonical_url,
       };
 
       // Update or create post
@@ -332,6 +343,78 @@ const AdminBlogForm: React.FC = () => {
                   />
                 </div>
 
+                <div className="space-y-6">
+                  <FormField
+                    control={form.control}
+                    name="meta_description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Meta Description (SEO)</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Enter meta description for SEO (max 160 characters)"
+                            className="h-20"
+                            maxLength={160}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          This description appears in search engine results
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="keywords"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Keywords (SEO)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="Enter keywords separated by commas"
+                            value={field.value?.join(', ') || ''}
+                            onChange={(e) => {
+                              const keywords = e.target.value
+                                .split(',')
+                                .map(k => k.trim())
+                                .filter(k => k.length > 0);
+                              field.onChange(keywords);
+                            }}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Add relevant keywords separated by commas
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="canonical_url"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Canonical URL (SEO)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="https://example.com/original-post"
+                            type="url"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          If this content appears elsewhere, enter the original URL
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
                 <FormField
                   control={form.control}
                   name="content"
