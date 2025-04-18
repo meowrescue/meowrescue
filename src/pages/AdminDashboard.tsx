@@ -8,8 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Cat, User, Calendar, DollarSign, FileText, Info, AlertTriangle, MessageCircle, Package } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Application } from '@/types/applications';
+import { FileSearch, Clock } from 'lucide-react';
 
-// Dashboard component for admin users
 const AdminDashboard: React.FC = () => {
   // Fetch recent applications
   const { data: recentApplications } = useQuery({
@@ -93,14 +93,7 @@ const AdminDashboard: React.FC = () => {
           
         if (usersError) throw usersError;
         
-        // Get applications count
-        const { count: applicationsCount, error: applicationsError } = await supabase
-          .from('applications')
-          .select('*', { count: 'exact', head: true });
-          
-        if (applicationsError) throw applicationsError;
-        
-        // Get pending applications count
+        // We're now focusing specifically on pending applications
         const { count: pendingCount, error: pendingError } = await supabase
           .from('applications')
           .select('*', { count: 'exact', head: true })
@@ -111,12 +104,11 @@ const AdminDashboard: React.FC = () => {
         return {
           cats: catsCount || 0,
           users: usersCount || 0,
-          applications: applicationsCount || 0,
-          pending: pendingCount || 0
+          pendingApplications: pendingCount || 0
         };
       } catch (error) {
         console.error("Error fetching counts:", error);
-        return { cats: 0, users: 0, applications: 0, pending: 0 };
+        return { cats: 0, users: 0, pendingApplications: 0 };
       }
     }
   });
@@ -136,7 +128,7 @@ const AdminDashboard: React.FC = () => {
                   <h3 className="text-2xl font-bold">{counts?.cats || 0}</h3>
                 </div>
                 <div className="h-12 w-12 bg-meow-light/20 rounded-full flex items-center justify-center">
-                  <Cat className="h-6 w-6 text-meow-primary" />
+                  <FileSearch className="h-6 w-6 text-meow-primary" />
                 </div>
               </div>
             </CardContent>
@@ -150,21 +142,7 @@ const AdminDashboard: React.FC = () => {
                   <h3 className="text-2xl font-bold">{counts?.users || 0}</h3>
                 </div>
                 <div className="h-12 w-12 bg-meow-light/20 rounded-full flex items-center justify-center">
-                  <User className="h-6 w-6 text-meow-primary" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Applications</p>
-                  <h3 className="text-2xl font-bold">{counts?.applications || 0}</h3>
-                </div>
-                <div className="h-12 w-12 bg-meow-light/20 rounded-full flex items-center justify-center">
-                  <FileText className="h-6 w-6 text-meow-primary" />
+                  <Clock className="h-6 w-6 text-meow-primary" />
                 </div>
               </div>
             </CardContent>
@@ -175,10 +153,24 @@ const AdminDashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-500">Pending Applications</p>
-                  <h3 className="text-2xl font-bold">{counts?.pending || 0}</h3>
+                  <h3 className="text-2xl font-bold">{counts?.pendingApplications || 0}</h3>
                 </div>
                 <div className="h-12 w-12 bg-meow-light/20 rounded-full flex items-center justify-center">
                   <AlertTriangle className="h-6 w-6 text-amber-500" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Application Review</p>
+                  <h3 className="text-2xl font-bold">{counts?.pendingApplications || 0}</h3>
+                </div>
+                <div className="h-12 w-12 bg-meow-light/20 rounded-full flex items-center justify-center">
+                  <FileText className="h-6 w-6 text-meow-primary" />
                 </div>
               </div>
             </CardContent>
