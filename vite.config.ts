@@ -34,8 +34,8 @@ export default defineConfig(({ mode }) => ({
       },
     },
     rollupOptions: {
+      // Remove the HTML entry points as they're incompatible with vite-plugin-ssr
       input: {
-        main: './index.html',
         'entry-server': './src/entry-server.tsx',
       },
       output: {
