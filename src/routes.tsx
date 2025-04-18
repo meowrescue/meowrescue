@@ -87,79 +87,84 @@ async function getBlogSlugs() {
   }
 }
 
+// Wrap components with Layout
+const wrapWithLayout = (Component, hideFooter = false) => (
+  <Layout hideFooter={hideFooter}><Component /></Layout>
+);
+
 // Export routes for potential SSG/SSR usage in the future
 export const routes = [
   {
     path: '/',
-    element: <Index />,
+    element: wrapWithLayout(Index),
   },
   {
     path: '/about',
-    element: <About />,
+    element: wrapWithLayout(About),
   },
   {
     path: '/cats',
-    element: <Cats />,
+    element: wrapWithLayout(Cats),
   },
   {
     path: '/cats/:id',
-    element: <CatDetail />,
+    element: wrapWithLayout(CatDetail),
   },
   {
     path: '/adopt',
-    element: <Adopt />,
+    element: wrapWithLayout(Adopt),
   },
   {
     path: '/adopt/apply',
-    element: <AdoptionForm />,
+    element: wrapWithLayout(AdoptionForm),
   },
   {
     path: '/foster',
-    element: <Foster />,
+    element: wrapWithLayout(Foster),
   },
   {
     path: '/foster/apply',
-    element: <FosterForm />,
+    element: wrapWithLayout(FosterForm),
   },
   {
     path: '/success-stories',
-    element: <SuccessStories />,
+    element: wrapWithLayout(SuccessStories),
   },
   {
     path: '/blog',
-    element: <Blog />,
+    element: wrapWithLayout(Blog),
   },
   {
     path: '/blog/:slug',
-    element: <BlogPost />,
+    element: wrapWithLayout(BlogPost),
   },
   {
     path: '/events',
-    element: <Events />,
+    element: wrapWithLayout(Events),
   },
   {
     path: '/events/:id',
-    element: <EventDetail />,
+    element: wrapWithLayout(EventDetail),
   },
   {
     path: '/resources',
-    element: <Resources />,
+    element: wrapWithLayout(Resources),
   },
   {
     path: '/contact',
-    element: <Contact />,
+    element: wrapWithLayout(Contact),
   },
   {
     path: '/donate',
-    element: <Donate />,
+    element: wrapWithLayout(Donate),
   },
   {
     path: '/volunteer',
-    element: <Volunteer />,
+    element: wrapWithLayout(Volunteer),
   },
   {
     path: '/volunteer/apply',
-    element: <VolunteerForm />,
+    element: wrapWithLayout(VolunteerForm),
   },
   {
     path: '/login',
@@ -175,32 +180,33 @@ export const routes = [
   },
   {
     path: '/privacy-policy',
-    element: <PrivacyPolicy />,
+    element: wrapWithLayout(PrivacyPolicy),
   },
   {
     path: '/terms-of-service',
-    element: <TermsOfService />,
+    element: wrapWithLayout(TermsOfService),
   },
   {
     path: '/lost-found',
-    element: <LostFound />,
+    element: wrapWithLayout(LostFound),
   },
   {
     path: '/lost-found/:id',
-    element: <LostFoundDetail />,
+    element: wrapWithLayout(LostFoundDetail),
   },
   {
     path: '/profile',
-    element: <ProtectedRoute><Profile /></ProtectedRoute>,
+    element: <ProtectedRoute>{wrapWithLayout(Profile)}</ProtectedRoute>,
   },
   {
     path: '/lost-found/new',
-    element: <ProtectedRoute><LostFoundForm /></ProtectedRoute>,
+    element: <ProtectedRoute>{wrapWithLayout(LostFoundForm)}</ProtectedRoute>,
   },
   {
     path: '/lost-found/edit/:id',
-    element: <ProtectedRoute><LostFoundForm /></ProtectedRoute>,
+    element: <ProtectedRoute>{wrapWithLayout(LostFoundForm)}</ProtectedRoute>,
   },
+  // Admin routes
   {
     path: '/admin',
     element: <ProtectedRoute requireAdmin={true}><AdminDashboard /></ProtectedRoute>,
@@ -311,6 +317,6 @@ export const routes = [
   },
   {
     path: '*',
-    element: <NotFound />,
+    element: wrapWithLayout(NotFound),
   }
 ];

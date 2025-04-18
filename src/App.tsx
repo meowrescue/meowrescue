@@ -17,16 +17,11 @@ const App = () => {
 
   // Special paths that shouldn't have the Layout applied
   const isAdminPath = window.location.pathname.startsWith('/admin');
-
+  
+  // Return the routing directly - Layout is managed in the routes
   return (
     <Suspense fallback={<Loading />}>
-      {isAdminPath ? (
-        routing
-      ) : (
-        <Layout>
-          {routing}
-        </Layout>
-      )}
+      {routing}
     </Suspense>
   );
 };
