@@ -13,6 +13,7 @@ import { ArrowLeft, Upload, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import SEO from '@/components/SEO';
+import ImageUploader from '@/components/ImageUploader';
 
 const AdminCatForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -28,7 +29,6 @@ const AdminCatForm: React.FC = () => {
   const [description, setDescription] = useState('');
   const [medicalNotes, setMedicalNotes] = useState('');
   const [status, setStatus] = useState('Available');
-  const [photos, setPhotos] = useState<File[]>([]);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showOnAdoptablePage, setShowOnAdoptablePage] = useState(true);
@@ -66,26 +66,6 @@ const AdminCatForm: React.FC = () => {
       setShowOnAdoptablePage(cat.status === 'Available');
     }
   }, [cat]);
-  
-  // Upload photos to storage
-  const uploadPhotos = async (files: File[]): Promise<string[]> => {
-    const uploadPromises = files.map(async (file) => {
-      const fileName = `${Date.now()}-${file.name}`;
-      const { data, error } = await supabase.storage
-        .from('cat-photos')
-        .upload(`cats/${fileName}`, file);
-      
-      if (error) throw error;
-      
-      const { data: publicUrlData } = supabase.storage
-        .from('cat-photos')
-        .getPublicUrl(`cats/${fileName}`);
-      
-      return publicUrlData.publicUrl;
-    });
-    
-    return Promise.all(uploadPromises);
-  };
   
   // Create cat mutation
   const createCatMutation = useMutation({
@@ -151,13 +131,6 @@ const AdminCatForm: React.FC = () => {
       // Set status based on checkbox
       const finalStatus = showOnAdoptablePage ? 'Available' : 'NotListed';
       
-      // Upload new photos if any
-      let allPhotoUrls = [...photoUrls];
-      if (photos.length > 0) {
-        const newPhotoUrls = await uploadPhotos(photos);
-        allPhotoUrls = [...allPhotoUrls, ...newPhotoUrls];
-      }
-      
       const catData = {
         name,
         age_estimate: ageEstimate,
@@ -166,7 +139,7 @@ const AdminCatForm: React.FC = () => {
         description,
         medical_notes: medicalNotes,
         status: finalStatus,
-        photos_urls: allPhotoUrls
+        photos_urls: photoUrls
       };
       
       if (isEditing && id) {
@@ -186,10 +159,10 @@ const AdminCatForm: React.FC = () => {
     }
   };
   
-  // Handle photo selection
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setPhotos(Array.from(e.target.files));
+  // Handle photo upload completed
+  const handleImageUploaded = (url: string) => {
+    if (url) {
+      setPhotoUrls(prev => [...prev, url]);
     }
   };
   
@@ -312,49 +285,17 @@ const AdminCatForm: React.FC = () => {
                   <div>
                     <Label htmlFor="photos">Photos</Label>
                     <div className="mt-2">
-                      <Label 
-                        htmlFor="photos" 
-                        className="flex justify-center w-full h-32 px-4 transition bg-white border-2 border-gray-300 border-dashed rounded-md appearance-none cursor-pointer hover:border-meow-primary focus:outline-none"
-                      >
-                        <span className="flex items-center space-x-2">
-                          <Upload className="w-6 h-6 text-gray-500" />
-                          <span className="text-sm text-gray-500">
-                            Click to upload cat photos
-                          </span>
-                        </span>
-                        <input 
-                          id="photos" 
-                          type="file" 
-                          className="hidden" 
-                          accept="image/*" 
-                          multiple
-                          onChange={handlePhotoChange}
-                        />
-                      </Label>
+                      <ImageUploader 
+                        onImageUploaded={handleImageUploaded}
+                        bucketName="images" 
+                        folderPath="cats"
+                      />
                     </div>
-                    
-                    {/* Selected photos preview */}
-                    {photos.length > 0 && (
-                      <div className="mt-4">
-                        <h4 className="text-sm font-medium mb-2">New Photos to Upload:</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {Array.from(photos).map((file, index) => (
-                            <div key={index} className="relative">
-                              <img 
-                                src={URL.createObjectURL(file)} 
-                                alt={`Selected cat photo ${index + 1}`} 
-                                className="w-24 h-24 object-cover rounded-md"
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                     
                     {/* Existing photos preview (for edit mode) */}
                     {photoUrls.length > 0 && (
                       <div className="mt-4">
-                        <h4 className="text-sm font-medium mb-2">Existing Photos:</h4>
+                        <h4 className="text-sm font-medium mb-2">Photos:</h4>
                         <div className="flex flex-wrap gap-2">
                           {photoUrls.map((url, index) => (
                             <div key={index} className="relative">

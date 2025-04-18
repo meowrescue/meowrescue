@@ -15,7 +15,7 @@ interface ImageUploaderProps {
 const ImageUploader: React.FC<ImageUploaderProps> = ({
   onImageUploaded,
   currentImage,
-  bucketName = 'cat-photos', // This should match the bucket created in Supabase
+  bucketName = 'images', // Changed to a more generic bucket name
   folderPath = 'cats' // Using a specific folder for organization
 }) => {
   const [isUploading, setIsUploading] = useState(false);
@@ -27,23 +27,41 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   useEffect(() => {
     const checkBucket = async () => {
       try {
-        const { data, error } = await supabase
-          .storage
-          .getBucket(bucketName);
+        // Try to get the bucket to see if it exists
+        const { data, error } = await supabase.storage.getBucket(bucketName);
         
         if (error) {
           console.error('Error checking bucket:', error);
-          setBucketExists(false);
-          toast({
-            title: 'Storage configuration issue',
-            description: `Bucket "${bucketName}" may not exist. Please contact an administrator.`,
-            variant: 'destructive',
-          });
+          
+          // Try to create the bucket if it doesn't exist
+          try {
+            const { data: createData, error: createError } = await supabase.storage.createBucket(bucketName, {
+              public: true,
+              fileSizeLimit: 10485760, // 10MB
+            });
+            
+            if (createError) {
+              console.error('Error creating bucket:', createError);
+              setBucketExists(false);
+              toast({
+                title: 'Storage configuration issue',
+                description: `Could not create bucket "${bucketName}". Please contact an administrator.`,
+                variant: 'destructive',
+              });
+            } else {
+              console.log(`Successfully created bucket: ${bucketName}`);
+              setBucketExists(true);
+            }
+          } catch (createError) {
+            console.error('Exception creating bucket:', createError);
+            setBucketExists(false);
+          }
         } else {
+          console.log(`Bucket exists: ${bucketName}`);
           setBucketExists(true);
         }
       } catch (error) {
-        console.error('Error checking bucket:', error);
+        console.error('Exception checking bucket:', error);
         setBucketExists(false);
       }
     };
