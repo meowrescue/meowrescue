@@ -2138,6 +2138,13 @@ export type Database = {
     Enums: {
       app_role: "user" | "volunteer" | "foster" | "admin"
       application_status: "Submitted" | "Under Review" | "Approved" | "Rejected"
+      cat_procedure_type:
+        | "Vaccination"
+        | "Surgery"
+        | "Check-up"
+        | "Medication"
+        | "Test"
+        | "Other"
       cat_status: "Available" | "Pending" | "Adopted"
       message_status: "New" | "Read" | "Replied" | "Archived"
     }
@@ -2257,6 +2264,14 @@ export const Constants = {
     Enums: {
       app_role: ["user", "volunteer", "foster", "admin"],
       application_status: ["Submitted", "Under Review", "Approved", "Rejected"],
+      cat_procedure_type: [
+        "Vaccination",
+        "Surgery",
+        "Check-up",
+        "Medication",
+        "Test",
+        "Other",
+      ],
       cat_status: ["Available", "Pending", "Adopted"],
       message_status: ["New", "Read", "Replied", "Archived"],
     },

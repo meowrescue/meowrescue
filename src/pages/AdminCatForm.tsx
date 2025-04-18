@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import SEO from '@/components/SEO';
 import ImageUploader from '@/components/ImageUploader';
+import CatMedicalRecords from '@/components/admin/CatMedicalRecords';
 
 const AdminCatForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -170,6 +171,19 @@ const AdminCatForm: React.FC = () => {
   const handleRemovePhoto = (index: number) => {
     setPhotoUrls(prev => prev.filter((_, i) => i !== index));
   };
+
+  const catBreeds = [
+    "Domestic Shorthair",
+    "Domestic Longhair",
+    "Siamese",
+    "Persian",
+    "Maine Coon",
+    "American Shorthair",
+    "Ragdoll",
+    "British Shorthair",
+    "Bengal",
+    "Sphynx"
+  ];
   
   return (
     <AdminLayout title={isEditing ? "Edit Cat" : "Add Cat"}>
@@ -223,12 +237,21 @@ const AdminCatForm: React.FC = () => {
                     
                     <div className="space-y-2">
                       <Label htmlFor="breed">Breed</Label>
-                      <Input 
-                        id="breed"
-                        value={breed}
-                        onChange={(e) => setBreed(e.target.value)}
-                        placeholder="e.g. Domestic Shorthair"
-                      />
+                      <Select 
+                        value={breed} 
+                        onValueChange={setBreed}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select breed" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {catBreeds.map((breedOption) => (
+                            <SelectItem key={breedOption} value={breedOption}>
+                              {breedOption}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     
                     <div className="space-y-2">
@@ -269,12 +292,12 @@ const AdminCatForm: React.FC = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="medicalNotes">Medical Notes</Label>
+                      <Label htmlFor="medicalNotes">Special Care Notes</Label>
                       <Textarea 
                         id="medicalNotes"
                         value={medicalNotes}
                         onChange={(e) => setMedicalNotes(e.target.value)}
-                        placeholder="Vaccination status, health conditions, etc."
+                        placeholder="Any special care requirements or notes"
                         rows={4}
                       />
                     </div>
@@ -341,6 +364,13 @@ const AdminCatForm: React.FC = () => {
                   </Button>
                 </CardFooter>
               </form>
+            )}
+          
+            {isEditing && id && (
+              <div className="mt-8">
+                <h3 className="text-lg font-semibold mb-4">Medical Records</h3>
+                <CatMedicalRecords catId={id} />
+              </div>
             )}
           </CardContent>
         </Card>
