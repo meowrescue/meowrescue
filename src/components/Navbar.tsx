@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, ChevronDown, Cat, Heart } from 'lucide-react';
@@ -12,11 +11,11 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/contexts/AuthContext';
 import { scrollToTop } from '@/utils/scrollUtils';
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Navbar: React.FC = () => {
   const { user, signOut } = useAuth();
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
