@@ -29,7 +29,8 @@ export default defineConfig(({ mode }) => ({
     minify: 'terser', // Explicitly use Terser
     terserOptions: {
       compress: {
-        drop_console: true,
+        drop_console: mode === 'production', // Only drop console in production
+        drop_debugger: mode === 'production',
       },
     },
     rollupOptions: {

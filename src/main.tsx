@@ -27,7 +27,17 @@ const queryClient = new QueryClient({
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
-      <App />
+      <QueryClientProvider client={queryClient}>
+        <HelmetProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <AuthProvider>
+              <App />
+            </AuthProvider>
+          </TooltipProvider>
+        </HelmetProvider>
+      </QueryClientProvider>
     </BrowserRouter>
   </React.StrictMode>
 );

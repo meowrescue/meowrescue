@@ -65,7 +65,6 @@
     "terser": "^5.39.0",
     "vaul": "^0.9.3",
     "vite-plugin-ssr": "^0.4.133",
-    "vite-ssg": "^0.23.3",
     "zod": "^3.24.2"
   },
   "devDependencies": {
