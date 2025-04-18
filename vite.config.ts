@@ -26,7 +26,7 @@ export default defineConfig(({ mode }) => ({
     // Optimize for SSG
     assetsInlineLimit: 4096,
     cssCodeSplit: true,
-    minify: 'terser',
+    minify: 'terser', // Explicitly use Terser
     terserOptions: {
       compress: {
         drop_console: true,
