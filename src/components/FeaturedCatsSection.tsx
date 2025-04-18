@@ -12,16 +12,28 @@ const FeaturedCatsSection: React.FC = () => {
   const { data: featuredCats = [], isLoading, isError } = useQuery({
     queryKey: ['featured-cats'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('cats')
-        .select('*')
-        .eq('status', 'Available')
-        .order('created_at', { ascending: false })
-        .limit(3);
-      
-      if (error) throw error;
-      return data || [];
+      try {
+        const { data, error } = await supabase
+          .from('cats')
+          .select('*')
+          .eq('status', 'Available')
+          .order('created_at', { ascending: false })
+          .limit(3);
+        
+        if (error) {
+          console.error('Error fetching featured cats:', error);
+          throw error;
+        }
+        
+        console.log('Featured cats data:', data);
+        return data || [];
+      } catch (error) {
+        console.error('Exception fetching featured cats:', error);
+        return [];
+      }
     },
+    retry: 1,
+    refetchOnWindowFocus: false
   });
 
   const scrollToTop = () => {
@@ -32,7 +44,7 @@ const FeaturedCatsSection: React.FC = () => {
   };
 
   // If loading is complete and there are no cats, don't render the section
-  if (!isLoading && featuredCats.length === 0) {
+  if (!isLoading && featuredCats.length === 0 && !isError) {
     return null;
   }
 
@@ -48,6 +60,18 @@ const FeaturedCatsSection: React.FC = () => {
         {isLoading ? (
           <div className="flex justify-center items-center h-40">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-meow-primary"></div>
+          </div>
+        ) : isError ? (
+          <div className="text-center py-8">
+            <p className="text-gray-500 mb-4">
+              We're having trouble loading our featured cats. Please try again later.
+            </p>
+            <Button 
+              variant="outline" 
+              onClick={() => window.location.reload()}
+            >
+              Refresh
+            </Button>
           </div>
         ) : featuredCats.length > 0 ? (
           <>

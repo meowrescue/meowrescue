@@ -46,7 +46,7 @@ export default function ContactForm() {
     try {
       console.log("Submitting contact form with values:", values);
       
-      // Insert the contact message into the database - using the correct enum case (New)
+      // Insert the contact message into the database - using the correct value 'New' instead of enum
       const { data, error } = await supabase
         .from('contact_messages')
         .insert([{
@@ -54,7 +54,7 @@ export default function ContactForm() {
           email: values.email,
           subject: values.subject,
           message: values.message,
-          status: 'New', // Correctly use 'New' to match the enum type in the database
+          status: 'New', // Using 'New' instead of 'new' for consistent casing
           received_at: new Date().toISOString()
         }]);
       
