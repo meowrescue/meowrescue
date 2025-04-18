@@ -30,7 +30,26 @@ const ApplicationView: React.FC<ApplicationViewProps> = ({ application, onClose 
       console.log(`Updating application ${id} to status: ${status} with feedback: ${feedback}`);
       
       try {
-        // The RPC is already set up to handle the correct status format
+        // Check which table to update based on application type
+        if (application.application_type === 'adoption') {
+          // Try to update adoption_applications first
+          const { data: adoptionData, error: adoptionError } = await supabase
+            .from('adoption_applications')
+            .update({ 
+              status: status.charAt(0).toUpperCase() + status.slice(1), // Capitalize status for adoption_applications
+              notes: feedback,
+              reviewed_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', id)
+            .select();
+            
+          if (!adoptionError) return adoptionData;
+          
+          console.log('Could not update adoption_applications, falling back to applications table');
+        }
+        
+        // Fallback to applications table or for other application types
         const { data, error } = await supabase
           .rpc('update_application_status', {
             p_application_id: id,
@@ -41,7 +60,7 @@ const ApplicationView: React.FC<ApplicationViewProps> = ({ application, onClose 
         if (error) {
           console.error('Error updating application status with RPC:', error);
           
-          // Fallback to direct update if RPC fails
+          // Direct update if RPC fails
           const { data: updateData, error: updateError } = await supabase
             .from('applications')
             .update({ 
@@ -87,7 +106,10 @@ const ApplicationView: React.FC<ApplicationViewProps> = ({ application, onClose 
   };
 
   const renderFormData = () => {
-    return Object.entries(application.form_data).map(([key, value]) => {
+    // For adoption applications, the form data might be in applicant_details
+    const formData = application.form_data;
+    
+    return Object.entries(formData).map(([key, value]) => {
       // Skip internal fields or empty values
       if (key.startsWith('_') || value === null || value === '') return null;
       
@@ -111,7 +133,7 @@ const ApplicationView: React.FC<ApplicationViewProps> = ({ application, onClose 
         <DialogHeader>
           <DialogTitle>{application.application_type.toUpperCase()} Application</DialogTitle>
           <DialogDescription>
-            Submitted on {new Date(application.created_at).toLocaleDateString()} by {application.form_data.firstName} {application.form_data.lastName}
+            Submitted on {new Date(application.created_at).toLocaleDateString()} by {application.form_data.firstName || application.profiles?.first_name} {application.form_data.lastName || application.profiles?.last_name}
           </DialogDescription>
         </DialogHeader>
 

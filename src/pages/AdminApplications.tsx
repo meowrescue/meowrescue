@@ -24,11 +24,12 @@ const AdminApplications = () => {
     queryFn: async () => {
       console.log("Fetching applications data...");
       
+      // Try to query the adoption_applications table instead of applications
       const { data, error } = await supabase
-        .from('applications')
+        .from('adoption_applications')
         .select(`
           *,
-          profiles:user_id (
+          profiles:applicant_profile_id (
             email,
             first_name,
             last_name
@@ -37,14 +38,49 @@ const AdminApplications = () => {
         .order('created_at', { ascending: false });
       
       if (error) {
-        console.error("Error fetching applications:", error);
-        throw error;
+        console.error("Error fetching adoption applications:", error);
+        
+        // If that fails, try the original applications table
+        const { data: appData, error: appError } = await supabase
+          .from('applications')
+          .select(`
+            *,
+            profiles:applicant_id (
+              email,
+              first_name,
+              last_name
+            )
+          `)
+          .order('created_at', { ascending: false });
+          
+        if (appError) {
+          console.error("Error fetching applications:", appError);
+          throw appError;
+        }
+        
+        console.log("Applications data received:", appData);
+        return appData as Application[];
       }
       
-      console.log("Applications data received:", data);
+      console.log("Adoption applications data received:", data);
       
-      // Make sure the response conforms to our Application type
-      return data as Application[];
+      // Transform adoption_applications data to match Application type
+      const transformedData = data.map(app => ({
+        id: app.id,
+        user_id: app.applicant_profile_id,
+        applicant_id: app.applicant_profile_id,
+        application_type: 'adoption',
+        status: app.status.toLowerCase(),
+        form_data: app.applicant_details || {},
+        created_at: app.created_at,
+        updated_at: app.updated_at,
+        reviewed_at: app.reviewed_at,
+        reviewer_id: null,
+        feedback: app.notes,
+        profiles: app.profiles
+      }));
+      
+      return transformedData as Application[];
     }
   });
 
@@ -58,7 +94,7 @@ const AdminApplications = () => {
     if (selectedTab === 'adoption') return app.application_type === 'adoption';
     if (selectedTab === 'foster') return app.application_type === 'foster';
     if (selectedTab === 'volunteer') return app.application_type === 'volunteer';
-    if (selectedTab === 'pending') return app.status === 'pending';
+    if (selectedTab === 'pending') return app.status === 'pending' || app.status === 'submitted';
     if (selectedTab === 'in-review') return app.status === 'in-review';
     if (selectedTab === 'approved') return app.status === 'approved';
     if (selectedTab === 'rejected') return app.status === 'rejected';
@@ -71,7 +107,7 @@ const AdminApplications = () => {
     adoption: applications?.filter(app => app.application_type === 'adoption').length || 0,
     foster: applications?.filter(app => app.application_type === 'foster').length || 0,
     volunteer: applications?.filter(app => app.application_type === 'volunteer').length || 0,
-    pending: applications?.filter(app => app.status === 'pending').length || 0,
+    pending: applications?.filter(app => app.status === 'pending' || app.status === 'submitted').length || 0,
     'in-review': applications?.filter(app => app.status === 'in-review').length || 0,
     approved: applications?.filter(app => app.status === 'approved').length || 0,
     rejected: applications?.filter(app => app.status === 'rejected').length || 0,
@@ -80,6 +116,7 @@ const AdminApplications = () => {
   const getStatusBadge = (status: string) => {
     switch(status) {
       case 'pending':
+      case 'submitted':
         return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Pending</Badge>;
       case 'in-review':
         return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">In Review</Badge>;
