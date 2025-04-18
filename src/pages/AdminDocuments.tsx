@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -568,7 +567,7 @@ const AdminDocuments = () => {
                   <FilePlus className="mr-2 h-4 w-4" />
                   Add Document
                 </Button>
-              </Car>
+              </Card>
             )}
           </TabsContent>
         </Tabs>
