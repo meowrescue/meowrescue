@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Upload, Image as ImageIcon, X } from 'lucide-react';
@@ -15,17 +15,51 @@ interface ImageUploaderProps {
 const ImageUploader: React.FC<ImageUploaderProps> = ({
   onImageUploaded,
   currentImage,
-  bucketName = 'cat-photos', // Updated default bucket
-  folderPath = 'cats' // Added specific folder for cats
+  bucketName = 'cat-photos', // This should match the bucket created in Supabase
+  folderPath = 'cats' // Using a specific folder for organization
 }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentImage || null);
   const { toast } = useToast();
+  const [bucketExists, setBucketExists] = useState(true);
+
+  // Check if the bucket exists
+  useEffect(() => {
+    const checkBucket = async () => {
+      try {
+        const { data, error } = await supabase
+          .storage
+          .getBucket(bucketName);
+        
+        if (error) {
+          console.error('Error checking bucket:', error);
+          setBucketExists(false);
+          toast({
+            title: 'Storage configuration issue',
+            description: `Bucket "${bucketName}" may not exist. Please contact an administrator.`,
+            variant: 'destructive',
+          });
+        } else {
+          setBucketExists(true);
+        }
+      } catch (error) {
+        console.error('Error checking bucket:', error);
+        setBucketExists(false);
+      }
+    };
+
+    checkBucket();
+  }, [bucketName, toast]);
 
   const uploadImage = async (file: File) => {
     setIsUploading(true);
 
     try {
+      // Make sure the bucket exists
+      if (!bucketExists) {
+        throw new Error(`Storage bucket "${bucketName}" does not exist`);
+      }
+
       // Make sure the file is an image
       if (!file.type.match('image.*')) {
         throw new Error('Only image files are allowed');
@@ -36,12 +70,18 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       const fileName = `${Date.now()}.${fileExt}`;
       const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
 
+      console.log(`Uploading to bucket: ${bucketName}, path: ${filePath}`);
+
       // Upload the file to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from(bucketName)
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) {
+        console.error('Upload error details:', uploadError);
         throw uploadError;
       }
 
@@ -113,7 +153,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           </p>
           <Button
             variant="outline"
-            disabled={isUploading}
+            disabled={isUploading || !bucketExists}
             onClick={() => document.getElementById('file-upload')?.click()}
           >
             {isUploading ? (
