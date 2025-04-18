@@ -157,29 +157,38 @@ const CatMedicalRecords = ({ catId, editMode }: { catId: string; editMode: boole
             <TableHead>Description</TableHead>
             <TableHead>Veterinarian</TableHead>
             <TableHead>Cost</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            {editMode && <TableHead className="text-right">Actions</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
-          {medicalRecords && medicalRecords.map((record) => (
-            <TableRow key={record.id}>
-              <TableCell>{format(new Date(record.record_date), 'MMM d, yyyy')}</TableCell>
-              <TableCell>{record.procedure_type}</TableCell>
-              <TableCell>{record.description}</TableCell>
-              <TableCell>{record.veterinarian || 'N/A'}</TableCell>
-              <TableCell>{record.cost ? `$${record.cost.toFixed(2)}` : 'N/A'}</TableCell>
-              <TableCell className="text-right">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleDeleteRecord(record.id)}
-                  className={editMode ? "opacity-100" : "hidden"}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+          {medicalRecords && medicalRecords.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={editMode ? 6 : 5} className="text-center py-6">
+                No medical records found for this cat.
               </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            medicalRecords && medicalRecords.map((record) => (
+              <TableRow key={record.id}>
+                <TableCell>{format(new Date(record.record_date), 'MMM d, yyyy')}</TableCell>
+                <TableCell>{record.procedure_type}</TableCell>
+                <TableCell>{record.description}</TableCell>
+                <TableCell>{record.veterinarian || 'N/A'}</TableCell>
+                <TableCell>{record.cost ? `$${record.cost.toFixed(2)}` : 'N/A'}</TableCell>
+                {editMode && (
+                  <TableCell className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteRecord(record.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                )}
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
 

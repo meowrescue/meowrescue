@@ -21,6 +21,7 @@ export interface DatePickerProps {
   placeholder?: string;
   className?: string;
   disabled?: boolean | ((date: Date) => boolean);
+  initialFocus?: boolean;
 }
 
 export function DatePicker({
@@ -30,6 +31,7 @@ export function DatePicker({
   placeholder,
   className,
   disabled,
+  initialFocus,
 }: DatePickerProps) {
   return (
     <Popover>
@@ -57,7 +59,7 @@ export function DatePicker({
             selected={selected as Date}
             onSelect={onSelect as (date: Date | undefined) => void}
             disabled={disabled}
-            initialFocus
+            initialFocus={initialFocus}
             className={cn("p-3 pointer-events-auto")}
           />
         )}
@@ -67,7 +69,7 @@ export function DatePicker({
             selected={selected as Date[]}
             onSelect={onSelect as (date: Date[] | undefined) => void}
             disabled={disabled}
-            initialFocus
+            initialFocus={initialFocus}
             className={cn("p-3 pointer-events-auto")}
           />
         )}
@@ -77,7 +79,7 @@ export function DatePicker({
             selected={selected as { from: Date; to?: Date }}
             onSelect={onSelect as (date: { from: Date; to?: Date } | undefined) => void}
             disabled={disabled}
-            initialFocus
+            initialFocus={initialFocus}
             className={cn("p-3 pointer-events-auto")}
           />
         )}
