@@ -40,15 +40,21 @@ export default defineConfig(({ mode }) => ({
         'entry-server': './src/entry-server.tsx',
       },
       output: {
-        manualChunks: {
-          react: ['react', 'react-dom'],
-          reactRouter: ['react-router-dom'],
-          ui: [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-toast',
-          ],
-        },
+        // Remove the manualChunks configuration that's causing conflicts
+        // with React being treated as external
+        manualChunks: (id) => {
+          // Create chunks for specific third-party dependencies
+          if (id.includes('node_modules')) {
+            if (id.includes('@radix-ui')) {
+              return 'vendor-radix';
+            }
+            if (id.includes('react-router')) {
+              return 'vendor-router';
+            }
+            // Add more specific dependencies as needed
+            return 'vendor'; // All other dependencies
+          }
+        }
       },
     },
   },
