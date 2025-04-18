@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -191,14 +192,25 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         className="hidden"
       />
 
+      {/* Image preview dialog */}
       <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
         <DialogContent className="max-w-4xl w-[90vw] p-0 overflow-hidden bg-transparent border-0">
-          <img 
-            src={selectedImage || ''} 
-            alt="Full size preview" 
-            className="w-full h-auto max-h-[90vh] object-contain rounded-lg"
-            onClick={() => setSelectedImage(null)}
-          />
+          <div className="relative bg-black/80 p-1 rounded-lg">
+            <img 
+              src={selectedImage || ''} 
+              alt="Full size preview" 
+              className="w-full h-auto max-h-[90vh] object-contain rounded-lg"
+              onClick={() => setSelectedImage(null)}
+            />
+            <Button 
+              className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full bg-black/50 hover:bg-black/70 text-white"
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedImage(null)}
+            >
+              &times;
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

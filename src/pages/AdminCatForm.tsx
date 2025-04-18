@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -8,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, Upload, Loader2, Edit, ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -37,6 +39,9 @@ const AdminCatForm: React.FC = () => {
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showOnAdoptablePage, setShowOnAdoptablePage] = useState(true);
+  
+  // New state for photo viewing
+  const [selectedPhotoUrl, setSelectedPhotoUrl] = useState<string | null>(null);
   
   // Fetch cat data when editing
   const { data: cat, isLoading: isCatLoading } = useQuery({
@@ -176,6 +181,11 @@ const AdminCatForm: React.FC = () => {
   // Handle photo removal
   const handleRemovePhoto = (index: number) => {
     setPhotoUrls(prev => prev.filter((_, i) => i !== index));
+  };
+  
+  // Handle photo selection for viewing in a modal
+  const handleViewPhoto = (url: string) => {
+    setSelectedPhotoUrl(url);
   };
 
   const catBreeds = [
@@ -352,7 +362,7 @@ const AdminCatForm: React.FC = () => {
                   <SectionHeading 
                     title="Photos" 
                     centered={false} 
-                    className="flex items-center pt-2 text-3xl"
+                    className="flex items-center pt-2 text-3xl text-meow-primary font-bold"
                   />
                   
                   {editMode && (
@@ -375,7 +385,7 @@ const AdminCatForm: React.FC = () => {
                               src={url} 
                               alt={`Cat photo ${index + 1}`} 
                               className="w-24 h-24 object-cover rounded-md shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
-                              onClick={() => window.open(url, '_blank')}
+                              onClick={() => handleViewPhoto(url)}
                             />
                             {editMode && (
                               <Button
@@ -427,6 +437,34 @@ const AdminCatForm: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Photo viewing modal */}
+      <Dialog 
+        open={!!selectedPhotoUrl} 
+        onOpenChange={(open) => {
+          if (!open) setSelectedPhotoUrl(null);
+        }}
+      >
+        <DialogContent className="max-w-4xl p-0 bg-transparent border-0">
+          <div className="relative bg-black/80 p-1 rounded-lg">
+            <div className="flex justify-center items-center">
+              <img 
+                src={selectedPhotoUrl || ''} 
+                alt="Cat photo" 
+                className="max-h-[80vh] max-w-[90vw] object-contain rounded"
+              />
+            </div>
+            <Button 
+              className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full bg-black/50 hover:bg-black/70 text-white"
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedPhotoUrl(null)}
+            >
+              &times;
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 };

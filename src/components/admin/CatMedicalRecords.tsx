@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Trash2, File, FileText, Download, FileSymlink, FileCheck } from 'lucide-react';
@@ -33,6 +32,7 @@ const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId, editMode =
   });
   const [documentFile, setDocumentFile] = React.useState<File | null>(null);
 
+  // Fix the medical records query to not attempt a join that's causing the error
   const { data: medicalRecords, isLoading, isError, refetch } = useQuery({
     queryKey: ['cat-medical-records', catId],
     queryFn: async () => {
@@ -40,9 +40,10 @@ const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId, editMode =
       
       console.log('Fetching medical records for cat:', catId);
       
+      // Modified query to not join with documents table
       const { data, error } = await supabase
         .from('cat_medical_records')
-        .select('*, documents:documents(id, title, file_path)')
+        .select('*')
         .eq('cat_id', catId)
         .order('record_date', { ascending: false });
 
@@ -51,10 +52,29 @@ const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId, editMode =
         throw error;
       }
       
-      console.log('Medical records fetched:', data);
-      return data || [];
+      // Now fetch any associated documents separately
+      const recordsWithDocuments = await Promise.all(
+        (data || []).map(async (record) => {
+          const { data: documents, error: docError } = await supabase
+            .from('documents')
+            .select('id, title, file_path')
+            .eq('cat_id', catId);
+            
+          if (docError) {
+            console.warn('Error fetching documents:', docError);
+            return { ...record, documents: [] };
+          }
+          
+          return { ...record, documents: documents || [] };
+        })
+      );
+      
+      console.log('Medical records fetched:', recordsWithDocuments);
+      return recordsWithDocuments || [];
     },
-    enabled: !!catId
+    enabled: !!catId,
+    retry: 2,
+    retryDelay: 1000
   });
 
   // This effect will run whenever medicalRecords changes
