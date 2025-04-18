@@ -159,6 +159,7 @@ const AdminUsers = () => {
         description: `User has been ${data.isActive ? 'activated' : 'deactivated'}.`
       });
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      return Promise.resolve();
     },
     onError: (error: any) => {
       toast({
@@ -166,6 +167,7 @@ const AdminUsers = () => {
         description: error.message || "Failed to update status",
         variant: "destructive"
       });
+      return Promise.reject(error);
     }
   });
 
@@ -213,7 +215,7 @@ const AdminUsers = () => {
   const handleRoleChange = (userId: string, newRole: string): Promise<void> => {
     // Ensure newRole is a valid UserRole before passing to mutation
     if (['admin', 'volunteer', 'foster', 'user'].includes(newRole)) {
-      return updateRoleMutation.mutate({ 
+      return updateRoleMutation.mutateAsync({ 
         userId, 
         role: newRole as UserRole 
       });
@@ -225,6 +227,11 @@ const AdminUsers = () => {
       });
       return Promise.reject(new Error(`Invalid role: ${newRole}`));
     }
+  };
+
+  // Handle status change
+  const handleStatusChange = (userId: string, isActive: boolean): Promise<void> => {
+    return updateStatusMutation.mutateAsync({ userId, isActive });
   };
 
   return (
@@ -386,7 +393,7 @@ const AdminUsers = () => {
                     key={user.id}
                     user={user as unknown as UserType}
                     onRoleChange={(role) => handleRoleChange(user.id, role)}
-                    onStatusChange={(isActive) => updateStatusMutation.mutate({ userId: user.id, isActive })}
+                    onStatusChange={(isActive) => handleStatusChange(user.id, isActive)}
                     refetchUsers={() => queryClient.invalidateQueries({ queryKey: ['admin-users'] })}
                   />
                 ))}

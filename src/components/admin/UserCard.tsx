@@ -232,7 +232,7 @@ const UserCard: React.FC<UserCardProps> = ({ user, onRoleChange, onStatusChange,
                 <DropdownMenuLabel>User Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 
-                <DropdownMenuItem onClick={() => onStatusChange(user.id, !user.is_active)}>
+                <DropdownMenuItem onClick={() => onStatusChange(!user.is_active)}>
                   {user.is_active ? (
                     <>
                       <UserX className="mr-2 h-4 w-4" />
