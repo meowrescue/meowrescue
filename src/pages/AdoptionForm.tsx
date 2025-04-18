@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import SEO from '@/components/SEO';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +12,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -23,10 +27,18 @@ const formSchema = z.object({
   permissionToAdopt: z.boolean().refine((value) => value === true, {
     message: 'You must confirm that you have permission to adopt.',
   }),
+  specificCat: z.string().optional(),
 });
 
 const AdoptionForm: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  // Get cat info from URL params if available
+  const catId = searchParams.get('catId');
+  const catName = searchParams.get('catName');
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -40,17 +52,55 @@ const AdoptionForm: React.FC = () => {
       otherPets: '',
       housingType: '',
       permissionToAdopt: false,
+      specificCat: catName || '',
     },
   });
 
+  // Set specificCat field when catName changes
+  useEffect(() => {
+    if (catName) {
+      form.setValue('specificCat', catName);
+      
+      // If the cat has a name, prefill the whyAdopt field with a starter sentence
+      const currentWhyAdopt = form.getValues('whyAdopt');
+      if (!currentWhyAdopt) {
+        form.setValue('whyAdopt', `I'm interested in adopting ${catName}...`);
+      }
+    }
+  }, [catName, form]);
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
-    // Here you would typically handle the form submission, e.g., sending the data to a server.
-    console.log('Form values:', values);
-    // Simulate a submission delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsSubmitting(false);
-    alert('Form submitted successfully!');
+    try {
+      // Add catId to the form values if it exists
+      const submissionData = {
+        ...values,
+        ...(catId && { catId }),
+      };
+      
+      // Here you would typically handle the form submission to Supabase
+      console.log('Form values:', submissionData);
+      
+      // Simulate a submission delay
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      
+      toast({
+        title: "Application Submitted",
+        description: "Your adoption application has been received. We will contact you soon!",
+      });
+      
+      // Redirect to home page or a thank you page
+      navigate('/');
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast({
+        title: "Submission Failed",
+        description: "There was a problem submitting your application. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -127,6 +177,25 @@ const AdoptionForm: React.FC = () => {
                       <FormLabel className="text-base">Address</FormLabel>
                       <FormControl>
                         <Input placeholder="Your street address" {...field} className="h-12" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Field to specify a cat */}
+                <FormField
+                  control={form.control}
+                  name="specificCat"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">Specific Cat You're Interested In</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Leave blank if you're not applying for a specific cat" 
+                          {...field} 
+                          className="h-12" 
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

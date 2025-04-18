@@ -7,11 +7,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, Plus } from 'lucide-react';
+import { Edit, Trash2, Plus, Filter } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import SEO from '@/components/SEO';
 import { useAuth } from '@/contexts/AuthContext';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
 
 interface Cat {
   id: string;
@@ -23,12 +30,16 @@ interface Cat {
   status: string;
   internal_status: string | null;
   intake_date: string;
+  gender: string | null;
 }
 
 const AdminCats: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [internalStatusFilter, setInternalStatusFilter] = useState('all');
+  const [genderFilter, setGenderFilter] = useState('all');
   const { user } = useAuth();
   
   // Fetch cats
@@ -87,11 +98,36 @@ const AdminCats: React.FC = () => {
     }
   };
   
-  // Filter cats based on search query
-  const filteredCats = cats?.filter(cat =>
-    cat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    cat.breed?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Reset all filters
+  const resetFilters = () => {
+    setSearchQuery('');
+    setStatusFilter('all');
+    setInternalStatusFilter('all');
+    setGenderFilter('all');
+  };
+  
+  // Filter cats based on search query and filters
+  const filteredCats = cats?.filter(cat => {
+    // Search filter
+    const matchesSearch = 
+      cat.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      cat.breed?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (cat.description?.toLowerCase() || '').includes(searchQuery.toLowerCase());
+    
+    // Status filter
+    const matchesStatus = 
+      statusFilter === 'all' || cat.status === statusFilter;
+    
+    // Internal status filter
+    const matchesInternalStatus = 
+      internalStatusFilter === 'all' || cat.internal_status === internalStatusFilter;
+    
+    // Gender filter
+    const matchesGender = 
+      genderFilter === 'all' || (cat.gender?.toLowerCase() || '') === genderFilter.toLowerCase();
+    
+    return matchesSearch && matchesStatus && matchesInternalStatus && matchesGender;
+  });
 
   // Get status badge color
   const getStatusBadgeClass = (status: string) => {
@@ -157,6 +193,71 @@ const AdminCats: React.FC = () => {
           </div>
         </div>
         
+        {/* Filters */}
+        <div className="bg-gray-50 p-4 rounded-lg mb-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="w-full sm:w-auto">
+              <Select 
+                value={statusFilter} 
+                onValueChange={setStatusFilter}
+              >
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="Available">Available</SelectItem>
+                  <SelectItem value="Pending">Pending</SelectItem>
+                  <SelectItem value="Adopted">Adopted</SelectItem>
+                  <SelectItem value="NotListed">Not Listed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="w-full sm:w-auto">
+              <Select 
+                value={internalStatusFilter} 
+                onValueChange={setInternalStatusFilter}
+              >
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Internal Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Internal Statuses</SelectItem>
+                  <SelectItem value="Alive">Alive</SelectItem>
+                  <SelectItem value="Deceased">Deceased</SelectItem>
+                  <SelectItem value="Missing">Missing</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="w-full sm:w-auto">
+              <Select 
+                value={genderFilter} 
+                onValueChange={setGenderFilter}
+              >
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Genders</SelectItem>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={resetFilters}
+              className="w-full sm:w-auto"
+            >
+              Clear Filters
+            </Button>
+          </div>
+        </div>
+        
         {isLoading ? (
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
@@ -180,50 +281,58 @@ const AdminCats: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredCats?.map((cat) => (
-                  <TableRow 
-                    key={cat.id} 
-                    onClick={() => handleRowClick(cat.id)}
-                    className="cursor-pointer hover:bg-gray-50"
-                  >
-                    <TableCell>{cat.name}</TableCell>
-                    <TableCell>{cat.age_estimate || 'Unknown'}</TableCell>
-                    <TableCell>{cat.breed || 'Unknown'}</TableCell>
-                    <TableCell>
-                      <Badge className={getStatusBadgeClass(cat.status)}>
-                        {getDisplayStatus(cat.status)}
-                      </Badge>
+                {filteredCats?.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="h-24 text-center">
+                      No cats found with the current filters.
                     </TableCell>
-                    <TableCell>
-                      {cat.internal_status && (
-                        <Badge className={getInternalStatusBadgeClass(cat.internal_status)}>
-                          {cat.internal_status}
+                  </TableRow>
+                ) : (
+                  filteredCats?.map((cat) => (
+                    <TableRow 
+                      key={cat.id} 
+                      onClick={() => handleRowClick(cat.id)}
+                      className="cursor-pointer hover:bg-gray-50"
+                    >
+                      <TableCell>{cat.name}</TableCell>
+                      <TableCell>{cat.age_estimate || 'Unknown'}</TableCell>
+                      <TableCell>{cat.breed || 'Unknown'}</TableCell>
+                      <TableCell>
+                        <Badge className={getStatusBadgeClass(cat.status)}>
+                          {getDisplayStatus(cat.status)}
                         </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/admin/cats/edit/${cat.id}`);
-                        }}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      {isAdmin && (
+                      </TableCell>
+                      <TableCell>
+                        {cat.internal_status && (
+                          <Badge className={getInternalStatusBadgeClass(cat.internal_status)}>
+                            {cat.internal_status}
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          onClick={(e) => handleDeleteCat(cat.id, e)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/admin/cats/edit/${cat.id}`);
+                          }}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Edit className="h-4 w-4" />
                         </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                        {isAdmin && (
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={(e) => handleDeleteCat(cat.id, e)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>

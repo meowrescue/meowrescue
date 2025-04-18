@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Heart, ArrowLeft, Calendar, MapPin, Users, FileCheck } from 'lucide-react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { Heart, ArrowLeft, Calendar, MapPin, Users, FileCheck, Star, Stethoscope } from 'lucide-react';
 import { format } from 'date-fns';
 import Layout from '@/components/Layout';
 import SectionHeading from '@/components/ui/SectionHeading';
@@ -41,6 +41,7 @@ interface MedicalRecord {
 
 const CatDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [cat, setCat] = useState<CatDetails | null>(null);
   const [medicalRecords, setMedicalRecords] = useState<MedicalRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -119,6 +120,15 @@ const CatDetail: React.FC = () => {
       fetchCatDetails();
     }
   }, [id, toast]);
+
+  // Handle adoption button click - navigates to adoption form with cat info prefilled
+  const handleAdoptClick = () => {
+    if (cat) {
+      navigate(`/adopt?catId=${cat.id}&catName=${encodeURIComponent(cat.name)}`);
+    } else {
+      navigate('/adopt');
+    }
+  };
 
   if (isLoading) {
     return (
@@ -266,51 +276,42 @@ const CatDetail: React.FC = () => {
               )}
             </div>
             
+            {/* Medical Records Section */}
+            {medicalRecords.length > 0 && (
+              <div className="mb-8 bg-gray-50 p-4 rounded-lg">
+                <h3 className="text-xl font-semibold mb-4 flex items-center">
+                  <Stethoscope className="mr-2 h-5 w-5 text-meow-primary" />
+                  Medical History
+                </h3>
+                <div className="space-y-3">
+                  {medicalRecords.map((record) => (
+                    <div key={record.id} className="flex items-start gap-3 border-b border-gray-200 pb-3 last:border-0">
+                      <div className="bg-meow-primary/10 p-2 rounded-full flex-shrink-0">
+                        <FileCheck className="h-4 w-4 text-meow-primary" />
+                      </div>
+                      <div>
+                        <div className="font-medium">{record.procedure_type}</div>
+                        <div className="text-sm text-gray-600">{record.description}</div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {format(new Date(record.record_date), 'MMM d, yyyy')}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
             <div className="mt-8">
               <Button 
-                asChild
+                onClick={handleAdoptClick}
                 className="bg-meow-secondary hover:bg-meow-secondary/90 w-full md:w-auto text-white py-3 px-8 rounded-md text-lg"
               >
-                <Link to="/adopt">Adopt {cat.name}</Link>
+                Adopt {cat.name}
               </Button>
             </div>
           </div>
         </div>
-
-        {/* Medical Records Section */}
-        {medicalRecords.length > 0 && (
-          <div className="mb-16">
-            <SectionHeading 
-              title="Medical History" 
-              subtitle={`${cat.name}'s medical records and procedures`}
-              centered
-            />
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
-              {medicalRecords.map((record) => (
-                <Card key={record.id} className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                  <CardContent className="pt-6">
-                    <div className="flex items-start gap-3">
-                      <div className="bg-meow-primary/10 p-2 rounded-full">
-                        <FileCheck className="h-5 w-5 text-meow-primary" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-meow-primary">{record.procedure_type}</h4>
-                        <p className="text-sm text-gray-600">{record.description}</p>
-                        {record.veterinarian && (
-                          <p className="text-sm text-gray-600">Vet: {record.veterinarian}</p>
-                        )}
-                        <p className="text-xs text-gray-500 mt-2">
-                          {format(new Date(record.record_date), 'MMM d, yyyy')}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
 
         <SectionHeading 
           title="Adoption Process" 
@@ -352,10 +353,10 @@ const CatDetail: React.FC = () => {
         
         <div className="text-center mt-12">
           <Button 
-            asChild
+            onClick={handleAdoptClick}
             className="bg-meow-primary hover:bg-meow-primary/90 px-8"
           >
-            <Link to="/adopt">Start Adoption Process</Link>
+            Start Adoption Process
           </Button>
         </div>
 

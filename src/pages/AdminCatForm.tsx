@@ -35,6 +35,7 @@ const AdminCatForm: React.FC = () => {
   const [status, setStatus] = useState('Available');
   const [internalStatus, setInternalStatus] = useState('Alive');
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
+  const [tempPhotoUrls, setTempPhotoUrls] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showOnAdoptablePage, setShowOnAdoptablePage] = useState(true);
   
@@ -71,6 +72,7 @@ const AdminCatForm: React.FC = () => {
       setStatus(cat.status || 'Available');
       setInternalStatus(cat.internal_status || 'Alive');
       setPhotoUrls(cat.photos_urls || []);
+      setTempPhotoUrls(cat.photos_urls || []);
       // The showOnAdoptablePage checkbox is tied to the status
       setShowOnAdoptablePage(cat.status === 'Available');
     }
@@ -149,7 +151,7 @@ const AdminCatForm: React.FC = () => {
         medical_notes: medicalNotes,
         status: finalStatus,
         internal_status: internalStatus,
-        photos_urls: photoUrls
+        photos_urls: tempPhotoUrls
       };
       
       if (isEditing && id) {
@@ -172,18 +174,29 @@ const AdminCatForm: React.FC = () => {
   // Handle photo upload completed
   const handleImageUploaded = (url: string) => {
     if (url) {
-      setPhotoUrls(prev => [...prev, url]);
+      setTempPhotoUrls(prev => [...prev, url]);
     }
   };
   
   // Handle photo removal
   const handleRemovePhoto = (index: number) => {
-    setPhotoUrls(prev => prev.filter((_, i) => i !== index));
+    setTempPhotoUrls(prev => prev.filter((_, i) => i !== index));
   };
   
   // Handle photo selection for viewing in a modal
   const handleViewPhoto = (url: string) => {
     setSelectedPhotoUrl(url);
+  };
+
+  // Handle cancel editing
+  const handleCancelEdit = () => {
+    if (isEditing) {
+      // Reset to original values
+      setTempPhotoUrls(photoUrls);
+      setEditMode(false);
+    } else {
+      navigate('/admin/cats');
+    }
   };
 
   const catBreeds = [
@@ -374,10 +387,10 @@ const AdminCatForm: React.FC = () => {
                   )}
                   
                   {/* Existing photos preview with click to view in modal */}
-                  {photoUrls.length > 0 && (
+                  {tempPhotoUrls.length > 0 && (
                     <div className="mt-4">
                       <div className="flex flex-wrap gap-3">
-                        {photoUrls.map((url, index) => (
+                        {tempPhotoUrls.map((url, index) => (
                           <div key={index} className="relative">
                             <img 
                               src={url} 
@@ -408,7 +421,7 @@ const AdminCatForm: React.FC = () => {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => isEditing ? setEditMode(false) : navigate('/admin/cats')}
+                      onClick={handleCancelEdit}
                       disabled={isLoading}
                       className="w-full sm:w-auto"
                     >
