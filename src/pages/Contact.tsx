@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Layout from '@/components/Layout';
 import ContactForm from '@/components/ContactForm';
@@ -8,11 +7,43 @@ import SEO from '@/components/SEO';
 import SectionHeading from '@/components/ui/SectionHeading';
 
 const Contact = () => {
+  // Create structured data for this page
+  const contactPageStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "ContactPage",
+    "name": "Contact Meow Rescue",
+    "description": "Get in touch with Meow Rescue. We're here to answer your questions about cat adoption, fostering, volunteering, and more.",
+    "url": "https://meowrescue.org/contact",
+    "mainEntity": {
+      "@type": "Organization",
+      "name": "Meow Rescue",
+      "telephone": "(727) 257-0037",
+      "email": "info@meowrescue.org",
+      "openingHoursSpecification": [
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+          "opens": "09:00",
+          "closes": "17:00"
+        },
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": ["Saturday"],
+          "opens": "10:00",
+          "closes": "16:00"
+        }
+      ]
+    }
+  };
+  
   return (
     <Layout>
       <SEO 
         title="Contact Us | Meow Rescue"
         description="Get in touch with Meow Rescue. We're here to answer your questions about cat adoption, fostering, volunteering, and more."
+        canonicalUrl="/contact"
+        structuredData={contactPageStructuredData}
+        keywords="contact meow rescue, cat rescue contact, animal shelter contact, pet adoption contact, florida cat rescue"
       />
       
       <div className="relative">

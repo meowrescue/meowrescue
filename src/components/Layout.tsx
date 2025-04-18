@@ -18,6 +18,7 @@ const Layout: React.FC<LayoutProps> = ({ children, hideFooter = false }) => {
   const location = useLocation();
   
   useEffect(() => {
+    // Scroll to top on route change for better user experience
     scrollToTop();
     
     // Preload important resources based on current route
@@ -27,6 +28,16 @@ const Layout: React.FC<LayoutProps> = ({ children, hideFooter = false }) => {
       link.as = 'fetch';
       link.href = 'https://yourapi.example.com/api/cats';
       document.head.appendChild(link);
+    }
+    
+    // Add preloading for other critical pages
+    if (location.pathname === '/') {
+      // Preload featured cats images for the homepage
+      const featuredCatsLink = document.createElement('link');
+      featuredCatsLink.rel = 'preload';
+      featuredCatsLink.as = 'fetch';
+      featuredCatsLink.href = 'https://yourapi.example.com/api/featured-cats';
+      document.head.appendChild(featuredCatsLink);
     }
   }, [location.pathname]);
   

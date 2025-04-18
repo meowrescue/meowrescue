@@ -2,10 +2,48 @@ import React from 'react';
 import Layout from '../components/Layout';
 import SectionHeading from '../components/ui/SectionHeading';
 import { ExternalLink } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 const Resources: React.FC = () => {
+  // Create structured data for this page
+  const resourcePageStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Cat Care Resources",
+    "description": "Helpful information for cat owners and caregivers, including local resources and guides for pet care.",
+    "url": "https://meowrescue.org/resources",
+    "mainEntity": {
+      "@type": "ItemList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Veterinary Care Resources"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Pet Food Assistance"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "New Cat Owner Guides"
+        }
+      ]
+    }
+  };
+
   return (
     <Layout>
+      <SEO 
+        title="Cat Care Resources | Meow Rescue" 
+        description="Find helpful resources for cat owners including veterinary care, pet food assistance, new cat owner guides, and more."
+        keywords="cat care, cat health, cat food, veterinary services, pet assistance, cat owner guide"
+        canonicalUrl="/resources"
+        structuredData={resourcePageStructuredData}
+      />
+      
       <div className="container mx-auto px-4 py-8 mt-2">
         <SectionHeading 
           title="Cat Care Resources" 
@@ -15,7 +53,7 @@ const Resources: React.FC = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16">
           <div>
-            <h2 className="text-2xl font-bold text-meow-primary mb-6">Local Resources</h2>
+            <h2 className="text-2xl font-bold text-meow-primary mb-6 h-[32px] flex items-center">Local Resources</h2>
             
             <div className="space-y-6">
               <div className="bg-white p-6 rounded-lg shadow-md">
@@ -74,7 +112,7 @@ const Resources: React.FC = () => {
           </div>
           
           <div>
-            <h2 className="text-2xl font-bold text-meow-primary mb-6">Cat Care Guides</h2>
+            <h2 className="text-2xl font-bold text-meow-primary mb-6 h-[32px] flex items-center">Cat Care Guides</h2>
             
             <div className="space-y-6">
               <div className="bg-white p-6 rounded-lg shadow-md">

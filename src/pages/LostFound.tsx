@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import Layout from "../components/Layout";
 import SectionHeading from "@/components/ui/SectionHeading";
@@ -19,6 +20,28 @@ const LostFound = () => {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "lost" | "found" | "reunited">("all");
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Create structured data for this page
+  const lostFoundStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "Lost & Found Pets",
+    "description": "Help reunite lost pets with their families. Report lost or found pets in our community.",
+    "url": "https://meowrescue.org/lost-found",
+    "mainEntity": {
+      "@type": "ItemList",
+      "itemListElement": posts.map((post, index) => ({
+        "@type": "ListItem",
+        "position": index + 1,
+        "item": {
+          "@type": "Article",
+          "name": post.title,
+          "description": post.description,
+          "url": `https://meowrescue.org/lost-found/${post.id}`
+        }
+      }))
+    }
+  };
 
   useEffect(() => {
     fetchPosts();
@@ -74,8 +97,11 @@ const LostFound = () => {
   return (
     <Layout>
       <SEO 
-        title="Lost & Found Pets" 
+        title="Lost & Found Pets | Meow Rescue" 
         description="Help reunite lost pets with their families. Report lost or found pets in our community."
+        keywords="lost pets, found pets, missing cats, missing pets, pet reunification, animal rescue"
+        canonicalUrl="/lost-found"
+        structuredData={lostFoundStructuredData}
       />
       
       <div className="container mx-auto px-4 py-8 mt-2">
