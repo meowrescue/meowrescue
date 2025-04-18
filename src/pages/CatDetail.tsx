@@ -1,13 +1,15 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar } from 'lucide-react';
+import { Calendar, Heart, Clock, Info, Medal, Syringe, PawPrint, Clipboard, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import SEO from '@/components/SEO';
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import SectionHeading from '@/components/ui/SectionHeading';
 
 interface Cat {
@@ -32,10 +34,12 @@ interface Cat {
   flea_treatment_date: string | null;
   spay_neuter_date: string | null;
   microchip_number: string | null;
+  intake_date: string;
 }
 
 const CatDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const { data: cat, isLoading, isError, error } = useQuery({
     queryKey: ['cat', id],
@@ -83,7 +87,7 @@ const CatDetail: React.FC = () => {
       />
 
       {/* Hero Section */}
-      <div className="bg-meow-primary/10 py-16 md:py-24">
+      <div className="bg-gradient-to-b from-meow-primary/10 to-transparent py-16 md:py-24">
         <div className="container mx-auto px-4">
           <SectionHeading
             title={cat.name}
@@ -95,75 +99,114 @@ const CatDetail: React.FC = () => {
       {/* Cat Details Section */}
       <div className="container mx-auto px-4 py-8 md:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Image */}
-          <div className="md:order-1">
-            <img
-              src={cat.photos_urls?.[0] || '/placeholder-cat.jpg'}
-              alt={cat.name}
-              className="w-full rounded-lg shadow-md object-cover h-96"
-            />
-            <div className="mt-4 flex justify-between items-center">
-              <p className="text-gray-600">
-                <Calendar className="inline-block mr-2 h-4 w-4" />
-                Posted on {cat.created_at ? format(new Date(cat.created_at), 'MMMM d, yyyy') : 'Unknown Date'}
-              </p>
-              <Badge className={`text-white ${cat.status === 'Available' ? 'bg-green-500' : cat.status === 'Pending' ? 'bg-yellow-500' : 'bg-blue-500'}`}>
-                {cat.status}
-              </Badge>
+          {/* Image and Status */}
+          <div className="space-y-6">
+            <div className="relative overflow-hidden rounded-lg shadow-lg cursor-pointer group" 
+                 onClick={() => setSelectedImage(cat.photos_urls?.[0] || '/placeholder-cat.jpg')}>
+              <img
+                src={cat.photos_urls?.[0] || '/placeholder-cat.jpg'}
+                alt={cat.name}
+                className="w-full h-[400px] object-cover transition-transform duration-300 group-hover:scale-105"
+              />
+              <div className="absolute top-4 right-4">
+                <Badge className={`text-white ${cat.status === 'Available' ? 'bg-green-500' : cat.status === 'Pending' ? 'bg-yellow-500' : 'bg-blue-500'}`}>
+                  {cat.status}
+                </Badge>
+              </div>
+              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <div className="text-white text-lg font-medium">Click to enlarge</div>
+              </div>
+            </div>
+
+            {/* Intake Information */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h3 className="text-lg font-semibold mb-4 flex items-center">
+                <Calendar className="mr-2 h-5 w-5 text-meow-primary" />
+                Intake Information
+              </h3>
+              <div className="space-y-2 text-gray-600">
+                <p className="flex items-center">
+                  <Clock className="mr-2 h-4 w-4" />
+                  Intake Date: {format(new Date(cat.intake_date), 'MMMM d, yyyy')}
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* Details */}
-          <div className="md:order-2">
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-semibold mb-2">Description</h4>
-                <p className="text-gray-600">{cat.description}</p>
-              </div>
-
-              <div>
-                <h4 className="font-semibold mb-2">Details</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-600">
-                  <div>
-                    <p>
-                      <strong>Age:</strong> {cat.age_estimate}
-                    </p>
-                    <p>
-                      <strong>Gender:</strong> {cat.gender}
-                    </p>
-                    <p>
-                      <strong>Breed:</strong> {cat.breed || 'Unknown'}
-                    </p>
-                    <p>
-                      <strong>Weight:</strong> {cat.weight || 'Unknown'}
-                    </p>
-                  </div>
-                  <div>
-                    <p>
-                      <strong>Color:</strong> {cat.color || 'Unknown'}
-                    </p>
-                    <p>
-                      <strong>Pattern:</strong> {cat.pattern || 'Unknown'}
-                    </p>
-                    <p>
-                      <strong>Eye Color:</strong> {cat.eye_color || 'Unknown'}
-                    </p>
-                    <p>
-                      <strong>Coat Type:</strong> {cat.coat_type || 'Unknown'}
-                    </p>
-                  </div>
+          {/* Details and Medical Info */}
+          <div className="space-y-6">
+            {/* Basic Details */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h3 className="text-lg font-semibold mb-4 flex items-center">
+                <Info className="mr-2 h-5 w-5 text-meow-primary" />
+                About {cat.name}
+              </h3>
+              <p className="text-gray-600 mb-6">{cat.description}</p>
+              <div className="grid grid-cols-2 gap-4 text-gray-600">
+                <div className="space-y-2">
+                  <p><strong>Age:</strong> {cat.age_estimate}</p>
+                  <p><strong>Gender:</strong> {cat.gender}</p>
+                  <p><strong>Breed:</strong> {cat.breed || 'Unknown'}</p>
+                  <p><strong>Weight:</strong> {cat.weight || 'Unknown'}</p>
+                </div>
+                <div className="space-y-2">
+                  <p><strong>Color:</strong> {cat.color || 'Unknown'}</p>
+                  <p><strong>Pattern:</strong> {cat.pattern || 'Unknown'}</p>
+                  <p><strong>Eye Color:</strong> {cat.eye_color || 'Unknown'}</p>
+                  <p><strong>Coat Type:</strong> {cat.coat_type || 'Unknown'}</p>
                 </div>
               </div>
+            </div>
 
-              <div>
-                <h4 className="font-semibold mb-2">Special Care Notes</h4>
-                <p className="text-gray-600">
-                  {cat.special_care_notes || 'None'}
-                </p>
+            {/* Medical Information */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h3 className="text-lg font-semibold mb-4 flex items-center">
+                <Medal className="mr-2 h-5 w-5 text-meow-primary" />
+                Medical Information
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-600">
+                <div className="space-y-2">
+                  <p className="flex items-center">
+                    <Syringe className="mr-2 h-4 w-4" />
+                    Vaccination: {cat.vaccination_date ? format(new Date(cat.vaccination_date), 'MM/dd/yyyy') : 'Not recorded'}
+                  </p>
+                  <p className="flex items-center">
+                    <PawPrint className="mr-2 h-4 w-4" />
+                    Deworming: {cat.deworming_date ? format(new Date(cat.deworming_date), 'MM/dd/yyyy') : 'Not recorded'}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <p className="flex items-center">
+                    <Clipboard className="mr-2 h-4 w-4" />
+                    Flea Treatment: {cat.flea_treatment_date ? format(new Date(cat.flea_treatment_date), 'MM/dd/yyyy') : 'Not recorded'}
+                  </p>
+                  <p className="flex items-center">
+                    <User className="mr-2 h-4 w-4" />
+                    Spay/Neuter: {cat.spay_neuter_date ? format(new Date(cat.spay_neuter_date), 'MM/dd/yyyy') : 'Not recorded'}
+                  </p>
+                </div>
+                {cat.microchip_number && (
+                  <div className="col-span-2">
+                    <p><strong>Microchip:</strong> {cat.microchip_number}</p>
+                  </div>
+                )}
               </div>
+            </div>
 
-              <Button asChild size="lg">
-                {/* Ensure this link navigates to the top of the page */}
+            {/* Special Care Notes */}
+            {cat.special_care_notes && (
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h3 className="text-lg font-semibold mb-4 flex items-center">
+                  <Heart className="mr-2 h-5 w-5 text-meow-primary" />
+                  Special Care Notes
+                </h3>
+                <p className="text-gray-600">{cat.special_care_notes}</p>
+              </div>
+            )}
+
+            {/* Adoption CTA */}
+            <div className="flex justify-center">
+              <Button asChild size="lg" className="bg-meow-primary hover:bg-meow-primary/90">
                 <a href="/adopt">Start Adoption Process</a>
               </Button>
             </div>
@@ -171,53 +214,52 @@ const CatDetail: React.FC = () => {
         </div>
       </div>
 
-      {/* Foster and Medical Info Section */}
-      <div className="bg-gray-50 py-8 md:py-16">
+      {/* Adoption Process Section */}
+      <div className="bg-gray-50 py-12">
         <div className="container mx-auto px-4">
           <SectionHeading
-            title="Foster & Medical Information"
-            subtitle="Important dates and details"
+            title="Adoption Process"
+            subtitle="Here's what you need to know about adopting from us"
             centered
           />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8 text-gray-600">
-            <div>
-              <h4 className="font-semibold mb-2">Foster Details</h4>
-              <p>
-                <strong>Foster Start Date:</strong>{' '}
-                {cat.foster_start_date ? format(new Date(cat.foster_start_date), 'MMMM d, yyyy') : 'N/A'}
-              </p>
-              <p>
-                <strong>Foster End Date:</strong>{' '}
-                {cat.foster_end_date ? format(new Date(cat.foster_end_date), 'MMMM d, yyyy') : 'N/A'}
-              </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <div className="text-xl font-semibold mb-3">1. Application</div>
+              <p className="text-gray-600">Fill out our adoption application form. We'll review your information and get back to you within 48 hours.</p>
             </div>
-
-            <div>
-              <h4 className="font-semibold mb-2">Medical Details</h4>
-              <p>
-                <strong>Vaccination Date:</strong>{' '}
-                {cat.vaccination_date ? format(new Date(cat.vaccination_date), 'MMMM d, yyyy') : 'N/A'}
-              </p>
-              <p>
-                <strong>Deworming Date:</strong>{' '}
-                {cat.deworming_date ? format(new Date(cat.deworming_date), 'MMMM d, yyyy') : 'N/A'}
-              </p>
-              <p>
-                <strong>Flea Treatment Date:</strong>{' '}
-                {cat.flea_treatment_date ? format(new Date(cat.flea_treatment_date), 'MMMM d, yyyy') : 'N/A'}
-              </p>
-              <p>
-                <strong>Spay/Neuter Date:</strong>{' '}
-                {cat.spay_neuter_date ? format(new Date(cat.spay_neuter_date), 'MMMM d, yyyy') : 'N/A'}
-              </p>
-              <p>
-                <strong>Microchip Number:</strong> {cat.microchip_number || 'N/A'}
-              </p>
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <div className="text-xl font-semibold mb-3">2. Meet & Greet</div>
+              <p className="text-gray-600">Schedule a time to meet your potential new family member. This helps ensure it's a perfect match.</p>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <div className="text-xl font-semibold mb-3">3. Welcome Home</div>
+              <p className="text-gray-600">Complete the adoption fee and paperwork. We'll provide you with all necessary medical records and care instructions.</p>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Image Modal */}
+      <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
+        <DialogContent className="max-w-4xl w-[90vw] p-1 bg-transparent border-0">
+          <div className="relative bg-black/80 p-1 rounded-lg">
+            <img 
+              src={selectedImage || ''} 
+              alt={cat.name}
+              className="w-full h-auto max-h-[90vh] object-contain rounded-lg"
+              onClick={() => setSelectedImage(null)}
+            />
+            <button 
+              className="absolute top-2 right-2 h-8 w-8 flex items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70"
+              onClick={() => setSelectedImage(null)}
+            >
+              ×
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
     </Layout>
   );
 };
