@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Card, 
@@ -30,12 +29,12 @@ import { User } from '@/types/users';
 
 interface UserCardProps {
   user: User;
-  onRoleChange: (userId: string, newRole: string) => Promise<void>;
-  onUserStatusChange: (userId: string, isActive: boolean) => Promise<void>;
+  onRoleChange: (role: string) => Promise<void>;
+  onStatusChange: (isActive: boolean) => Promise<void>;
   refetchUsers: () => void;
 }
 
-const UserCard: React.FC<UserCardProps> = ({ user, onRoleChange, onUserStatusChange, refetchUsers }) => {
+const UserCard: React.FC<UserCardProps> = ({ user, onRoleChange, onStatusChange, refetchUsers }) => {
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [roleTitle, setRoleTitle] = useState(user.role_title || '');
@@ -233,7 +232,7 @@ const UserCard: React.FC<UserCardProps> = ({ user, onRoleChange, onUserStatusCha
                 <DropdownMenuLabel>User Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 
-                <DropdownMenuItem onClick={() => onUserStatusChange(user.id, !user.is_active)}>
+                <DropdownMenuItem onClick={() => onStatusChange(user.id, !user.is_active)}>
                   {user.is_active ? (
                     <>
                       <UserX className="mr-2 h-4 w-4" />
@@ -250,22 +249,22 @@ const UserCard: React.FC<UserCardProps> = ({ user, onRoleChange, onUserStatusCha
                 <DropdownMenuSeparator />
                 <DropdownMenuLabel>Change Role</DropdownMenuLabel>
                 
-                <DropdownMenuItem onClick={() => onRoleChange(user.id, 'admin')}>
+                <DropdownMenuItem onClick={() => onRoleChange('admin')}>
                   <Shield className="mr-2 h-4 w-4" />
                   <span>Set as Admin</span>
                 </DropdownMenuItem>
                 
-                <DropdownMenuItem onClick={() => onRoleChange(user.id, 'volunteer')}>
+                <DropdownMenuItem onClick={() => onRoleChange('volunteer')}>
                   <Clock className="mr-2 h-4 w-4" />
                   <span>Set as Volunteer</span>
                 </DropdownMenuItem>
                 
-                <DropdownMenuItem onClick={() => onRoleChange(user.id, 'foster')}>
+                <DropdownMenuItem onClick={() => onRoleChange('foster')}>
                   <Cat className="mr-2 h-4 w-4" />
                   <span>Set as Foster</span>
                 </DropdownMenuItem>
                 
-                <DropdownMenuItem onClick={() => onRoleChange(user.id, 'user')}>
+                <DropdownMenuItem onClick={() => onRoleChange('user')}>
                   <UserPlus className="mr-2 h-4 w-4" />
                   <span>Set as Regular User</span>
                 </DropdownMenuItem>

@@ -210,10 +210,10 @@ const AdminUsers = () => {
   };
 
   // Handle role change
-  const handleRoleChange = (userId: string, newRole: string) => {
+  const handleRoleChange = (userId: string, newRole: string): Promise<void> => {
     // Ensure newRole is a valid UserRole before passing to mutation
     if (['admin', 'volunteer', 'foster', 'user'].includes(newRole)) {
-      updateRoleMutation.mutate({ 
+      return updateRoleMutation.mutate({ 
         userId, 
         role: newRole as UserRole 
       });
@@ -223,6 +223,7 @@ const AdminUsers = () => {
         description: `The role "${newRole}" is not valid.`,
         variant: "destructive"
       });
+      return Promise.reject(new Error(`Invalid role: ${newRole}`));
     }
   };
 
@@ -386,6 +387,7 @@ const AdminUsers = () => {
                     user={user as unknown as UserType}
                     onRoleChange={(role) => handleRoleChange(user.id, role)}
                     onStatusChange={(isActive) => updateStatusMutation.mutate({ userId: user.id, isActive })}
+                    refetchUsers={() => queryClient.invalidateQueries({ queryKey: ['admin-users'] })}
                   />
                 ))}
               </div>
