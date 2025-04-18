@@ -1,90 +1,70 @@
 
-// This script is called after the build to generate a sitemap and ensure manifest files are correctly placed
+// This script generates a sitemap and ensures proper build structure
 const fs = require('fs');
 const path = require('path');
+const { routes } = require('../src/routes');
 
 console.log('Running post-build setup...');
 
-// Create necessary directories for client manifest relative to server
-function ensureManifestDirectories() {
+// Generate sitemap.xml
+function generateSitemap() {
   try {
-    // Source manifest
-    const clientManifestPath = path.resolve(__dirname, '../dist/client/.vite/manifest.json');
+    const baseUrl = 'https://meowrescue.org';
+    const today = new Date().toISOString().slice(0, 10);
     
-    if (!fs.existsSync(clientManifestPath)) {
-      console.error('Could not find client manifest at:', clientManifestPath);
-      throw new Error('Client manifest not found');
-    }
+    // Get all routes from routes.tsx
+    const urlset = routes
+      .filter(route => route.path !== '*' && !route.path.includes(':') && !route.path.includes('admin'))
+      .map(route => {
+        const priority = route.path === '/' ? '1.0' : '0.7';
+        const changefreq = route.path === '/' ? 'daily' : 'weekly';
+        
+        return `
+  <url>
+    <loc>${baseUrl}${route.path}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>${changefreq}</changefreq>
+    <priority>${priority}</priority>
+  </url>`;
+      })
+      .join('');
     
-    console.log('Found client manifest at:', clientManifestPath);
+    const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urlset}
+</urlset>`;
     
-    // Create all required destination directories
-    const directories = [
-      // Main manifest for client
-      path.resolve(__dirname, '../dist/client'),
-      // Manifest accessible from server using relative path
-      path.resolve(__dirname, '../dist/server/client'),
-      // Alternative path some builds may expect
-      path.resolve(__dirname, '../dist/client/server/client')
-    ];
-    
-    // Create each directory if it doesn't exist
-    directories.forEach(dir => {
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-        console.log('Created directory:', dir);
-      }
-    });
-    
-    // Copy manifest to each destination
-    const destinations = [
-      path.resolve(__dirname, '../dist/client/manifest.json'),
-      path.resolve(__dirname, '../dist/server/client/manifest.json'),
-      path.resolve(__dirname, '../dist/client/server/client/manifest.json')
-    ];
-    
-    destinations.forEach(dest => {
-      fs.copyFileSync(clientManifestPath, dest);
-      console.log('Copied manifest to:', dest);
-    });
-    
-    // Also copy the ssr-manifest.json if it exists
-    const ssrManifestPath = path.resolve(__dirname, '../dist/client/.vite/ssr-manifest.json');
-    if (fs.existsSync(ssrManifestPath)) {
-      const ssrDestinations = [
-        path.resolve(__dirname, '../dist/client/ssr-manifest.json'),
-        path.resolve(__dirname, '../dist/server/client/ssr-manifest.json'),
-        path.resolve(__dirname, '../dist/client/server/client/ssr-manifest.json')
-      ];
-      
-      ssrDestinations.forEach(dest => {
-        fs.copyFileSync(ssrManifestPath, dest);
-        console.log('Copied SSR manifest to:', dest);
-      });
-    }
+    // Write sitemap to public directory
+    const sitemapPath = path.resolve(__dirname, '../dist/sitemap.xml');
+    fs.writeFileSync(sitemapPath, sitemap);
+    console.log('Generated sitemap at:', sitemapPath);
     
     return true;
   } catch (error) {
-    console.error('Error setting up manifest directories:', error);
+    console.error('Error generating sitemap:', error);
     return false;
   }
-}
-
-// Dummy sitemap generation function (placeholder for actual implementation)
-function generateSitemap() {
-  console.log('Sitemap generation would happen here (not implemented yet)');
 }
 
 // Main function to run post-build operations
 function runPostBuild() {
   console.log('Starting post-build process...');
   
-  const manifestSuccess = ensureManifestDirectories();
-  if (!manifestSuccess) {
-    console.warn('Failed to set up manifest files, build may fail');
+  const sitemapSuccess = generateSitemap();
+  if (!sitemapSuccess) {
+    console.warn('Failed to generate sitemap');
   }
   
-  generateSitemap();
+  // Create robots.txt if it doesn't exist
+  const robotsPath = path.resolve(__dirname, '../dist/robots.txt');
+  if (!fs.existsSync(robotsPath)) {
+    const robotsContent = `User-agent: *
+Allow: /
+Sitemap: https://meowrescue.org/sitemap.xml`;
+    
+    fs.writeFileSync(robotsPath, robotsContent);
+    console.log('Created robots.txt at:', robotsPath);
+  }
   
   console.log('Post-build process completed');
 }

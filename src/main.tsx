@@ -23,46 +23,44 @@ const queryClient = new QueryClient({
   },
 });
 
-export async function render() {
-  // Use hydrateRoot for SSR
-  if (import.meta.env.SSR) {
-    return;
-  }
+const AppWithProviders = () => (
+  <React.StrictMode>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <HelmetProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <AuthProvider>
+              <App />
+            </AuthProvider>
+          </TooltipProvider>
+        </HelmetProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
+  </React.StrictMode>
+);
 
+// For client side rendering
+const mountApp = () => {
   const rootElement = document.getElementById('root');
   if (!rootElement) {
     console.error('Root element not found!');
     return;
   }
-
-  // Use createRoot for CSR or hydrateRoot for hydration
-  const AppWithProviders = (
-    <React.StrictMode>
-      <BrowserRouter>
-        <QueryClientProvider client={queryClient}>
-          <HelmetProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <AuthProvider>
-                <App />
-              </AuthProvider>
-            </TooltipProvider>
-          </HelmetProvider>
-        </QueryClientProvider>
-      </BrowserRouter>
-    </React.StrictMode>
-  );
-
-  // Check if we're hydrating from SSR or doing a normal render
-  if (rootElement.innerHTML.includes('data-reactroot')) {
-    ReactDOM.hydrateRoot(rootElement, AppWithProviders);
+  
+  // Check if we're hydrating or creating a new root
+  if (rootElement.innerHTML !== '') {
+    ReactDOM.hydrateRoot(rootElement, <AppWithProviders />);
   } else {
-    ReactDOM.createRoot(rootElement).render(AppWithProviders);
+    ReactDOM.createRoot(rootElement).render(<AppWithProviders />);
   }
+};
+
+// Initialize the app in the browser
+if (typeof window !== 'undefined') {
+  mountApp();
 }
 
-// Auto-start if we're not doing SSR
-if (typeof window !== 'undefined' && !import.meta.env.SSR) {
-  render();
-}
+// Export for static site generation
+export default AppWithProviders;

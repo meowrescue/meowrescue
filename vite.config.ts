@@ -1,8 +1,20 @@
 
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
-import ssr from 'vite-plugin-ssr/plugin';
 import path from 'path';
+import { glob } from 'glob';
+
+// Get all routes for pre-rendering
+const pages = glob.sync('src/pages/**/*.tsx')
+  .filter(page => !page.includes('Admin') && !page.includes('_default'))
+  .map(page => {
+    // Convert file paths to route paths
+    const route = page
+      .replace('src/pages/', '/')
+      .replace('.tsx', '')
+      .replace('/index', '/');
+    return route;
+  });
 
 export default defineConfig(({ mode }) => ({
   server: {
@@ -11,11 +23,6 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    ssr({
-      prerender: true,
-      // Use the correct configuration supported by vite-plugin-ssr
-      // Removed the unsupported 'includedAssetsDir' property
-    }),
   ],
   resolve: {
     alias: {
@@ -28,7 +35,8 @@ export default defineConfig(({ mode }) => ({
     assetsInlineLimit: 4096,
     cssCodeSplit: true,
     minify: 'terser',
-    ssrManifest: true, // Enable SSR manifest
+    // Enable SSG
+    ssrManifest: false,
     terserOptions: {
       compress: {
         drop_console: mode === 'production',
@@ -36,10 +44,6 @@ export default defineConfig(({ mode }) => ({
       },
     },
     rollupOptions: {
-      // Important: For vite-plugin-ssr we need to define the entry-server file
-      input: {
-        'entry-server': './src/entry-server.tsx',
-      },
       output: {
         // Use a function for manualChunks to avoid conflicts with external modules
         manualChunks: (id) => {
