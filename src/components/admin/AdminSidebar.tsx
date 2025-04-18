@@ -10,6 +10,7 @@ import {
   Building, BarChart, Image, Globe, LayoutList, Cat
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Link } from 'react-router-dom';
 
 const AdminSidebar = () => {
   const navigate = useNavigate();
@@ -228,16 +229,16 @@ const AdminSidebar = () => {
 
   return (
     <div className="fixed left-0 top-0 w-64 h-screen bg-white border-r z-40 shadow-md">
-      <div className="p-4 border-b border-gray-200 flex items-center justify-center">
-        <div className="flex items-center gap-2">
+      <div className="p-4 border-b border-gray-200 flex items-center">
+        <Link to="/" className="flex items-center gap-2">
           <div className="bg-meow-primary rounded-full p-1">
             <Cat className="h-5 w-5 text-white" />
           </div>
-          <span>
-            <span className="text-meow-primary font-bold">Meow</span>
-            <span className="text-meow-secondary font-bold">Rescue</span>
+          <span className="font-bold text-xl">
+            <span className="text-meow-primary">Meow</span>
+            <span className="text-meow-secondary">Rescue</span>
           </span>
-        </div>
+        </Link>
       </div>
       
       <div className="py-4 px-3 overflow-y-auto max-h-[calc(100vh-100px)] pb-32">
