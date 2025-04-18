@@ -15,8 +15,8 @@ interface ImageUploaderProps {
 const ImageUploader: React.FC<ImageUploaderProps> = ({
   onImageUploaded,
   currentImage,
-  bucketName = 'cat-photos', // Use a bucket that exists in your Supabase project
-  folderPath = 'uploads' // Default folder path
+  bucketName = 'blog-images', // Use the same bucket that works in the blog
+  folderPath = '' // Default to root of the bucket
 }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentImage || null);
@@ -36,6 +36,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}.${fileExt}`;
       const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
+
+      console.log('Uploading file to path:', filePath);
 
       // Upload the file to Supabase Storage
       const { data, error: uploadError } = await supabase.storage
