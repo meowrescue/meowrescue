@@ -35,8 +35,6 @@ export default defineConfig(({ mode }) => ({
     assetsInlineLimit: 4096,
     cssCodeSplit: true,
     minify: 'terser',
-    // Enable SSG
-    ssrManifest: false,
     terserOptions: {
       compress: {
         drop_console: mode === 'production',

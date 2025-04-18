@@ -23,6 +23,7 @@ const queryClient = new QueryClient({
   },
 });
 
+// Root component with all providers
 const AppWithProviders = () => (
   <React.StrictMode>
     <BrowserRouter>
@@ -49,18 +50,12 @@ const mountApp = () => {
     return;
   }
   
-  // Check if we're hydrating or creating a new root
-  if (rootElement.innerHTML !== '') {
-    ReactDOM.hydrateRoot(rootElement, <AppWithProviders />);
-  } else {
-    ReactDOM.createRoot(rootElement).render(<AppWithProviders />);
-  }
+  // Create a new root - don't use hydration
+  ReactDOM.createRoot(rootElement).render(<AppWithProviders />);
 };
 
-// Initialize the app in the browser
-if (typeof window !== 'undefined') {
-  mountApp();
-}
+// Initialize the app
+mountApp();
 
 // Export for static site generation
 export default AppWithProviders;
