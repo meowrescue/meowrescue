@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -5,7 +6,7 @@ import {
   LayoutDashboard, Users, FileText, Calendar, PawPrint, 
   DollarSign, Settings, Shield, MessageSquare, Search,
   Package, CircleHelp, Send, BookOpen, Bell, ChevronDown,
-  FileImage, Folder, Award
+  FileImage, Folder, Award, CreditCard, Receipt
 } from 'lucide-react';
 
 const AdminSidebar = () => {
@@ -80,14 +81,14 @@ const AdminSidebar = () => {
           label: 'Events'
         },
         { 
-          to: '/admin/pages', 
-          icon: <FileText className="w-5 h-5" />, 
-          label: 'Pages'
-        },
-        { 
           to: '/admin/team', 
           icon: <Users className="w-5 h-5" />, 
           label: 'Team'
+        },
+        { 
+          to: '/admin/success-stories', 
+          icon: <Award className="w-5 h-5" />, 
+          label: 'Success Stories'
         }
       ]
     },
@@ -110,6 +111,11 @@ const AdminSidebar = () => {
           to: '/admin/chat', 
           icon: <Send className="w-5 h-5" />, 
           label: 'Live Chat'
+        },
+        { 
+          to: '/admin/direct-messages', 
+          icon: <MessageSquare className="w-5 h-5" />, 
+          label: 'Direct Messages'
         }
       ]
     },
@@ -119,14 +125,29 @@ const AdminSidebar = () => {
       icon: <DollarSign className="w-5 h-5" />,
       items: [
         { 
-          to: '/admin/finance', 
+          to: '/admin/finance/donations', 
           icon: <DollarSign className="w-5 h-5" />, 
-          label: 'Finance'
+          label: 'Donations'
+        },
+        { 
+          to: '/admin/finance/income', 
+          icon: <CreditCard className="w-5 h-5" />, 
+          label: 'Income'
+        },
+        { 
+          to: '/admin/finance/expenses', 
+          icon: <Receipt className="w-5 h-5" />, 
+          label: 'Expenses'
         },
         { 
           to: '/admin/supplies', 
           icon: <Package className="w-5 h-5" />, 
           label: 'Supplies'
+        },
+        { 
+          to: '/admin/orders', 
+          icon: <Package className="w-5 h-5" />, 
+          label: 'Orders'
         },
         { 
           to: '/admin/documents', 
@@ -144,6 +165,11 @@ const AdminSidebar = () => {
           to: '/admin/security', 
           icon: <Shield className="w-5 h-5" />, 
           label: 'Security'
+        },
+        { 
+          to: '/admin/licenses', 
+          icon: <FileText className="w-5 h-5" />, 
+          label: 'Business Licenses'
         },
         { 
           to: '/admin/help', 
