@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Layout from '../components/Layout';
 import HeroSection from '../components/HeroSection';
@@ -88,7 +87,6 @@ const Index: React.FC = () => {
 
   return (
     <Layout>
-      {/* Core SEO metadata handled by our SEO component */}
       <SEO 
         title="Meow Rescue - Saving Cat Lives in Pasco County, Florida" 
         description="We're a home-based cat rescue in Pasco County, Florida, dedicated to rescuing, rehabilitating, and rehoming cats in need."
