@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,24 +11,7 @@ import ApplicationView from '@/components/admin/ApplicationView';
 import { format, formatDistanceToNow } from 'date-fns';
 import SEO from '@/components/SEO';
 import { Badge } from '@/components/ui/badge';
-
-interface Application {
-  id: string;
-  applicant_id: string;
-  application_type: 'adoption' | 'foster' | 'volunteer';
-  status: 'pending' | 'approved' | 'rejected' | 'in-review';
-  form_data: any;
-  created_at: string;
-  updated_at: string;
-  reviewed_at?: string;
-  reviewer_id?: string;
-  feedback?: string;
-  profiles?: {
-    email: string;
-    first_name: string | null;
-    last_name: string | null;
-  };
-}
+import { Application } from '@/types/applications';
 
 const AdminApplications = () => {
   const [selectedTab, setSelectedTab] = useState<string>('all');
@@ -52,7 +34,12 @@ const AdminApplications = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as Application[];
+      
+      // Make sure the response conforms to our Application type
+      return data.map(app => ({
+        ...app,
+        user_id: app.applicant_id || '' // Ensure user_id is present
+      })) as Application[];
     }
   });
 

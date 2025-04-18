@@ -22,6 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import SEO from '@/components/SEO';
+import { User as UserType } from '@/types/users';
 
 type UserRole = 'admin' | 'volunteer' | 'foster' | 'user';
 
@@ -129,6 +130,7 @@ const AdminUsers = () => {
         description: `User role has been updated to ${data.role}.`
       });
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      return Promise.resolve();
     },
     onError: (error: any) => {
       toast({
@@ -136,6 +138,7 @@ const AdminUsers = () => {
         description: error.message || "Failed to update role",
         variant: "destructive"
       });
+      return Promise.reject(error);
     }
   });
 
@@ -204,6 +207,23 @@ const AdminUsers = () => {
   const handleAddUser = (e: React.FormEvent) => {
     e.preventDefault();
     addUserMutation.mutate(newUser);
+  };
+
+  // Handle role change
+  const handleRoleChange = (userId: string, newRole: string) => {
+    // Ensure newRole is a valid UserRole before passing to mutation
+    if (['admin', 'volunteer', 'foster', 'user'].includes(newRole)) {
+      updateRoleMutation.mutate({ 
+        userId, 
+        role: newRole as UserRole 
+      });
+    } else {
+      toast({
+        title: "Invalid Role",
+        description: `The role "${newRole}" is not valid.`,
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -363,8 +383,8 @@ const AdminUsers = () => {
                 {filteredUsers.map(user => (
                   <UserCard 
                     key={user.id}
-                    user={user}
-                    onRoleChange={(role) => updateRoleMutation.mutate({ userId: user.id, role })}
+                    user={user as unknown as UserType}
+                    onRoleChange={(role) => handleRoleChange(user.id, role)}
                     onStatusChange={(isActive) => updateStatusMutation.mutate({ userId: user.id, isActive })}
                   />
                 ))}
