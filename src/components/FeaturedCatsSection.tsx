@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import SectionHeading from './ui/SectionHeading';
-import { CatCard } from './CatCard';
+import CatCard from './CatCard';
 import { Button } from "@/components/ui/button";
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,7 +23,7 @@ const FeaturedCatsSection: React.FC = () => {
       return data || [];
     },
   });
-  
+
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,

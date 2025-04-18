@@ -32,7 +32,6 @@ interface Cat {
   flea_treatment_date: string | null;
   spay_neuter_date: string | null;
   microchip_number: string | null;
-  created_at: string; // Added this field to the interface
 }
 
 const CatDetail: React.FC = () => {
@@ -83,90 +82,138 @@ const CatDetail: React.FC = () => {
         description={`Learn more about ${cat.name} and our adoption process.`}
       />
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-            <div className="relative h-96">
-              <img
-                src={cat.photos_urls?.[0] || '/placeholder.svg'}
-                alt={cat.name}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute top-4 right-4">
-                <Badge className={`${cat.status === 'Available' ? 'bg-green-100 text-green-800' : cat.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800'}`}>
-                  {cat.status}
-                </Badge>
-              </div>
+      {/* Hero Section */}
+      <div className="bg-meow-primary/10 py-16 md:py-24">
+        <div className="container mx-auto px-4">
+          <SectionHeading
+            title={cat.name}
+            subtitle={`Meet ${cat.name}, a ${cat.age_estimate} ${cat.gender} looking for a loving home.`}
+          />
+        </div>
+      </div>
+
+      {/* Cat Details Section */}
+      <div className="container mx-auto px-4 py-8 md:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Image */}
+          <div className="md:order-1">
+            <img
+              src={cat.photos_urls?.[0] || '/placeholder-cat.jpg'}
+              alt={cat.name}
+              className="w-full rounded-lg shadow-md object-cover h-96"
+            />
+            <div className="mt-4 flex justify-between items-center">
+              <p className="text-gray-600">
+                <Calendar className="inline-block mr-2 h-4 w-4" />
+                Posted on {cat.created_at ? format(new Date(cat.created_at), 'MMMM d, yyyy') : 'Unknown Date'}
+              </p>
+              <Badge className={`text-white ${cat.status === 'Available' ? 'bg-green-500' : cat.status === 'Pending' ? 'bg-yellow-500' : 'bg-blue-500'}`}>
+                {cat.status}
+              </Badge>
             </div>
-            
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <h1 className="text-3xl font-bold text-gray-900">{cat.name}</h1>
-                <div className="text-sm text-gray-500">
-                  <Calendar className="inline-block mr-2 h-4 w-4" />
-                  {cat.created_at ? format(new Date(cat.created_at), 'MMMM d, yyyy') : 'Date unknown'}
-                </div>
+          </div>
+
+          {/* Details */}
+          <div className="md:order-2">
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-semibold mb-2">Description</h4>
+                <p className="text-gray-600">{cat.description}</p>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-8">
-                <div>
-                  <div className="mb-6">
-                    <h2 className="text-xl font-semibold mb-2">About {cat.name}</h2>
-                    <p className="text-gray-600">{cat.description}</p>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div>
-                      <h3 className="font-semibold mb-1">Age</h3>
-                      <p className="text-gray-600">{cat.age_estimate}</p>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-1">Gender</h3>
-                      <p className="text-gray-600">{cat.gender}</p>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-1">Breed</h3>
-                      <p className="text-gray-600">{cat.breed || 'Unknown'}</p>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-1">Color</h3>
-                      <p className="text-gray-600">{cat.color || 'Unknown'}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="mb-6">
-                    <h2 className="text-xl font-semibold mb-2">Special Care Notes</h2>
-                    <p className="text-gray-600">
-                      {cat.special_care_notes || 'None'}
+              <div>
+                <h4 className="font-semibold mb-2">Details</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-600">
+                  <div>
+                    <p>
+                      <strong>Age:</strong> {cat.age_estimate}
+                    </p>
+                    <p>
+                      <strong>Gender:</strong> {cat.gender}
+                    </p>
+                    <p>
+                      <strong>Breed:</strong> {cat.breed || 'Unknown'}
+                    </p>
+                    <p>
+                      <strong>Weight:</strong> {cat.weight || 'Unknown'}
                     </p>
                   </div>
-
-                  <div className="mb-6">
-                    <h2 className="text-xl font-semibold mb-2">Medical Information</h2>
-                    <div className="space-y-2">
-                      <p className="text-gray-600">
-                        <strong>Weight:</strong> {cat.weight || 'Unknown'}
-                      </p>
-                      {cat.microchip_number && (
-                        <p className="text-gray-600">
-                          <strong>Microchip:</strong> {cat.microchip_number}
-                        </p>
-                      )}
-                    </div>
+                  <div>
+                    <p>
+                      <strong>Color:</strong> {cat.color || 'Unknown'}
+                    </p>
+                    <p>
+                      <strong>Pattern:</strong> {cat.pattern || 'Unknown'}
+                    </p>
+                    <p>
+                      <strong>Eye Color:</strong> {cat.eye_color || 'Unknown'}
+                    </p>
+                    <p>
+                      <strong>Coat Type:</strong> {cat.coat_type || 'Unknown'}
+                    </p>
                   </div>
-
-                  <Button 
-                    asChild 
-                    size="lg" 
-                    className="w-full"
-                    onClick={() => window.scrollTo(0, 0)}
-                  >
-                    <a href="/adopt">Start Adoption Process</a>
-                  </Button>
                 </div>
               </div>
+
+              <div>
+                <h4 className="font-semibold mb-2">Special Care Notes</h4>
+                <p className="text-gray-600">
+                  {cat.special_care_notes || 'None'}
+                </p>
+              </div>
+
+              <Button asChild size="lg">
+                {/* Ensure this link navigates to the top of the page */}
+                <a href="/adopt">Start Adoption Process</a>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Foster and Medical Info Section */}
+      <div className="bg-gray-50 py-8 md:py-16">
+        <div className="container mx-auto px-4">
+          <SectionHeading
+            title="Foster & Medical Information"
+            subtitle="Important dates and details"
+            centered
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8 text-gray-600">
+            <div>
+              <h4 className="font-semibold mb-2">Foster Details</h4>
+              <p>
+                <strong>Foster Start Date:</strong>{' '}
+                {cat.foster_start_date ? format(new Date(cat.foster_start_date), 'MMMM d, yyyy') : 'N/A'}
+              </p>
+              <p>
+                <strong>Foster End Date:</strong>{' '}
+                {cat.foster_end_date ? format(new Date(cat.foster_end_date), 'MMMM d, yyyy') : 'N/A'}
+              </p>
+            </div>
+
+            <div>
+              <h4 className="font-semibold mb-2">Medical Details</h4>
+              <p>
+                <strong>Vaccination Date:</strong>{' '}
+                {cat.vaccination_date ? format(new Date(cat.vaccination_date), 'MMMM d, yyyy') : 'N/A'}
+              </p>
+              <p>
+                <strong>Deworming Date:</strong>{' '}
+                {cat.deworming_date ? format(new Date(cat.deworming_date), 'MMMM d, yyyy') : 'N/A'}
+              </p>
+              <p>
+                <strong>Flea Treatment Date:</strong>{' '}
+                {cat.flea_treatment_date ? format(new Date(cat.flea_treatment_date), 'MMMM d, yyyy') : 'N/A'}
+              </p>
+              <p>
+                <strong>Spay/Neuter Date:</strong>{' '}
+                {cat.spay_neuter_date ? format(new Date(cat.spay_neuter_date), 'MMMM d, yyyy') : 'N/A'}
+              </p>
+              <p>
+                <strong>Microchip Number:</strong> {cat.microchip_number || 'N/A'}
+              </p>
             </div>
           </div>
         </div>
