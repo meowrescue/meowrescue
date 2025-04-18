@@ -9,6 +9,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import App from './App';
+import './styles/globals.css'; // Make sure this path is correct
 import './index.css';
 
 // Create a client with settings
