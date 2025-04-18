@@ -27,17 +27,17 @@ const Contact = () => {
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-16">
             <div className="space-y-8">
-              <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+              <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 h-full flex flex-col">
                 <h2 className="text-2xl font-bold text-meow-primary mb-6">Send Us a Message</h2>
                 <ContactForm />
               </div>
             </div>
             
             <div className="space-y-6">
-              <Card className="overflow-hidden border-none shadow-sm bg-gradient-to-br from-meow-primary/5 to-white">
-                <CardContent className="p-8">
+              <Card className="overflow-hidden border-none shadow-sm bg-gradient-to-br from-meow-primary/5 to-white h-full">
+                <CardContent className="p-8 flex flex-col h-full">
                   <h3 className="text-xl font-semibold mb-6 text-gray-900">Contact Information</h3>
-                  <div className="space-y-6">
+                  <div className="space-y-6 flex-grow">
                     <div className="flex items-start gap-4">
                       <div className="p-3 rounded-xl bg-meow-primary/10">
                         <Phone className="h-6 w-6 text-meow-primary" />
@@ -80,9 +80,9 @@ const Contact = () => {
               </Card>
               
               <Card className="overflow-hidden border-none shadow-sm">
-                <CardContent className="p-8 bg-gradient-to-br from-meow-secondary/5 to-white">
+                <CardContent className="p-8 bg-gradient-to-br from-meow-secondary/5 to-white h-full flex flex-col">
                   <h3 className="text-xl font-semibold mb-4 text-gray-900">Need Immediate Help?</h3>
-                  <p className="text-gray-600 mb-6">
+                  <p className="text-gray-600 mb-6 flex-grow">
                     For emergency situations or urgent inquiries, please call our hotline.
                     We're here to help!
                   </p>
