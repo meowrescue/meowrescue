@@ -216,13 +216,6 @@ const CatDetail: React.FC = () => {
                 </div>
               </div>
             )}
-
-            {/* Adoption CTA */}
-            <div className="flex justify-center">
-              <Button asChild size="lg" className="bg-meow-primary hover:bg-meow-primary/90">
-                <a href="/adopt">Start Adoption Process</a>
-              </Button>
-            </div>
           </div>
         </div>
       </div>
@@ -249,6 +242,13 @@ const CatDetail: React.FC = () => {
               <div className="text-xl font-semibold mb-3">3. Welcome Home</div>
               <p className="text-gray-600">Complete the adoption fee and paperwork. We'll provide you with all necessary medical records and care instructions.</p>
             </div>
+          </div>
+
+          {/* Moved Adoption CTA here */}
+          <div className="flex justify-center mt-8">
+            <Button asChild size="lg" className="bg-meow-primary hover:bg-meow-primary/90">
+              <a href="/adopt">Start Adoption Process</a>
+            </Button>
           </div>
         </div>
       </div>

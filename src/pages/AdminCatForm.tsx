@@ -45,6 +45,13 @@ const AdminCatForm: React.FC = () => {
   const [primaryPhotoIndex, setPrimaryPhotoIndex] = useState(0);
   const [birthday, setBirthday] = useState<string>('');
   
+  // Add new state for additional fields
+  const [color, setColor] = useState('');
+  const [pattern, setPattern] = useState('');
+  const [eyeColor, setEyeColor] = useState('');
+  const [coatType, setCoatType] = useState('');
+  const [weight, setWeight] = useState('');
+  
   // Fetch cat data when editing
   const { data: cat, isLoading: isCatLoading } = useQuery({
     queryKey: ['cat', id],
@@ -80,6 +87,11 @@ const AdminCatForm: React.FC = () => {
       setShowOnAdoptablePage(cat.status === 'Available');
       setBirthday(cat.birthday ? new Date(cat.birthday).toISOString().split('T')[0] : '');
       setPrimaryPhotoIndex(0); // Set to first photo by default
+      setColor(cat.color || '');
+      setPattern(cat.pattern || '');
+      setEyeColor(cat.eye_color || '');
+      setCoatType(cat.coat_type || '');
+      setWeight(cat.weight || '');
     }
   }, [cat]);
   
@@ -164,7 +176,12 @@ const AdminCatForm: React.FC = () => {
         status: finalStatus,
         internal_status: internalStatus,
         photos_urls: reorderedPhotos,
-        birthday: birthday || null
+        birthday: birthday || null,
+        color,
+        pattern,
+        eye_color: eyeColor,
+        coat_type: coatType,
+        weight
       };
       
       if (isEditing && id) {
@@ -392,6 +409,61 @@ const AdminCatForm: React.FC = () => {
                         onChange={(e) => setMedicalNotes(e.target.value)}
                         placeholder="Any special care requirements or notes"
                         rows={4}
+                        disabled={!editMode}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="weight">Weight</Label>
+                      <Input
+                        id="weight"
+                        value={weight}
+                        onChange={(e) => setWeight(e.target.value)}
+                        placeholder="e.g. 8 lbs"
+                        disabled={!editMode}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="color">Color</Label>
+                      <Input
+                        id="color"
+                        value={color}
+                        onChange={(e) => setColor(e.target.value)}
+                        placeholder="e.g. Black and White"
+                        disabled={!editMode}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="pattern">Pattern</Label>
+                      <Input
+                        id="pattern"
+                        value={pattern}
+                        onChange={(e) => setPattern(e.target.value)}
+                        placeholder="e.g. Tabby, Solid, Tuxedo"
+                        disabled={!editMode}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="eyeColor">Eye Color</Label>
+                      <Input
+                        id="eyeColor"
+                        value={eyeColor}
+                        onChange={(e) => setEyeColor(e.target.value)}
+                        placeholder="e.g. Green, Blue, Gold"
+                        disabled={!editMode}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="coatType">Coat Type</Label>
+                      <Input
+                        id="coatType"
+                        value={coatType}
+                        onChange={(e) => setCoatType(e.target.value)}
+                        placeholder="e.g. Short, Medium, Long"
                         disabled={!editMode}
                       />
                     </div>
