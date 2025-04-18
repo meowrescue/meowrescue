@@ -44,11 +44,40 @@ const Blog: React.FC = () => {
     navigate(`/blog/${slug}`);
   };
 
+  // Create structured data for BlogPosting
+  const blogListStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "mainEntity": {
+      "@type": "ItemList",
+      "itemListElement": posts ? posts.map((post: any, index: number) => ({
+        "@type": "ListItem",
+        "position": index + 1,
+        "item": {
+          "@type": "BlogPosting",
+          "headline": post.title,
+          "url": `https://meowrescue.org/blog/${post.slug}`,
+          "datePublished": post.published_at,
+          "dateModified": post.updated_at || post.published_at,
+          "image": post.featured_image_url || "https://meowrescue.org/images/meow-rescue-logo.jpg",
+          "author": {
+            "@type": "Organization",
+            "name": "Meow Rescue"
+          }
+        }
+      })) : []
+    }
+  };
+
   return (
     <Layout>
       <SEO 
         title="Blog | Meow Rescue" 
-        description="Read the latest news, updates, and stories from Meow Rescue." 
+        description="Read the latest news, updates, and stories from Meow Rescue - a home-based cat rescue in Pasco County, Florida." 
+        type="blog"
+        canonicalUrl="/blog"
+        structuredData={blogListStructuredData}
+        keywords="cat rescue blog, cat adoption stories, rescue cats, feline care, cat foster stories, meow rescue"
       />
 
       {/* Hero Section */}
@@ -87,6 +116,8 @@ const Blog: React.FC = () => {
                       src={post.featured_image_url}
                       alt={post.title}
                       className="w-full h-full object-cover transition-transform hover:scale-105"
+                      loading="lazy"
+                      decoding="async"
                     />
                   </div>
                 )}

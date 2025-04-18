@@ -18,11 +18,12 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { ArrowLeft, Image, Save } from 'lucide-react';
+import { ArrowLeft, Image, Save, Search } from 'lucide-react';
 import { slugify } from '@/utils/stringUtils';
 
 // Define form schema
@@ -32,6 +33,9 @@ const formSchema = z.object({
   content: z.string().min(50, { message: 'Content must be at least 50 characters' }),
   featured_image_url: z.string().optional(),
   is_published: z.boolean().default(false),
+  meta_description: z.string().max(160, { message: 'Meta description should be under 160 characters' }).optional(),
+  keywords: z.string().optional(),
+  canonical_url: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -45,6 +49,7 @@ const AdminBlogForm: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const isEditMode = Boolean(id);
+  const [activeTab, setActiveTab] = useState('content');
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -54,6 +59,9 @@ const AdminBlogForm: React.FC = () => {
       content: '',
       featured_image_url: '',
       is_published: false,
+      meta_description: '',
+      keywords: '',
+      canonical_url: '',
     },
   });
 
@@ -79,6 +87,9 @@ const AdminBlogForm: React.FC = () => {
             content: data.content,
             featured_image_url: data.featured_image_url || '',
             is_published: data.is_published,
+            meta_description: data.meta_description || '',
+            keywords: data.keywords || '',
+            canonical_url: data.canonical_url || '',
           });
 
           if (data.featured_image_url) {
@@ -106,6 +117,16 @@ const AdminBlogForm: React.FC = () => {
     if (title) {
       const newSlug = slugify(title);
       form.setValue('slug', newSlug);
+    }
+  };
+
+  // Generate meta description from content
+  const generateMetaDescription = () => {
+    const content = form.getValues('content');
+    if (content) {
+      const plainText = content.replace(/<[^>]*>/g, '');
+      const trimmed = plainText.substring(0, 157) + (plainText.length > 157 ? '...' : '');
+      form.setValue('meta_description', trimmed);
     }
   };
 
@@ -161,6 +182,9 @@ const AdminBlogForm: React.FC = () => {
         published_at: values.is_published ? (isEditMode ? undefined : now) : null,
         author_profile_id: user?.id,
         updated_at: now,
+        meta_description: values.meta_description,
+        keywords: values.keywords,
+        canonical_url: values.canonical_url,
       };
 
       // Update or create post
@@ -211,145 +235,241 @@ const AdminBlogForm: React.FC = () => {
         <CardContent className="p-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-6">
-                  <FormField
-                    control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Post Title</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="Enter post title" 
-                            {...field} 
-                            onChange={(e) => {
-                              field.onChange(e);
-                              // Only auto-generate slug if it's empty or a new post
-                              if (!form.getValues('slug') || !isEditMode) {
-                                setTimeout(generateSlug, 300);
-                              }
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="slug"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>URL Slug</FormLabel>
-                        <FormControl>
-                          <div className="flex gap-2">
-                            <Input placeholder="url-friendly-slug" {...field} />
-                            <Button 
-                              type="button" 
-                              variant="outline" 
-                              onClick={generateSlug}
-                              className="whitespace-nowrap"
-                            >
-                              Generate
-                            </Button>
-                          </div>
-                        </FormControl>
-                        <FormDescription>
-                          Used in the URL: /blog/your-slug
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="featured_image_url"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Featured Image</FormLabel>
-                        <FormControl>
-                          <div className="space-y-4">
-                            <Input 
-                              type="file" 
-                              accept="image/*" 
-                              onChange={handleImageChange}
-                              className="cursor-pointer"
-                            />
-                            {imagePreview ? (
-                              <div className="relative w-full h-48 bg-gray-100 rounded-md overflow-hidden">
-                                <img 
-                                  src={imagePreview} 
-                                  alt="Preview" 
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                            ) : (
-                              <div className="w-full h-48 flex items-center justify-center bg-gray-100 rounded-md border-2 border-dashed border-gray-300">
-                                <div className="text-center">
-                                  <Image className="w-10 h-10 mx-auto text-gray-400" />
-                                  <p className="mt-2 text-sm text-gray-500">No image selected</p>
-                                </div>
-                              </div>
-                            )}
-                            {field.value && !imageFile && (
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="mb-4">
+                  <TabsTrigger value="content">Content</TabsTrigger>
+                  <TabsTrigger value="seo">SEO & Metadata</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="content" className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-6">
+                      <FormField
+                        control={form.control}
+                        name="title"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Post Title</FormLabel>
+                            <FormControl>
                               <Input 
-                                type="hidden" 
+                                placeholder="Enter post title" 
                                 {...field} 
+                                onChange={(e) => {
+                                  field.onChange(e);
+                                  // Only auto-generate slug if it's empty or a new post
+                                  if (!form.getValues('slug') || !isEditMode) {
+                                    setTimeout(generateSlug, 300);
+                                  }
+                                }}
                               />
-                            )}
-                          </div>
-                        </FormControl>
-                        <FormDescription>
-                          Upload an image to feature at the top of your post
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                  <FormField
-                    control={form.control}
-                    name="is_published"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">Published Status</FormLabel>
-                          <FormDescription>
-                            Toggle to make this post publicly visible
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                      <FormField
+                        control={form.control}
+                        name="slug"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>URL Slug</FormLabel>
+                            <FormControl>
+                              <div className="flex gap-2">
+                                <Input placeholder="url-friendly-slug" {...field} />
+                                <Button 
+                                  type="button" 
+                                  variant="outline" 
+                                  onClick={generateSlug}
+                                  className="whitespace-nowrap"
+                                >
+                                  Generate
+                                </Button>
+                              </div>
+                            </FormControl>
+                            <FormDescription>
+                              Used in the URL: /blog/your-slug
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                <FormField
-                  control={form.control}
-                  name="content"
-                  render={({ field }) => (
-                    <FormItem className="col-span-1 md:col-span-1 h-full">
-                      <FormLabel>Content</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Write your post content here..."
-                          className="h-[400px] resize-none"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                      <FormField
+                        control={form.control}
+                        name="featured_image_url"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Featured Image</FormLabel>
+                            <FormControl>
+                              <div className="space-y-4">
+                                <Input 
+                                  type="file" 
+                                  accept="image/*" 
+                                  onChange={handleImageChange}
+                                  className="cursor-pointer"
+                                />
+                                {imagePreview ? (
+                                  <div className="relative w-full h-48 bg-gray-100 rounded-md overflow-hidden">
+                                    <img 
+                                      src={imagePreview} 
+                                      alt="Preview" 
+                                      className="w-full h-full object-cover"
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="w-full h-48 flex items-center justify-center bg-gray-100 rounded-md border-2 border-dashed border-gray-300">
+                                    <div className="text-center">
+                                      <Image className="w-10 h-10 mx-auto text-gray-400" />
+                                      <p className="mt-2 text-sm text-gray-500">No image selected</p>
+                                    </div>
+                                  </div>
+                                )}
+                                {field.value && !imageFile && (
+                                  <Input 
+                                    type="hidden" 
+                                    {...field} 
+                                  />
+                                )}
+                              </div>
+                            </FormControl>
+                            <FormDescription>
+                              Upload an image to feature at the top of your post
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="is_published"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base">Published Status</FormLabel>
+                              <FormDescription>
+                                Toggle to make this post publicly visible
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="content"
+                      render={({ field }) => (
+                        <FormItem className="col-span-1 md:col-span-1 h-full">
+                          <FormLabel>Content</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Write your post content here..."
+                              className="h-[400px] resize-none"
+                              {...field}
+                              onChange={(e) => {
+                                field.onChange(e);
+                                // Generate meta description if it's empty
+                                if (!form.getValues('meta_description')) {
+                                  setTimeout(generateMetaDescription, 1000);
+                                }
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="seo" className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>SEO & Metadata</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <FormField
+                        control={form.control}
+                        name="meta_description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Meta Description</FormLabel>
+                            <FormControl>
+                              <div className="flex gap-2">
+                                <Textarea 
+                                  placeholder="Brief description for search engines (max 160 characters)"
+                                  className="resize-none"
+                                  {...field}
+                                />
+                                <Button 
+                                  type="button" 
+                                  variant="outline" 
+                                  onClick={generateMetaDescription}
+                                  className="whitespace-nowrap"
+                                >
+                                  Generate
+                                </Button>
+                              </div>
+                            </FormControl>
+                            <FormDescription>
+                              {(field.value?.length || 0)}/160 characters - Used in search engine results
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="keywords"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Keywords</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="cat rescue, adoption, feline care (comma separated)"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Keywords help with SEO (separate with commas)
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="canonical_url"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Canonical URL (optional)</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="https://example.com/original-content"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Only needed if this content exists elsewhere and you want to avoid duplicate content issues
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
 
               <div className="flex justify-end gap-4">
                 <Button

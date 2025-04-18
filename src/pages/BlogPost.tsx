@@ -38,6 +38,33 @@ const BlogPost: React.FC = () => {
   if (!isLoading && !post && !error) {
     return <NotFound />;
   }
+
+  // Create structured data for the blog post
+  const blogPostStructuredData = post ? {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": post.title,
+    "image": post.featured_image_url || "https://meowrescue.org/images/meow-rescue-logo.jpg",
+    "datePublished": post.published_at,
+    "dateModified": post.updated_at || post.published_at,
+    "author": {
+      "@type": "Organization",
+      "name": "Meow Rescue"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "Meow Rescue",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://meowrescue.org/images/meow-rescue-logo.jpg"
+      }
+    },
+    "description": post.content.substring(0, 160).replace(/<[^>]*>/g, ''),
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": `https://meowrescue.org/blog/${post.slug}`
+    }
+  } : null;
   
   return (
     <Layout>
@@ -45,6 +72,12 @@ const BlogPost: React.FC = () => {
         title={post ? `${post.title} | Meow Rescue Blog` : 'Blog Post | Meow Rescue'} 
         description={post ? post.content.substring(0, 160).replace(/<[^>]*>/g, '') : 'Read our latest blog post'}
         image={post?.featured_image_url}
+        type="article"
+        publishedTime={post?.published_at}
+        modifiedTime={post?.updated_at || post?.published_at}
+        canonicalUrl={post ? `/blog/${post.slug}` : undefined}
+        structuredData={blogPostStructuredData}
+        keywords={post?.keywords || "cat rescue, cat adoption, feline care, meow rescue"}
       />
       
       {isLoading ? (
@@ -66,19 +99,21 @@ const BlogPost: React.FC = () => {
         <>
           {/* Featured Image */}
           {post.featured_image_url && (
-            <div className="w-full h-80 md:h-96 bg-cover bg-center" style={{ backgroundImage: `url(${post.featured_image_url})` }}>
+            <div className="w-full h-80 md:h-96 bg-cover bg-center" 
+                 style={{ backgroundImage: `url(${post.featured_image_url})` }}
+                 aria-label={`Featured image for ${post.title}`}>
               <div className="bg-black/60 w-full h-full flex items-center justify-center">
                 <div className="container mx-auto px-4 py-16 text-center">
                   <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">{post.title}</h1>
                   <div className="flex items-center justify-center text-white/80">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    <span>
+                    <Calendar className="h-4 w-4 mr-2" aria-hidden="true" />
+                    <time dateTime={post.published_at}>
                       {new Date(post.published_at).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric'
                       })}
-                    </span>
+                    </time>
                   </div>
                 </div>
               </div>
@@ -91,7 +126,7 @@ const BlogPost: React.FC = () => {
             <div className="mb-8">
               <Link to="/blog">
                 <Button variant="ghost" className="flex items-center">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
                   Back to Blog
                 </Button>
               </Link>
@@ -102,14 +137,14 @@ const BlogPost: React.FC = () => {
               <div className="mb-8">
                 <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{post.title}</h1>
                 <div className="flex items-center text-gray-500">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  <span>
+                  <Calendar className="h-4 w-4 mr-2" aria-hidden="true" />
+                  <time dateTime={post.published_at}>
                     {new Date(post.published_at).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric'
                     })}
-                  </span>
+                  </time>
                 </div>
               </div>
             )}
@@ -117,7 +152,7 @@ const BlogPost: React.FC = () => {
             {/* Post Content */}
             <Card className="border-0 shadow-sm">
               <CardContent className="p-6 md:p-8 lg:p-10">
-                <div className="prose prose-sm sm:prose lg:prose-lg max-w-none"
+                <article className="prose prose-sm sm:prose lg:prose-lg max-w-none"
                   dangerouslySetInnerHTML={{ __html: post.content }}
                 />
               </CardContent>
@@ -125,8 +160,22 @@ const BlogPost: React.FC = () => {
             
             {/* Share */}
             <div className="mt-8 flex justify-end">
-              <Button variant="outline" className="flex items-center gap-2">
-                <Share2 className="h-4 w-4" />
+              <Button 
+                variant="outline" 
+                className="flex items-center gap-2"
+                onClick={() => {
+                  navigator.share?.({
+                    title: post.title,
+                    text: post.content.substring(0, 100).replace(/<[^>]*>/g, ''),
+                    url: window.location.href
+                  }).catch(() => {
+                    navigator.clipboard.writeText(window.location.href);
+                    // Would use toast notification here if available
+                    alert('Link copied to clipboard');
+                  });
+                }}
+              >
+                <Share2 className="h-4 w-4" aria-hidden="true" />
                 Share
               </Button>
             </div>

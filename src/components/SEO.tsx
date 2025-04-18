@@ -11,7 +11,9 @@ interface SEOProps {
   type?: string;
   publishedTime?: string;
   modifiedTime?: string;
+  canonicalUrl?: string;
   children?: React.ReactNode;
+  structuredData?: Record<string, any>;
 }
 
 const SEO: React.FC<SEOProps> = ({
@@ -23,10 +25,13 @@ const SEO: React.FC<SEOProps> = ({
   type = 'website',
   publishedTime,
   modifiedTime,
+  canonicalUrl,
+  structuredData,
   children
 }) => {
   const siteUrl = 'https://meowrescue.org';
   const defaultImage = `${siteUrl}/images/meow-rescue-logo.jpg`;
+  const fullCanonicalUrl = canonicalUrl ? (canonicalUrl.startsWith('http') ? canonicalUrl : `${siteUrl}${canonicalUrl}`) : url;
   
   return (
     <Helmet>
@@ -34,6 +39,9 @@ const SEO: React.FC<SEOProps> = ({
       <title>{title}</title>
       {description && <meta name="description" content={description} />}
       {keywords && <meta name="keywords" content={keywords} />}
+      
+      {/* Canonical URL */}
+      {fullCanonicalUrl && <link rel="canonical" href={fullCanonicalUrl} />}
       
       {/* Open Graph Meta Tags */}
       <meta property="og:title" content={title} />
@@ -59,6 +67,13 @@ const SEO: React.FC<SEOProps> = ({
       
       {/* Content Freshness for SEO */}
       {modifiedTime && <meta name="last-modified" content={modifiedTime} />}
+      
+      {/* Structured Data JSON-LD */}
+      {structuredData && (
+        <script type="application/ld+json">
+          {JSON.stringify(structuredData)}
+        </script>
+      )}
       
       {children}
     </Helmet>

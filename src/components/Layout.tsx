@@ -1,11 +1,13 @@
 
-import React, { ReactNode, useEffect } from 'react';
+import React, { ReactNode, useEffect, lazy, Suspense } from 'react';
 import { useLocation } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { BusinessHoursProvider } from '@/components/BusinessHoursProvider';
-import ChatWidget from '@/components/ChatWidget';
 import { scrollToTop } from '@/utils/scrollUtils';
+
+// Lazy load the ChatWidget component as it's not needed immediately
+const ChatWidget = lazy(() => import('@/components/ChatWidget'));
 
 interface LayoutProps {
   children: ReactNode;
@@ -17,6 +19,15 @@ const Layout: React.FC<LayoutProps> = ({ children, hideFooter = false }) => {
   
   useEffect(() => {
     scrollToTop();
+    
+    // Preload important resources based on current route
+    if (location.pathname === '/cats') {
+      const link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = 'fetch';
+      link.href = 'https://yourapi.example.com/api/cats';
+      document.head.appendChild(link);
+    }
   }, [location.pathname]);
   
   return (
@@ -25,7 +36,9 @@ const Layout: React.FC<LayoutProps> = ({ children, hideFooter = false }) => {
         <Navbar />
         <main className="flex-grow">{children}</main>
         {!hideFooter && <Footer />}
-        <ChatWidget />
+        <Suspense fallback={null}>
+          <ChatWidget />
+        </Suspense>
       </div>
     </BusinessHoursProvider>
   );

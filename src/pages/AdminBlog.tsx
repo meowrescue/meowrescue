@@ -18,7 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { PenSquare, Trash2, MoreHorizontal, Plus, Search, ExternalLink, Eye, EyeOff } from 'lucide-react';
+import { PenSquare, Trash2, Plus, Search, ExternalLink, Eye, EyeOff, FileText } from 'lucide-react';
 import SEO from '@/components/SEO';
 
 const AdminBlog: React.FC = () => {
@@ -121,8 +121,22 @@ const AdminBlog: React.FC = () => {
   // Filter posts based on search term
   const filteredPosts = posts ? posts.filter(post => 
     post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    post.content.toLowerCase().includes(searchTerm.toLowerCase())
+    post.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (post.meta_description && post.meta_description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (post.keywords && post.keywords.toLowerCase().includes(searchTerm.toLowerCase()))
   ) : [];
+
+  // SEO status function
+  const getSeoStatus = (post: any) => {
+    let score = 0;
+    if (post.meta_description && post.meta_description.length > 50) score += 1;
+    if (post.keywords && post.keywords.length > 10) score += 1;
+    if (post.featured_image_url) score += 1;
+    
+    if (score === 3) return { label: 'Good', color: 'bg-green-500 hover:bg-green-600' };
+    if (score === 2) return { label: 'Fair', color: 'bg-yellow-500 hover:bg-yellow-600' };
+    return { label: 'Poor', color: 'bg-red-500 hover:bg-red-600' };
+  };
 
   return (
     <AdminLayout title="Blog Management">
@@ -133,16 +147,17 @@ const AdminBlog: React.FC = () => {
           <h1 className="text-3xl font-bold text-meow-primary">Blog Posts</h1>
           <div className="flex items-center gap-4 w-full md:w-auto">
             <div className="relative w-full md:w-auto">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" aria-hidden="true" />
               <Input
                 placeholder="Search blog posts..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 w-full md:w-64"
+                aria-label="Search blog posts"
               />
             </div>
             <Button onClick={() => navigate('/admin/blog/new')} className="w-full md:w-auto">
-              <Plus className="h-4 w-4 mr-2" /> Create New Post
+              <Plus className="h-4 w-4 mr-2" aria-hidden="true" /> Create New Post
             </Button>
           </div>
         </div>
@@ -159,81 +174,94 @@ const AdminBlog: React.FC = () => {
                 <TableRow>
                   <TableHead>Title</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>SEO</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredPosts.map((post) => (
-                  <TableRow key={post.id}>
-                    <TableCell className="font-medium">{post.title}</TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant={post.is_published ? "default" : "outline"} 
-                        className={post.is_published ? "bg-green-500 hover:bg-green-600" : ""}
-                      >
-                        {post.is_published ? 'Published' : 'Draft'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {post.is_published && post.published_at
-                        ? new Date(post.published_at).toLocaleDateString()
-                        : new Date(post.created_at).toLocaleDateString() + ' (Created)'}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => togglePublishStatus(post.id, post.is_published)}
+                {filteredPosts.map((post) => {
+                  const seoStatus = getSeoStatus(post);
+                  return (
+                    <TableRow key={post.id}>
+                      <TableCell className="font-medium">{post.title}</TableCell>
+                      <TableCell>
+                        <Badge 
+                          variant={post.is_published ? "default" : "outline"} 
+                          className={post.is_published ? "bg-green-500 hover:bg-green-600" : ""}
                         >
-                          {post.is_published ? 
-                            <><EyeOff className="h-4 w-4 mr-2" /> Unpublish</> : 
-                            <><Eye className="h-4 w-4 mr-2" /> Publish</>
-                          }
-                        </Button>
-                        
-                        <Link to={`/admin/blog/edit/${post.id}`}>
-                          <Button variant="ghost" size="sm">
-                            <PenSquare className="h-4 w-4 mr-2" /> Edit
+                          {post.is_published ? 'Published' : 'Draft'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge 
+                          variant="default" 
+                          className={seoStatus.color}
+                        >
+                          {seoStatus.label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {post.is_published && post.published_at
+                          ? new Date(post.published_at).toLocaleDateString()
+                          : new Date(post.created_at).toLocaleDateString() + ' (Created)'}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => togglePublishStatus(post.id, post.is_published)}
+                          >
+                            {post.is_published ? 
+                              <><EyeOff className="h-4 w-4 mr-2" aria-hidden="true" /> Unpublish</> : 
+                              <><Eye className="h-4 w-4 mr-2" aria-hidden="true" /> Publish</>
+                            }
                           </Button>
-                        </Link>
-                        
-                        {post.is_published && (
-                          <Link to={`/blog/${post.slug}`} target="_blank">
+                          
+                          <Link to={`/admin/blog/edit/${post.id}`}>
                             <Button variant="ghost" size="sm">
-                              <ExternalLink className="h-4 w-4 mr-2" /> View
+                              <PenSquare className="h-4 w-4 mr-2" aria-hidden="true" /> Edit
                             </Button>
                           </Link>
-                        )}
-                        
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-red-500 hover:text-red-700"
-                          onClick={() => {
-                            setPostToDelete(post.id);
-                            setIsDeleteAlertOpen(true);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" /> Delete
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                          
+                          {post.is_published && (
+                            <Link to={`/blog/${post.slug}`} target="_blank">
+                              <Button variant="ghost" size="sm">
+                                <ExternalLink className="h-4 w-4 mr-2" aria-hidden="true" /> View
+                              </Button>
+                            </Link>
+                          )}
+                          
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-red-500 hover:text-red-700"
+                            onClick={() => {
+                              setPostToDelete(post.id);
+                              setIsDeleteAlertOpen(true);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" aria-hidden="true" /> Delete
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
         ) : (
           <div className="bg-white p-6 rounded-lg shadow">
             <div className="text-center py-12">
+              <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" aria-hidden="true" />
               <h2 className="text-2xl font-semibold text-gray-700 mb-4">No Blog Posts</h2>
               <p className="text-gray-500 mb-8">
                 There are no blog posts in the database yet. Create your first post to get started.
               </p>
               <Button onClick={() => navigate('/admin/blog/new')}>
-                <Plus className="h-4 w-4 mr-2" /> Create Your First Post
+                <Plus className="h-4 w-4 mr-2" aria-hidden="true" /> Create Your First Post
               </Button>
             </div>
           </div>
