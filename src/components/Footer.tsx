@@ -133,18 +133,6 @@ const Footer: React.FC = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Contact Us</h3>
             <ul className="space-y-3">
-              <li className="flex items-start">
-                <MapPin className="h-5 w-5 mr-2 mt-0.5 text-meow-secondary" />
-                <a 
-                  href="https://maps.google.com/?q=7726+US+Highway+19,New+Port+Richey,FL+34652" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-white/80 hover:text-white transition-colors"
-                >
-                  7726 US Highway 19<br />
-                  New Port Richey, FL 34652
-                </a>
-              </li>
               <li className="flex items-center">
                 <Phone className="h-5 w-5 mr-2 text-meow-secondary" />
                 <a href="tel:7272570037" className="text-white/80 hover:text-white transition-colors">

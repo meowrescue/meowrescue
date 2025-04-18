@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { Cat, Heart, Home, Award } from 'lucide-react';
-import CountUp from './CountUp';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import CountUp from './CountUp';
 
 const StatsSection: React.FC = () => {
   // Fetch cats in care
@@ -58,14 +57,14 @@ const StatsSection: React.FC = () => {
     <section className="py-16 bg-meow-primary/5">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Stat 1 */}
             <div className="text-center">
               <div className="bg-meow-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Cat className="w-8 h-8 text-meow-primary" />
               </div>
               <div className="text-4xl font-bold text-meow-primary mb-2">
-                <CountUp end={catsInCare} suffix="+" />
+                {catsInCare}+
               </div>
               <p className="text-gray-600">Cats in Care</p>
             </div>
@@ -76,7 +75,7 @@ const StatsSection: React.FC = () => {
                 <Heart className="w-8 h-8 text-meow-primary" />
               </div>
               <div className="text-4xl font-bold text-meow-primary mb-2">
-                <CountUp end={totalRescued} />
+                {totalRescued}
               </div>
               <p className="text-gray-600">Cats Rescued</p>
             </div>
@@ -87,20 +86,9 @@ const StatsSection: React.FC = () => {
                 <Home className="w-8 h-8 text-meow-primary" />
               </div>
               <div className="text-4xl font-bold text-meow-primary mb-2">
-                <CountUp end={totalAdoptions} />
+                {totalAdoptions}
               </div>
               <p className="text-gray-600">Adoptions</p>
-            </div>
-            
-            {/* Stat 4 */}
-            <div className="text-center">
-              <div className="bg-meow-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Award className="w-8 h-8 text-meow-primary" />
-              </div>
-              <div className="text-4xl font-bold text-meow-primary mb-2">
-                <CountUp end={calculateYearsOfService()} />
-              </div>
-              <p className="text-gray-600">Years Serving</p>
             </div>
           </div>
         </div>
