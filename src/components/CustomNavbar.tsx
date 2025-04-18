@@ -1,5 +1,3 @@
-
-// Just modify the logo section to match with AdminSidebar
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -72,7 +70,7 @@ const CustomNavbar: React.FC = () => {
       name: 'Adopt', 
       path: '/cats',
       dropdown: [
-        { name: 'Available Cats', path: '/cats' },
+        { name: 'Adoptable Cats', path: '/cats' },
         { name: 'Adoption Process', path: '/adopt' },
         { name: 'Success Stories', path: '/success-stories' },
       ]

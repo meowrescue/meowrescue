@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
@@ -86,7 +85,7 @@ const Navbar: React.FC = () => {
       name: 'Adopt', 
       id: 'adopt',
       dropdown: [
-        { name: 'Available Cats', path: '/cats' },
+        { name: 'Adoptable Cats', path: '/cats' },
         { name: 'Adoption Process', path: '/adopt' },
         { name: 'Success Stories', path: '/success-stories' },
       ]

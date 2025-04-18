@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -171,7 +170,7 @@ const Cats: React.FC = () => {
                   <div className="p-4 flex-grow">
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="text-xl font-semibold text-meow-primary">{cat.name}</h3>
-                      <Badge className="bg-meow-secondary text-white">
+                      <Badge className="bg-green-500 text-white">
                         {cat.status}
                       </Badge>
                     </div>
