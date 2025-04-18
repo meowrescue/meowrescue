@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
@@ -5,7 +6,6 @@ import {
   X, 
   ChevronDown, 
   Heart, 
-  Search, 
   UserCircle,
   LogIn,
   Cat
@@ -136,7 +136,7 @@ const Navbar: React.FC = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:block">
+          <nav className="hidden lg:flex flex-grow justify-center">
             <ul className="flex space-x-6">
               {navItems.map((item) => (
                 <li key={item.name} className="relative">
@@ -324,3 +324,4 @@ const Navbar: React.FC = () => {
 };
 
 export default Navbar;
+
