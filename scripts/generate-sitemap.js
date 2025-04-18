@@ -5,85 +5,88 @@ const path = require('path');
 
 console.log('Running post-build setup...');
 
-// Ensure the manifest file is accessible to the server
-try {
-  // First, check if dist/client/.vite/manifest.json exists
-  const clientManifestVitePath = path.resolve(__dirname, '../dist/client/.vite/manifest.json');
-  
-  if (fs.existsSync(clientManifestVitePath)) {
-    console.log('Found manifest at', clientManifestVitePath);
+// Create necessary directories for client manifest relative to server
+function ensureManifestDirectories() {
+  try {
+    // Source manifest
+    const clientManifestPath = path.resolve(__dirname, '../dist/client/.vite/manifest.json');
     
-    // Copy to dist/client/manifest.json
-    fs.copyFileSync(
-      clientManifestVitePath,
-      path.resolve(__dirname, '../dist/client/manifest.json')
-    );
-    console.log('Copied manifest to dist/client/manifest.json');
-    
-    // Also ensure the correct structure for the server import
-    // Create dist/client directory relative to dist/server
-    const serverRelativeClientPath = path.resolve(__dirname, '../dist/server/client');
-    if (!fs.existsSync(serverRelativeClientPath)) {
-      fs.mkdirSync(serverRelativeClientPath, { recursive: true });
-      console.log('Created directory', serverRelativeClientPath);
+    if (!fs.existsSync(clientManifestPath)) {
+      console.error('Could not find client manifest at:', clientManifestPath);
+      throw new Error('Client manifest not found');
     }
     
-    // Copy the manifest to dist/server/client/manifest.json
-    fs.copyFileSync(
-      clientManifestVitePath,
-      path.resolve(serverRelativeClientPath, 'manifest.json')
-    );
-    console.log('Copied manifest to dist/server/client/manifest.json');
+    console.log('Found client manifest at:', clientManifestPath);
     
-    // Also copy any other required files between client and server as needed
-    // (if there are any identified in the error logs)
-  } else {
-    console.log('Client manifest file not found at expected path:', clientManifestVitePath);
-    
-    // Try alternate locations
-    const altManifestPaths = [
-      path.resolve(__dirname, '../dist/.vite/manifest.json'),
-      path.resolve(__dirname, '../dist/manifest.json')
+    // Create all required destination directories
+    const directories = [
+      // Main manifest for client
+      path.resolve(__dirname, '../dist/client'),
+      // Manifest accessible from server using relative path
+      path.resolve(__dirname, '../dist/server/client'),
+      // Alternative path some builds may expect
+      path.resolve(__dirname, '../dist/client/server/client')
     ];
     
-    let manifestFound = false;
-    for (const altPath of altManifestPaths) {
-      if (fs.existsSync(altPath)) {
-        console.log('Found manifest at alternate location:', altPath);
-        
-        // Create all necessary directories
-        const clientDir = path.resolve(__dirname, '../dist/client');
-        const serverClientDir = path.resolve(__dirname, '../dist/server/client');
-        
-        if (!fs.existsSync(clientDir)) {
-          fs.mkdirSync(clientDir, { recursive: true });
-        }
-        
-        if (!fs.existsSync(serverClientDir)) {
-          fs.mkdirSync(serverClientDir, { recursive: true });
-        }
-        
-        // Copy to both required locations
-        fs.copyFileSync(altPath, path.resolve(clientDir, 'manifest.json'));
-        fs.copyFileSync(altPath, path.resolve(serverClientDir, 'manifest.json'));
-        
-        console.log('Copied manifest to required locations');
-        manifestFound = true;
-        break;
+    // Create each directory if it doesn't exist
+    directories.forEach(dir => {
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+        console.log('Created directory:', dir);
       }
+    });
+    
+    // Copy manifest to each destination
+    const destinations = [
+      path.resolve(__dirname, '../dist/client/manifest.json'),
+      path.resolve(__dirname, '../dist/server/client/manifest.json'),
+      path.resolve(__dirname, '../dist/client/server/client/manifest.json')
+    ];
+    
+    destinations.forEach(dest => {
+      fs.copyFileSync(clientManifestPath, dest);
+      console.log('Copied manifest to:', dest);
+    });
+    
+    // Also copy the ssr-manifest.json if it exists
+    const ssrManifestPath = path.resolve(__dirname, '../dist/client/.vite/ssr-manifest.json');
+    if (fs.existsSync(ssrManifestPath)) {
+      const ssrDestinations = [
+        path.resolve(__dirname, '../dist/client/ssr-manifest.json'),
+        path.resolve(__dirname, '../dist/server/client/ssr-manifest.json'),
+        path.resolve(__dirname, '../dist/client/server/client/ssr-manifest.json')
+      ];
+      
+      ssrDestinations.forEach(dest => {
+        fs.copyFileSync(ssrManifestPath, dest);
+        console.log('Copied SSR manifest to:', dest);
+      });
     }
     
-    if (!manifestFound) {
-      console.warn('Unable to find manifest file in any expected location');
-    }
+    return true;
+  } catch (error) {
+    console.error('Error setting up manifest directories:', error);
+    return false;
   }
-  
-  // Generate sitemap (placeholder for future implementation)
-  console.log('Sitemap generation would happen here');
-  
-} catch (error) {
-  console.error('Error in post-build script:', error);
-  process.exit(1);
 }
 
-console.log('Post-build setup completed successfully');
+// Dummy sitemap generation function (placeholder for actual implementation)
+function generateSitemap() {
+  console.log('Sitemap generation would happen here (not implemented yet)');
+}
+
+// Main function to run post-build operations
+function runPostBuild() {
+  console.log('Starting post-build process...');
+  
+  const manifestSuccess = ensureManifestDirectories();
+  if (!manifestSuccess) {
+    console.warn('Failed to set up manifest files, build may fail');
+  }
+  
+  generateSitemap();
+  
+  console.log('Post-build process completed');
+}
+
+runPostBuild();
