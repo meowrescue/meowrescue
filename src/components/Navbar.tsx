@@ -135,10 +135,10 @@ const Navbar: React.FC = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex">
+          <nav className="hidden lg:flex items-center h-full"> {/* Added items-center and h-full for vertical alignment */}
             <ul className="flex items-center space-x-8">
               {navItems.map((item) => (
-                <li key={item.name} className="relative">
+                <li key={item.name} className="relative flex items-center h-16"> {/* Added flex, items-center and h-16 for vertical alignment */}
                   {item.dropdown ? (
                     <div>
                       <button
