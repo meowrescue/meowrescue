@@ -10,12 +10,7 @@ export default defineConfig(({ mode }) => ({
     host: "::",
   },
   plugins: [
-    react({
-      // Use swc options instead of fastRefresh
-      swc: {
-        plugins: []
-      }
-    }),
+    react(),
     ssr({
       prerender: true,
     }),
