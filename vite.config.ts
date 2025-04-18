@@ -10,7 +10,10 @@ export default defineConfig(({ mode }) => ({
     host: "::",
   },
   plugins: [
-    react(),
+    react({
+      // Enable fast refresh and proper hydration
+      fastRefresh: true,
+    }),
     ssr({
       prerender: true,
     }),

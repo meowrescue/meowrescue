@@ -66,7 +66,7 @@ export const BusinessHoursProvider: React.FC<BusinessHoursProviderProps> = ({ ch
         
         if (error) {
           console.error("Error fetching business hours settings:", error);
-          // Use default settings if not found
+          // Use default settings if table doesn't exist or error occurs
           return;
         }
         
@@ -91,6 +91,18 @@ export const BusinessHoursProvider: React.FC<BusinessHoursProviderProps> = ({ ch
   // Update business hours settings in the database
   const updateBusinessHours = async (settings: BusinessHoursSettings) => {
     try {
+      // First check if the table exists to prevent errors
+      const { count, error: checkError } = await supabase
+        .from('content_blocks')
+        .select('*', { count: 'exact', head: true });
+      
+      // If the table doesn't exist yet, just update local state
+      if (checkError) {
+        console.warn("Content blocks table not found, only updating local state:", checkError);
+        setBusinessHoursSettings(settings);
+        return;
+      }
+      
       const { error } = await supabase
         .from('content_blocks')
         .upsert({
@@ -132,7 +144,7 @@ export const BusinessHoursProvider: React.FC<BusinessHoursProviderProps> = ({ ch
     );
   };
   
-  // Check if admin is online
+  // Check if admin is online - with graceful error handling
   useEffect(() => {
     if (!user) {
       setIsAdminOnline(false);
@@ -154,7 +166,7 @@ export const BusinessHoursProvider: React.FC<BusinessHoursProviderProps> = ({ ch
         }
         
         // Set admin online if the user's role is 'admin'
-        setIsAdminOnline(data.role === 'admin');
+        setIsAdminOnline(data?.role === 'admin');
       } catch (err) {
         console.error("Error in admin check:", err);
         setIsAdminOnline(false);

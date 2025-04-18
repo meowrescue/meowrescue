@@ -9,8 +9,16 @@
   
 [[redirects]]
   from = "/*"
+  to = "/.netlify/functions/entry-server"
+  status = 200
+  force = false
+  conditions = {Role = ["admin"]}
+
+[[redirects]]
+  from = "/*"
   to = "/index.html"
   status = 200
+  force = false
 
 [[headers]]
   for = "/*"

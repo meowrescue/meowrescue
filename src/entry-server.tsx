@@ -20,6 +20,8 @@ export function render(url: string) {
 
   const helmetContext = {};
 
+  // Note: We don't include the Toaster components in server rendering
+  // as they're UI-only and don't affect the initial HTML structure
   const html = ReactDOMServer.renderToString(
     <StaticRouter location={url}>
       <HelmetProvider context={helmetContext}>
