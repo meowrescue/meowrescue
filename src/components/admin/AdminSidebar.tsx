@@ -1,6 +1,5 @@
-
-import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
   LayoutDashboard, Users, FileText, Calendar, PawPrint, 
@@ -11,9 +10,10 @@ import {
 } from 'lucide-react';
 
 const AdminSidebar = () => {
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
   const location = useLocation();
-  const [menuExpanded, setMenuExpanded] = React.useState<Record<string, boolean>>({
+  const [menuExpanded, setMenuExpanded] = useState<Record<string, boolean>>({
     content: true,
     animals: true,
     finance: true,
@@ -30,6 +30,15 @@ const AdminSidebar = () => {
       ...prev,
       [menu]: !prev[menu]
     }));
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   const menuGroups = [
@@ -260,7 +269,7 @@ const AdminSidebar = () => {
           ))}
         </ul>
         
-        <div className="pt-4 mt-6 border-t border-gray-200">
+        <div className="pt-4 mt-6 border-t border-gray-200 space-y-2">
           <NavLink 
             to="/" 
             className="flex items-center p-2 text-gray-600 rounded-lg hover:bg-gray-100"
@@ -268,6 +277,14 @@ const AdminSidebar = () => {
             <Home className="w-5 h-5" />
             <span className="ml-3">Back to Site</span>
           </NavLink>
+          
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center p-2 text-gray-600 rounded-lg hover:bg-gray-100"
+          >
+            <LogOut className="w-5 h-5" />
+            <span className="ml-3">Logout</span>
+          </button>
         </div>
       </div>
     </div>
