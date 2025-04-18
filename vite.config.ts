@@ -20,15 +20,15 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     outDir: 'dist',
-    sourcemap: mode === 'development',
+    sourcemap: true, // Enable sourcemaps for debugging
     // Optimize for Netlify deployment
     assetsInlineLimit: 4096,
     cssCodeSplit: true,
-    minify: 'terser',
+    minify: mode === 'production' ? 'terser' : false, // Disable minification in development
     terserOptions: {
       compress: {
-        drop_console: mode === 'production',
-        drop_debugger: mode === 'production',
+        drop_console: false, // Keep console logs for debugging
+        drop_debugger: false, // Keep debugger statements for debugging
       },
     },
     // Improve chunk handling for Netlify

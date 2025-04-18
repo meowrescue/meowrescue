@@ -9,8 +9,11 @@ import { Toaster } from '@/components/ui/toaster';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import App from './App';
-import './styles/globals.css'; // Make sure this path is correct
+import './styles/globals.css'; 
 import './index.css';
+
+// Debug logs
+console.log('Main.tsx is executing');
 
 // Create a client with settings
 const queryClient = new QueryClient({
@@ -18,27 +21,43 @@ const queryClient = new QueryClient({
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
-      staleTime: 60 * 1000, // 1 minute
-      gcTime: 5 * 60 * 1000, // 5 minutes (previously cacheTime)
+      staleTime: 60 * 1000,
+      gcTime: 5 * 60 * 1000,
     },
   },
 });
 
-// Mount the app to the DOM
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <HelmetProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <AuthProvider>
-              <App />
-            </AuthProvider>
-          </TooltipProvider>
-        </HelmetProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
-  </React.StrictMode>
-);
+// More debug logs
+console.log('About to render React root');
+
+// Check if the root element exists
+const rootElement = document.getElementById('root');
+if (!rootElement) {
+  console.error('Root element not found in the DOM!');
+} else {
+  console.log('Root element found, proceeding with render');
+  
+  try {
+    // Mount the app to the DOM
+    ReactDOM.createRoot(rootElement).render(
+      <React.StrictMode>
+        <BrowserRouter>
+          <QueryClientProvider client={queryClient}>
+            <HelmetProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <AuthProvider>
+                  <App />
+                </AuthProvider>
+              </TooltipProvider>
+            </HelmetProvider>
+          </QueryClientProvider>
+        </BrowserRouter>
+      </React.StrictMode>
+    );
+    console.log('React root rendered successfully');
+  } catch (error) {
+    console.error('Error rendering React root:', error);
+  }
+}
