@@ -19,6 +19,7 @@ import SEO from '@/components/SEO';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { User as UserType } from '@/types/users';
 
 interface UserProfile {
   id: string;
@@ -80,6 +81,8 @@ const AdminDirectMessages = () => {
   const { data: messages, isLoading: messagesLoading } = useQuery({
     queryKey: ['direct-messages', user?.id],
     queryFn: async () => {
+      if (!user?.id) throw new Error("User not authenticated");
+      
       const { data, error } = await supabase
         .from('direct_messages')
         .select(`
@@ -89,14 +92,22 @@ const AdminDirectMessages = () => {
           content, 
           created_at, 
           read_at,
-          sender:sender_id(id, first_name, last_name, email, avatar_url, role),
-          recipient:recipient_id(id, first_name, last_name, email, avatar_url, role)
+          sender:profiles!direct_messages_sender_id_fkey(id, first_name, last_name, email, avatar_url, role),
+          recipient:profiles!direct_messages_recipient_id_fkey(id, first_name, last_name, email, avatar_url, role)
         `)
-        .or(`sender_id.eq.${user?.id},recipient_id.eq.${user?.id}`)
+        .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as DirectMessage[];
+      
+      // Transform data to ensure sender and recipient are objects not arrays
+      const transformedData = data.map(msg => ({
+        ...msg,
+        sender: Array.isArray(msg.sender) ? msg.sender[0] : msg.sender,
+        recipient: Array.isArray(msg.recipient) ? msg.recipient[0] : msg.recipient
+      }));
+      
+      return transformedData as DirectMessage[];
     },
     enabled: !!user?.id,
   });
