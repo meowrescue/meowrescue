@@ -46,4 +46,12 @@ export default defineConfig(({ mode }) => ({
       },
     },
   },
+  ssgOptions: {
+    script: 'async',
+    formatting: 'minify',
+    crittersOptions: {
+      preload: 'js-lazy',
+      preloadFonts: true,
+    },
+  },
 }));

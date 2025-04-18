@@ -1,12 +1,16 @@
 
 import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App.tsx';
-import './index.css';
-import { Toaster } from '@/components/ui/toaster';
+import { ViteSSG } from 'vite-ssg';
+import { createBrowserRouter, RouteObject, RouterProvider } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from './contexts/AuthContext';
+import { Toaster } from '@/components/ui/toaster';
+import { Toaster as Sonner } from '@/components/ui/sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import App from './App';
+import './index.css';
+import { routes, getStaticPaths } from './routes';
 
 // Create a client with SSR-friendly settings
 const queryClient = new QueryClient({
@@ -21,58 +25,48 @@ const queryClient = new QueryClient({
   },
 });
 
-// Only load DevTools in development
-const ReactQueryDevTools = React.lazy(() =>
-  import('@tanstack/react-query-devtools').then((d) => ({
-    default: d.ReactQueryDevtools,
-  }))
+// Create the SSG app
+export const createApp = ViteSSG(
+  App,
+  { routes },
+  ({ app, router, routes, isClient, initialState }) => {
+    // Install plugins
+    app.use(router);
+    
+    // Wrap with providers
+    app.component('ClientOnly', {
+      render() {
+        return isClient ? this.$slots.default?.() : null;
+      },
+    });
+    
+    // Setup the app with our providers
+    const RootProvider = ({ children }: { children: React.ReactNode }) => (
+      <HelmetProvider>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <TooltipProvider>
+              {children}
+              <Toaster />
+              <Sonner />
+            </TooltipProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </HelmetProvider>
+    );
+    
+    // Wrap the entire app with our providers
+    app.component('RootProvider', RootProvider);
+  },
+  {
+    routerOptions: {
+      scrollBehavior: 'smooth',
+    },
+  }
 );
 
-// Add hydration function to help with SSG/SSR
-function hydrate() {
-  ReactDOM.hydrateRoot(
-    document.getElementById('root')!,
-    <React.StrictMode>
-      <HelmetProvider>
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <App />
-            <Toaster />
-            {import.meta.env.DEV && (
-              <React.Suspense fallback={null}>
-                <ReactQueryDevTools initialIsOpen={false} />
-              </React.Suspense>
-            )}
-          </AuthProvider>
-        </QueryClientProvider>
-      </HelmetProvider>
-    </React.StrictMode>
-  );
-}
-
-// Check if we're hydrating from SSR
-const hasSSRData = document.getElementById('__MEOW_RESCUE_DATA__');
-
-if (hasSSRData) {
-  // If SSR data exists, hydrate the app
-  hydrate();
-} else {
-  // Otherwise, do a normal render
-  ReactDOM.createRoot(document.getElementById('root')!).render(
-    <React.StrictMode>
-      <HelmetProvider>
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <App />
-            <Toaster />
-            {import.meta.env.DEV && (
-              <React.Suspense fallback={null}>
-                <ReactQueryDevTools initialIsOpen={false} />
-              </React.Suspense>
-            )}
-          </AuthProvider>
-        </QueryClientProvider>
-      </HelmetProvider>
-    </React.StrictMode>,
-  );
+// This function is automatically detected and called during build
+// It provides all the paths that should be pre-rendered
+export async function includedRoutes() {
+  return await getStaticPaths();
 }
