@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Layout from '../components/Layout';
 import HeroSection from '../components/HeroSection';
@@ -7,11 +8,9 @@ import UrgentNeedsSection from '../components/UrgentNeedsSection';
 import FeaturedCatsSection from '../components/FeaturedCatsSection';
 import TestimonialsSection from '../components/TestimonialsSection';
 import SEO from '@/components/SEO';
+import { Helmet } from 'react-helmet-async';
 
 const Index: React.FC = () => {
-  // Create current date for lastmod in Schema.org
-  const currentDate = new Date().toISOString();
-  
   // Define structured data for organization
   const organizationStructuredData = {
     "@context": "https://schema.org",
@@ -30,7 +29,6 @@ const Index: React.FC = () => {
       "postalCode": "34653",
       "addressCountry": "US"
     },
-    "dateModified": currentDate,
     "description": "Meow Rescue is a home-based cat rescue in Pasco County, Florida, dedicated to rescuing, rehabilitating, and rehoming cats in need."
   };
 
@@ -50,7 +48,6 @@ const Index: React.FC = () => {
       "addressCountry": "US"
     },
     "telephone": "+1-555-555-5555",
-    "dateModified": currentDate,
     "openingHoursSpecification": [
       {
         "@type": "OpeningHoursSpecification",
@@ -67,37 +64,45 @@ const Index: React.FC = () => {
     ]
   };
 
-  // Define website Schema.org for better SEO
-  const websiteSchema = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "url": "https://meowrescue.org/",
-    "name": "Meow Rescue",
-    "description": "Meow Rescue is a home-based cat rescue in Pasco County, Florida, dedicated to rescuing, rehabilitating, and rehoming cats in need.",
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": "https://meowrescue.org/search?q={search_term_string}",
-      "query-input": "required name=search_term_string"
-    },
-    "dateModified": currentDate
-  };
-
   // Create a combined array of structured data for multiple JSON-LD scripts
-  const structuredDataArray = [organizationStructuredData, localBusinessStructuredData, websiteSchema];
+  const structuredDataArray = [organizationStructuredData, localBusinessStructuredData];
 
   return (
     <Layout>
+      {/* Core SEO metadata handled by our SEO component */}
       <SEO 
         title="Meow Rescue - Saving Cat Lives in Pasco County, Florida" 
         description="We're a home-based cat rescue in Pasco County, Florida, dedicated to rescuing, rehabilitating, and rehoming cats in need."
         keywords="cat rescue, cat adoption, feline rescue, kitten adoption, Florida cat rescue, Pasco County animal rescue, pet adoption"
         canonicalUrl="/"
-        structuredData={structuredDataArray}
-        modifiedTime={currentDate}
+        structuredData={organizationStructuredData}
       />
+      
+      {/* Additional structured data that our SEO component doesn't handle yet */}
+      <Helmet>
+        {structuredDataArray.map((data, index) => (
+          <script key={index} type="application/ld+json">
+            {JSON.stringify(data)}
+          </script>
+        ))}
+        {/* Add canonical URL explicitly */}
+        <link rel="canonical" href="https://meowrescue.org/" />
+        {/* Add OpenGraph tags explicitly */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://meowrescue.org/" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        {/* Add Twitter Card tags explicitly */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:domain" content="meowrescue.org" />
+        {/* Add fresh content indicator */}
+        <meta name="last-modified" content={new Date().toISOString()} />
+      </Helmet>
       
       {/* Main content with proper headings structure */}
       <main>
+        <h1 className="sr-only">Meow Rescue - Saving Cat Lives in Pasco County, Florida</h1>
+        
         <HeroSection 
           title="Saving Local Lives, One Paw at a Time"
           subtitle="We're a home-based cat rescue in Pasco County, Florida, dedicated to rescuing, rehabilitating, and rehoming cats in need."
@@ -109,35 +114,11 @@ const Index: React.FC = () => {
           secondaryCtaLink="/donate"
         />
         
-        <section id="stats" className="py-16">
-          <div className="container mx-auto">
-            <StatsSection />
-          </div>
-        </section>
-        
-        <section id="mission" className="py-16 bg-gray-50">
-          <div className="container mx-auto">
-            <MissionSection />
-          </div>
-        </section>
-        
-        <section id="urgent-needs" className="py-16">
-          <div className="container mx-auto">
-            <UrgentNeedsSection />
-          </div>
-        </section>
-        
-        <section id="featured-cats" className="py-16 bg-gray-50">
-          <div className="container mx-auto">
-            <FeaturedCatsSection />
-          </div>
-        </section>
-        
-        <section id="testimonials" className="py-16">
-          <div className="container mx-auto">
-            <TestimonialsSection />
-          </div>
-        </section>
+        <StatsSection />
+        <MissionSection />
+        <UrgentNeedsSection />
+        <FeaturedCatsSection />
+        <TestimonialsSection />
       </main>
     </Layout>
   );
