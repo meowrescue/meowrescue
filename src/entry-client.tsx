@@ -19,22 +19,15 @@ const queryClient = new QueryClient({
   },
 });
 
-export async function render() {
-  ReactDOM.hydrateRoot(
-    document.getElementById('root')!,
-    <React.StrictMode>
-      <BrowserRouter>
-        <QueryClientProvider client={queryClient}>
-          <HelmetProvider>
-            <App />
-          </HelmetProvider>
-        </QueryClientProvider>
-      </BrowserRouter>
-    </React.StrictMode>
-  );
-}
-
-// Auto-start if we're not doing SSR
-if (typeof window !== 'undefined' && !import.meta.env.SSR) {
-  render();
-}
+ReactDOM.hydrateRoot(
+  document.getElementById('root')!,
+  <React.StrictMode>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <HelmetProvider>
+          <App />
+        </HelmetProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
+  </React.StrictMode>
+);

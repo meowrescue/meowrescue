@@ -1,16 +1,15 @@
 
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
+import ssr from 'vite-plugin-ssr/plugin';
 import path from 'path';
 
-// https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  server: {
-    host: "::",
-    port: 8080,
-  },
   plugins: [
     react(),
+    ssr({
+      prerender: true,
+    }),
   ],
   resolve: {
     alias: {
@@ -20,17 +19,21 @@ export default defineConfig(({ mode }) => ({
   build: {
     outDir: 'dist',
     sourcemap: true,
-    // Optimize for production
     assetsInlineLimit: 4096,
     cssCodeSplit: true,
-    minify: 'terser', // Explicitly use Terser
+    minify: 'terser',
+    ssrManifest: true, // Enable SSR manifest
     terserOptions: {
       compress: {
-        drop_console: mode === 'production', // Only drop console in production
+        drop_console: mode === 'production',
         drop_debugger: mode === 'production',
       },
     },
     rollupOptions: {
+      input: {
+        main: './index.html',
+        'entry-server': './src/entry-server.tsx',
+      },
       output: {
         manualChunks: {
           react: ['react', 'react-dom'],
