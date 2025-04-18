@@ -1,7 +1,6 @@
 
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { createClient } from '@supabase/supabase-js';
-import { Session, User } from '@supabase/supabase-js';
+import { Session, User as SupabaseUser } from '@supabase/supabase-js';
 import { logAuth } from '@/utils/logActivity';
 import { supabase } from '@/integrations/supabase/client';
 import { User as ExtendedUser } from '@/types/users';
@@ -27,57 +26,68 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const getSession = async () => {
-      setLoading(true);
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      
-      // If there's a session, fetch the extended user profile
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
+    const setupAuth = async () => {
+      try {
+        setLoading(true);
         
-        // Merge auth user with profile data
-        if (profile) {
-          setUser({
-            ...session.user,
-            ...profile
-          } as ExtendedUser);
+        // Get the current session
+        const { data: { session } } = await supabase.auth.getSession();
+        setSession(session);
+        
+        // If there's a session, fetch the extended user profile
+        if (session?.user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+          
+          // Merge auth user with profile data
+          if (profile) {
+            setUser({
+              ...session.user,
+              ...profile
+            } as ExtendedUser);
+          } else {
+            // Fall back to basic user if no profile
+            setUser(session.user as unknown as ExtendedUser);
+          }
         } else {
-          // Fall back to basic user if no profile
-          setUser(session.user as unknown as ExtendedUser);
+          setUser(null);
         }
-      } else {
-        setUser(null);
+      } catch (err) {
+        console.error("Error in auth setup:", err);
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
     };
 
-    getSession();
+    setupAuth();
 
+    // Set up the auth state change subscription
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      console.log("Auth state changed:", event, newSession?.user?.email);
       setSession(newSession);
       
-      // If there's a session, fetch the extended user profile
       if (newSession?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', newSession.user.id)
-          .single();
-        
-        // Merge auth user with profile data
-        if (profile) {
-          setUser({
-            ...newSession.user,
-            ...profile
-          } as ExtendedUser);
-        } else {
-          // Fall back to basic user if no profile
+        try {
+          // Fetch the user profile when auth state changes
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', newSession.user.id)
+            .single();
+          
+          if (profile) {
+            setUser({
+              ...newSession.user,
+              ...profile
+            } as ExtendedUser);
+          } else {
+            setUser(newSession.user as unknown as ExtendedUser);
+          }
+        } catch (err) {
+          console.error("Error fetching user profile:", err);
           setUser(newSession.user as unknown as ExtendedUser);
         }
       } else {
@@ -154,6 +164,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await logAuth.logout(user.id, user.email || '');
       }
       
+      setLoading(true);
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
@@ -162,6 +173,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error: any) {
       console.error('Error signing out:', error.message);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 

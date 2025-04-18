@@ -28,7 +28,7 @@ const Register: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const { signUp, user, isLoading: authLoading } = useAuth();
+  const { signUp, user, loading: authLoading } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -44,7 +44,7 @@ const Register: React.FC = () => {
     }
   }, [user, navigate, isLoading, authLoading]);
 
-  // Fix the signUp call that has too many arguments
+  // Fix the signUp call
   const handleSignUp = async (values: z.infer<typeof formSchema>) => {
     if (isLoading) return;
     
