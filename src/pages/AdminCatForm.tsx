@@ -9,14 +9,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Upload, Loader2, Edit, ImageIcon, FileCheck } from 'lucide-react';
+import { ArrowLeft, Upload, Loader2, Edit, ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import SEO from '@/components/SEO';
 import ImageUploader from '@/components/ImageUploader';
 import CatMedicalRecords from '@/components/admin/CatMedicalRecords';
+import SectionHeading from '@/components/ui/SectionHeading';
 
 const AdminCatForm: React.FC = () => {
+  // ... keep existing code (state and hooks)
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -199,7 +201,7 @@ const AdminCatForm: React.FC = () => {
     <AdminLayout title={isEditing ? (editMode ? "Edit Cat" : "View Cat") : "Add Cat"}>
       <SEO title={`${isEditing ? (editMode ? "Edit" : "View") : "Add"} Cat | Meow Rescue Admin`} />
       
-      <div className="w-full mx-auto py-4 sm:py-6 pt-20 sm:pt-6"> {/* Fixed top padding for mobile view */}
+      <div className="w-full mx-auto py-4 sm:py-6 pt-24 sm:pt-24"> {/* Increased top padding to fix navbar overlap */}
         <Button 
           variant="outline" 
           onClick={() => navigate('/admin/cats')} 
@@ -347,50 +349,50 @@ const AdminCatForm: React.FC = () => {
                 </div>
                 
                 <div className="space-y-3 sm:space-y-4">
-                  <div>
-                    <h3 className="text-xl font-semibold text-meow-primary mb-4 flex items-center">
-                      <ImageIcon className="mr-2 h-5 w-5" />
-                      Photos
-                    </h3>
-                    {editMode && (
-                      <div className="mt-2">
-                        <ImageUploader 
-                          onImageUploaded={handleImageUploaded}
-                          bucketName="cat-photos" 
-                          folderPath="cat-photos"
-                        />
+                  <SectionHeading 
+                    title="Photos" 
+                    centered={false} 
+                    className="flex items-center pt-2 text-3xl"
+                  />
+                  
+                  {editMode && (
+                    <div className="mt-2">
+                      <ImageUploader 
+                        onImageUploaded={handleImageUploaded}
+                        bucketName="cat-photos" 
+                        folderPath="cat-photos"
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Existing photos preview with click to view full size */}
+                  {photoUrls.length > 0 && (
+                    <div className="mt-4">
+                      <div className="flex flex-wrap gap-3">
+                        {photoUrls.map((url, index) => (
+                          <div key={index} className="relative">
+                            <img 
+                              src={url} 
+                              alt={`Cat photo ${index + 1}`} 
+                              className="w-24 h-24 object-cover rounded-md shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
+                              onClick={() => window.open(url, '_blank')}
+                            />
+                            {editMode && (
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full shadow-sm"
+                                onClick={() => handleRemovePhoto(index)}
+                              >
+                                &times;
+                              </Button>
+                            )}
+                          </div>
+                        ))}
                       </div>
-                    )}
-                    
-                    {/* Existing photos preview with click to view full size */}
-                    {photoUrls.length > 0 && (
-                      <div className="mt-4">
-                        <div className="flex flex-wrap gap-3">
-                          {photoUrls.map((url, index) => (
-                            <div key={index} className="relative">
-                              <img 
-                                src={url} 
-                                alt={`Cat photo ${index + 1}`} 
-                                className="w-24 h-24 object-cover rounded-md shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
-                                onClick={() => window.open(url, '_blank')}
-                              />
-                              {editMode && (
-                                <Button
-                                  type="button"
-                                  variant="destructive"
-                                  size="sm"
-                                  className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full shadow-sm"
-                                  onClick={() => handleRemovePhoto(index)}
-                                >
-                                  &times;
-                                </Button>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
                 
                 {editMode && (

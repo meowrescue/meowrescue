@@ -191,7 +191,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         className="hidden"
       />
 
-      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+      <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
         <DialogContent className="max-w-4xl w-[90vw] p-0 overflow-hidden bg-transparent border-0">
           <img 
             src={selectedImage || ''} 

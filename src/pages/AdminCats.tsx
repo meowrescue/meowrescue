@@ -11,6 +11,7 @@ import { Edit, Trash2, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import SEO from '@/components/SEO';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Cat {
   id: string;
@@ -28,6 +29,7 @@ const AdminCats: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
+  const { user } = useAuth();
   
   // Fetch cats
   const { data: cats, isLoading, error, refetch } = useQuery({
@@ -43,9 +45,23 @@ const AdminCats: React.FC = () => {
     }
   });
   
+  // Check if user is admin
+  const isAdmin = user?.role === 'admin';
+  
   // Delete cat
   const handleDeleteCat = async (id: string, event: React.MouseEvent) => {
     event.stopPropagation(); // Prevent row click event
+    
+    // Only allow admins to delete
+    if (!isAdmin) {
+      toast({
+        title: "Permission Denied",
+        description: "Only administrators can delete cats.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     if (!window.confirm("Are you sure you want to delete this cat?")) return;
     
     try {

@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Trash2, File, FileText, Download, FileSymlink, FileCheck } from 'lucide-react';
@@ -10,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import ImageUploader from '@/components/ImageUploader';
 import SectionHeading from '@/components/ui/SectionHeading';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CatMedicalRecordsProps {
   catId: string;
@@ -19,6 +21,9 @@ interface CatMedicalRecordsProps {
 const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId, editMode = false }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
+  
   const [newRecord, setNewRecord] = React.useState({
     procedure_type: '',
     description: '',
@@ -31,15 +36,25 @@ const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId, editMode =
   const { data: medicalRecords, isLoading, isError, refetch } = useQuery({
     queryKey: ['cat-medical-records', catId],
     queryFn: async () => {
+      if (!catId) return [];
+      
+      console.log('Fetching medical records for cat:', catId);
+      
       const { data, error } = await supabase
         .from('cat_medical_records')
         .select('*, documents:documents(id, title, file_path)')
         .eq('cat_id', catId)
         .order('record_date', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching medical records:', error);
+        throw error;
+      }
+      
+      console.log('Medical records fetched:', data);
       return data || [];
-    }
+    },
+    enabled: !!catId
   });
 
   // This effect will run whenever medicalRecords changes
@@ -129,6 +144,11 @@ const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId, editMode =
 
   const deleteMedicalRecord = useMutation({
     mutationFn: async (recordId: string) => {
+      // Check if the user is an admin
+      if (!isAdmin) {
+        throw new Error("Only administrators can delete medical records");
+      }
+      
       const { error } = await supabase
         .from('cat_medical_records')
         .delete()
@@ -174,7 +194,7 @@ const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId, editMode =
       <SectionHeading 
         title="Medical Records" 
         centered={false} 
-        className="flex items-center pt-2"
+        className="flex items-center pt-2 text-3xl"
       />
       
       {/* Display existing medical records */}
@@ -231,17 +251,19 @@ const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId, editMode =
                         </div>
                       )}
                     </div>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => {
-                        if (window.confirm('Are you sure you want to delete this record?')) {
-                          deleteMedicalRecord.mutate(record.id);
-                        }
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </Button>
+                    {isAdmin && (
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => {
+                          if (window.confirm('Are you sure you want to delete this record?')) {
+                            deleteMedicalRecord.mutate(record.id);
+                          }
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
