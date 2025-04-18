@@ -49,14 +49,14 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           {subtitle}
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4">
-          <Button asChild size="lg" className="rounded-full px-8 py-6 text-lg font-semibold">
+          <Button asChild variant="meow" size="xl" className="rounded-full">
             <Link to={ctaLink}>
               {ctaText}
             </Link>
           </Button>
           
           {secondaryCtaText && secondaryCtaLink && (
-            <Button asChild variant="outline" size="lg" className="rounded-full px-8 py-6 text-lg font-semibold border-2 bg-transparent text-white hover:bg-white/10 hover:text-white">
+            <Button asChild variant="meowOutline" size="xl" className="rounded-full">
               <Link to={secondaryCtaLink}>
                 {secondaryCtaText}
               </Link>
@@ -69,3 +69,4 @@ const HeroSection: React.FC<HeroSectionProps> = ({
 };
 
 export default HeroSection;
+
