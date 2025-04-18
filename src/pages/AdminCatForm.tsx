@@ -287,8 +287,8 @@ const AdminCatForm: React.FC = () => {
                     <div className="mt-2">
                       <ImageUploader 
                         onImageUploaded={handleImageUploaded}
-                        bucketName="images" 
-                        folderPath="cats"
+                        bucketName="cat-photos" 
+                        folderPath="uploads"
                       />
                     </div>
                     

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Upload, Image as ImageIcon, X } from 'lucide-react';
@@ -15,69 +15,18 @@ interface ImageUploaderProps {
 const ImageUploader: React.FC<ImageUploaderProps> = ({
   onImageUploaded,
   currentImage,
-  bucketName = 'images', // Changed to a more generic bucket name
-  folderPath = 'cats' // Using a specific folder for organization
+  bucketName = 'cat-photos', // Use a bucket that exists in your Supabase project
+  folderPath = 'uploads' // Default folder path
 }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentImage || null);
   const { toast } = useToast();
-  const [bucketExists, setBucketExists] = useState(true);
-
-  // Check if the bucket exists
-  useEffect(() => {
-    const checkBucket = async () => {
-      try {
-        // Try to get the bucket to see if it exists
-        const { data, error } = await supabase.storage.getBucket(bucketName);
-        
-        if (error) {
-          console.error('Error checking bucket:', error);
-          
-          // Try to create the bucket if it doesn't exist
-          try {
-            const { data: createData, error: createError } = await supabase.storage.createBucket(bucketName, {
-              public: true,
-              fileSizeLimit: 10485760, // 10MB
-            });
-            
-            if (createError) {
-              console.error('Error creating bucket:', createError);
-              setBucketExists(false);
-              toast({
-                title: 'Storage configuration issue',
-                description: `Could not create bucket "${bucketName}". Please contact an administrator.`,
-                variant: 'destructive',
-              });
-            } else {
-              console.log(`Successfully created bucket: ${bucketName}`);
-              setBucketExists(true);
-            }
-          } catch (createError) {
-            console.error('Exception creating bucket:', createError);
-            setBucketExists(false);
-          }
-        } else {
-          console.log(`Bucket exists: ${bucketName}`);
-          setBucketExists(true);
-        }
-      } catch (error) {
-        console.error('Exception checking bucket:', error);
-        setBucketExists(false);
-      }
-    };
-
-    checkBucket();
-  }, [bucketName, toast]);
 
   const uploadImage = async (file: File) => {
     setIsUploading(true);
+    console.log('Starting upload to bucket:', bucketName, 'folder:', folderPath);
 
     try {
-      // Make sure the bucket exists
-      if (!bucketExists) {
-        throw new Error(`Storage bucket "${bucketName}" does not exist`);
-      }
-
       // Make sure the file is an image
       if (!file.type.match('image.*')) {
         throw new Error('Only image files are allowed');
@@ -88,10 +37,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       const fileName = `${Date.now()}.${fileExt}`;
       const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
 
-      console.log(`Uploading to bucket: ${bucketName}, path: ${filePath}`);
-
       // Upload the file to Supabase Storage
-      const { error: uploadError } = await supabase.storage
+      const { data, error: uploadError } = await supabase.storage
         .from(bucketName)
         .upload(filePath, file, {
           cacheControl: '3600',
@@ -103,20 +50,24 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         throw uploadError;
       }
 
+      console.log('Successfully uploaded file, getting public URL');
+
       // Get the public URL for the uploaded file
-      const { data } = supabase.storage
+      const { data: urlData } = supabase.storage
         .from(bucketName)
         .getPublicUrl(filePath);
 
-      if (!data.publicUrl) {
+      if (!urlData.publicUrl) {
         throw new Error('Failed to get public URL for uploaded image');
       }
 
+      console.log('Public URL:', urlData.publicUrl);
+
       // Create a preview image
-      setPreviewUrl(data.publicUrl);
+      setPreviewUrl(urlData.publicUrl);
       
       // Call the callback function with the public URL
-      onImageUploaded(data.publicUrl);
+      onImageUploaded(urlData.publicUrl);
 
       toast({
         title: 'Image uploaded',
@@ -171,7 +122,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           </p>
           <Button
             variant="outline"
-            disabled={isUploading || !bucketExists}
+            disabled={isUploading}
             onClick={() => document.getElementById('file-upload')?.click()}
           >
             {isUploading ? (
