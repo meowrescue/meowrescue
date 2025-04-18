@@ -36,7 +36,7 @@ const Contact = () => {
             <div className="space-y-6">
               <Card className="overflow-hidden border-none shadow-sm bg-gradient-to-br from-meow-primary/5 to-white h-full">
                 <CardContent className="p-8 flex flex-col h-full">
-                  <h3 className="text-xl font-semibold mb-6 text-gray-900">Contact Information</h3>
+                  <h3 className="text-2xl font-bold text-meow-primary mb-6">Contact Information</h3>
                   <div className="space-y-6 flex-grow">
                     <div className="flex items-start gap-4">
                       <div className="p-3 rounded-xl bg-meow-primary/10">
@@ -81,7 +81,7 @@ const Contact = () => {
               
               <Card className="overflow-hidden border-none shadow-sm">
                 <CardContent className="p-8 bg-gradient-to-br from-meow-secondary/5 to-white h-full flex flex-col">
-                  <h3 className="text-xl font-semibold mb-4 text-gray-900">Need Immediate Help?</h3>
+                  <h3 className="text-2xl font-bold text-meow-primary mb-4">Need Immediate Help?</h3>
                   <p className="text-gray-600 mb-6 flex-grow">
                     For emergency situations or urgent inquiries, please call our hotline.
                     We're here to help!
@@ -97,3 +97,4 @@ const Contact = () => {
 };
 
 export default Contact;
+
