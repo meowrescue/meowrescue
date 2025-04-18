@@ -13,6 +13,8 @@ export default defineConfig(({ mode }) => ({
     react(),
     ssr({
       prerender: true,
+      // Configure the SSR plugin to use the correct paths
+      includedAssetsDir: 'client',
     }),
   ],
   resolve: {
