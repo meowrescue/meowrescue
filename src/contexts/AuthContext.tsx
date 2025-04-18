@@ -1,6 +1,5 @@
 
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import { Session, User } from '@supabase/supabase-js';
 import { logAuth } from '@/utils/logActivity';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,11 +26,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // First set up the auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, newSession) => {
+        console.log('Auth state changed:', event);
+        
+        // Update session state synchronously
+        setSession(newSession);
+        
+        // If session exists, update user state
+        if (newSession?.user) {
+          // Use a timeout to fetch additional data to avoid potential deadlocks
+          setTimeout(async () => {
+            try {
+              console.log('Auth change: fetching profile for user ID:', newSession.user.id);
+              const { data: profile, error: profileError } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', newSession.user.id)
+                .single();
+              
+              if (profileError && profileError.code !== 'PGRST116') { // PGRST116 is "No rows returned"
+                console.error('Auth change: error fetching profile:', profileError);
+              }
+              
+              // Merge auth user with profile data
+              if (profile) {
+                console.log('Auth change: profile found, merging data');
+                setUser({
+                  ...newSession.user,
+                  ...profile
+                } as ExtendedUser);
+              } else {
+                // Fall back to basic user if no profile
+                console.log('Auth change: no profile, using basic user data');
+                setUser(newSession.user as unknown as ExtendedUser);
+              }
+            } catch (err) {
+              console.error('Auth change: exception fetching profile:', err);
+              setUser(newSession.user as unknown as ExtendedUser);
+            }
+          }, 0);
+        } else {
+          setUser(null);
+        }
+      }
+    );
+
+    // Then check for existing session
     const getSession = async () => {
-      setLoading(true);
       try {
         console.log('Getting session...');
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const { data, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
           console.error('Error getting session:', sessionError);
@@ -40,6 +86,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
         
+        const { session } = data;
         console.log('Session result:', session ? 'Session found' : 'No session');
         setSession(session);
         
@@ -53,9 +100,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               .eq('id', session.user.id)
               .single();
             
-            if (profileError) {
+            if (profileError && profileError.code !== 'PGRST116') {
               console.error('Error fetching profile:', profileError);
-              // Don't throw here, still set basic user info
             }
             
             // Merge auth user with profile data
@@ -86,46 +132,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     getSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-      console.log('Auth state changed:', event);
-      setSession(newSession);
-      
-      // If there's a session, fetch the extended user profile
-      if (newSession?.user) {
-        try {
-          console.log('Auth change: fetching profile for user ID:', newSession.user.id);
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', newSession.user.id)
-            .single();
-          
-          if (profileError) {
-            console.error('Auth change: error fetching profile:', profileError);
-            // Don't throw, still set basic user
-          }
-          
-          // Merge auth user with profile data
-          if (profile) {
-            console.log('Auth change: profile found, merging data');
-            setUser({
-              ...newSession.user,
-              ...profile
-            } as ExtendedUser);
-          } else {
-            // Fall back to basic user if no profile
-            console.log('Auth change: no profile, using basic user data');
-            setUser(newSession.user as unknown as ExtendedUser);
-          }
-        } catch (err) {
-          console.error('Auth change: exception fetching profile:', err);
-          setUser(newSession.user as unknown as ExtendedUser);
-        }
-      } else {
-        setUser(null);
-      }
-    });
 
     // Cleanup subscription on unmount
     return () => {

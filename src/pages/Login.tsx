@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, checkSupabaseConnection } from '@/integrations/supabase/client';
 import Layout from '@/components/Layout';
 import SEO from '@/components/SEO';
 import { Cat } from 'lucide-react';
@@ -30,6 +30,10 @@ const Login: React.FC = () => {
   const location = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<{checked: boolean, connected: boolean, error?: string}>({
+    checked: false,
+    connected: false
+  });
   const { user, session, signIn, isLoading: authLoading, error: authError } = useAuth();
 
   // Add debug info to console
@@ -42,6 +46,38 @@ const Login: React.FC = () => {
       authError: authError 
     });
   }, [user, session, isLoading, authLoading, authError]);
+
+  // Check Supabase connection on component mount
+  useEffect(() => {
+    const verifyConnection = async () => {
+      try {
+        const result = await checkSupabaseConnection();
+        setConnectionStatus({
+          checked: true,
+          connected: result.connected,
+          error: result.error
+        });
+        
+        if (!result.connected) {
+          console.error('Supabase connection failed:', result.error);
+          toast({
+            title: "Connection Issue",
+            description: "Unable to connect to our services. Please try again later.",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error('Error checking connection:', error);
+        setConnectionStatus({
+          checked: true,
+          connected: false,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    };
+    
+    verifyConnection();
+  }, [toast]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -65,6 +101,15 @@ const Login: React.FC = () => {
     
     if (isLoading || authLoading) {
       console.log("Already processing login, skipping");
+      return;
+    }
+    
+    if (!connectionStatus.connected) {
+      toast({
+        title: "Connection Issue",
+        description: "Can't log in due to connection problems. Please try again later.",
+        variant: "destructive",
+      });
       return;
     }
     
@@ -129,39 +174,57 @@ const Login: React.FC = () => {
             <CardTitle className="text-2xl font-bold text-center">Login to Your Account</CardTitle>
           </CardHeader>
           <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleLogin)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <Label>Email</Label>
-                      <FormControl>
-                        <Input placeholder="email@example.com" {...field} type="email" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <Label>Password</Label>
-                      <FormControl>
-                        <Input placeholder="Password" {...field} type="password" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button disabled={isLoading || authLoading} className="w-full" type="submit">
-                  {isLoading || authLoading ? "Signing in..." : "Sign In"}
+            {!connectionStatus.checked ? (
+              <div className="flex justify-center py-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-meow-primary"></div>
+              </div>
+            ) : !connectionStatus.connected ? (
+              <div className="text-center py-4 text-red-500">
+                <p>Unable to connect to our services</p>
+                <p className="text-sm mt-2">{connectionStatus.error}</p>
+                <Button 
+                  className="mt-4" 
+                  variant="outline"
+                  onClick={() => window.location.reload()}
+                >
+                  Retry Connection
                 </Button>
-              </form>
-            </Form>
+              </div>
+            ) : (
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleLogin)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <Label>Email</Label>
+                        <FormControl>
+                          <Input placeholder="email@example.com" {...field} type="email" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <Label>Password</Label>
+                        <FormControl>
+                          <Input placeholder="Password" {...field} type="password" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button disabled={isLoading || authLoading} className="w-full" type="submit">
+                    {isLoading || authLoading ? "Signing in..." : "Sign In"}
+                  </Button>
+                </form>
+              </Form>
+            )}
           </CardContent>
           <CardFooter className="flex flex-col space-y-2">
             <div className="text-center text-sm text-gray-500">

@@ -2,7 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, checkSupabaseConnection } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -14,6 +15,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requireAdmin = false 
 }) => {
   const { user, session, loading } = useAuth();
+  const { toast } = useToast();
   const [showLoader, setShowLoader] = useState(true);
   const [connectionChecked, setConnectionChecked] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
@@ -23,11 +25,16 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     const checkConnection = async () => {
       try {
         console.log('Checking Supabase connection from ProtectedRoute...');
-        const { error } = await supabase.from('cats').select('id').limit(1);
+        const result = await checkSupabaseConnection();
         
-        if (error) {
-          console.error('Supabase connection error in ProtectedRoute:', error);
-          setConnectionError(error.message);
+        if (!result.connected) {
+          console.error('Supabase connection error in ProtectedRoute:', result.error);
+          setConnectionError(result.error);
+          toast({
+            title: "Connection Issue",
+            description: "Unable to connect to our services. Some features may not work properly.",
+            variant: "destructive",
+          });
         } else {
           console.log('Supabase connection successful from ProtectedRoute');
         }
@@ -40,7 +47,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     };
     
     checkConnection();
-  }, []);
+  }, [toast]);
   
   // Add a slight delay before showing the loading spinner to prevent flashing
   useEffect(() => {

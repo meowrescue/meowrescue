@@ -1,17 +1,47 @@
 
-import React from 'react';
-import { Cat, Heart, Home, Award } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { Cat, Heart, Home } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, checkSupabaseConnection } from '@/integrations/supabase/client';
 import CountUp from './CountUp';
+import { useToast } from '@/hooks/use-toast';
 
 const StatsSection: React.FC = () => {
+  const { toast } = useToast();
+  
+  // First check if Supabase connection is working
+  const { data: connectionStatus, isLoading: connectionChecking } = useQuery({
+    queryKey: ['supabase-connection-check'],
+    queryFn: async () => {
+      console.log('Checking Supabase connection from StatsSection...');
+      return await checkSupabaseConnection();
+    },
+    retry: 2,
+    retryDelay: 1000,
+  });
+  
+  // Show toast if connection failed
+  useEffect(() => {
+    if (connectionStatus && !connectionStatus.connected) {
+      console.error('Supabase connection failed in StatsSection:', connectionStatus.error);
+      toast({
+        title: "Connection Issue",
+        description: "Unable to load statistics. Please try refreshing the page.",
+        variant: "destructive",
+      });
+    }
+  }, [connectionStatus, toast]);
+
   // Fetch cats in care
   const { data: catsInCare = 0, isError: isCatsInCareError, error: catsInCareError } = useQuery({
     queryKey: ['cats-in-care-count'],
     queryFn: async () => {
       try {
         console.log('Fetching cats in care count...');
+        if (!connectionStatus?.connected) {
+          throw new Error('Supabase connection is not available');
+        }
+        
         const { count, error } = await supabase
           .from('cats')
           .select('*', { count: 'exact', head: true });
@@ -28,7 +58,8 @@ const StatsSection: React.FC = () => {
         throw err;
       }
     },
-    retry: 1,
+    enabled: !!connectionStatus?.connected,
+    retry: 2,
     retryDelay: 1000,
   });
 
@@ -38,6 +69,10 @@ const StatsSection: React.FC = () => {
     queryFn: async () => {
       try {
         console.log('Fetching total rescued cats count...');
+        if (!connectionStatus?.connected) {
+          throw new Error('Supabase connection is not available');
+        }
+        
         const { count, error } = await supabase
           .from('cats')
           .select('*', { count: 'exact', head: true });
@@ -54,7 +89,8 @@ const StatsSection: React.FC = () => {
         throw err;
       }
     },
-    retry: 1,
+    enabled: !!connectionStatus?.connected,
+    retry: 2,
     retryDelay: 1000,
   });
 
@@ -64,6 +100,10 @@ const StatsSection: React.FC = () => {
     queryFn: async () => {
       try {
         console.log('Fetching total adoptions count...');
+        if (!connectionStatus?.connected) {
+          throw new Error('Supabase connection is not available');
+        }
+        
         const { count, error } = await supabase
           .from('cats')
           .select('*', { count: 'exact', head: true })
@@ -81,7 +121,8 @@ const StatsSection: React.FC = () => {
         throw err;
       }
     },
-    retry: 1,
+    enabled: !!connectionStatus?.connected,
+    retry: 2,
     retryDelay: 1000,
   });
 
@@ -94,11 +135,14 @@ const StatsSection: React.FC = () => {
   };
 
   // Log any errors for debugging
-  React.useEffect(() => {
+  useEffect(() => {
     if (isCatsInCareError) console.error('Cats in care error:', catsInCareError);
     if (isTotalRescuedError) console.error('Total rescued error:', totalRescuedError);
     if (isTotalAdoptionsError) console.error('Total adoptions error:', totalAdoptionsError);
-  }, [isCatsInCareError, isTotalRescuedError, isTotalAdoptionsError]);
+  }, [isCatsInCareError, isTotalRescuedError, isTotalAdoptionsError, catsInCareError, totalRescuedError, totalAdoptionsError]);
+
+  const isLoading = connectionChecking || !connectionStatus;
+  const hasConnectionError = connectionStatus && !connectionStatus.connected;
 
   return (
     <section className="py-16 bg-meow-primary/5">
@@ -111,7 +155,13 @@ const StatsSection: React.FC = () => {
                 <Cat className="w-8 h-8 text-meow-primary" />
               </div>
               <div className="text-4xl font-bold text-meow-primary mb-2">
-                {isCatsInCareError ? '?' : `${catsInCare}+`}
+                {isLoading ? (
+                  <div className="inline-block w-8 h-8 animate-spin rounded-full border-4 border-meow-primary/20 border-t-meow-primary"></div>
+                ) : hasConnectionError || isCatsInCareError ? (
+                  '?'
+                ) : (
+                  `${catsInCare}+`
+                )}
               </div>
               <p className="text-gray-600">Cats in Care</p>
             </div>
@@ -122,7 +172,13 @@ const StatsSection: React.FC = () => {
                 <Heart className="w-8 h-8 text-meow-primary" />
               </div>
               <div className="text-4xl font-bold text-meow-primary mb-2">
-                {isTotalRescuedError ? '?' : totalRescued}
+                {isLoading ? (
+                  <div className="inline-block w-8 h-8 animate-spin rounded-full border-4 border-meow-primary/20 border-t-meow-primary"></div>
+                ) : hasConnectionError || isTotalRescuedError ? (
+                  '?'
+                ) : (
+                  totalRescued
+                )}
               </div>
               <p className="text-gray-600">Cats Rescued</p>
             </div>
@@ -133,11 +189,23 @@ const StatsSection: React.FC = () => {
                 <Home className="w-8 h-8 text-meow-primary" />
               </div>
               <div className="text-4xl font-bold text-meow-primary mb-2">
-                {isTotalAdoptionsError ? '?' : totalAdoptions}
+                {isLoading ? (
+                  <div className="inline-block w-8 h-8 animate-spin rounded-full border-4 border-meow-primary/20 border-t-meow-primary"></div>
+                ) : hasConnectionError || isTotalAdoptionsError ? (
+                  '?'
+                ) : (
+                  totalAdoptions
+                )}
               </div>
               <p className="text-gray-600">Adoptions</p>
             </div>
           </div>
+          
+          {hasConnectionError && (
+            <div className="mt-6 text-center text-sm text-red-500">
+              <p>Unable to load current statistics. Please try refreshing the page.</p>
+            </div>
+          )}
         </div>
       </div>
     </section>
