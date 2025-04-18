@@ -17,6 +17,7 @@ import SEO from '@/components/SEO';
 import ImageUploader from '@/components/ImageUploader';
 import CatMedicalRecords from '@/components/admin/CatMedicalRecords';
 import SectionHeading from '@/components/ui/SectionHeading';
+import PhotoSelector from '@/components/admin/PhotoSelector';
 
 const AdminCatForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -41,6 +42,8 @@ const AdminCatForm: React.FC = () => {
   
   // New state for photo viewing
   const [selectedPhotoUrl, setSelectedPhotoUrl] = useState<string | null>(null);
+  const [primaryPhotoIndex, setPrimaryPhotoIndex] = useState(0);
+  const [birthday, setBirthday] = useState<string>('');
   
   // Fetch cat data when editing
   const { data: cat, isLoading: isCatLoading } = useQuery({
@@ -75,6 +78,8 @@ const AdminCatForm: React.FC = () => {
       setTempPhotoUrls(cat.photos_urls || []);
       // The showOnAdoptablePage checkbox is tied to the status
       setShowOnAdoptablePage(cat.status === 'Available');
+      setBirthday(cat.birthday ? new Date(cat.birthday).toISOString().split('T')[0] : '');
+      setPrimaryPhotoIndex(0); // Set to first photo by default
     }
   }, [cat]);
   
@@ -142,6 +147,13 @@ const AdminCatForm: React.FC = () => {
       // Set status based on checkbox
       const finalStatus = showOnAdoptablePage ? 'Available' : 'NotListed';
       
+      // Reorder photos array to put primary photo first
+      const reorderedPhotos = [...tempPhotoUrls];
+      if (reorderedPhotos.length > 0) {
+        const primaryPhoto = reorderedPhotos.splice(primaryPhotoIndex, 1)[0];
+        reorderedPhotos.unshift(primaryPhoto);
+      }
+      
       const catData = {
         name,
         age_estimate: ageEstimate,
@@ -151,7 +163,8 @@ const AdminCatForm: React.FC = () => {
         medical_notes: medicalNotes,
         status: finalStatus,
         internal_status: internalStatus,
-        photos_urls: tempPhotoUrls
+        photos_urls: reorderedPhotos,
+        birthday: birthday || null
       };
       
       if (isEditing && id) {
@@ -217,6 +230,11 @@ const AdminCatForm: React.FC = () => {
     "Burmese",
     "Mixed Breed"
   ];
+
+  // Add handler for primary photo selection
+  const handlePrimaryPhotoSelect = (index: number) => {
+    setPrimaryPhotoIndex(index);
+  };
   
   return (
     <AdminLayout title={isEditing ? (editMode ? "Edit Cat" : "View Cat") : "Add Cat"}>
@@ -275,6 +293,17 @@ const AdminCatForm: React.FC = () => {
                         value={ageEstimate}
                         onChange={(e) => setAgeEstimate(e.target.value)}
                         placeholder="e.g. 2 years, 6 months"
+                        disabled={!editMode}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="birthday">Birthday (if known)</Label>
+                      <Input
+                        type="date"
+                        id="birthday"
+                        value={birthday}
+                        onChange={(e) => setBirthday(e.target.value)}
                         disabled={!editMode}
                       />
                     </div>
@@ -386,33 +415,15 @@ const AdminCatForm: React.FC = () => {
                     </div>
                   )}
                   
-                  {/* Existing photos preview with click to view in modal */}
+                  {/* Replace existing photo preview with PhotoSelector */}
                   {tempPhotoUrls.length > 0 && (
-                    <div className="mt-4">
-                      <div className="flex flex-wrap gap-3">
-                        {tempPhotoUrls.map((url, index) => (
-                          <div key={index} className="relative">
-                            <img 
-                              src={url} 
-                              alt={`Cat photo ${index + 1}`} 
-                              className="w-24 h-24 object-cover rounded-md shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
-                              onClick={() => handleViewPhoto(url)}
-                            />
-                            {editMode && (
-                              <Button
-                                type="button"
-                                variant="destructive"
-                                size="sm"
-                                className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full shadow-sm"
-                                onClick={() => handleRemovePhoto(index)}
-                              >
-                                &times;
-                              </Button>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                    <PhotoSelector
+                      photos={tempPhotoUrls}
+                      onSelectPrimary={handlePrimaryPhotoSelect}
+                      primaryIndex={primaryPhotoIndex}
+                      onRemovePhoto={handleRemovePhoto}
+                      editMode={editMode}
+                    />
                   )}
                 </div>
                 

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -31,9 +30,9 @@ const CatCard: React.FC<CatCardProps> = ({
   return (
     <Link 
       to={`/cats/${id}`}
-      className="block transition-transform hover:scale-[1.02] duration-200"
+      className="block transition-transform hover:scale-[1.02] duration-200 h-full"
     >
-      <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg">
+      <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg h-full flex flex-col">
         <div className="relative">
           <img 
             src={imageUrl} 
@@ -45,7 +44,7 @@ const CatCard: React.FC<CatCardProps> = ({
           </div>
         </div>
         
-        <div className="p-5">
+        <div className="p-5 flex-grow">
           <h3 className="text-xl font-bold text-meow-primary">{name}</h3>
           <div className="flex space-x-4 my-2 text-sm text-gray-600">
             <span>{age}</span>
@@ -54,14 +53,15 @@ const CatCard: React.FC<CatCardProps> = ({
           </div>
           <p className="text-gray-600 mt-2 line-clamp-3">{description}</p>
           
-          <div className="mt-5">
-            <Button 
+          
+        </div>
+        <div className="p-5">
+           <Button 
               className="w-full bg-meow-primary hover:bg-meow-primary/90"
             >
               Meet {name}
             </Button>
           </div>
-        </div>
       </div>
     </Link>
   );

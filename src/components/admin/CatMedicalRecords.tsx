@@ -1,391 +1,275 @@
-
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Trash2, File, FileText, Download, FileSymlink, FileCheck } from 'lucide-react';
-import { format } from 'date-fns';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Calendar } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar as CalendarIcon } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { format } from "date-fns"
+import { DatePicker } from "@/components/ui/date-picker"
+import { Textarea } from "@/components/ui/textarea";
+import { Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import ImageUploader from '@/components/ImageUploader';
-import SectionHeading from '@/components/ui/SectionHeading';
-import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
-interface CatMedicalRecordsProps {
-  catId: string;
-  editMode?: boolean;
+interface MedicalRecord {
+  id: string;
+  cat_id: string;
+  procedure_type: string;
+  description: string;
+  veterinarian: string | null;
+  cost: number | null;
+  notes: string | null;
+  record_date: string;
+  created_at: string;
 }
 
-const CatMedicalRecords: React.FC<CatMedicalRecordsProps> = ({ catId, editMode = false }) => {
-  const { toast } = useToast();
+const CatMedicalRecords = ({ catId, editMode }: { catId: string; editMode: boolean }) => {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
-  const isAdmin = user?.role === 'admin';
-  
-  const [newRecord, setNewRecord] = React.useState({
+  const { toast } = useToast();
+  const [newRecord, setNewRecord] = useState<Omit<MedicalRecord, 'id' | 'created_at'>>({
+    cat_id: catId,
     procedure_type: '',
     description: '',
     veterinarian: '',
-    cost: '',
-    notes: ''
+    cost: 0,
+    notes: '',
+    record_date: new Date().toISOString().split('T')[0],
   });
-  const [documentFile, setDocumentFile] = React.useState<File | null>(null);
 
-  // Fix the medical records query to not attempt a join that's causing the error
-  const { data: medicalRecords, isLoading, isError, refetch } = useQuery({
+  const { data: medicalRecords, isLoading, refetch } = useQuery({
     queryKey: ['cat-medical-records', catId],
     queryFn: async () => {
-      if (!catId) return [];
-      
-      console.log('Fetching medical records for cat:', catId);
-      
-      // Modified query to not join with documents table
       const { data, error } = await supabase
         .from('cat_medical_records')
         .select('*')
         .eq('cat_id', catId)
         .order('record_date', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching medical records:', error);
-        throw error;
-      }
-      
-      // Now fetch any associated documents separately
-      const recordsWithDocuments = await Promise.all(
-        (data || []).map(async (record) => {
-          const { data: documents, error: docError } = await supabase
-            .from('documents')
-            .select('id, title, file_path')
-            .eq('cat_id', catId);
-            
-          if (docError) {
-            console.warn('Error fetching documents:', docError);
-            return { ...record, documents: [] };
-          }
-          
-          return { ...record, documents: documents || [] };
-        })
-      );
-      
-      console.log('Medical records fetched:', recordsWithDocuments);
-      return recordsWithDocuments || [];
+      if (error) throw error;
+      return data as MedicalRecord[];
     },
     enabled: !!catId,
-    retry: 2,
-    retryDelay: 1000
   });
 
-  // This effect will run whenever medicalRecords changes
-  useEffect(() => {
-    console.log('Medical records loaded:', medicalRecords);
-  }, [medicalRecords]);
-
-  const addMedicalRecord = useMutation({
-    mutationFn: async (record: typeof newRecord) => {
-      console.log('Adding medical record:', record);
-      
-      // First insert the medical record
+  const createRecordMutation = useMutation({
+    mutationFn: async (record: Omit<MedicalRecord, 'id' | 'created_at'>) => {
       const { data, error } = await supabase
         .from('cat_medical_records')
-        .insert([{
-          cat_id: catId,
-          procedure_type: record.procedure_type,
-          description: record.description,
-          veterinarian: record.veterinarian,
-          cost: record.cost ? parseFloat(record.cost) : null,
-          notes: record.notes
-        }])
+        .insert([record])
         .select();
 
       if (error) throw error;
-      console.log('Medical record created:', data);
-      
-      // If there's a document and we successfully created a medical record, upload the document
-      if (documentFile && data?.[0]?.id) {
-        const fileName = `${Date.now()}_${documentFile.name}`;
-        const filePath = `medical-records/${catId}/${fileName}`;
-        
-        // Upload file to storage
-        const { error: uploadError } = await supabase.storage
-          .from('documents')
-          .upload(filePath, documentFile);
-          
-        if (uploadError) throw uploadError;
-        
-        // Get the public URL
-        const { data: urlData } = supabase.storage
-          .from('documents')
-          .getPublicUrl(filePath);
-          
-        // Create document record in the database
-        const { error: docError } = await supabase
-          .from('documents')
-          .insert([{
-            title: `Medical Record: ${record.procedure_type}`,
-            file_path: urlData.publicUrl,
-            file_type: documentFile.type,
-            file_size: documentFile.size,
-            description: record.description,
-            cat_id: catId
-          }]);
-          
-        if (docError) throw docError;
-      }
-      
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cat-medical-records', catId] });
-      refetch(); // Explicitly refetch the records after adding
-      setNewRecord({
-        procedure_type: '',
-        description: '',
-        veterinarian: '',
-        cost: '',
-        notes: ''
-      });
-      setDocumentFile(null);
       toast({
         title: "Medical Record Added",
         description: "The medical record has been successfully added."
       });
+      refetch();
+      setNewRecord({
+        cat_id: catId,
+        procedure_type: '',
+        description: '',
+        veterinarian: '',
+        cost: 0,
+        notes: '',
+        record_date: new Date().toISOString().split('T')[0],
+      });
     },
     onError: (error: any) => {
-      console.error('Error adding medical record:', error);
       toast({
-        title: "Error",
+        title: "Error Adding Medical Record",
         description: error.message,
         variant: "destructive"
       });
     }
   });
 
-  const deleteMedicalRecord = useMutation({
+  const deleteRecordMutation = useMutation({
     mutationFn: async (recordId: string) => {
-      // Check if the user is an admin
-      if (!isAdmin) {
-        throw new Error("Only administrators can delete medical records");
-      }
-      
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('cat_medical_records')
         .delete()
         .eq('id', recordId);
 
       if (error) throw error;
+      return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cat-medical-records', catId] });
-      refetch(); // Explicitly refetch after deletion
       toast({
         title: "Medical Record Deleted",
         description: "The medical record has been successfully deleted."
       });
+      refetch();
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
+        title: "Error Deleting Medical Record",
         description: error.message,
         variant: "destructive"
       });
     }
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    addMedicalRecord.mutate(newRecord);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setNewRecord({ ...newRecord, [e.target.name]: e.target.value });
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setDocumentFile(e.target.files[0]);
+  const handleDateChange = (date: Date | undefined) => {
+    if (date) {
+      setNewRecord({ ...newRecord, record_date: date.toISOString().split('T')[0] });
     }
   };
 
-  const handleDocumentUploaded = (url: string) => {
-    console.log("Document uploaded:", url);
-    // This function can be expanded if needed
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editMode) return;
+    createRecordMutation.mutate(newRecord);
+  };
+
+  const handleDeleteRecord = async (recordId: string) => {
+    if (!editMode) return; // Prevent deletion if not in edit mode
+    
+    if (!window.confirm("Are you sure you want to delete this medical record?")) return;
+    deleteRecordMutation.mutate(recordId);
   };
 
   return (
-    <div className="space-y-6">
-      <SectionHeading 
-        title="Medical Records" 
-        centered={false} 
-        className="flex items-center pt-2 text-3xl font-bold text-meow-primary"
-      />
-      
-      {/* Display existing medical records */}
-      <div className="space-y-4">
-        {isLoading ? (
-          <div className="flex justify-center py-4">
-            <div className="animate-spin h-6 w-6 border-2 border-meow-primary border-t-transparent rounded-full"></div>
-          </div>
-        ) : isError ? (
-          <div className="text-center py-4 text-red-500">
-            Error loading medical records. Please try again.
-          </div>
-        ) : medicalRecords && medicalRecords.length > 0 ? (
-          <>
-            {medicalRecords.map((record) => (
-              <Card key={record.id} className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                <CardContent className="pt-6">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h4 className="font-semibold text-meow-primary">{record.procedure_type}</h4>
-                      <p className="text-sm text-gray-600">{record.description}</p>
-                      {record.veterinarian && (
-                        <p className="text-sm text-gray-600">Vet: {record.veterinarian}</p>
-                      )}
-                      {record.cost && (
-                        <p className="text-sm text-gray-600">Cost: ${record.cost}</p>
-                      )}
-                      {record.notes && (
-                        <p className="text-sm text-gray-600 mt-2">{record.notes}</p>
-                      )}
-                      <p className="text-xs text-gray-500 mt-2">
-                        {format(new Date(record.record_date), 'PPP')}
-                      </p>
-                      
-                      {/* Display any linked documents */}
-                      {record.documents && record.documents.length > 0 && (
-                        <div className="mt-2">
-                          {record.documents.map((doc: any) => (
-                            <a 
-                              key={doc.id}
-                              href={doc.file_path}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center text-sm text-blue-600 hover:underline"
-                            >
-                              <FileText className="h-3 w-3 mr-1" />
-                              {doc.title || 'Medical Document'}
-                            </a>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    {isAdmin && (
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => {
-                          if (window.confirm('Are you sure you want to delete this record?')) {
-                            deleteMedicalRecord.mutate(record.id);
-                          }
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </>
-        ) : (
-          <div className="text-center py-4 text-gray-500">
-            No medical records found for this cat.
-          </div>
-        )}
-      </div>
+    <div className="space-y-4">
+      <h3 className="text-xl font-semibold">Medical Records</h3>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Date</TableHead>
+            <TableHead>Procedure</TableHead>
+            <TableHead>Description</TableHead>
+            <TableHead>Veterinarian</TableHead>
+            <TableHead>Cost</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {medicalRecords && medicalRecords.map((record) => (
+            <TableRow key={record.id}>
+              <TableCell>{format(new Date(record.record_date), 'MMM d, yyyy')}</TableCell>
+              <TableCell>{record.procedure_type}</TableCell>
+              <TableCell>{record.description}</TableCell>
+              <TableCell>{record.veterinarian || 'N/A'}</TableCell>
+              <TableCell>{record.cost ? `$${record.cost.toFixed(2)}` : 'N/A'}</TableCell>
+              <TableCell className="text-right">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleDeleteRecord(record.id)}
+                  className={editMode ? "opacity-100" : "hidden"}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
 
       {editMode && (
-        <Card className="border border-gray-200 shadow-sm">
-          <CardHeader className="bg-gradient-to-r from-meow-primary/10 to-transparent">
-            <CardTitle className="flex items-center text-meow-primary">
-              <FileSymlink className="mr-2 h-5 w-5" />
-              Add Medical Record
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Select
-              value={newRecord.procedure_type}
-              onValueChange={(value) => setNewRecord(prev => ({ ...prev, procedure_type: value }))}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select procedure type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Spay">Spay</SelectItem>
-                <SelectItem value="Neuter">Neuter</SelectItem>
-                <SelectItem value="Rabies Vaccination">Rabies Vaccination</SelectItem>
-                <SelectItem value="FVRCP Vaccination">FVRCP Vaccination</SelectItem>
-                <SelectItem value="FeLV Vaccination">FeLV (Feline Leukemia) Vaccination</SelectItem>
-                <SelectItem value="Microchipping">Microchipping</SelectItem>
-                <SelectItem value="Deworming">Deworming</SelectItem>
-                <SelectItem value="Flea/Tick Treatment">Flea/Tick Treatment</SelectItem>
-                <SelectItem value="Dental Cleaning">Dental Cleaning</SelectItem>
-                <SelectItem value="Upper Respiratory Infection">Upper Respiratory Infection</SelectItem>
-                <SelectItem value="Eye Infection">Eye Infection</SelectItem>
-                <SelectItem value="Ear Infection">Ear Infection</SelectItem>
-                <SelectItem value="Wound Treatment">Wound Treatment</SelectItem>
-                <SelectItem value="Fracture Treatment">Fracture Treatment</SelectItem>
-                <SelectItem value="Emergency Care">Emergency Care</SelectItem>
-                <SelectItem value="Amputation">Amputation</SelectItem>
-                <SelectItem value="Mass Removal">Mass Removal</SelectItem>
-                <SelectItem value="Euthanasia">Euthanasia</SelectItem>
-                <SelectItem value="Bloodwork">Bloodwork</SelectItem>
-                <SelectItem value="X-Ray/Imaging">X-Ray/Imaging</SelectItem>
-                <SelectItem value="Ultrasound">Ultrasound</SelectItem>
-                <SelectItem value="Medication">Medication</SelectItem>
-                <SelectItem value="Specialist Consultation">Specialist Consultation</SelectItem>
-                <SelectItem value="Grooming">Grooming</SelectItem>
-                <SelectItem value="Other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Input
-              placeholder="Description"
-              value={newRecord.description}
-              onChange={(e) => setNewRecord(prev => ({ ...prev, description: e.target.value }))}
-              required
-              className="w-full"
-            />
-
-            <Input
-              placeholder="Veterinarian"
-              value={newRecord.veterinarian}
-              onChange={(e) => setNewRecord(prev => ({ ...prev, veterinarian: e.target.value }))}
-              className="w-full"
-            />
-
-            <Input
-              type="number"
-              step="0.01"
-              placeholder="Cost"
-              value={newRecord.cost}
-              onChange={(e) => setNewRecord(prev => ({ ...prev, cost: e.target.value }))}
-              className="w-full"
-            />
-
-            <Input
-              placeholder="Notes"
-              value={newRecord.notes}
-              onChange={(e) => setNewRecord(prev => ({ ...prev, notes: e.target.value }))}
-              className="w-full"
-            />
-
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Upload Medical Document (Optional)</p>
-              <ImageUploader
-                onImageUploaded={handleDocumentUploaded}
-                bucketName="documents"
-                folderPath={`medical-records/${catId}`}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <h4 className="text-lg font-semibold">Add New Record</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="record_date">Record Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !newRecord.record_date && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {newRecord.record_date ? (
+                      format(new Date(newRecord.record_date), "PPP")
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <DatePicker
+                    mode="single"
+                    selected={new Date(newRecord.record_date)}
+                    onSelect={handleDateChange}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div>
+              <Label htmlFor="procedure_type">Procedure Type</Label>
+              <Input
+                type="text"
+                id="procedure_type"
+                name="procedure_type"
+                value={newRecord.procedure_type}
+                onChange={handleInputChange}
+                required
               />
             </div>
-
-            <Button type="submit" className="w-full bg-meow-primary hover:bg-meow-primary/90">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Record
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+            <div>
+              <Label htmlFor="veterinarian">Veterinarian</Label>
+              <Input
+                type="text"
+                id="veterinarian"
+                name="veterinarian"
+                value={newRecord.veterinarian || ''}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <Label htmlFor="cost">Cost</Label>
+              <Input
+                type="number"
+                id="cost"
+                name="cost"
+                value={newRecord.cost?.toString() || ''}
+                onChange={handleInputChange}
+              />
+            </div>
+          </div>
+          <div>
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              name="description"
+              value={newRecord.description}
+              onChange={handleInputChange}
+              rows={3}
+            />
+          </div>
+          <div>
+            <Label htmlFor="notes">Notes</Label>
+            <Textarea
+              id="notes"
+              name="notes"
+              value={newRecord.notes || ''}
+              onChange={handleInputChange}
+              rows={3}
+            />
+          </div>
+          <Button type="submit">Add Record</Button>
+        </form>
       )}
     </div>
   );

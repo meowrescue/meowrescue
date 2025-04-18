@@ -430,6 +430,7 @@ export type Database = {
         Row: {
           age_estimate: string | null
           bio: string | null
+          birthday: string | null
           breed: string | null
           created_at: string
           description: string | null
@@ -437,6 +438,7 @@ export type Database = {
           gender: string | null
           id: string
           intake_date: string
+          internal_status: string | null
           medical_notes: string | null
           name: string
           photos_urls: string[] | null
@@ -446,6 +448,7 @@ export type Database = {
         Insert: {
           age_estimate?: string | null
           bio?: string | null
+          birthday?: string | null
           breed?: string | null
           created_at?: string
           description?: string | null
@@ -453,6 +456,7 @@ export type Database = {
           gender?: string | null
           id?: string
           intake_date?: string
+          internal_status?: string | null
           medical_notes?: string | null
           name: string
           photos_urls?: string[] | null
@@ -462,6 +466,7 @@ export type Database = {
         Update: {
           age_estimate?: string | null
           bio?: string | null
+          birthday?: string | null
           breed?: string | null
           created_at?: string
           description?: string | null
@@ -469,6 +474,7 @@ export type Database = {
           gender?: string | null
           id?: string
           intake_date?: string
+          internal_status?: string | null
           medical_notes?: string | null
           name?: string
           photos_urls?: string[] | null
