@@ -1,10 +1,11 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Cat, Heart, Mail, Phone, MapPin, Facebook, Instagram, Twitter } from 'lucide-react';
 import { scrollToTop } from '@/utils/scrollUtils';
+import { supabase } from '@/integrations/supabase/client';
 
 const Footer: React.FC = () => {
+  const [licenseInfo, setLicenseInfo] = useState<{ license_number: string } | null>(null);
   const currentYear = new Date().getFullYear();
   const lastUpdated = new Date().toISOString(); // For SEO content freshness
 
@@ -26,6 +27,22 @@ const Footer: React.FC = () => {
     { path: "/lost-found", label: "Lost & Found" },
     { path: "/contact", label: "Contact" },
   ];
+
+  useEffect(() => {
+    const fetchLicenseInfo = async () => {
+      const { data, error } = await supabase
+        .from('business_licenses')
+        .select('license_number')
+        .eq('license_type', 'Business License')
+        .single();
+      
+      if (data && !error) {
+        setLicenseInfo(data);
+      }
+    };
+
+    fetchLicenseInfo();
+  }, []);
 
   return (
     <footer className="bg-meow-primary text-white">
@@ -156,12 +173,13 @@ const Footer: React.FC = () => {
         
         <div className="border-t border-white/20 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="mb-4 md:mb-0 text-center md:text-left">
+            <div className="mb-4 md:mb-0 text-center md:text-left space-y-2">
               <p className="text-white/80">
-                &copy; {currentYear} Meow Rescue. All rights reserved.
-              </p>
-              <p className="text-white/60 text-sm">
-                <time dateTime={lastUpdated}>Last Updated: {new Date(lastUpdated).toLocaleDateString()}</time>
+                &copy; {currentYear} Meow Rescue Network, Inc.
+                <span className="block text-sm">DBA: Meow Rescue</span>
+                {licenseInfo && (
+                  <span className="block text-sm">License #: {licenseInfo.license_number}</span>
+                )}
               </p>
             </div>
             <div className="flex space-x-4">
