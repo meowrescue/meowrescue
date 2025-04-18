@@ -124,7 +124,7 @@ const Navbar: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2" onClick={handleLogoClick}>
+          <Link to="/" className="flex items-center gap-2 shrink-0" onClick={handleLogoClick}>
             <div className="bg-meow-primary rounded-full p-2">
               <Cat className="h-6 w-6 text-white" />
             </div>
@@ -135,8 +135,8 @@ const Navbar: React.FC = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex flex-grow justify-center items-center">
-            <ul className="flex space-x-6 items-center">
+          <nav className="hidden lg:flex items-center justify-center flex-1 px-8">
+            <ul className="flex items-center space-x-8">
               {navItems.map((item) => (
                 <li key={item.name} className="relative">
                   {item.dropdown ? (
@@ -187,7 +187,7 @@ const Navbar: React.FC = () => {
           </nav>
 
           {/* Right Side Links */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <Link to="/donate">
               <Button variant="meow" size="sm" className="hidden sm:flex">
                 <Heart className="mr-1 h-4 w-4" /> Donate
