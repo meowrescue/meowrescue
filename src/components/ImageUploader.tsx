@@ -15,8 +15,8 @@ interface ImageUploaderProps {
 const ImageUploader: React.FC<ImageUploaderProps> = ({
   onImageUploaded,
   currentImage,
-  bucketName = 'images',
-  folderPath = ''
+  bucketName = 'cat-photos', // Updated default bucket
+  folderPath = 'cats' // Added specific folder for cats
 }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentImage || null);
