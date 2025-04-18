@@ -7,7 +7,7 @@ import {
   DollarSign, Settings, Shield, MessageSquare, Search,
   Package, CircleHelp, Send, BookOpen, Bell, ChevronDown,
   FileImage, Folder, Award, CreditCard, Receipt, Mail,
-  LogOut, Home
+  LogOut, Home, Boxes, FileSpreadsheet, Truck, Clipboard
 } from 'lucide-react';
 
 const AdminSidebar = () => {
@@ -157,7 +157,7 @@ const AdminSidebar = () => {
         },
         { 
           to: '/admin/orders', 
-          icon: <Package className="w-5 h-5" />, 
+          icon: <Truck className="w-5 h-5" />, 
           label: 'Orders'
         },
         { 
@@ -178,8 +178,8 @@ const AdminSidebar = () => {
           label: 'Security'
         },
         { 
-          to: '/admin/licenses', 
-          icon: <FileText className="w-5 h-5" />, 
+          to: '/admin/business-licenses', 
+          icon: <Clipboard className="w-5 h-5" />, 
           label: 'Business Licenses'
         },
         { 

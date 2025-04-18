@@ -53,6 +53,10 @@ import SuccessStories from "./pages/SuccessStories";
 import AdminSupplies from "./pages/AdminSupplies";
 import AdminDocuments from "./pages/AdminDocuments";
 import AdminTeam from "./pages/AdminTeam";
+import AdminSuccessStories from "./pages/AdminSuccessStories";
+import AdminBusinessLicenses from "./pages/AdminBusinessLicenses";
+import AdminDirectMessages from "./pages/AdminDirectMessages";
+import AdminOrders from "./pages/AdminOrders";
 
 const queryClient = new QueryClient();
 
@@ -140,6 +144,21 @@ const App = () => (
                   <AdminFinance />
                 </ProtectedRoute>
               } />
+              <Route path="/admin/finance/donations" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminFinance />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/finance/income" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminFinance />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/finance/expenses" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminFinance />
+                </ProtectedRoute>
+              } />
               <Route path="/admin/pages" element={
                 <ProtectedRoute requireAdmin={true}>
                   <AdminPages />
@@ -203,6 +222,31 @@ const App = () => (
               <Route path="/admin/team" element={
                 <ProtectedRoute requireAdmin={true}>
                   <AdminTeam />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/success-stories" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminSuccessStories />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/business-licenses" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminBusinessLicenses />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/direct-messages" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminDirectMessages />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/orders" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminOrders />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/help" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminDashboard />
                 </ProtectedRoute>
               } />
               
