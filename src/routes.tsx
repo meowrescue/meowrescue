@@ -1,5 +1,4 @@
 import React from 'react';
-import type { RouteRecord } from 'vite-react-ssg';
 import { supabase } from './integrations/supabase/client';
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -88,7 +87,7 @@ async function getBlogSlugs() {
   }
 }
 
-export const routes: RouteRecord[] = [
+export const routes = [
   {
     path: '/',
     element: <Layout />,
@@ -97,290 +96,232 @@ export const routes: RouteRecord[] = [
       {
         index: true,
         element: <Index />,
-        entry: 'src/pages/Index.tsx'
       },
       {
         path: 'about',
         element: <About />,
-        entry: 'src/pages/About.tsx'
       },
       {
         path: 'cats',
         element: <Cats />,
-        entry: 'src/pages/Cats.tsx'
       },
       {
         path: 'cats/:id',
         element: <CatDetail />,
-        entry: 'src/pages/CatDetail.tsx',
-        getStaticPaths: getCatIds
       },
       {
         path: 'adopt',
         element: <Adopt />,
-        entry: 'src/pages/Adopt.tsx'
       },
       {
         path: 'adopt/apply',
         element: <AdoptionForm />,
-        entry: 'src/pages/AdoptionForm.tsx'
       },
       {
         path: 'foster',
         element: <Foster />,
-        entry: 'src/pages/Foster.tsx'
       },
       {
         path: 'foster/apply',
         element: <FosterForm />,
-        entry: 'src/pages/FosterForm.tsx'
       },
       {
         path: 'success-stories',
         element: <SuccessStories />,
-        entry: 'src/pages/SuccessStories.tsx'
       },
       {
         path: 'blog',
         element: <Blog />,
-        entry: 'src/pages/Blog.tsx'
       },
       {
         path: 'blog/:slug',
         element: <BlogPost />,
-        entry: 'src/pages/BlogPost.tsx',
-        getStaticPaths: getBlogSlugs
       },
       {
         path: 'events',
         element: <Events />,
-        entry: 'src/pages/Events.tsx'
       },
       {
         path: 'events/:id',
         element: <EventDetail />,
-        entry: 'src/pages/EventDetail.tsx'
       },
       {
         path: 'resources',
         element: <Resources />,
-        entry: 'src/pages/Resources.tsx'
       },
       {
         path: 'contact',
         element: <Contact />,
-        entry: 'src/pages/Contact.tsx'
       },
       {
         path: 'donate',
         element: <Donate />,
-        entry: 'src/pages/Donate.tsx'
       },
       {
         path: 'volunteer',
         element: <Volunteer />,
-        entry: 'src/pages/Volunteer.tsx'
       },
       {
         path: 'volunteer/apply',
         element: <VolunteerForm />,
-        entry: 'src/pages/VolunteerForm.tsx'
       },
       {
         path: 'login',
         element: <Login />,
-        entry: 'src/pages/Login.tsx'
       },
       {
         path: 'register',
         element: <Register />,
-        entry: 'src/pages/Register.tsx'
       },
       {
         path: 'reset-password',
         element: <ResetPassword />,
-        entry: 'src/pages/ResetPassword.tsx'
       },
       {
         path: 'privacy-policy',
         element: <PrivacyPolicy />,
-        entry: 'src/pages/PrivacyPolicy.tsx'
       },
       {
         path: 'terms-of-service',
         element: <TermsOfService />,
-        entry: 'src/pages/TermsOfService.tsx'
       },
       {
         path: 'lost-found',
         element: <LostFound />,
-        entry: 'src/pages/LostFound.tsx'
       },
       {
         path: 'lost-found/:id',
         element: <LostFoundDetail />,
-        entry: 'src/pages/LostFoundDetail.tsx'
       },
       
       // Protected Routes (requires login)
       {
         path: 'profile',
         element: <ProtectedRoute><Profile /></ProtectedRoute>,
-        entry: 'src/pages/Profile.tsx'
       },
       {
         path: 'lost-found/new',
         element: <ProtectedRoute><LostFoundForm /></ProtectedRoute>,
-        entry: 'src/pages/LostFoundForm.tsx'
       },
       {
         path: 'lost-found/edit/:id',
         element: <ProtectedRoute><LostFoundForm /></ProtectedRoute>,
-        entry: 'src/pages/LostFoundForm.tsx'
       },
       
       // Admin Routes (requires admin login)
       {
         path: 'admin',
         element: <ProtectedRoute requireAdmin={true}><AdminDashboard /></ProtectedRoute>,
-        entry: 'src/pages/AdminDashboard.tsx'
       },
       {
         path: 'admin/cats',
         element: <ProtectedRoute requireAdmin={true}><AdminCats /></ProtectedRoute>,
-        entry: 'src/pages/AdminCats.tsx'
       },
       {
         path: 'admin/cats/new',
         element: <ProtectedRoute requireAdmin={true}><AdminCatForm /></ProtectedRoute>,
-        entry: 'src/pages/AdminCatForm.tsx'
       },
       {
         path: 'admin/cats/edit/:id',
         element: <ProtectedRoute requireAdmin={true}><AdminCatForm /></ProtectedRoute>,
-        entry: 'src/pages/AdminCatForm.tsx'
       },
       {
         path: 'admin/users',
         element: <ProtectedRoute requireAdmin={true}><AdminUsers /></ProtectedRoute>,
-        entry: 'src/pages/AdminUsers.tsx'
       },
       {
         path: 'admin/finance',
         element: <ProtectedRoute requireAdmin={true}><AdminFinance /></ProtectedRoute>,
-        entry: 'src/pages/AdminFinance.tsx'
       },
       {
         path: 'admin/finance/donations',
         element: <ProtectedRoute requireAdmin={true}><AdminFinance /></ProtectedRoute>,
-        entry: 'src/pages/AdminFinance.tsx'
       },
       {
         path: 'admin/finance/income',
         element: <ProtectedRoute requireAdmin={true}><AdminFinance /></ProtectedRoute>,
-        entry: 'src/pages/AdminFinance.tsx'
       },
       {
         path: 'admin/finance/expenses',
         element: <ProtectedRoute requireAdmin={true}><AdminFinance /></ProtectedRoute>,
-        entry: 'src/pages/AdminFinance.tsx'
       },
       {
         path: 'admin/pages',
         element: <ProtectedRoute requireAdmin={true}><AdminPages /></ProtectedRoute>,
-        entry: 'src/pages/AdminPages.tsx'
       },
       {
         path: 'admin/blog',
         element: <ProtectedRoute requireAdmin={true}><AdminBlog /></ProtectedRoute>,
-        entry: 'src/pages/AdminBlog.tsx'
       },
       {
         path: 'admin/blog/new',
         element: <ProtectedRoute requireAdmin={true}><AdminBlogForm /></ProtectedRoute>,
-        entry: 'src/pages/AdminBlogForm.tsx'
       },
       {
         path: 'admin/blog/edit/:id',
         element: <ProtectedRoute requireAdmin={true}><AdminBlogForm /></ProtectedRoute>,
-        entry: 'src/pages/AdminBlogForm.tsx'
       },
       {
         path: 'admin/events',
         element: <ProtectedRoute requireAdmin={true}><AdminEvents /></ProtectedRoute>,
-        entry: 'src/pages/AdminEvents.tsx'
       },
       {
         path: 'admin/lost-found',
         element: <ProtectedRoute requireAdmin={true}><AdminLostFound /></ProtectedRoute>,
-        entry: 'src/pages/AdminLostFound.tsx'
       },
       {
         path: 'admin/messages',
         element: <ProtectedRoute requireAdmin={true}><AdminMessages /></ProtectedRoute>,
-        entry: 'src/pages/AdminMessages.tsx'
       },
       {
         path: 'admin/chat',
         element: <ProtectedRoute requireAdmin={true}><AdminChat /></ProtectedRoute>,
-        entry: 'src/pages/AdminChat.tsx'
       },
       {
         path: 'admin/security',
         element: <ProtectedRoute requireAdmin={true}><AdminSecurity /></ProtectedRoute>,
-        entry: 'src/pages/AdminSecurity.tsx'
       },
       {
         path: 'admin/applications',
         element: <ProtectedRoute requireAdmin={true}><AdminApplications /></ProtectedRoute>,
-        entry: 'src/pages/AdminApplications.tsx'
       },
       {
         path: 'admin/supplies',
         element: <ProtectedRoute requireAdmin={true}><AdminSupplies /></ProtectedRoute>,
-        entry: 'src/pages/AdminSupplies.tsx'
       },
       {
         path: 'admin/documents',
         element: <ProtectedRoute requireAdmin={true}><AdminDocuments /></ProtectedRoute>,
-        entry: 'src/pages/AdminDocuments.tsx'
       },
       {
         path: 'admin/team',
         element: <ProtectedRoute requireAdmin={true}><AdminTeam /></ProtectedRoute>,
-        entry: 'src/pages/AdminTeam.tsx'
       },
       {
         path: 'admin/success-stories',
         element: <ProtectedRoute requireAdmin={true}><AdminSuccessStories /></ProtectedRoute>,
-        entry: 'src/pages/AdminSuccessStories.tsx'
       },
       {
         path: 'admin/business-licenses',
         element: <ProtectedRoute requireAdmin={true}><AdminBusinessLicenses /></ProtectedRoute>,
-        entry: 'src/pages/AdminBusinessLicenses.tsx'
       },
       {
         path: 'admin/direct-messages',
         element: <ProtectedRoute requireAdmin={true}><AdminDirectMessages /></ProtectedRoute>,
-        entry: 'src/pages/AdminDirectMessages.tsx'
       },
       {
         path: 'admin/orders',
         element: <ProtectedRoute requireAdmin={true}><AdminOrders /></ProtectedRoute>,
-        entry: 'src/pages/AdminOrders.tsx'
       },
       {
         path: 'admin/help',
         element: <ProtectedRoute requireAdmin={true}><AdminDashboard /></ProtectedRoute>,
-        entry: 'src/pages/AdminDashboard.tsx'
       },
       
       // Catch-all route for 404
       {
         path: '*',
         element: <NotFound />,
-        entry: 'src/pages/NotFound.tsx'
       }
     ]
   }

@@ -1,47 +1,20 @@
+
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
-import { imagetools } from 'vite-imagetools';
-import { VitePWA } from 'vite-plugin-pwa';
 import path from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    react() ,
-    imagetools(),
-    VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
-      manifest: {
-        name: 'Meow Rescue',
-        short_name: 'MeowRescue',
-        description: 'Cat rescue and adoption organization',
-        theme_color: '#4f46e5',
-        icons: [
-          {
-            src: 'pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable'
-          }
-        ]
-      }
-    })
+    react()
   ],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')
     }
+  },
+  server: {
+    port: 8080
   },
   build: {
     rollupOptions: {

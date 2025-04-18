@@ -1,3 +1,4 @@
+
 import React, { ReactNode, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -6,7 +7,7 @@ import { BusinessHoursProvider } from '@/components/BusinessHoursProvider';
 import ChatWidget from '@/components/ChatWidget';
 import { scrollToTop } from '@/utils/scrollUtils';
 
-interface LayoutProps {
+export interface LayoutProps {
   children: ReactNode;
   hideFooter?: boolean;
 }
