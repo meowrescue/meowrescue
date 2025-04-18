@@ -7,8 +7,10 @@ import {
   DollarSign, Settings, Shield, MessageSquare, Search,
   Package, CircleHelp, Send, BookOpen, Bell, ChevronDown,
   FileImage, Folder, Award, CreditCard, Receipt, Mail,
-  LogOut, Home, Boxes, FileSpreadsheet, Truck, Clipboard
+  LogOut, Home, Boxes, FileSpreadsheet, Truck, Clipboard,
+  Building, BarChart, Image, Globe, LayoutList
 } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const AdminSidebar = () => {
   const navigate = useNavigate();
@@ -40,6 +42,16 @@ const AdminSidebar = () => {
     } catch (error) {
       console.error('Logout error:', error);
     }
+  };
+
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (!user?.first_name && !user?.last_name) return 'U';
+    
+    const firstInitial = user?.first_name ? user.first_name.charAt(0) : '';
+    const lastInitial = user?.last_name ? user.last_name.charAt(0) : '';
+    
+    return `${firstInitial}${lastInitial}`.toUpperCase();
   };
 
   const menuGroups = [
@@ -100,6 +112,11 @@ const AdminSidebar = () => {
           to: '/admin/success-stories', 
           icon: <Award className="w-5 h-5" />, 
           label: 'Success Stories'
+        },
+        { 
+          to: '/admin/pages', 
+          icon: <LayoutList className="w-5 h-5" />, 
+          label: 'Pages'
         }
       ]
     },
@@ -149,7 +166,14 @@ const AdminSidebar = () => {
           to: '/admin/finance/expenses', 
           icon: <Receipt className="w-5 h-5" />, 
           label: 'Expenses'
-        },
+        }
+      ]
+    },
+    {
+      id: 'inventory',
+      label: 'Inventory',
+      icon: <Package className="w-5 h-5" />,
+      items: [
         { 
           to: '/admin/supplies', 
           icon: <Package className="w-5 h-5" />, 
@@ -159,11 +183,23 @@ const AdminSidebar = () => {
           to: '/admin/orders', 
           icon: <Truck className="w-5 h-5" />, 
           label: 'Orders'
-        },
+        }
+      ]
+    },
+    {
+      id: 'documents',
+      label: 'Documents',
+      icon: <Folder className="w-5 h-5" />,
+      items: [
         { 
           to: '/admin/documents', 
           icon: <Folder className="w-5 h-5" />, 
           label: 'Documents'
+        },
+        { 
+          to: '/admin/business-licenses', 
+          icon: <Clipboard className="w-5 h-5" />, 
+          label: 'Business Licenses'
         }
       ]
     },
@@ -178,9 +214,9 @@ const AdminSidebar = () => {
           label: 'Security'
         },
         { 
-          to: '/admin/business-licenses', 
-          icon: <Clipboard className="w-5 h-5" />, 
-          label: 'Business Licenses'
+          to: '/admin/analytics', 
+          icon: <BarChart className="w-5 h-5" />, 
+          label: 'Analytics'
         },
         { 
           to: '/admin/help', 
@@ -205,7 +241,20 @@ const AdminSidebar = () => {
         </div>
       </div>
       
-      <div className="py-4 px-3 overflow-y-auto max-h-screen pb-32">
+      <div className="pt-4 border-b border-gray-200 pb-4">
+        <div className="px-4 flex items-center">
+          <Avatar className="h-10 w-10 mr-3">
+            <AvatarImage src={user?.avatar_url || ''} alt={user?.first_name || 'User'} />
+            <AvatarFallback>{getUserInitials()}</AvatarFallback>
+          </Avatar>
+          <div>
+            <p className="font-medium text-sm">{user?.first_name} {user?.last_name}</p>
+            <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+          </div>
+        </div>
+      </div>
+      
+      <div className="py-4 px-3 overflow-y-auto max-h-[calc(100vh-180px)] pb-32">
         <ul className="space-y-1">
           {menuGroups.map((group) => (
             <li key={group.id} className="mb-2">
