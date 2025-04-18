@@ -113,35 +113,30 @@ const Index: React.FC = () => {
         
         <section id="stats" className="py-16">
           <div className="container mx-auto">
-            <h2 className="text-3xl font-bold text-center mb-12">Our Impact</h2>
             <StatsSection />
           </div>
         </section>
         
         <section id="mission" className="py-16 bg-gray-50">
           <div className="container mx-auto">
-            <h2 className="text-3xl font-bold text-center mb-12">Our Mission</h2>
             <MissionSection />
           </div>
         </section>
         
         <section id="urgent-needs" className="py-16">
           <div className="container mx-auto">
-            <h2 className="text-3xl font-bold text-center mb-12">Urgent Needs</h2>
             <UrgentNeedsSection />
           </div>
         </section>
         
         <section id="featured-cats" className="py-16 bg-gray-50">
           <div className="container mx-auto">
-            <h2 className="text-3xl font-bold text-center mb-12">Meet Our Cats</h2>
             <FeaturedCatsSection />
           </div>
         </section>
         
         <section id="testimonials" className="py-16">
           <div className="container mx-auto">
-            <h2 className="text-3xl font-bold text-center mb-12">Success Stories</h2>
             <TestimonialsSection />
           </div>
         </section>
