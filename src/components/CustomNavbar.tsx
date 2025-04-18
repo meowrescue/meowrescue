@@ -1,4 +1,5 @@
 
+// Just modify the logo section to match with AdminSidebar
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -106,10 +107,10 @@ const CustomNavbar: React.FC = () => {
     >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
+          {/* Logo - making sure it's identical to admin sidebar */}
           <Link to="/" className="flex items-center gap-2">
-            <div className="bg-meow-primary rounded-full p-2">
-              <Cat className="h-6 w-6 text-white" />
+            <div className="bg-meow-primary rounded-full p-1">
+              <Cat className="h-5 w-5 text-white" />
             </div>
             <span className="font-bold text-xl">
               <span className="text-meow-primary">Meow</span>

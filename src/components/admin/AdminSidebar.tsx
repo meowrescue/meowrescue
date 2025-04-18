@@ -8,7 +8,7 @@ import {
   Package, CircleHelp, Send, BookOpen, Bell, ChevronDown,
   FileImage, Folder, Award, CreditCard, Receipt, Mail,
   LogOut, Home, Boxes, FileSpreadsheet, Truck, Clipboard,
-  Building, BarChart, Image, Globe, LayoutList
+  Building, BarChart, Image, Globe, LayoutList, Cat
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
@@ -232,7 +232,7 @@ const AdminSidebar = () => {
       <div className="p-4 border-b border-gray-200 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="bg-meow-primary rounded-full p-1">
-            <PawPrint className="h-5 w-5 text-white" />
+            <Cat className="h-5 w-5 text-white" />
           </div>
           <span>
             <span className="text-meow-primary font-bold">Meow</span>

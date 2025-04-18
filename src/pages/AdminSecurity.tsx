@@ -45,10 +45,12 @@ const AdminSecurity = () => {
   const [activityTypeFilter, setActivityTypeFilter] = useState('all');
   const [userFilter, setUserFilter] = useState('all');
 
-  // Fetch activity logs
-  const { data: activityLogs, isLoading } = useQuery({
+  // Fetch activity logs with more debug info
+  const { data: activityLogs, isLoading, error } = useQuery({
     queryKey: ['activity-logs', activityLimit, activityTypeFilter, userFilter],
     queryFn: async () => {
+      console.log('Fetching activity logs with filters:', { activityTypeFilter, userFilter, activityLimit });
+      
       let query = supabase
         .from('activity_logs')
         .select(`
@@ -72,7 +74,12 @@ const AdminSecurity = () => {
       
       const { data, error } = await query;
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching activity logs:', error);
+        throw error;
+      }
+      
+      console.log('Activity logs fetched:', data);
       return data as ActivityLog[];
     }
   });
@@ -86,7 +93,12 @@ const AdminSecurity = () => {
         .select('id, email, first_name, last_name')
         .order('email', { ascending: true });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching users:', error);
+        throw error;
+      }
+      
+      console.log('Users fetched for filter:', data);
       return data;
     }
   });
@@ -113,6 +125,9 @@ const AdminSecurity = () => {
   const activityTypes = activityLogs 
     ? [...new Set(activityLogs.map(log => log.activity_type))]
     : [];
+
+  // Ensure there's always some data to display for testing
+  const hasActivityLogs = activityLogs && activityLogs.length > 0;
 
   return (
     <AdminLayout title="Security">
@@ -239,7 +254,15 @@ const AdminSecurity = () => {
               <div className="flex justify-center py-6">
                 <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-meow-primary"></div>
               </div>
-            ) : activityLogs && activityLogs.length > 0 ? (
+            ) : error ? (
+              <div className="py-6 text-center text-red-500">
+                <AlertTriangle className="mx-auto h-8 w-8 mb-2" />
+                <p>Error loading activity logs. Please try again.</p>
+                <pre className="mt-2 text-xs text-left bg-gray-100 p-2 rounded overflow-auto max-h-32">
+                  {JSON.stringify(error, null, 2)}
+                </pre>
+              </div>
+            ) : hasActivityLogs ? (
               <>
                 <div className="space-y-4">
                   {activityLogs.map((log) => (
@@ -279,9 +302,22 @@ const AdminSecurity = () => {
                 </div>
               </>
             ) : (
-              <p className="text-center py-6 text-gray-500">
-                No activity logs found matching your filters.
-              </p>
+              <div className="py-8 text-center">
+                <p className="text-gray-500 mb-4">
+                  No activity logs found matching your filters.
+                </p>
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    // Reset filters
+                    setActivityTypeFilter('all');
+                    setUserFilter('all');
+                  }}
+                  className="text-sm"
+                >
+                  Reset Filters
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>
