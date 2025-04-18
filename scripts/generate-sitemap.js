@@ -1,13 +1,14 @@
 
 const fs = require('fs');
 const path = require('path');
-const { getStaticPaths } = require('../dist/server/routes');
+const { getStaticPaths } = require('../src/routes');
 
 async function generateSitemap() {
-  const baseUrl = 'https://meowrescue.org';
-  const paths = await getStaticPaths();
-  
-  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+  try {
+    const baseUrl = 'https://meowrescue.org';
+    const paths = await getStaticPaths();
+    
+    const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${paths.map(path => `  <url>
     <loc>${baseUrl}${path}</loc>
@@ -17,11 +18,16 @@ ${paths.map(path => `  <url>
   </url>`).join('\n')}
 </urlset>`;
 
-  fs.writeFileSync(path.join(__dirname, '../dist/sitemap.xml'), sitemap);
-  console.log('Sitemap generated successfully at dist/sitemap.xml');
+    if (!fs.existsSync(path.join(__dirname, '../dist'))) {
+      fs.mkdirSync(path.join(__dirname, '../dist'), { recursive: true });
+    }
+    
+    fs.writeFileSync(path.join(__dirname, '../dist/sitemap.xml'), sitemap);
+    console.log('Sitemap generated successfully at dist/sitemap.xml');
+  } catch (error) {
+    console.error('Error generating sitemap:', error);
+    process.exit(1);
+  }
 }
 
-generateSitemap().catch(err => {
-  console.error('Error generating sitemap:', err);
-  process.exit(1);
-});
+generateSitemap();
