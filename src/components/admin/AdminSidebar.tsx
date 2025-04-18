@@ -6,7 +6,8 @@ import {
   LayoutDashboard, Users, FileText, Calendar, PawPrint, 
   DollarSign, Settings, Shield, MessageSquare, Search,
   Package, CircleHelp, Send, BookOpen, Bell, ChevronDown,
-  FileImage, Folder, Award, CreditCard, Receipt, Mail
+  FileImage, Folder, Award, CreditCard, Receipt, Mail,
+  LogOut, Home
 } from 'lucide-react';
 
 const AdminSidebar = () => {
@@ -181,8 +182,20 @@ const AdminSidebar = () => {
   ];
 
   return (
-    <div className="fixed left-0 top-0 w-64 h-screen bg-white border-r z-40 pt-16 shadow-md">
-      <div className="py-4 px-3 overflow-y-auto max-h-screen pb-20">
+    <div className="fixed left-0 top-0 w-64 h-screen bg-white border-r z-40 shadow-md">
+      <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="bg-meow-primary rounded-full p-1">
+            <PawPrint className="h-5 w-5 text-white" />
+          </div>
+          <span>
+            <span className="text-meow-primary font-bold">Meow</span>
+            <span className="text-meow-secondary font-bold">Rescue</span>
+          </span>
+        </div>
+      </div>
+      
+      <div className="py-4 px-3 overflow-y-auto max-h-screen pb-32">
         <ul className="space-y-1">
           {menuGroups.map((group) => (
             <li key={group.id} className="mb-2">
@@ -246,6 +259,16 @@ const AdminSidebar = () => {
             </li>
           ))}
         </ul>
+        
+        <div className="pt-4 mt-6 border-t border-gray-200">
+          <NavLink 
+            to="/" 
+            className="flex items-center p-2 text-gray-600 rounded-lg hover:bg-gray-100"
+          >
+            <Home className="w-5 h-5" />
+            <span className="ml-3">Back to Site</span>
+          </NavLink>
+        </div>
       </div>
     </div>
   );

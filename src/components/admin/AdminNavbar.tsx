@@ -38,24 +38,11 @@ const AdminNavbar: React.FC = () => {
     <div className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 z-30 pl-64">
       <div className="flex h-full items-center justify-between px-4">
         <div className="flex items-center">
-          <Link 
-            to="/" 
-            className="font-bold text-xl text-meow-primary flex items-center"
-          >
-            <div className="flex items-center gap-2">
-              <div className="bg-meow-primary rounded-full p-1">
-                <Cat className="h-5 w-5 text-white" />
-              </div>
-              <span>
-                <span className="text-meow-primary">Meow</span>
-                <span className="text-meow-secondary">Rescue</span>
-              </span>
-            </div>
-          </Link>
+          {/* Right side content if needed */}
         </div>
         
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/admin/notifications')}>
             <Bell className="h-5 w-5" />
           </Button>
           
