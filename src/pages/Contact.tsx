@@ -30,9 +30,7 @@ const Contact = () => {
           </div>
           
           <div>
-            <h2 className="text-2xl font-bold mb-6 text-meow-primary">Find Us</h2>
-            <ContactMap />
-            
+            <h2 className="text-2xl font-bold mb-6 text-meow-primary">Contact Information</h2>
             <div className="mt-8 space-y-6">
               <div className="flex items-start">
                 <div className="mr-4 bg-meow-primary/10 p-3 rounded-full">
@@ -78,6 +76,9 @@ const Contact = () => {
                 </div>
               </div>
             </div>
+            
+            <h2 className="text-2xl font-bold mb-6 mt-8 text-meow-primary">Find Us</h2>
+            <ContactMap />
           </div>
         </div>
       </div>

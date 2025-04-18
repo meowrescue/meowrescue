@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -44,7 +45,6 @@ const Register: React.FC = () => {
     }
   }, [user, navigate, isLoading, authLoading]);
 
-  // Fix the signUp call
   const handleSignUp = async (values: z.infer<typeof formSchema>) => {
     if (isLoading) return;
     

@@ -1,6 +1,6 @@
 
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { Session, User as SupabaseUser } from '@supabase/supabase-js';
+import { Session, User } from '@supabase/supabase-js';
 import { logAuth } from '@/utils/logActivity';
 import { supabase } from '@/integrations/supabase/client';
 import { User as ExtendedUser } from '@/types/users';
@@ -10,7 +10,7 @@ interface AuthContextType {
   user: ExtendedUser | null;
   loading: boolean;
   error: string | null;
-  isLoading: boolean; // Added for compatibility
+  isLoading: boolean; // For compatibility
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signUp: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
