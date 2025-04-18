@@ -218,6 +218,9 @@ const AdminUsers = () => {
       return updateRoleMutation.mutateAsync({ 
         userId, 
         role: newRole as UserRole 
+      }).then(() => {
+        // Return void to match the Promise<void> return type
+        return;
       });
     } else {
       toast({
@@ -231,7 +234,10 @@ const AdminUsers = () => {
 
   // Handle status change
   const handleStatusChange = (userId: string, isActive: boolean): Promise<void> => {
-    return updateStatusMutation.mutateAsync({ userId, isActive });
+    return updateStatusMutation.mutateAsync({ userId, isActive }).then(() => {
+      // Return void to match the Promise<void> return type
+      return;
+    });
   };
 
   return (
