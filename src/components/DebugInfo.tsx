@@ -8,10 +8,12 @@ const DebugInfo: React.FC = () => {
     height: 0,
     url: '',
   });
+  const [componentState, setComponentState] = useState('Mounting...');
 
   useEffect(() => {
     // Log component mount
     console.log('DebugInfo component mounted');
+    setComponentState('Mounted');
     
     // Update window info
     const updateWindowInfo = () => {
@@ -31,6 +33,7 @@ const DebugInfo: React.FC = () => {
     
     // Clean up
     return () => {
+      console.log('DebugInfo component unmounting');
       window.removeEventListener('resize', updateWindowInfo);
     };
   }, []);
@@ -38,6 +41,7 @@ const DebugInfo: React.FC = () => {
   return (
     <div className="fixed bottom-0 right-0 bg-black bg-opacity-75 text-white p-4 m-4 rounded-lg z-50 text-xs">
       <h3 className="font-bold">Debug Info</h3>
+      <div>Component: {componentState}</div>
       <div>{routeInfo}</div>
       <div>Window: {windowInfo.width}x{windowInfo.height}</div>
       <div>URL: {windowInfo.url}</div>
