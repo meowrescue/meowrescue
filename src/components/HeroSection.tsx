@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -49,14 +48,14 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           {subtitle}
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4">
-          <Button asChild variant="meow" size="xl" className="rounded-full">
+          <Button asChild variant="default" size="xl" className="rounded-full">
             <Link to={ctaLink}>
               {ctaText}
             </Link>
           </Button>
           
           {secondaryCtaText && secondaryCtaLink && (
-            <Button asChild variant="meowOutline" size="xl" className="rounded-full">
+            <Button asChild variant="outline" size="xl" className="rounded-full text-white border-white hover:bg-white/10">
               <Link to={secondaryCtaLink}>
                 {secondaryCtaText}
               </Link>
@@ -69,4 +68,3 @@ const HeroSection: React.FC<HeroSectionProps> = ({
 };
 
 export default HeroSection;
-
