@@ -254,6 +254,100 @@ export type Database = {
         }
         Relationships: []
       }
+      cat_medical_records: {
+        Row: {
+          cat_id: string
+          cost: number | null
+          created_at: string
+          description: string
+          id: string
+          notes: string | null
+          procedure_type: string
+          record_date: string
+          updated_at: string
+          veterinarian: string | null
+        }
+        Insert: {
+          cat_id: string
+          cost?: number | null
+          created_at?: string
+          description: string
+          id?: string
+          notes?: string | null
+          procedure_type: string
+          record_date?: string
+          updated_at?: string
+          veterinarian?: string | null
+        }
+        Update: {
+          cat_id?: string
+          cost?: number | null
+          created_at?: string
+          description?: string
+          id?: string
+          notes?: string | null
+          procedure_type?: string
+          record_date?: string
+          updated_at?: string
+          veterinarian?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cat_medical_records_cat_id_fkey"
+            columns: ["cat_id"]
+            isOneToOne: false
+            referencedRelation: "cats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cat_vaccinations: {
+        Row: {
+          administered_by: string | null
+          administered_date: string | null
+          batch_number: string | null
+          cat_id: string
+          created_at: string
+          due_date: string | null
+          id: string
+          notes: string | null
+          updated_at: string
+          vaccine_name: string
+        }
+        Insert: {
+          administered_by?: string | null
+          administered_date?: string | null
+          batch_number?: string | null
+          cat_id: string
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          updated_at?: string
+          vaccine_name: string
+        }
+        Update: {
+          administered_by?: string | null
+          administered_date?: string | null
+          batch_number?: string | null
+          cat_id?: string
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          updated_at?: string
+          vaccine_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cat_vaccinations_cat_id_fkey"
+            columns: ["cat_id"]
+            isOneToOne: false
+            referencedRelation: "cats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cats: {
         Row: {
           age_estimate: string | null
@@ -642,6 +736,69 @@ export type Database = {
           {
             foreignKeyName: "foster_assignments_foster_profile_id_fkey"
             columns: ["foster_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      foster_home_evaluations: {
+        Row: {
+          approved: boolean
+          comments: string | null
+          created_at: string
+          evaluation_date: string
+          evaluator_id: string | null
+          has_other_pets: boolean | null
+          has_yard: boolean | null
+          home_size: string | null
+          household_members: number | null
+          id: string
+          other_pets_details: string | null
+          profile_id: string
+          updated_at: string
+        }
+        Insert: {
+          approved?: boolean
+          comments?: string | null
+          created_at?: string
+          evaluation_date?: string
+          evaluator_id?: string | null
+          has_other_pets?: boolean | null
+          has_yard?: boolean | null
+          home_size?: string | null
+          household_members?: number | null
+          id?: string
+          other_pets_details?: string | null
+          profile_id: string
+          updated_at?: string
+        }
+        Update: {
+          approved?: boolean
+          comments?: string | null
+          created_at?: string
+          evaluation_date?: string
+          evaluator_id?: string | null
+          has_other_pets?: boolean | null
+          has_yard?: boolean | null
+          home_size?: string | null
+          household_members?: number | null
+          id?: string
+          other_pets_details?: string | null
+          profile_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "foster_home_evaluations_evaluator_id_fkey"
+            columns: ["evaluator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "foster_home_evaluations_profile_id_fkey"
+            columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1136,6 +1293,10 @@ export type Database = {
       }
       is_admin: {
         Args: { uid: string }
+        Returns: boolean
+      }
+      is_chat_admin: {
+        Args: Record<PropertyKey, never>
         Returns: boolean
       }
       is_foster: {
