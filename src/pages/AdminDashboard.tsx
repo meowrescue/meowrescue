@@ -5,10 +5,10 @@ import AdminLayout from '@/pages/Admin';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Cat, User, Calendar, DollarSign, FileText, Info, AlertTriangle, MessageCircle, Package } from 'lucide-react';
+import { Cat, User, Calendar, DollarSign, FileText, Info, MessageCircle, Package } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Application } from '@/types/applications';
-import { FileSearch, Clock } from 'lucide-react';
+import { FileSearch, Clock, MessageSquare } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {
   // Fetch recent applications
@@ -93,22 +93,31 @@ const AdminDashboard: React.FC = () => {
           
         if (usersError) throw usersError;
         
-        // We're now focusing specifically on pending applications
+        // Get pending applications count
         const { count: pendingCount, error: pendingError } = await supabase
           .from('applications')
           .select('*', { count: 'exact', head: true })
           .eq('status', 'pending');
           
         if (pendingError) throw pendingError;
+
+        // Get unread messages count
+        const { count: unreadCount, error: unreadError } = await supabase
+          .from('contact_messages')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'New');
+          
+        if (unreadError) throw unreadError;
         
         return {
           cats: catsCount || 0,
           users: usersCount || 0,
-          pendingApplications: pendingCount || 0
+          pendingApplications: pendingCount || 0,
+          unreadMessages: unreadCount || 0
         };
       } catch (error) {
         console.error("Error fetching counts:", error);
-        return { cats: 0, users: 0, pendingApplications: 0 };
+        return { cats: 0, users: 0, pendingApplications: 0, unreadMessages: 0 };
       }
     }
   });
@@ -128,7 +137,7 @@ const AdminDashboard: React.FC = () => {
                   <h3 className="text-2xl font-bold">{counts?.cats || 0}</h3>
                 </div>
                 <div className="h-12 w-12 bg-meow-light/20 rounded-full flex items-center justify-center">
-                  <FileSearch className="h-6 w-6 text-meow-primary" />
+                  <Cat className="h-6 w-6 text-meow-primary" />
                 </div>
               </div>
             </CardContent>
@@ -142,7 +151,7 @@ const AdminDashboard: React.FC = () => {
                   <h3 className="text-2xl font-bold">{counts?.users || 0}</h3>
                 </div>
                 <div className="h-12 w-12 bg-meow-light/20 rounded-full flex items-center justify-center">
-                  <Clock className="h-6 w-6 text-meow-primary" />
+                  <User className="h-6 w-6 text-meow-primary" />
                 </div>
               </div>
             </CardContent>
@@ -156,7 +165,7 @@ const AdminDashboard: React.FC = () => {
                   <h3 className="text-2xl font-bold">{counts?.pendingApplications || 0}</h3>
                 </div>
                 <div className="h-12 w-12 bg-meow-light/20 rounded-full flex items-center justify-center">
-                  <AlertTriangle className="h-6 w-6 text-amber-500" />
+                  <FileText className="h-6 w-6 text-meow-primary" />
                 </div>
               </div>
             </CardContent>
@@ -166,11 +175,11 @@ const AdminDashboard: React.FC = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Application Review</p>
-                  <h3 className="text-2xl font-bold">{counts?.pendingApplications || 0}</h3>
+                  <p className="text-sm font-medium text-gray-500">Unread Messages</p>
+                  <h3 className="text-2xl font-bold">{counts?.unreadMessages || 0}</h3>
                 </div>
                 <div className="h-12 w-12 bg-meow-light/20 rounded-full flex items-center justify-center">
-                  <FileText className="h-6 w-6 text-meow-primary" />
+                  <MessageSquare className="h-6 w-6 text-meow-primary" />
                 </div>
               </div>
             </CardContent>
