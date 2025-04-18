@@ -1,195 +1,210 @@
 
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import AdminLayout from '@/pages/Admin';
-import { Search, Edit, UserCog, Shield, UserX, Check, Filter, Mail, Phone, MapPin, Calendar } from 'lucide-react';
-import { 
-  Table, 
-  TableBody, 
-  TableCaption, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle,
-  DialogClose
-} from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { supabase } from '@/integrations/supabase/client';
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Users, Search, Plus, UserPlus, Mail, User, Edit, 
+  CheckCircle, XCircle, ShieldCheck, UserX, Filter 
+} from 'lucide-react';
+import UserCard from '@/components/admin/UserCard';
 import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import SEO from '@/components/SEO';
-import { ExtendedUser } from '@/types/users';
 
-const AdminUsers: React.FC = () => {
+type UserRole = 'admin' | 'staff' | 'volunteer' | 'foster' | 'user';
+
+interface UserProfile {
+  id: string;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  role: UserRole;
+  is_active: boolean;
+  created_at: string;
+  avatar_url: string | null;
+}
+
+const AdminUsers = () => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
-  const [roleFilter, setRoleFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [editingUser, setEditingUser] = useState<ExtendedUser | null>(null);
-  const [newRole, setNewRole] = useState<string>('');
-  const [newFirstName, setNewFirstName] = useState<string>('');
-  const [newLastName, setNewLastName] = useState<string>('');
-  const [newEmail, setNewEmail] = useState<string>('');
-  const [newPhone, setNewPhone] = useState<string>('');
+  const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [showAddUserDialog, setShowAddUserDialog] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  
+  const [newUser, setNewUser] = useState({
+    email: '',
+    password: '',
+    first_name: '',
+    last_name: '',
+    role: 'user' as UserRole
+  });
 
-  // Query to get users from profiles table with enhanced filtering
-  const { data: users, isLoading, error, refetch } = useQuery({
-    queryKey: ['users', roleFilter, statusFilter],
+  // Fetch users
+  const { data: users, isLoading } = useQuery({
+    queryKey: ['admin-users'],
     queryFn: async () => {
-      let query = supabase
+      const { data, error } = await supabase
         .from('profiles')
-        .select('*');
-
-      if (roleFilter) {
-        query = query.eq('role', roleFilter);
-      }
-
-      if (statusFilter === 'active') {
-        query = query.eq('is_active', true);
-      } else if (statusFilter === 'disabled') {
-        query = query.eq('is_active', false);
-      }
-
-      const { data: profilesData, error: profilesError } = await query;
+        .select('*')
+        .order('created_at', { ascending: false });
       
-      if (profilesError) throw profilesError;
-        
-        // Get is_active status for each user
-        const extendedUsers = await Promise.all(
-          profilesData.map(async (profile) => {
-            let isActive = true; // Default to active if not found
-            
-            try {
-              // Use type assertion to bypass TypeScript's strict checking
-              const { data: statusData, error: statusError } = await supabase
-                .rpc('get_user_status' as any, { user_id: profile.id }) as { data: boolean | null, error: Error | null };
-                
-              // If data is returned and not null, use it
-              if (statusData !== null) {
-                isActive = statusData;
-              }
-            } catch (err) {
-              console.error(`Error fetching status for user ${profile.id}:`, err);
-            }
-            
-            return {
-              ...profile,
-              is_active: isActive
-            } as ExtendedUser;
-          })
-        );
-        
-        return extendedUsers;
+      if (error) throw error;
+      return data as UserProfile[];
     }
   });
 
-  // Filter users based on search query
-  const filteredUsers = users?.filter(user => 
-    user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (user.first_name && user.first_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (user.last_name && user.last_name.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
-
-  const handleEditUser = (user: ExtendedUser) => {
-    setEditingUser(user);
-    setNewRole(user.role);
-    setNewFirstName(user.first_name || '');
-    setNewLastName(user.last_name || '');
-    setNewEmail(user.email);
-    setNewPhone(user.phone || '');
-  };
-
-  const handleUpdateUser = async () => {
-    if (!editingUser) return;
-
-    try {
-      // Update user profile
+  // Mutation to add new user
+  const addUserMutation = useMutation({
+    mutationFn: async (userData: typeof newUser) => {
+      // Create auth user first
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: userData.email,
+        password: userData.password,
+        options: {
+          data: {
+            first_name: userData.first_name,
+            last_name: userData.last_name
+          }
+        }
+      });
+      
+      if (authError) throw authError;
+      
+      // Set role in profile (the profile should be created automatically via trigger)
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({
-          role: newRole as 'user' | 'volunteer' | 'foster' | 'admin',
-          first_name: newFirstName,
-          last_name: newLastName,
-          email: newEmail,
-          phone: newPhone,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', editingUser.id);
-
+        .update({ role: userData.role })
+        .eq('id', authData.user!.id);
+      
       if (profileError) throw profileError;
-
+      
+      return authData.user;
+    },
+    onSuccess: () => {
       toast({
-        title: "User Updated",
-        description: `User details have been updated successfully.`,
+        title: "User Created",
+        description: "New user has been created successfully."
       });
-
-      refetch();
-      setEditingUser(null);
-    } catch (err: any) {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      resetNewUserForm();
+      setShowAddUserDialog(false);
+    },
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: err.message || "Failed to update user details.",
-        variant: "destructive",
+        description: error.message || "Failed to create user",
+        variant: "destructive"
       });
     }
-  };
+  });
 
-  const toggleUserStatus = async (user: ExtendedUser) => {
-    try {
-      // Optimistically update the UI
-      const newStatus = !user.is_active;
-
-      // Call the RPC function to update user status
-      const { error } = await supabase.rpc('update_user_status', {
-        p_user_id: user.id,
-        p_is_active: newStatus,
-      });
-
+  // Update user role mutation
+  const updateRoleMutation = useMutation({
+    mutationFn: async ({ userId, role }: { userId: string; role: UserRole }) => {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ role })
+        .eq('id', userId);
+      
       if (error) throw error;
-
+      return { userId, role };
+    },
+    onSuccess: (data) => {
       toast({
-        title: newStatus ? "User Enabled" : "User Disabled",
-        description: `User has been ${newStatus ? "enabled" : "disabled"} successfully.`,
+        title: "Role Updated",
+        description: `User role has been updated to ${data.role}.`
       });
-
-      refetch();
-    } catch (err: any) {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+    },
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: err.message || "Failed to update user status.",
-        variant: "destructive",
+        description: error.message || "Failed to update role",
+        variant: "destructive"
       });
     }
+  });
+
+  // Update user status mutation
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ userId, isActive }: { userId: string; isActive: boolean }) => {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_active: isActive })
+        .eq('id', userId);
+      
+      if (error) throw error;
+      return { userId, isActive };
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Status Updated",
+        description: `User has been ${data.isActive ? 'activated' : 'deactivated'}.`
+      });
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update status",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Filter users based on search, role, and status
+  const filteredUsers = users?.filter(user => {
+    const matchesSearch = 
+      searchQuery === '' || 
+      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (user.first_name && user.first_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (user.last_name && user.last_name.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+    
+    const matchesStatus = 
+      statusFilter === 'all' || 
+      (statusFilter === 'active' && user.is_active) || 
+      (statusFilter === 'inactive' && !user.is_active);
+    
+    return matchesSearch && matchesRole && matchesStatus;
+  });
+
+  const roleCountByType = users?.reduce<Record<string, number>>((acc, user) => {
+    const role = user.role;
+    if (!acc[role]) acc[role] = 0;
+    acc[role]++;
+    return acc;
+  }, {});
+
+  const resetNewUserForm = () => {
+    setNewUser({
+      email: '',
+      password: '',
+      first_name: '',
+      last_name: '',
+      role: 'user'
+    });
   };
 
-  // Get role badge color
-  const getRoleBadgeVariant = (role: string) => {
-    switch(role) {
-      case 'admin':
-        return "destructive";
-      case 'volunteer':
-        return "secondary";
-      case 'foster':
-        return "default";
-      default:
-        return "outline";
-    }
+  const handleAddUser = (e: React.FormEvent) => {
+    e.preventDefault();
+    addUserMutation.mutate(newUser);
   };
 
   return (
@@ -197,217 +212,242 @@ const AdminUsers: React.FC = () => {
       <SEO title="User Management | Meow Rescue Admin" />
       
       <div className="container mx-auto py-10">
-        <div className="flex flex-col md:flex-row items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-meow-primary mb-4 md:mb-0">User Management</h1>
+        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+          <h1 className="text-3xl font-bold text-meow-primary">User Management</h1>
           
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-4">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setShowFilters(!showFilters)}
+              className={showFilters ? 'bg-gray-100' : ''}
+            >
+              <Filter className="h-4 w-4" />
+            </Button>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 placeholder="Search users..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 w-full md:w-64"
+                className="pl-10 md:w-80"
               />
             </div>
-            
-            <Select 
-              value={roleFilter} 
-              onValueChange={setRoleFilter}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by Role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Roles</SelectItem>
-                <SelectItem value="user">User</SelectItem>
-                <SelectItem value="volunteer">Volunteer</SelectItem>
-                <SelectItem value="foster">Foster</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select 
-              value={statusFilter} 
-              onValueChange={setStatusFilter}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="disabled">Disabled</SelectItem>
-              </SelectContent>
-            </Select>
+            <Button onClick={() => setShowAddUserDialog(true)}>
+              <UserPlus className="mr-2 h-4 w-4" />
+              Add User
+            </Button>
           </div>
         </div>
         
-        {isLoading ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
-          </div>
-        ) : error ? (
-          <div className="text-center py-12">
-            <p className="text-red-500">Error loading users. Please try again later.</p>
-            <Button 
-              variant="outline" 
-              className="mt-4"
-              onClick={() => refetch()}
-            >
-              Try Again
-            </Button>
-          </div>
-        ) : filteredUsers && filteredUsers.length > 0 ? (
-          <div className="bg-white rounded-lg shadow overflow-x-auto">
-            <Table>
-              <TableCaption>List of all users in the system.</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredUsers.map((user) => (
-                  <TableRow key={user.id} className={!user.is_active ? "opacity-60" : ""}>
-                    <TableCell>
-                      {user.first_name || user.last_name 
-                        ? `${user.first_name || ''} ${user.last_name || ''}`.trim()
-                        : 'Unnamed User'
-                      }
-                    </TableCell>
-                    <TableCell className="break-all md:break-normal">{user.email}</TableCell>
-                    <TableCell>
-                      <Badge variant={getRoleBadgeVariant(user.role)}>
-                        {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={user.is_active ? 'default' : 'destructive'}>
-                        {user.is_active ? 'Active' : 'Disabled'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex flex-col md:flex-row gap-2 md:justify-end">
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleEditUser(user)}
-                        >
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => toggleUserStatus(user)}
-                          className={user.is_active ? "text-red-500 hover:text-red-700" : "text-green-500 hover:text-green-700"}
-                        >
-                          {user.is_active ? (
-                            <>
-                              <UserX className="h-4 w-4 mr-2" />
-                              Disable
-                            </>
-                          ) : (
-                            <>
-                              <Check className="h-4 w-4 mr-2" />
-                              Enable
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-gray-500">No users found.</p>
-          </div>
+        {showFilters && (
+          <Card className="mb-6">
+            <CardContent className="pt-6">
+              <div className="flex flex-wrap gap-4">
+                <div className="w-full md:w-auto">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                  <Select 
+                    value={roleFilter} 
+                    onValueChange={setRoleFilter}
+                  >
+                    <SelectTrigger className="w-full md:w-40">
+                      <SelectValue placeholder="All Roles" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Roles</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="staff">Staff</SelectItem>
+                      <SelectItem value="volunteer">Volunteer</SelectItem>
+                      <SelectItem value="foster">Foster</SelectItem>
+                      <SelectItem value="user">User</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="w-full md:w-auto">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                  <Select 
+                    value={statusFilter} 
+                    onValueChange={setStatusFilter}
+                  >
+                    <SelectTrigger className="w-full md:w-40">
+                      <SelectValue placeholder="All Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         )}
+        
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <div className="p-3 rounded-full bg-blue-100 text-blue-600">
+                  <Users className="h-6 w-6" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500">Total Users</p>
+                  <p className="text-xl font-semibold">{users?.length || 0}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <div className="p-3 rounded-full bg-purple-100 text-purple-600">
+                  <ShieldCheck className="h-6 w-6" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500">Admins</p>
+                  <p className="text-xl font-semibold">{roleCountByType?.admin || 0}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <div className="p-3 rounded-full bg-green-100 text-green-600">
+                  <CheckCircle className="h-6 w-6" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500">Active</p>
+                  <p className="text-xl font-semibold">
+                    {users?.filter(user => user.is_active).length || 0}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <div className="p-3 rounded-full bg-red-100 text-red-600">
+                  <UserX className="h-6 w-6" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500">Inactive</p>
+                  <p className="text-xl font-semibold">
+                    {users?.filter(user => !user.is_active).length || 0}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Users className="mr-2 h-5 w-5" />
+              User List
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-meow-primary"></div>
+              </div>
+            ) : filteredUsers && filteredUsers.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredUsers.map(user => (
+                  <UserCard 
+                    key={user.id}
+                    user={user}
+                    onRoleChange={(role) => updateRoleMutation.mutate({ userId: user.id, role })}
+                    onStatusChange={(isActive) => updateStatusMutation.mutate({ userId: user.id, isActive })}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Users className="h-12 w-12 mx-auto text-gray-400 mb-3" />
+                <p className="text-gray-500">No users found matching your filters.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
       
-      {/* Edit User Dialog */}
-      <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
-        <DialogContent className="max-w-md mx-auto">
+      {/* Add User Dialog */}
+      <Dialog open={showAddUserDialog} onOpenChange={setShowAddUserDialog}>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Edit User Details</DialogTitle>
-            <DialogDescription>
-              Update user information and permissions. Be careful with admin privileges.
-            </DialogDescription>
+            <DialogTitle className="flex items-center">
+              <UserPlus className="mr-2 h-5 w-5" />
+              Add New User
+            </DialogTitle>
           </DialogHeader>
           
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="firstName" className="text-right text-sm">
-                First Name
-              </label>
-              <div className="col-span-3">
-                <Input
-                  id="firstName"
-                  value={newFirstName}
-                  onChange={(e) => setNewFirstName(e.target.value)}
-                  placeholder="First Name"
-                />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="lastName" className="text-right text-sm">
-                Last Name
-              </label>
-              <div className="col-span-3">
-                <Input
-                  id="lastName"
-                  value={newLastName}
-                  onChange={(e) => setNewLastName(e.target.value)}
-                  placeholder="Last Name"
-                />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="email" className="text-right text-sm">
-                Email
-              </label>
-              <div className="col-span-3">
+          <form onSubmit={handleAddUser}>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="email">
+                  <Mail className="h-4 w-4 inline mr-1" />
+                  Email
+                </Label>
                 <Input
                   id="email"
-                  value={newEmail}
-                  onChange={(e) => setNewEmail(e.target.value)}
-                  placeholder="Email Address"
                   type="email"
+                  placeholder="user@example.com"
+                  value={newUser.email}
+                  onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                  required
                 />
               </div>
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="phone" className="text-right text-sm">
-                Phone
-              </label>
-              <div className="col-span-3">
+              
+              <div className="grid gap-2">
+                <Label htmlFor="password">Password</Label>
                 <Input
-                  id="phone"
-                  value={newPhone}
-                  onChange={(e) => setNewPhone(e.target.value)}
-                  placeholder="Phone Number"
-                  type="tel"
+                  id="password"
+                  type="password"
+                  placeholder="Minimum 8 characters"
+                  value={newUser.password}
+                  onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                  required
+                  minLength={8}
                 />
               </div>
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="role" className="text-right text-sm">
-                Role
-              </label>
-              <div className="col-span-3">
-                <Select value={newRole} onValueChange={setNewRole}>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="first_name">First Name</Label>
+                  <Input
+                    id="first_name"
+                    placeholder="John"
+                    value={newUser.first_name}
+                    onChange={(e) => setNewUser({ ...newUser, first_name: e.target.value })}
+                  />
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="last_name">Last Name</Label>
+                  <Input
+                    id="last_name"
+                    placeholder="Doe"
+                    value={newUser.last_name}
+                    onChange={(e) => setNewUser({ ...newUser, last_name: e.target.value })}
+                  />
+                </div>
+              </div>
+              
+              <div className="grid gap-2">
+                <Label htmlFor="role">Role</Label>
+                <Select
+                  value={newUser.role}
+                  onValueChange={(value: UserRole) => setNewUser({ ...newUser, role: value })}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
@@ -415,19 +455,32 @@ const AdminUsers: React.FC = () => {
                     <SelectItem value="user">User</SelectItem>
                     <SelectItem value="volunteer">Volunteer</SelectItem>
                     <SelectItem value="foster">Foster</SelectItem>
+                    <SelectItem value="staff">Staff</SelectItem>
                     <SelectItem value="admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
-          </div>
-          
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-            <Button onClick={handleUpdateUser}>Save Changes</Button>
-          </DialogFooter>
+            
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  resetNewUserForm();
+                  setShowAddUserDialog(false);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit"
+                disabled={addUserMutation.isPending}
+              >
+                {addUserMutation.isPending ? 'Creating...' : 'Create User'}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </AdminLayout>

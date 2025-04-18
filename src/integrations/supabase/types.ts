@@ -149,6 +149,7 @@ export type Database = {
           is_published: boolean
           published_at: string | null
           slug: string
+          summary: string | null
           title: string
           updated_at: string
         }
@@ -161,6 +162,7 @@ export type Database = {
           is_published?: boolean
           published_at?: string | null
           slug: string
+          summary?: string | null
           title: string
           updated_at?: string
         }
@@ -173,6 +175,7 @@ export type Database = {
           is_published?: boolean
           published_at?: string | null
           slug?: string
+          summary?: string | null
           title?: string
           updated_at?: string
         }
@@ -2037,6 +2040,10 @@ export type Database = {
         }
         Returns: string
       }
+      delete_donation: {
+        Args: { p_donation_id: string }
+        Returns: boolean
+      }
       get_applications: {
         Args: { p_status?: string; p_type?: string }
         Returns: {
@@ -2110,6 +2117,10 @@ export type Database = {
           p_metadata?: Json
         }
         Returns: string
+      }
+      send_contact_reply: {
+        Args: { p_message_id: string; p_reply: string }
+        Returns: boolean
       }
       update_application_status: {
         Args: {

@@ -1,24 +1,29 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import AdminLayout from '@/pages/Admin';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import SEO from '@/components/SEO';
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
+import AdminLayout from '@/pages/Admin';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Search, Mail, X, Check, Send, ArrowLeft, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
 import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  MessageSquare, 
+  User, 
+  Mail, 
+  Phone, 
+  Calendar, 
+  CheckCircle, 
+  Clock,
+  XCircle,
+  Send,
+  Search
+} from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import SEO from '@/components/SEO';
 
 interface ContactMessage {
   id: string;
@@ -28,566 +33,287 @@ interface ContactMessage {
   subject: string | null;
   message: string;
   received_at: string;
-  responded_at: string | null;
-  response: string | null;
   status: string;
+  response: string | null;
+  responded_at: string | null;
 }
 
-const AdminMessages: React.FC = () => {
+const AdminMessages = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [selectedTab, setSelectedTab] = useState<string>('new');
   const [searchQuery, setSearchQuery] = useState('');
+  const [replyDialogOpen, setReplyDialogOpen] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
-  const [responseText, setResponseText] = useState('');
-  const [isReplying, setIsReplying] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>('new');
-  
+  const [replyText, setReplyText] = useState('');
+
   // Fetch contact messages
-  const { data: messages, isLoading, isError } = useQuery({
+  const { data: messages, isLoading } = useQuery({
     queryKey: ['contact-messages'],
     queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .from('contact_messages')
-          .select('*')
-          .order('received_at', { ascending: false });
-          
-        if (error) throw error;
-        return data as ContactMessage[];
-      } catch (error: any) {
-        console.error('Error fetching contact messages:', error);
-        return [] as ContactMessage[];
-      }
+      const { data, error } = await supabase
+        .from('contact_messages')
+        .select('*')
+        .order('received_at', { ascending: false });
+      
+      if (error) throw error;
+      return data as ContactMessage[];
     }
   });
-  
-  // Filter messages based on search query and active tab
-  const filteredMessages = messages?.filter(message => 
-    (message.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-     message.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-     (message.subject && message.subject.toLowerCase().includes(searchQuery.toLowerCase())) ||
-     message.message.toLowerCase().includes(searchQuery.toLowerCase())) &&
-    (activeTab === 'all' || message.status.toLowerCase() === activeTab.toLowerCase())
-  );
-  
-  // Mutation to update message status
-  const updateMessageStatus = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      try {
-        const { data, error } = await supabase
-          .from('contact_messages')
-          .update({ status })
-          .eq('id', id)
-          .select();
-          
-        if (error) throw error;
-        return data[0] as ContactMessage;
-      } catch (error: any) {
-        console.error('Error updating message status:', error);
-        throw error;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contact-messages'] });
-      toast({
-        title: "Status Updated",
-        description: "Message status has been updated successfully."
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update message status",
-        variant: "destructive"
-      });
-    }
-  });
-  
-  // Mutation to delete a message
-  const deleteMessage = useMutation({
-    mutationFn: async (id: string) => {
-      try {
-        console.log('Deleting message with ID:', id);
-        const { error, data } = await supabase
-          .from('contact_messages')
-          .delete()
-          .eq('id', id)
-          .select();
-          
-        if (error) {
-          console.error('Error deleting message:', error);
-          throw error;
+
+  // Send reply mutation
+  const sendReplyMutation = useMutation({
+    mutationFn: async ({ messageId, reply }: { messageId: string; reply: string }) => {
+      const { data: authData } = await supabase.auth.getSession();
+      if (!authData.session) throw new Error('Not authenticated');
+      
+      const response = await fetch(
+        'https://sfrlnidbiviniuqhryyc.supabase.co/functions/v1/send-email',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authData.session.access_token}`
+          },
+          body: JSON.stringify({ messageId, reply })
         }
-        
-        console.log('Delete response:', data);
-        return id;
-      } catch (error: any) {
-        console.error('Error in delete mutation:', error);
-        throw error;
+      );
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to send email');
       }
-    },
-    onSuccess: (id) => {
-      console.log('Message deleted successfully:', id);
-      queryClient.invalidateQueries({ queryKey: ['contact-messages'] });
-      setSelectedMessage(null);
-      toast({
-        title: "Message Deleted",
-        description: "Message has been deleted successfully."
-      });
-    },
-    onError: (error: any) => {
-      console.error('Delete error:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete message",
-        variant: "destructive"
-      });
-    }
-  });
-  
-  // Mutation to send response
-  const sendResponse = useMutation({
-    mutationFn: async ({ id, response }: { id: string; response: string }) => {
-      try {
-        // For now, just update the message in the database
-        // In a real application, you would also send an email
-        const { data, error } = await supabase
-          .from('contact_messages')
-          .update({
-            response,
-            responded_at: new Date().toISOString(),
-            status: 'replied'
-          })
-          .eq('id', id)
-          .select();
-          
-        if (error) throw error;
-        return data[0] as ContactMessage;
-      } catch (error: any) {
-        console.error('Error sending response:', error);
-        throw error;
-      }
+      
+      return await response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contact-messages'] });
-      setIsReplying(false);
-      setResponseText('');
       toast({
-        title: "Response Sent",
-        description: "Your response has been recorded successfully."
+        title: "Reply Sent",
+        description: "Your reply has been sent successfully.",
       });
+      queryClient.invalidateQueries({ queryKey: ['contact-messages'] });
+      setReplyDialogOpen(false);
+      setReplyText('');
+      setSelectedMessage(null);
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to send response",
+        description: error.message || "Failed to send reply",
         variant: "destructive"
       });
     }
   });
-  
-  // Handle opening a message
-  const handleOpenMessage = async (message: ContactMessage) => {
+
+  // Filter messages based on selected tab and search query
+  const filteredMessages = messages?.filter(message => {
+    // Filter by tab
+    if (selectedTab === 'new' && message.status !== 'New') return false;
+    if (selectedTab === 'replied' && message.status !== 'Replied') return false;
+    
+    // Filter by search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      return (
+        message.name.toLowerCase().includes(query) ||
+        message.email.toLowerCase().includes(query) ||
+        (message.subject && message.subject.toLowerCase().includes(query)) ||
+        message.message.toLowerCase().includes(query) ||
+        (message.response && message.response.toLowerCase().includes(query))
+      );
+    }
+    
+    return true;
+  });
+
+  const handleOpenReply = (message: ContactMessage) => {
     setSelectedMessage(message);
+    setReplyText(message.response || '');
+    setReplyDialogOpen(true);
+  };
+
+  const handleSendReply = () => {
+    if (!selectedMessage || !replyText.trim()) return;
     
-    // If message is new, mark it as read
-    if (message.status === 'new') {
-      updateMessageStatus.mutate({ id: message.id, status: 'read' });
-    }
+    sendReplyMutation.mutate({
+      messageId: selectedMessage.id,
+      reply: replyText.trim()
+    });
   };
-  
-  // Handle message status change
-  const handleStatusChange = (id: string, status: string) => {
-    updateMessageStatus.mutate({ id, status });
-  };
-  
-  // Handle delete confirmation with improved error handling
-  const handleDelete = (id: string) => {
-    if (window.confirm("Are you sure you want to delete this message? This action cannot be undone.")) {
-      console.log('Confirming deletion of message:', id);
-      deleteMessage.mutate(id);
-    }
-  };
-  
-  // Handle reply form submission
-  const handleSendResponse = () => {
-    if (!selectedMessage) return;
-    
-    if (!responseText.trim()) {
-      toast({
-        title: "Empty Response",
-        description: "Please write a response before sending.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    sendResponse.mutate({ id: selectedMessage.id, response: responseText });
-  };
-  
-  // Calculate counts
-  const newCount = messages?.filter(m => m.status === 'new').length || 0;
-  const readCount = messages?.filter(m => m.status === 'read').length || 0;
-  const repliedCount = messages?.filter(m => m.status === 'replied').length || 0;
-  const archivedCount = messages?.filter(m => m.status === 'archived').length || 0;
+
+  // Get counts for tabs
+  const newCount = messages?.filter(m => m.status === 'New').length || 0;
+  const repliedCount = messages?.filter(m => m.status === 'Replied').length || 0;
+  const totalCount = messages?.length || 0;
 
   return (
-    <AdminLayout title="Messages">
-      <SEO title="Contact Messages | Meow Rescue Admin" />
+    <AdminLayout title="Contact Messages">
+      <SEO title="Contact Form | Meow Rescue Admin" />
       
       <div className="container mx-auto py-10">
-        <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
-          <h1 className="text-3xl font-bold text-meow-primary">Contact Messages</h1>
-          <div className="flex items-center gap-4 w-full md:w-auto">
-            <div className="relative w-full md:w-auto">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search messages..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 w-full md:w-64"
-              />
-            </div>
+        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+          <h1 className="text-3xl font-bold text-meow-primary">Contact Form Messages</h1>
+          <div className="relative w-full md:w-64">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Search messages..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 w-full"
+            />
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
-          <Card 
-            className={`cursor-pointer ${activeTab === 'new' ? 'bg-slate-100' : ''}`} 
-            onClick={() => setActiveTab('new')}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-500">New</p>
-                  <h3 className="text-2xl font-bold">{newCount}</h3>
-                </div>
-                <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Mail className="h-6 w-6 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <Tabs defaultValue="new" value={selectedTab} onValueChange={setSelectedTab} className="w-full">
+          <TabsList className="mb-6">
+            <TabsTrigger value="all">
+              All
+              <span className="ml-2 bg-gray-100 text-gray-700 px-2 py-0.5 text-xs rounded-full">
+                {totalCount}
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="new">
+              New
+              <span className="ml-2 bg-blue-100 text-blue-700 px-2 py-0.5 text-xs rounded-full">
+                {newCount}
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="replied">
+              Replied
+              <span className="ml-2 bg-green-100 text-green-700 px-2 py-0.5 text-xs rounded-full">
+                {repliedCount}
+              </span>
+            </TabsTrigger>
+          </TabsList>
           
-          <Card 
-            className={`cursor-pointer ${activeTab === 'read' ? 'bg-slate-100' : ''}`} 
-            onClick={() => setActiveTab('read')}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Read</p>
-                  <h3 className="text-2xl font-bold">{readCount}</h3>
-                </div>
-                <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
-                  <Check className="h-6 w-6 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card 
-            className={`cursor-pointer ${activeTab === 'replied' ? 'bg-slate-100' : ''}`} 
-            onClick={() => setActiveTab('replied')}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Replied</p>
-                  <h3 className="text-2xl font-bold">{repliedCount}</h3>
-                </div>
-                <div className="h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center">
-                  <Send className="h-6 w-6 text-purple-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card 
-            className={`cursor-pointer ${activeTab === 'archived' ? 'bg-slate-100' : ''}`} 
-            onClick={() => setActiveTab('archived')}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Archived</p>
-                  <h3 className="text-2xl font-bold">{archivedCount}</h3>
-                </div>
-                <div className="h-12 w-12 bg-gray-100 rounded-full flex items-center justify-center">
-                  <X className="h-6 w-6 text-gray-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card 
-            className={`cursor-pointer ${activeTab === 'all' ? 'bg-slate-100' : ''}`} 
-            onClick={() => setActiveTab('all')}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-500">All Messages</p>
-                  <h3 className="text-2xl font-bold">{messages?.length || 0}</h3>
-                </div>
-                <div className="h-12 w-12 bg-amber-100 rounded-full flex items-center justify-center">
-                  <Mail className="h-6 w-6 text-amber-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              {activeTab === 'all' ? 'All Messages' : 
-               activeTab === 'new' ? 'New Messages' : 
-               activeTab === 'read' ? 'Read Messages' : 
-               activeTab === 'replied' ? 'Replied Messages' : 
-               'Archived Messages'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+          <TabsContent value={selectedTab}>
             {isLoading ? (
-              <div className="flex justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
-              </div>
-            ) : isError ? (
-              <div className="text-center py-12">
-                <p className="text-red-500">Error loading messages. Please try again later.</p>
+              <div className="flex justify-center py-10">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-meow-primary"></div>
               </div>
             ) : filteredMessages && filteredMessages.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Subject</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Date Received</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredMessages.map((message) => (
-                    <TableRow 
-                      key={message.id} 
-                      className="cursor-pointer hover:bg-slate-50"
-                      onClick={() => handleOpenMessage(message)}
-                    >
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{message.name}</div>
-                          <div className="text-sm text-gray-500">{message.email}</div>
+              <div className="space-y-6">
+                {filteredMessages.map((message) => (
+                  <Card key={message.id}>
+                    <CardContent className="p-6">
+                      <div className="flex flex-col md:flex-row gap-6">
+                        <div className="flex-grow">
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                              <h3 className="text-lg font-semibold mb-1">
+                                {message.subject || 'No Subject'}
+                              </h3>
+                              <div className="flex flex-wrap gap-x-4 text-sm text-gray-500">
+                                <div className="flex items-center">
+                                  <User className="h-4 w-4 mr-1" />
+                                  {message.name}
+                                </div>
+                                <div className="flex items-center">
+                                  <Mail className="h-4 w-4 mr-1" />
+                                  {message.email}
+                                </div>
+                                {message.phone && (
+                                  <div className="flex items-center">
+                                    <Phone className="h-4 w-4 mr-1" />
+                                    {message.phone}
+                                  </div>
+                                )}
+                                <div className="flex items-center">
+                                  <Calendar className="h-4 w-4 mr-1" />
+                                  {formatDistanceToNow(new Date(message.received_at), { addSuffix: true })}
+                                </div>
+                              </div>
+                            </div>
+                            <div>
+                              {message.status === 'New' ? (
+                                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium flex items-center">
+                                  <Clock className="h-3 w-3 mr-1" />
+                                  New
+                                </span>
+                              ) : (
+                                <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium flex items-center">
+                                  <CheckCircle className="h-3 w-3 mr-1" />
+                                  Replied
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                            <p className="whitespace-pre-wrap">{message.message}</p>
+                          </div>
+                          
+                          {message.response && (
+                            <div className="mb-4">
+                              <h4 className="text-sm font-medium text-gray-500 mb-2">Your Response:</h4>
+                              <div className="bg-blue-50 p-4 rounded-lg">
+                                <p className="whitespace-pre-wrap">{message.response}</p>
+                                <p className="text-xs text-gray-500 mt-2">
+                                  Sent {message.responded_at ? formatDistanceToNow(new Date(message.responded_at), { addSuffix: true }) : ''}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                          
+                          <div className="mt-4">
+                            <Button onClick={() => handleOpenReply(message)}>
+                              <Send className="h-4 w-4 mr-2" />
+                              {message.response ? 'Send Another Reply' : 'Reply'}
+                            </Button>
+                          </div>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        {message.subject || 'No subject'}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={
-                          message.status === 'new' ? 'default' :
-                          message.status === 'read' ? 'secondary' :
-                          message.status === 'replied' ? 'default' :
-                          'outline'
-                        }>
-                          {message.status.charAt(0).toUpperCase() + message.status.slice(1)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {new Date(message.received_at).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleOpenMessage(message);
-                          }}
-                        >
-                          View
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-xl text-gray-700">
-                  {searchQuery 
-                    ? 'No messages match your search.' 
-                    : `No ${activeTab !== 'all' ? activeTab : ''} messages to display.`}
-                </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
+            ) : (
+              <Card>
+                <CardContent className="p-10 text-center">
+                  <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500">No messages found in this category.</p>
+                </CardContent>
+              </Card>
             )}
-          </CardContent>
-        </Card>
+          </TabsContent>
+        </Tabs>
       </div>
       
-      {/* Message View Dialog */}
+      {/* Reply Dialog */}
       {selectedMessage && (
-        <Dialog open={!!selectedMessage} onOpenChange={(open) => !open && setSelectedMessage(null)}>
-          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+        <Dialog open={replyDialogOpen} onOpenChange={setReplyDialogOpen}>
+          <DialogContent className="sm:max-w-lg">
             <DialogHeader>
-              <DialogTitle>
-                {isReplying ? 'Reply to Message' : selectedMessage.subject || 'Contact Message'}
-              </DialogTitle>
-              <DialogDescription>
-                {isReplying 
-                  ? `Replying to ${selectedMessage.name} (${selectedMessage.email})` 
-                  : `Received on ${new Date(selectedMessage.received_at).toLocaleString()}`}
-              </DialogDescription>
+              <DialogTitle>Reply to {selectedMessage.name}</DialogTitle>
             </DialogHeader>
             
-            {isReplying ? (
-              <div className="space-y-4">
-                <div className="bg-gray-50 p-4 rounded-md">
-                  <h4 className="text-sm font-semibold">Original Message:</h4>
-                  <p className="mt-2 text-sm whitespace-pre-wrap">{selectedMessage.message}</p>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-1">Your Response:</label>
-                  <Textarea
-                    value={responseText}
-                    onChange={(e) => setResponseText(e.target.value)}
-                    rows={8}
-                    placeholder="Write your response here..."
-                  />
-                </div>
-                
-                <div className="flex justify-end gap-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setIsReplying(false)}
-                  >
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back
-                  </Button>
-                  <Button 
-                    onClick={handleSendResponse}
-                    disabled={sendResponse.isPending}
-                  >
-                    <Send className="mr-2 h-4 w-4" />
-                    {sendResponse.isPending ? 'Sending...' : 'Send Response'}
-                  </Button>
-                </div>
+            <div className="space-y-4 py-4">
+              <div className="bg-gray-50 p-4 rounded-lg mb-2 text-sm">
+                <p><strong>From:</strong> {selectedMessage.name} ({selectedMessage.email})</p>
+                <p><strong>Subject:</strong> {selectedMessage.subject || 'No Subject'}</p>
+                <p className="mt-2"><strong>Message:</strong></p>
+                <p className="whitespace-pre-wrap">{selectedMessage.message}</p>
               </div>
-            ) : (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">Contact Information</h3>
-                    <div className="space-y-3">
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">Name</p>
-                        <p>{selectedMessage.name}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">Email</p>
-                        <p>{selectedMessage.email}</p>
-                      </div>
-                      {selectedMessage.phone && (
-                        <div>
-                          <p className="text-sm font-medium text-gray-500">Phone</p>
-                          <p>{selectedMessage.phone}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">Message Details</h3>
-                    <div className="space-y-3">
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">Subject</p>
-                        <p>{selectedMessage.subject || 'No subject'}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">Status</p>
-                        <Badge variant={
-                          selectedMessage.status === 'new' ? 'default' :
-                          selectedMessage.status === 'read' ? 'secondary' :
-                          selectedMessage.status === 'replied' ? 'default' :
-                          'outline'
-                        }>
-                          {selectedMessage.status.charAt(0).toUpperCase() + selectedMessage.status.slice(1)}
-                        </Badge>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">Received</p>
-                        <p>{new Date(selectedMessage.received_at).toLocaleString()}</p>
-                      </div>
-                      {selectedMessage.responded_at && (
-                        <div>
-                          <p className="text-sm font-medium text-gray-500">Responded</p>
-                          <p>{new Date(selectedMessage.responded_at).toLocaleString()}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">Message</h3>
-                  <div className="bg-gray-50 p-4 rounded-md">
-                    <p className="whitespace-pre-wrap">{selectedMessage.message}</p>
-                  </div>
-                </div>
-                
-                {selectedMessage.response && (
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">Response</h3>
-                    <div className="bg-blue-50 p-4 rounded-md">
-                      <p className="whitespace-pre-wrap">{selectedMessage.response}</p>
-                    </div>
-                  </div>
-                )}
-                
-                <DialogFooter className="flex-col sm:flex-row sm:justify-between">
-                  <div className="flex gap-2 mb-4 sm:mb-0">
-                    <Button 
-                      variant="destructive" 
-                      onClick={() => handleDelete(selectedMessage.id)}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
-                    </Button>
-                    
-                    {selectedMessage.status !== 'archived' && (
-                      <Button 
-                        variant="outline" 
-                        onClick={() => handleStatusChange(selectedMessage.id, 'archived')}
-                      >
-                        <X className="mr-2 h-4 w-4" />
-                        Archive
-                      </Button>
-                    )}
-                    
-                    {selectedMessage.status === 'archived' && (
-                      <Button 
-                        variant="outline" 
-                        onClick={() => handleStatusChange(selectedMessage.id, 'read')}
-                      >
-                        <Check className="mr-2 h-4 w-4" />
-                        Unarchive
-                      </Button>
-                    )}
-                  </div>
-                  
-                  <div>
-                    {!selectedMessage.response && (
-                      <Button onClick={() => setIsReplying(true)}>
-                        <Send className="mr-2 h-4 w-4" />
-                        Reply
-                      </Button>
-                    )}
-                  </div>
-                </DialogFooter>
-              </div>
-            )}
+              
+              <Textarea
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                placeholder="Type your reply here..."
+                rows={8}
+              />
+            </div>
+            
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setReplyDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSendReply}
+                disabled={!replyText.trim() || sendReplyMutation.isPending}
+              >
+                {sendReplyMutation.isPending ? 'Sending...' : 'Send Reply'}
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       )}

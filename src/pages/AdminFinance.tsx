@@ -25,7 +25,6 @@ import { format, subMonths, startOfMonth, endOfMonth, eachMonthOfInterval } from
 import { Pencil, Trash2, FileText, DollarSign, Plus } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import SEO from '@/components/SEO';
-import CatFoodTracker from '@/components/finance/CatFoodTracker';
 
 interface Donation {
   id: string;
@@ -53,6 +52,17 @@ interface Expense {
   receipt_url: string | null;
 }
 
+interface Income {
+  id: string;
+  amount: number;
+  income_date: string;
+  description: string;
+  income_type: string;
+  receipt_url: string | null;
+  created_by: string | null;
+  created_at: string;
+}
+
 const AdminFinance: React.FC = () => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -61,9 +71,10 @@ const AdminFinance: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [addDonationModalOpen, setAddDonationModalOpen] = useState(false);
   const [addExpenseModalOpen, setAddExpenseModalOpen] = useState(false);
+  const [addIncomeModalOpen, setAddIncomeModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isUploading, setIsUploading] = useState(false);
-  const [editMode, setEditMode] = useState<{ type: 'donation' | 'expense', id: string } | null>(null);
+  const [editMode, setEditMode] = useState<{ type: 'donation' | 'expense' | 'income', id: string } | null>(null);
   
   // Form states
   const [donationForm, setDonationForm] = useState({
@@ -85,9 +96,19 @@ const AdminFinance: React.FC = () => {
     category: '',
     vendor: '',
     payment_method: '',
-    receipt_url: ''
+    receipt_url: '',
+    cat_id: ''
   });
 
+  const [incomeForm, setIncomeForm] = useState({
+    id: '',
+    amount: '',
+    income_date: format(new Date(), 'yyyy-MM-dd'),
+    description: '',
+    income_type: '',
+    receipt_url: ''
+  });
+  
   // Fetch donation data
   const { data: donations, isLoading: donationsLoading } = useQuery({
     queryKey: ['donations'],
@@ -122,6 +143,34 @@ const AdminFinance: React.FC = () => {
     }
   });
 
+  // Fetch income data
+  const { data: incomes, isLoading: incomesLoading } = useQuery({
+    queryKey: ['incomes'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('income')
+        .select('*')
+        .order('income_date', { ascending: false });
+      
+      if (error) throw error;
+      return data as Income[];
+    }
+  });
+
+  // Fetch cats for expense form
+  const { data: cats } = useQuery({
+    queryKey: ['cats-list'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('cats')
+        .select('id, name')
+        .order('name');
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
   // Filter donations by search query
   const filteredDonations = donations?.filter(donation => 
     String(donation.amount).includes(searchQuery) ||
@@ -138,6 +187,13 @@ const AdminFinance: React.FC = () => {
     expense.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
     expense.vendor.toLowerCase().includes(searchQuery.toLowerCase()) ||
     expense.payment_method.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Filter incomes by search query
+  const filteredIncomes = incomes?.filter(income => 
+    String(income.amount).includes(searchQuery) ||
+    income.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    income.income_type.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Mutation to add or update donation
@@ -204,6 +260,7 @@ const AdminFinance: React.FC = () => {
         vendor: formData.vendor,
         payment_method: formData.payment_method,
         receipt_url: formData.receipt_url || null,
+        cat_id: formData.cat_id || null,
         created_by: (await supabase.auth.getUser()).data.user?.id
       };
       
@@ -244,23 +301,81 @@ const AdminFinance: React.FC = () => {
     }
   });
 
+  // Mutation to add or update income
+  const incomeMutation = useMutation({
+    mutationFn: async (formData: typeof incomeForm) => {
+      const isUpdate = !!formData.id;
+      
+      const payload = {
+        amount: parseFloat(formData.amount),
+        income_date: new Date(formData.income_date).toISOString(),
+        description: formData.description,
+        income_type: formData.income_type,
+        receipt_url: formData.receipt_url || null,
+        created_by: (await supabase.auth.getUser()).data.user?.id
+      };
+      
+      if (isUpdate) {
+        const { error } = await supabase
+          .from('income')
+          .update(payload)
+          .eq('id', formData.id);
+        
+        if (error) throw error;
+        return { type: 'update', id: formData.id };
+      } else {
+        const { data, error } = await supabase
+          .from('income')
+          .insert([payload])
+          .select();
+        
+        if (error) throw error;
+        return { type: 'insert', id: data[0].id };
+      }
+    },
+    onSuccess: (result) => {
+      toast({
+        title: result.type === 'insert' ? "Income Added" : "Income Updated",
+        description: result.type === 'insert' ? "New income has been recorded." : "Income has been updated.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['incomes'] });
+      resetIncomeForm();
+      setAddIncomeModalOpen(false);
+      setEditMode(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save income.",
+        variant: "destructive"
+      });
+    }
+  });
+
   // Mutation to delete donation
   const deleteDonationMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('donations')
-        .delete()
-        .eq('id', id);
+      const { data, error } = await supabase.rpc('delete_donation', {
+        p_donation_id: id
+      });
       
       if (error) throw error;
-      return id;
+      return { id, success: data };
     },
-    onSuccess: (id) => {
-      toast({
-        title: "Donation Deleted",
-        description: "The donation has been deleted successfully.",
-      });
-      queryClient.invalidateQueries({ queryKey: ['donations'] });
+    onSuccess: (result) => {
+      if (result.success) {
+        toast({
+          title: "Donation Deleted",
+          description: "The donation has been deleted successfully."
+        });
+        queryClient.invalidateQueries({ queryKey: ['donations'] });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to delete donation.",
+          variant: "destructive"
+        });
+      }
     },
     onError: (error: any) => {
       toast({
@@ -285,7 +400,7 @@ const AdminFinance: React.FC = () => {
     onSuccess: (id) => {
       toast({
         title: "Expense Deleted",
-        description: "The expense has been deleted successfully.",
+        description: "The expense has been deleted successfully."
       });
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
     },
@@ -298,10 +413,38 @@ const AdminFinance: React.FC = () => {
     }
   });
 
+  // Mutation to delete income
+  const deleteIncomeMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('income')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      return id;
+    },
+    onSuccess: (id) => {
+      toast({
+        title: "Income Deleted",
+        description: "The income record has been deleted successfully."
+      });
+      queryClient.invalidateQueries({ queryKey: ['incomes'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete income.",
+        variant: "destructive"
+      });
+    }
+  });
+
   // Calculate total donations and expenses
   const totalDonations = donations?.reduce((sum, donation) => sum + donation.amount, 0) || 0;
   const totalExpenses = expenses?.reduce((sum, expense) => sum + expense.amount, 0) || 0;
-  const netBalance = totalDonations - totalExpenses;
+  const totalIncome = incomes?.reduce((sum, income) => sum + income.amount, 0) || 0;
+  const netBalance = totalDonations + totalIncome - totalExpenses;
 
   // Upload receipt file
   const uploadReceipt = async (file: File) => {
@@ -312,19 +455,27 @@ const AdminFinance: React.FC = () => {
     
     try {
       const { error: uploadError } = await supabase.storage
-        .from('finance')
+        .from('documents')
         .upload(filePath, file);
       
       if (uploadError) throw uploadError;
       
       const { data } = supabase.storage
-        .from('finance')
+        .from('documents')
         .getPublicUrl(filePath);
       
-      setExpenseForm({
-        ...expenseForm,
-        receipt_url: data.publicUrl
-      });
+      // Update the appropriate form based on what's open
+      if (addExpenseModalOpen) {
+        setExpenseForm({
+          ...expenseForm,
+          receipt_url: data.publicUrl
+        });
+      } else if (addIncomeModalOpen) {
+        setIncomeForm({
+          ...incomeForm,
+          receipt_url: data.publicUrl
+        });
+      }
       
       toast({
         title: "Receipt Uploaded",
@@ -365,6 +516,19 @@ const AdminFinance: React.FC = () => {
       category: '',
       vendor: '',
       payment_method: '',
+      receipt_url: '',
+      cat_id: ''
+    });
+  };
+
+  // Reset income form
+  const resetIncomeForm = () => {
+    setIncomeForm({
+      id: '',
+      amount: '',
+      income_date: format(new Date(), 'yyyy-MM-dd'),
+      description: '',
+      income_type: '',
       receipt_url: ''
     });
   };
@@ -395,19 +559,36 @@ const AdminFinance: React.FC = () => {
       category: expense.category,
       vendor: expense.vendor,
       payment_method: expense.payment_method,
-      receipt_url: expense.receipt_url || ''
+      receipt_url: expense.receipt_url || '',
+      cat_id: ''
     });
     setEditMode({ type: 'expense', id: expense.id });
     setAddExpenseModalOpen(true);
   };
 
+  // Edit income
+  const editIncome = (income: Income) => {
+    setIncomeForm({
+      id: income.id,
+      amount: income.amount.toString(),
+      income_date: format(new Date(income.income_date), 'yyyy-MM-dd'),
+      description: income.description,
+      income_type: income.income_type,
+      receipt_url: income.receipt_url || ''
+    });
+    setEditMode({ type: 'income', id: income.id });
+    setAddIncomeModalOpen(true);
+  };
+
   // Confirm deletion
-  const confirmDelete = (type: 'donation' | 'expense', id: string) => {
+  const confirmDelete = (type: 'donation' | 'expense' | 'income', id: string) => {
     if (window.confirm(`Are you sure you want to delete this ${type}?`)) {
       if (type === 'donation') {
         deleteDonationMutation.mutate(id);
-      } else {
+      } else if (type === 'expense') {
         deleteExpenseMutation.mutate(id);
+      } else if (type === 'income') {
+        deleteIncomeMutation.mutate(id);
       }
     }
   };
@@ -427,15 +608,22 @@ const AdminFinance: React.FC = () => {
       const expenseDate = new Date(e.expense_date);
       return expenseDate >= monthStart && expenseDate <= monthEnd;
     }) || [];
+
+    const monthIncome = incomes?.filter(i => {
+      const incomeDate = new Date(i.income_date);
+      return incomeDate >= monthStart && incomeDate <= monthEnd;
+    }) || [];
     
     const monthDonationsTotal = monthDonations.reduce((sum, d) => sum + d.amount, 0);
     const monthExpensesTotal = monthExpenses.reduce((sum, e) => sum + e.amount, 0);
+    const monthIncomeTotal = monthIncome.reduce((sum, i) => sum + i.amount, 0);
     
     return {
       name: format(date, 'MMM yyyy'),
       donations: monthDonationsTotal,
+      income: monthIncomeTotal,
       expenses: monthExpensesTotal,
-      net: monthDonationsTotal - monthExpensesTotal
+      net: monthDonationsTotal + monthIncomeTotal - monthExpensesTotal
     };
   }).reverse();
 
@@ -475,11 +663,11 @@ const AdminFinance: React.FC = () => {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="donations">Donations</TabsTrigger>
             <TabsTrigger value="expenses">Expenses</TabsTrigger>
-            <TabsTrigger value="cat-food">Cat Food</TabsTrigger>
+            <TabsTrigger value="income">Income</TabsTrigger>
           </TabsList>
           
           <TabsContent value="overview">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
@@ -489,6 +677,20 @@ const AdminFinance: React.FC = () => {
                     </div>
                     <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
                       <DollarSign className="h-6 w-6 text-green-600" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Total Income</p>
+                      <h3 className="text-2xl font-bold text-blue-600">${totalIncome.toFixed(2)}</h3>
+                    </div>
+                    <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
+                      <DollarSign className="h-6 w-6 text-blue-600" />
                     </div>
                   </div>
                 </CardContent>
@@ -540,8 +742,9 @@ const AdminFinance: React.FC = () => {
                         <Tooltip />
                         <Legend />
                         <Line type="monotone" dataKey="donations" stroke="#4ade80" name="Donations" />
+                        <Line type="monotone" dataKey="income" stroke="#60a5fa" name="Income" />
                         <Line type="monotone" dataKey="expenses" stroke="#f87171" name="Expenses" />
-                        <Line type="monotone" dataKey="net" stroke="#60a5fa" name="Net" />
+                        <Line type="monotone" dataKey="net" stroke="#a78bfa" name="Net" />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
@@ -601,35 +804,65 @@ const AdminFinance: React.FC = () => {
                       <Plus className="mr-2 h-4 w-4" />
                       Add Expense
                     </Button>
+                    <Button onClick={() => {
+                      resetIncomeForm();
+                      setAddIncomeModalOpen(true);
+                    }}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Income
+                    </Button>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  {donationsLoading || expensesLoading ? (
+                  {donationsLoading || expensesLoading || incomesLoading ? (
                     <div className="flex justify-center py-6">
                       <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-meow-primary"></div>
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {/* Combine and sort donations and expenses by date */}
-                      {[...(donations || []), ...(expenses || [])]
+                      {/* Combine and sort donations, income, and expenses by date */}
+                      {[...(donations || []), ...(incomes || []), ...(expenses || [])]
                         .sort((a, b) => {
-                          const dateA = new Date('donation_date' in a ? a.donation_date : a.expense_date);
-                          const dateB = new Date('donation_date' in b ? b.donation_date : b.expense_date);
+                          const dateA = new Date(
+                            'donation_date' in a 
+                              ? a.donation_date 
+                              : 'income_date' in a 
+                                ? a.income_date 
+                                : a.expense_date
+                          );
+                          const dateB = new Date(
+                            'donation_date' in b 
+                              ? b.donation_date 
+                              : 'income_date' in b 
+                                ? b.income_date 
+                                : b.expense_date
+                          );
                           return dateB.getTime() - dateA.getTime();
                         })
                         .slice(0, 10) // Show only the 10 most recent transactions
                         .map((item) => {
                           const isDonation = 'donation_date' in item;
-                          const date = new Date(isDonation ? item.donation_date : item.expense_date);
+                          const isIncome = 'income_date' in item;
+                          const date = new Date(
+                            isDonation 
+                              ? item.donation_date 
+                              : isIncome 
+                                ? item.income_date 
+                                : item.expense_date
+                          );
                           
                           return (
                             <div key={item.id} className="flex items-center justify-between p-4 border rounded-md">
                               <div className="flex items-center">
                                 <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
-                                  isDonation ? 'bg-green-100' : 'bg-red-100'
+                                  isDonation 
+                                    ? 'bg-green-100' 
+                                    : isIncome 
+                                      ? 'bg-blue-100' 
+                                      : 'bg-red-100'
                                 }`}>
-                                  {isDonation ? (
-                                    <DollarSign className="h-5 w-5 text-green-600" />
+                                  {isDonation || isIncome ? (
+                                    <DollarSign className={`h-5 w-5 ${isDonation ? 'text-green-600' : 'text-blue-600'}`} />
                                   ) : (
                                     <FileText className="h-5 w-5 text-red-600" />
                                   )}
@@ -638,6 +871,8 @@ const AdminFinance: React.FC = () => {
                                   <p className="font-medium">
                                     {isDonation ? (
                                       `Donation${item.donor ? ` from ${item.donor.first_name} ${item.donor.last_name}` : ''}`
+                                    ) : isIncome ? (
+                                      `Income: ${item.description} (${item.income_type})`
                                     ) : (
                                       `${item.description} (${item.category})`
                                     )}
@@ -648,22 +883,33 @@ const AdminFinance: React.FC = () => {
                                 </div>
                               </div>
                               <div className="flex items-center gap-4">
-                                <p className={`font-semibold ${isDonation ? 'text-green-600' : 'text-red-600'}`}>
-                                  {isDonation ? '+' : '-'}${item.amount.toFixed(2)}
+                                <p className={`font-semibold ${
+                                  isDonation || isIncome ? (
+                                    isDonation ? 'text-green-600' : 'text-blue-600'
+                                  ) : 'text-red-600'
+                                }`}>
+                                  {isDonation || isIncome ? '+' : '-'}${item.amount.toFixed(2)}
                                 </p>
                                 {isAdmin && (
                                   <div className="flex">
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      onClick={() => isDonation ? editDonation(item as Donation) : editExpense(item as Expense)}
+                                      onClick={() => {
+                                        if (isDonation) editDonation(item as Donation);
+                                        else if (isIncome) editIncome(item as Income);
+                                        else editExpense(item as Expense);
+                                      }}
                                     >
                                       <Pencil className="h-4 w-4" />
                                     </Button>
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      onClick={() => confirmDelete(isDonation ? 'donation' : 'expense', item.id)}
+                                      onClick={() => confirmDelete(
+                                        isDonation ? 'donation' : isIncome ? 'income' : 'expense', 
+                                        item.id
+                                      )}
                                     >
                                       <Trash2 className="h-4 w-4" />
                                     </Button>
@@ -1028,6 +1274,24 @@ const AdminFinance: React.FC = () => {
                             </SelectContent>
                           </Select>
                         </div>
+
+                        <div>
+                          <Label htmlFor="cat_id">Associated Cat (Optional)</Label>
+                          <Select
+                            value={expenseForm.cat_id}
+                            onValueChange={(value) => setExpenseForm({ ...expenseForm, cat_id: value })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select cat (optional)" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="">None</SelectItem>
+                              {cats?.map(cat => (
+                                <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                         
                         <div>
                           <Label htmlFor="receipt">Receipt (Optional)</Label>
@@ -1084,8 +1348,201 @@ const AdminFinance: React.FC = () => {
             )}
           </TabsContent>
           
-          <TabsContent value="cat-food">
-            <CatFoodTracker isAdmin={isAdmin} />
+          <TabsContent value="income">
+            <Card>
+              <CardHeader className="flex-row items-center justify-between pb-2">
+                <CardTitle>All Income</CardTitle>
+                <Button onClick={() => {
+                  resetIncomeForm();
+                  setAddIncomeModalOpen(true);
+                }}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Income
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {incomesLoading ? (
+                  <div className="flex justify-center py-6">
+                    <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-meow-primary"></div>
+                  </div>
+                ) : filteredIncomes && filteredIncomes.length > 0 ? (
+                  <div className="space-y-4">
+                    {filteredIncomes.map((income) => (
+                      <div key={income.id} className="flex items-center justify-between p-4 border rounded-md">
+                        <div>
+                          <p className="font-medium">{income.description}</p>
+                          <p className="text-sm text-gray-500">
+                            {new Date(income.income_date).toLocaleDateString()} • 
+                            {income.income_type}
+                          </p>
+                          {income.receipt_url && (
+                            <p className="text-sm text-blue-600 mt-1">
+                              <a 
+                                href={income.receipt_url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="hover:underline"
+                              >
+                                View Receipt
+                              </a>
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <p className="font-semibold text-blue-600">
+                            +${income.amount.toFixed(2)}
+                          </p>
+                          {isAdmin && (
+                            <div className="flex">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => editIncome(income)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => confirmDelete('income', income.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-center py-6 text-gray-500">
+                    {searchQuery ? 'No income entries match your search.' : 'No income recorded yet.'}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+            
+            {/* Add Income Modal */}
+            {addIncomeModalOpen && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <Card className="w-full max-w-md">
+                  <CardHeader>
+                    <CardTitle>{editMode?.type === 'income' ? 'Edit Income' : 'Add Income'}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <form onSubmit={(e) => {
+                      e.preventDefault();
+                      incomeMutation.mutate(incomeForm);
+                    }}>
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="description">Description</Label>
+                          <Input
+                            id="description"
+                            type="text"
+                            required
+                            value={incomeForm.description}
+                            onChange={(e) => setIncomeForm({ ...incomeForm, description: e.target.value })}
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="amount">Amount ($)</Label>
+                          <Input
+                            id="amount"
+                            type="number"
+                            step="0.01"
+                            required
+                            value={incomeForm.amount}
+                            onChange={(e) => setIncomeForm({ ...incomeForm, amount: e.target.value })}
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="income_date">Date</Label>
+                          <Input
+                            id="income_date"
+                            type="date"
+                            required
+                            value={incomeForm.income_date}
+                            onChange={(e) => setIncomeForm({ ...incomeForm, income_date: e.target.value })}
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="income_type">Income Type</Label>
+                          <Select
+                            value={incomeForm.income_type}
+                            onValueChange={(value) => setIncomeForm({ ...incomeForm, income_type: value })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select income type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Merchandise Sales">Merchandise Sales</SelectItem>
+                              <SelectItem value="Event Revenue">Event Revenue</SelectItem>
+                              <SelectItem value="Service Fees">Service Fees</SelectItem>
+                              <SelectItem value="Grant">Grant</SelectItem>
+                              <SelectItem value="Sponsorship">Sponsorship</SelectItem>
+                              <SelectItem value="Interest">Interest</SelectItem>
+                              <SelectItem value="Other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="receipt">Receipt (Optional)</Label>
+                          <div className="mt-1">
+                            <Input
+                              id="receipt"
+                              type="file"
+                              accept="image/*,.pdf"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) uploadReceipt(file);
+                              }}
+                            />
+                          </div>
+                          {isUploading && (
+                            <div className="flex justify-center py-2">
+                              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-meow-primary"></div>
+                            </div>
+                          )}
+                          {incomeForm.receipt_url && (
+                            <div className="mt-2">
+                              <a 
+                                href={incomeForm.receipt_url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-sm text-blue-600 hover:underline"
+                              >
+                                View uploaded receipt
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="flex justify-end gap-2 pt-4">
+                          <Button 
+                            type="button" 
+                            variant="outline"
+                            onClick={() => {
+                              setAddIncomeModalOpen(false);
+                              setEditMode(null);
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                          <Button type="submit" disabled={incomeMutation.isPending}>
+                            {incomeMutation.isPending ? 'Saving...' : 'Save Income'}
+                          </Button>
+                        </div>
+                      </div>
+                    </form>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
