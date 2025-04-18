@@ -1,5 +1,6 @@
 
 import React, { createContext, useState, useEffect, useContext } from 'react';
+import { createClient } from '@supabase/supabase-js';
 import { Session, User } from '@supabase/supabase-js';
 import { logAuth } from '@/utils/logActivity';
 import { supabase } from '@/integrations/supabase/client';
@@ -26,71 +27,63 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Set up the auth state listener first
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-      console.log('Auth state changed:', event, newSession?.user?.email);
-      setSession(newSession);
+    const getSession = async () => {
+      setLoading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      setSession(session);
       
       // If there's a session, fetch the extended user profile
-      if (newSession?.user) {
-        try {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', newSession.user.id)
-            .single();
-          
-          // Merge auth user with profile data
-          if (profile) {
-            setUser({
-              ...newSession.user,
-              ...profile
-            } as ExtendedUser);
-          } else {
-            // Fall back to basic user if no profile
-            setUser(newSession.user as unknown as ExtendedUser);
-          }
-        } catch (error) {
-          console.error('Error fetching user profile:', error);
-          setUser(newSession.user as unknown as ExtendedUser);
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+        
+        // Merge auth user with profile data
+        if (profile) {
+          setUser({
+            ...session.user,
+            ...profile
+          } as ExtendedUser);
+        } else {
+          // Fall back to basic user if no profile
+          setUser(session.user as unknown as ExtendedUser);
         }
       } else {
         setUser(null);
       }
       
       setLoading(false);
-    });
-
-    // Then check for existing session
-    const initSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        setSession(session);
-        
-        if (session?.user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-          
-          if (profile) {
-            setUser({
-              ...session.user,
-              ...profile
-            } as ExtendedUser);
-          } else {
-            setUser(session.user as unknown as ExtendedUser);
-          }
-        }
-      } catch (error) {
-        console.error('Error initializing session:', error);
-      } finally {
-        setLoading(false);
-      }
     };
 
-    initSession();
+    getSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      setSession(newSession);
+      
+      // If there's a session, fetch the extended user profile
+      if (newSession?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', newSession.user.id)
+          .single();
+        
+        // Merge auth user with profile data
+        if (profile) {
+          setUser({
+            ...newSession.user,
+            ...profile
+          } as ExtendedUser);
+        } else {
+          // Fall back to basic user if no profile
+          setUser(newSession.user as unknown as ExtendedUser);
+        }
+      } else {
+        setUser(null);
+      }
+    });
 
     // Cleanup subscription on unmount
     return () => {
@@ -109,7 +102,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       
       if (error) {
-        console.error('Sign in error:', error.message);
         setError(error.message);
         return { success: false, error: error.message };
       }
@@ -122,7 +114,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: true };
     } catch (err: any) {
       const errorMessage = err.message || 'An error occurred during sign in';
-      console.error('Sign in exception:', errorMessage);
       setError(errorMessage);
       return { success: false, error: errorMessage };
     } finally {
@@ -168,7 +159,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Clear user state
       setUser(null);
-      setSession(null);
     } catch (error: any) {
       console.error('Error signing out:', error.message);
       throw error;
