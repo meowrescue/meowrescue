@@ -2,10 +2,10 @@
 import React from 'react';
 import Layout from '@/components/Layout';
 import ContactForm from '@/components/ContactForm';
-import { Mail, Phone, MapPin, Clock } from 'lucide-react';
 import Map from '@/components/Map';
-import SEO from '@/components/SEO';
+import { Mail, Phone, MapPin, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import SEO from '@/components/SEO';
 
 const Contact = () => {
   return (
@@ -15,7 +15,7 @@ const Contact = () => {
         description="Get in touch with Meow Rescue. We're here to answer your questions about cat adoption, fostering, volunteering, and more."
       />
       
-      <div className="container mx-auto py-16 px-4 mt-16">
+      <div className="container mx-auto py-12 px-4 mt-16">
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Contact Us</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -40,7 +40,7 @@ const Contact = () => {
                     </div>
                     <div>
                       <h3 className="font-medium text-gray-900">Address</h3>
-                      <p className="text-gray-600 mt-1">1234 Meow Street, Kittyville, CA 90210</p>
+                      <p className="text-gray-600 mt-1">7726 US Highway 19, New Port Richey, FL 34652</p>
                     </div>
                   </div>
                 </CardContent>
@@ -54,7 +54,7 @@ const Contact = () => {
                     </div>
                     <div>
                       <h3 className="font-medium text-gray-900">Phone</h3>
-                      <p className="text-gray-600 mt-1">(123) 456-7890</p>
+                      <p className="text-gray-600 mt-1">(727) 257-0037</p>
                     </div>
                   </div>
                 </CardContent>
@@ -92,10 +92,15 @@ const Contact = () => {
                 </CardContent>
               </Card>
             </div>
-            
+
             <div className="mt-8">
               <h2 className="text-2xl font-bold mb-6 text-meow-primary">Find Us</h2>
-              <Map />
+              <Map 
+                address="7726 US Highway 19, New Port Richey, FL 34652"
+                lat={28.2413}
+                lng={-82.7274}
+                zoom={15}
+              />
             </div>
           </div>
         </div>
