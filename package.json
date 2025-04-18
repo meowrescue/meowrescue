@@ -8,8 +8,8 @@
     "build": "vite-ssg build",
     "generate-sitemap": "node scripts/generate-sitemap.js",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
-  "build:dev": "vite build --mode development"
+    "typecheck": "tsc --noEmit",
+    "build:dev": "vite build --mode development"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
