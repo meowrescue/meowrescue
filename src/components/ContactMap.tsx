@@ -36,7 +36,9 @@ const ContactMap: React.FC<ContactMapProps> = ({
       // Cleanup
       return () => {
         window.initMap = undefined;
-        document.head.removeChild(script);
+        if (script.parentNode) {
+          document.head.removeChild(script);
+        }
       };
     }
   }, [lat, lng, zoom]);
@@ -88,19 +90,19 @@ const ContactMap: React.FC<ContactMapProps> = ({
     };
 
     // Create the map
-    const map = new google.maps.Map(mapRef.current, mapOptions);
+    const map = new window.google.maps.Map(mapRef.current, mapOptions);
     mapInstanceRef.current = map;
 
     // Add a marker
-    const marker = new google.maps.Marker({
+    const marker = new window.google.maps.Marker({
       position,
       map,
-      animation: google.maps.Animation.DROP,
+      animation: window.google.maps.Animation.DROP,
       title: 'Meow Rescue'
     });
 
     // Add info window with address
-    const infoWindow = new google.maps.InfoWindow({
+    const infoWindow = new window.google.maps.InfoWindow({
       content: `
         <div style="padding: 8px; max-width: 200px;">
           <h3 style="margin: 0 0 8px; font-weight: bold; color: #f25c54;">Meow Rescue</h3>
