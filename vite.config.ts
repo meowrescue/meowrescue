@@ -17,6 +17,8 @@ export default defineConfig({
     port: 8080
   },
   build: {
+    outDir: 'dist',
+    emptyOutDir: true,
     rollupOptions: {
       output: {
         manualChunks: {
