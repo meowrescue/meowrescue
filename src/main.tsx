@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';  // React 18's entry point for client-side rendering
+import ReactDOM from 'react-dom/client';  // Correct import for React 18
 import App from './App';
 import { AuthProvider } from './contexts/AuthContext';
 import { BrowserRouter } from 'react-router-dom';
@@ -17,12 +17,12 @@ const Main = () => (
 if (!import.meta.env.SSR) {
   const root = document.getElementById('root');
   if (root) {
-    const rootElement = ReactDOM.createRoot(root);  // Use React 18's new root API
-    rootElement.hydrate(<Main />);
+    const rootElement = ReactDOM.createRoot(root);  // Correct use of createRoot
+    rootElement.hydrate(<Main />);  // Hydrate only for client-side rendering
   }
 }
 
-// SSR entry point without the export in the function itself
+// SSR entry point - ensure this is not executed in SSR build
 export const createApp = () => (
   <AuthProvider>
     <BrowserRouter>
