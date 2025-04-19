@@ -16,9 +16,9 @@
     "noEmit": true,
     "outDir": "./dist/server",
     "jsx": "react-jsx",
-    "baseUrl": "./src",
+    "baseUrl": ".", 
     "paths": {
-      "@/*": ["*"]
+      "@/*": ["src/*"]
     }
   },
   "include": [
