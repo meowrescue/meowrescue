@@ -1,6 +1,6 @@
 import React from 'react'
 import { BrowserRouter } from 'react-router-dom'
-import { createRoot } from 'react-dom/client'
+import { createRoot as reactCreateRoot } from 'react-dom/client'
 import App from './App'
 import './index.css'
 import { ViteReactSSG } from 'vite-react-ssg'
@@ -11,7 +11,7 @@ import routes from './routes'
  * ───────────────────────────────────────────────
  */
 if (import.meta.env.MODE !== 'ssg') {
-  createRoot(document.getElementById('root')!).render(
+  reactCreateRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <App />
     </BrowserRouter>,
