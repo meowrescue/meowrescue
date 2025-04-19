@@ -17,13 +17,11 @@ const Main = () => (
 if (!import.meta.env.SSR) {
   const rootElement = document.getElementById('root');
   if (rootElement) {
-    // For React 18+ use createRoot instead of hydrate
-    const root = ReactDOM.createRoot(rootElement);
-    root.render(<Main />); // Using createRoot for client-side rendering
+    ReactDOM.createRoot(rootElement).render(<Main />);
   }
 }
 
-// SSR entry point for server-side rendering
+// SSR entry point without the export in the function itself
 export const createApp = () => (
   <AuthProvider>
     <BrowserRouter>
