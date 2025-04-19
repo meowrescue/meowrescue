@@ -1,12 +1,14 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Session, User } from '@supabase/supabase-js';
+import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../integrations/supabase/client';
 
 // Define the shape of the AuthContext
 interface AuthContextType {
   user: User | null;
+  session: Session | null;
   isLoading: boolean;
+  error?: string;
   signIn: (email: string, password: string) => Promise<any>;
   signUp: (email: string, password: string) => Promise<any>;
   signOut: () => Promise<void>;
@@ -17,15 +19,18 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     // Check for existing session
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
-      const session = data.session;
+      const currentSession = data.session;
       
-      setUser(session?.user || null);
+      setSession(currentSession);
+      setUser(currentSession?.user || null);
       setIsLoading(false);
     };
 
@@ -33,7 +38,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // Listen for auth changes
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
       setUser(session?.user || null);
+      setError(undefined);
     });
     
     return () => {
@@ -49,9 +56,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         password,
       });
       
-      if (error) throw error;
+      if (error) {
+        setError(error.message);
+        throw error;
+      }
       return data;
     } catch (error) {
+      setError(error instanceof Error ? error.message : 'Sign in failed');
       throw error;
     }
   };
@@ -63,9 +74,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         password,
       });
       
-      if (error) throw error;
+      if (error) {
+        setError(error.message);
+        throw error;
+      }
       return data;
     } catch (error) {
+      setError(error instanceof Error ? error.message : 'Sign up failed');
       throw error;
     }
   };
@@ -73,15 +88,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      if (error) {
+        setError(error.message);
+        throw error;
+      }
     } catch (error) {
+      setError(error instanceof Error ? error.message : 'Sign out failed');
       throw error;
     }
   };
 
   const value = {
     user,
+    session,
     isLoading,
+    error,
     signIn,
     signUp,
     signOut,
