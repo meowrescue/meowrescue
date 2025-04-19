@@ -1,4 +1,3 @@
-
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
@@ -44,10 +43,8 @@ const mountApp = () => {
     return;
   }
   
-  // Create root with optional configuration
+  // Create root with correct arguments
   const root = ReactDOM.createRoot(rootElement, {
-    // Optional: Add any root configuration if needed
-    // Example: onRecoverableError for handling specific errors
     onRecoverableError: (error) => {
       console.error('Recoverable React error:', error);
     }
@@ -83,3 +80,5 @@ declare global {
 
 // Initialize the app
 mountApp();
+
+export default mountApp;
