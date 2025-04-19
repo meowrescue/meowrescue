@@ -17,13 +17,13 @@ const Main = () => (
 if (typeof window !== "undefined" && !import.meta.env.SSR) {
   const root = document.getElementById('root');
   if (root) {
-    const rootElement = ReactDOM.createRoot(root); // Only call createRoot in the client-side
+    // Only call createRoot in the client-side environment
+    const rootElement = ReactDOM.createRoot(root);
     rootElement.render(<Main />); // Render only in the browser
   }
 }
 
-// SSR entry point (ensure SSR logic remains separate)
-// No use of createRoot here, as it's client-specific
+// SSR entry point (ensure SSR logic remains separate, no createRoot used here)
 export const createApp = () => (
   <AuthProvider>
     <BrowserRouter>
