@@ -6,9 +6,30 @@
 const fs = require('fs');
 const path = require('path');
 
-// Import directly from the static paths in routes.js
-// Use CommonJS dynamic require since this is a Node.js script file
-const { staticPaths, routes } = require('../src/routes.js');
+// Import static paths directly
+const staticPaths = [
+  '/',
+  '/about',
+  '/cats',
+  '/adopt',
+  '/adopt/apply',
+  '/blog',
+  '/events',
+  '/resources',
+  '/contact',
+  '/donate',
+  '/volunteer',
+  '/volunteer/apply',
+  '/foster',
+  '/foster/apply',
+  '/login',
+  '/register',
+  '/reset-password',
+  '/privacy-policy',
+  '/terms-of-service',
+  '/lost-found',
+  '/404',
+];
 
 // Get all static paths to pre-render
 async function generateStaticHTML() {
@@ -19,29 +40,18 @@ async function generateStaticHTML() {
     const distPath = path.resolve(__dirname, '../dist');
     const template = fs.readFileSync(path.join(distPath, 'index.html'), 'utf-8');
     
-    // Get only public routes (non-admin routes)
-    const publicRoutes = routes.filter(route => 
-      !route.path.startsWith('/admin') && 
-      !route.path.includes(':') && // Skip dynamic routes
-      route.path !== '*'          // Skip catch-all route
-    );
-    
-    console.log(`Found ${publicRoutes.length} public routes to generate static HTML for:`);
-    publicRoutes.forEach(route => console.log(`- ${route.path}`));
-    
-    // Create directories and HTML files for each public route
-    for (const route of publicRoutes) {
-      if (route.path === '/') continue; // Skip root, it's already generated
+    // Create directories and HTML files for each path
+    for (const routePath of staticPaths) {
+      if (routePath === '/') continue; // Skip root, it's already generated
       
-      const routePath = route.path === '/' ? '' : route.path;
-      const dirPath = path.join(distPath, routePath);
+      const dirPath = path.join(distPath, routePath.substring(1));
       
       if (!fs.existsSync(dirPath)) {
         fs.mkdirSync(dirPath, { recursive: true });
       }
       
       fs.writeFileSync(path.join(dirPath, 'index.html'), template);
-      console.log(`Generated static HTML for: ${route.path}`);
+      console.log(`Generated static HTML for: ${routePath}`);
     }
     
     console.log('Static HTML generation complete!');

@@ -5,24 +5,47 @@ import path from 'path';
 import { Plugin } from 'vite';
 import fs from 'fs';
 import { resolve } from 'path';
-import { staticPaths } from './src/routes.js';
 
-// Simple SSG plugin
+// Define static paths directly in the config to avoid JSX imports
+const staticPaths = [
+  '/',
+  '/about',
+  '/cats',
+  '/adopt',
+  '/adopt/apply',
+  '/blog',
+  '/events',
+  '/resources',
+  '/contact',
+  '/donate',
+  '/volunteer',
+  '/volunteer/apply',
+  '/foster',
+  '/foster/apply',
+  '/login',
+  '/register',
+  '/reset-password',
+  '/privacy-policy',
+  '/terms-of-service',
+  '/lost-found',
+  '/404',
+];
+
+// Simple SSG plugin that runs AFTER the build is complete
 function ssgPlugin(): Plugin {
   return {
     name: 'vite-plugin-ssg',
+    enforce: 'post',
+    apply: 'build',
     closeBundle: async () => {
       try {
-        // Use the imported static paths directly
-        const paths = staticPaths;
+        console.log('Generating static pages for routes:', staticPaths);
         
-        console.log('Generating static pages for routes:', paths);
-        
-        // Read the built index.html
+        // Read the built index.html after Vite has finished building it
         const template = fs.readFileSync(resolve('dist/index.html'), 'utf-8');
         
         // Create a directory for each path and copy the index.html
-        for (const path of paths) {
+        for (const path of staticPaths) {
           if (path === '/') continue; // Skip root as it's already generated
           
           const dirPath = resolve(`dist${path}`);
@@ -63,7 +86,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': ['@/components/ui']
+          'ui-vendor': ['@radix-ui/react-tooltip', '@radix-ui/react-label'] // Fixed specific UI components instead of directory
         }
       }
     }
