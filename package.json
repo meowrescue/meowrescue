@@ -52,6 +52,7 @@
     "next-themes": "^0.2.0",
     "recharts": "^2.8.0",
     "sonner": "^1.7.0",
+    "tailwind-merge": "^1.14.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-helmet-async": "^1.3.0",
@@ -87,9 +88,21 @@
     "source": "dist",
     "minifyHtml": { "collapseWhitespace": true, "removeComments": true },
     "include": [
-      "/", "/about", "/cats", "/adopt", "/blog", "/events", "/resources",
-      "/contact", "/donate", "/volunteer", "/foster",
-      "/privacy-policy", "/terms-of-service", "/lost-found", "/success-stories"
+      "/",
+      "/about",
+      "/cats",
+      "/adopt",
+      "/blog",
+      "/events",
+      "/resources",
+      "/contact",
+      "/donate",
+      "/volunteer",
+      "/foster",
+      "/privacy-policy",
+      "/terms-of-service",
+      "/lost-found",
+      "/success-stories"
     ],
     "skipThirdPartyRequests": true
   }
