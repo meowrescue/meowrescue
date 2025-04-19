@@ -1,4 +1,4 @@
-// src/AppShellForSSG.tsx
+// src/AppShellForSSG.js
 import React from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import { Routes, Route } from 'react-router-dom';
@@ -21,32 +21,34 @@ import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 import NotFoundPage from './pages/NotFoundPage';
 
-// ⚡️ ONLY lightweight safe stuff above — no auth, no tooltips, no browser things.
-
 function AppShellForSSG() {
-  return (
-    <HelmetProvider>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/cats" element={<CatsPage />} />
-        <Route path="/adopt" element={<AdoptPage />} />
-        <Route path="/adopt/apply" element={<ApplyPage />} />
-        <Route path="/blog" element={<BlogPage />} />
-        <Route path="/events" element={<EventsPage />} />
-        <Route path="/resources" element={<ResourcesPage />} />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/donate" element={<DonatePage />} />
-        <Route path="/volunteer" element={<VolunteerPage />} />
-        <Route path="/volunteer/apply" element={<VolunteerApplyPage />} />
-        <Route path="/foster" element={<FosterPage />} />
-        <Route path="/foster/apply" element={<FosterApplyPage />} />
-        <Route path="/lost-found" element={<LostFoundPage />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-        <Route path="/terms-of-service" element={<TermsOfServicePage />} />
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </HelmetProvider>
+  return React.createElement(
+    HelmetProvider,
+    {},
+    React.createElement(
+      Routes,
+      {},
+      [
+        React.createElement(Route, { key: '/', path: '/', element: React.createElement(HomePage) }),
+        React.createElement(Route, { key: '/about', path: '/about', element: React.createElement(AboutPage) }),
+        React.createElement(Route, { key: '/cats', path: '/cats', element: React.createElement(CatsPage) }),
+        React.createElement(Route, { key: '/adopt', path: '/adopt', element: React.createElement(AdoptPage) }),
+        React.createElement(Route, { key: '/adopt/apply', path: '/adopt/apply', element: React.createElement(ApplyPage) }),
+        React.createElement(Route, { key: '/blog', path: '/blog', element: React.createElement(BlogPage) }),
+        React.createElement(Route, { key: '/events', path: '/events', element: React.createElement(EventsPage) }),
+        React.createElement(Route, { key: '/resources', path: '/resources', element: React.createElement(ResourcesPage) }),
+        React.createElement(Route, { key: '/contact', path: '/contact', element: React.createElement(ContactPage) }),
+        React.createElement(Route, { key: '/donate', path: '/donate', element: React.createElement(DonatePage) }),
+        React.createElement(Route, { key: '/volunteer', path: '/volunteer', element: React.createElement(VolunteerPage) }),
+        React.createElement(Route, { key: '/volunteer/apply', path: '/volunteer/apply', element: React.createElement(VolunteerApplyPage) }),
+        React.createElement(Route, { key: '/foster', path: '/foster', element: React.createElement(FosterPage) }),
+        React.createElement(Route, { key: '/foster/apply', path: '/foster/apply', element: React.createElement(FosterApplyPage) }),
+        React.createElement(Route, { key: '/lost-found', path: '/lost-found', element: React.createElement(LostFoundPage) }),
+        React.createElement(Route, { key: '/privacy-policy', path: '/privacy-policy', element: React.createElement(PrivacyPolicyPage) }),
+        React.createElement(Route, { key: '/terms-of-service', path: '/terms-of-service', element: React.createElement(TermsOfServicePage) }),
+        React.createElement(Route, { key: '*', path: '*', element: React.createElement(NotFoundPage) }),
+      ]
+    )
   );
 }
 
