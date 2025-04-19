@@ -4,37 +4,25 @@
     "target": "ESNext",
     "useDefineForClassFields": true,
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "allowJs": true,
+    "allowJs": false,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "module": "NodeNext",
+    "module": "ESNext",
     "moduleResolution": "NodeNext",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": false,
-    "outDir": "./dist/server",
+    "outDir": "./dist/declaration-files",
     "jsx": "react-jsx",
     "declaration": true,
     "declarationDir": "./dist/types",
-    "paths": {
-      "@/*": ["./src/*"]
-    },
-    "rootDir": "./",
     "emitDeclarationOnly": true,
-    "composite": true,
-    "sourceMap": true,
-    "declarationMap": true
+    "sourceMap": false,
+    "declarationMap": false
   },
-  "include": [
-    "src/**/*.ts", 
-    "src/**/*.tsx", 
-    "src/**/*.js", 
-    "src/**/*.jsx", 
-    "scripts/**/*.ts", 
-    "scripts/**/*.js"
-  ],
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules", "dist", "src/routes.js"]
 }
