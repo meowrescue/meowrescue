@@ -16,17 +16,14 @@
     "noEmit": false,
     "outDir": "./dist/server",
     "jsx": "react-jsx",
+    "baseUrl": "./src",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["*"]
     }
   },
   "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/**/*.js",
-    "src/**/*.jsx",
-    "scripts/**/*.ts",
-    "scripts/**/*.js"
+    "src/**/*",
+    "scripts/**/*"
   ],
   "exclude": ["node_modules", "dist", "src/routes.js"]
 }
