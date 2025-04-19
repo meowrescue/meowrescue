@@ -5,7 +5,7 @@ import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { fetchBlogPostBySlug, BlogPost } from '@/services/blogService';
+import { getBlogPost, BlogPost } from '@/services/blogService';
 import SEO from '@/components/SEO';
 import { Calendar, ArrowLeft, Share2, Clock, ChevronLeft, ChevronRight, Facebook, Twitter, Linkedin, Mail } from 'lucide-react';
 import NotFound from './NotFound';
@@ -17,7 +17,7 @@ const BlogPostPage: React.FC = () => {
   
   const { data: post, isLoading, error } = useQuery({
     queryKey: ['blogPost', slug],
-    queryFn: () => fetchBlogPostBySlug(slug || ''),
+    queryFn: () => getBlogPost(slug || ''),
     staleTime: Infinity, // For SSG
     refetchOnMount: false,
     refetchOnWindowFocus: false,
