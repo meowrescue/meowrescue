@@ -1,25 +1,11 @@
-import Index from './pages/Index';
-import About from './pages/About';
-import Cats from './pages/Cats';
-import CatDetail from './pages/CatDetail';
-import Adopt from './pages/Adopt';
-import AdoptionForm from './pages/AdoptionForm';
-import Blog from './pages/Blog';
-import BlogPost from './pages/BlogPost';
-import Events from './pages/Events';
-import EventDetail from './pages/EventDetail';
-import Resources from './pages/Resources';
-import Contact from './pages/Contact';
-import Donate from './pages/Donate';
-import Volunteer from './pages/Volunteer';
-import VolunteerForm from './pages/VolunteerForm';
+import { lazy } from 'react';
 
 /**
  * Central route list used by vite‑react‑ssg.
  * Every page is directly imported for static site generation (SSG).
  */
 const routes = [
-  { path: '/', element: <Index /> },
+  { path: '/', element: <Index /> }, // Updated to use JSX element directly
   { path: '/about', element: <About /> },
   { path: '/cats', element: <Cats /> },
   { path: '/cats/:id', element: <CatDetail /> },
