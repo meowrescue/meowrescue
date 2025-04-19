@@ -10,9 +10,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { supabase } from '@/integrations/supabase/client';
 import SEO from '@/components/SEO';
-import { Calendar, ChevronRight } from 'lucide-react';
+import { Calendar, ChevronRight, Clock, Search } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import SectionHeading from '@/components/ui/SectionHeading';
 
@@ -68,6 +69,18 @@ const Blog: React.FC = () => {
     }
   };
 
+  // Function to estimate reading time
+  const calculateReadingTime = (content: string) => {
+    const wordsPerMinute = 200;
+    const textLength = content.replace(/<[^>]*>/g, '').split(/\s+/).length;
+    return Math.ceil(textLength / wordsPerMinute);
+  };
+
+  // Featured post (first post)
+  const featuredPost = posts && posts.length > 0 ? posts[0] : null;
+  // Rest of the posts
+  const regularPosts = posts && posts.length > 1 ? posts.slice(1) : [];
+
   return (
     <Layout>
       <SEO 
@@ -80,80 +93,174 @@ const Blog: React.FC = () => {
       />
 
       {/* Hero Section */}
-      <div className="bg-meow-primary/10 py-16 md:py-24 text-center">
-        <div className="container mx-auto px-4">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Our Blog</h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Stay up-to-date with the latest news, stories, and cat care tips from Meow Rescue
-          </p>
+      <div className="relative bg-gradient-to-r from-meow-primary/90 to-meow-primary py-20 md:py-28 overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba')] bg-cover bg-center mix-blend-overlay opacity-20"></div>
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-3xl mx-auto text-center">
+            <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 tracking-tight">Our Stories</h1>
+            <p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto leading-relaxed">
+              Tales of rescue, recovery, and finding forever homes
+            </p>
+          </div>
         </div>
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent"></div>
       </div>
 
-      {/* Blog Posts */}
-      <div id="posts" className="container mx-auto px-4 py-16">
-        {isLoading ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
-          </div>
-        ) : isError ? (
-          <div className="text-center py-12">
-            <p className="text-lg text-red-500 mb-4">We encountered an error loading the blog posts.</p>
-            <Button variant="outline" onClick={() => window.location.reload()}>Try Again</Button>
-          </div>
-        ) : posts && posts.length > 0 ? (
-          <div>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-8">Latest Articles</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {posts.map((post: any) => (
-                <Card 
-                  key={post.id} 
-                  className="h-full flex flex-col cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => handleCardClick(post.slug)}
-                >
-                  {post.featured_image_url && (
-                    <div className="h-48 overflow-hidden">
-                      <img 
-                        src={post.featured_image_url}
-                        alt={post.title}
-                        className="w-full h-full object-cover transition-transform hover:scale-105"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    </div>
-                  )}
-                  <CardHeader>
-                    <CardTitle className="text-xl text-meow-primary line-clamp-2">{post.title}</CardTitle>
-                    <CardDescription className="flex items-center text-sm mt-2">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      {new Date(post.published_at).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex-grow">
-                    <p className="text-gray-600 line-clamp-3">
-                      {post.content.replace(/<[^>]*>/g, '').substring(0, 150)}...
-                    </p>
-                  </CardContent>
-                  <CardFooter>
-                    <Button variant="ghost" className="group" asChild>
-                      <span>
-                        Read More 
-                        <ChevronRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                      </span>
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
+      {/* Content Section */}
+      <div className="bg-white py-16">
+        <div className="container mx-auto px-4">
+          {/* Search Bar */}
+          <div className="max-w-xl mx-auto mb-12 relative">
+            <div className="relative flex items-center">
+              <Search className="absolute left-4 h-5 w-5 text-gray-400" />
+              <input 
+                type="text" 
+                placeholder="Search articles..." 
+                className="w-full pl-12 pr-4 py-3 rounded-full border border-gray-200 focus:border-meow-primary focus:ring focus:ring-meow-primary/20 transition-all shadow-sm"
+              />
             </div>
           </div>
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-lg text-gray-500">No blog posts found. Check back soon for updates!</p>
-          </div>
-        )}
+
+          {isLoading ? (
+            <div className="flex justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
+            </div>
+          ) : isError ? (
+            <div className="text-center py-12">
+              <p className="text-lg text-red-500 mb-4">We encountered an error loading the blog posts.</p>
+              <Button variant="outline" onClick={() => window.location.reload()}>Try Again</Button>
+            </div>
+          ) : posts && posts.length > 0 ? (
+            <div>
+              {/* Featured Post */}
+              {featuredPost && (
+                <div className="mb-20">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6 inline-block relative after:content-[''] after:absolute after:w-full after:h-1 after:bg-meow-secondary after:bottom-0 after:left-0 after:transform after:-translate-y-2">
+                    Featured Story
+                  </h2>
+                  <div 
+                    className="grid md:grid-cols-2 gap-8 bg-gray-50 rounded-2xl overflow-hidden shadow-md transition-transform hover:shadow-lg"
+                    onClick={() => handleCardClick(featuredPost.slug)}
+                  >
+                    <div className="relative h-64 md:h-full">
+                      {featuredPost.featured_image_url ? (
+                        <img 
+                          src={featuredPost.featured_image_url} 
+                          alt={featuredPost.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-meow-primary/20 flex items-center justify-center">
+                          <span className="text-meow-primary font-semibold">Meow Rescue</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-8 flex flex-col">
+                      <div className="flex items-center text-sm text-gray-500 mb-3">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        <time dateTime={featuredPost.published_at}>
+                          {new Date(featuredPost.published_at).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </time>
+                        <span className="mx-2">•</span>
+                        <Clock className="h-4 w-4 mr-2" />
+                        <span>{calculateReadingTime(featuredPost.content)} min read</span>
+                      </div>
+                      <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 hover:text-meow-primary transition-colors">
+                        {featuredPost.title}
+                      </h3>
+                      <p className="text-gray-600 mb-6 flex-grow">
+                        {featuredPost.content.replace(/<[^>]*>/g, '').substring(0, 200)}...
+                      </p>
+                      <Button className="self-start group bg-meow-primary hover:bg-meow-primary/90 flex items-center">
+                        Read Full Story
+                        <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Regular Posts */}
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-8 inline-block relative after:content-[''] after:absolute after:w-full after:h-1 after:bg-meow-secondary after:bottom-0 after:left-0 after:transform after:-translate-y-2">
+                  All Stories
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {regularPosts.map((post: any) => (
+                    <Card 
+                      key={post.id} 
+                      className="h-full flex flex-col overflow-hidden bg-white border border-gray-100 rounded-xl shadow-sm transition-all hover:shadow-md hover:-translate-y-1 cursor-pointer"
+                      onClick={() => handleCardClick(post.slug)}
+                    >
+                      <div className="relative">
+                        <AspectRatio ratio={16/9}>
+                          {post.featured_image_url ? (
+                            <img 
+                              src={post.featured_image_url}
+                              alt={post.title}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                              decoding="async"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-meow-primary/10 flex items-center justify-center">
+                              <span className="text-meow-primary">Meow Rescue</span>
+                            </div>
+                          )}
+                        </AspectRatio>
+                      </div>
+                      <CardHeader className="p-6 pb-3">
+                        <CardTitle className="text-xl text-gray-900 line-clamp-2 group-hover:text-meow-primary transition-colors">
+                          {post.title}
+                        </CardTitle>
+                        <CardDescription className="flex items-center text-sm mt-2">
+                          <Calendar className="h-4 w-4 mr-2" />
+                          <time dateTime={post.published_at}>
+                            {new Date(post.published_at).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </time>
+                          <span className="mx-2">•</span>
+                          <Clock className="h-4 w-4 mr-2" />
+                          <span>{calculateReadingTime(post.content)} min read</span>
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="px-6 py-2 flex-grow">
+                        <p className="text-gray-600 line-clamp-3">
+                          {post.content.replace(/<[^>]*>/g, '').substring(0, 150)}...
+                        </p>
+                      </CardContent>
+                      <CardFooter className="p-6 pt-3">
+                        <Button variant="ghost" className="group text-meow-primary hover:text-meow-primary/90 hover:bg-meow-primary/5 p-0" asChild>
+                          <div className="flex items-center">
+                            Continue Reading 
+                            <ChevronRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                          </div>
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-16 bg-gray-50 rounded-2xl">
+              <div className="max-w-md mx-auto">
+                <h3 className="text-2xl font-semibold text-gray-800 mb-4">No posts yet</h3>
+                <p className="text-gray-600 mb-8">We're working on creating amazing content. Check back soon for updates!</p>
+                <Button onClick={() => navigate('/')} className="bg-meow-primary hover:bg-meow-primary/90">
+                  Back to Home
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </Layout>
   );
