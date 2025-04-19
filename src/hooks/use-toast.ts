@@ -1,4 +1,4 @@
 
-// Re-export from shadcn's toast
-export { useToast } from '@/components/ui/toast';
-export { toast } from '@/components/ui/toast';
+import { useToast } from "./use-toast-primitive";
+export { toast } from "./use-toast-primitive";
+export { useToast };
