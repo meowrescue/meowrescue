@@ -1,35 +1,14 @@
 {
   "compilerOptions": {
-    /* base project settings */
-    "baseUrl": ".",
-
-    /* path aliases */
+    "baseUrl": "./src",
     "paths": {
-      "@/*": ["src/*"],
-      "@/components/*": ["src/components/*"],
-      "@/hooks/*": ["src/hooks/*"],
-      "@/contexts/*": ["src/contexts/*"],
-      "@/integrations/*": ["src/integrations/*"],
-      "@/utils/*": ["src/utils/*"],
-      "@/lib/*": ["src/lib/*"],      // <‑‑ added
-      "@/types/*": ["src/types/*"],
-      "@/pages/*": ["src/pages/*"]
-    },
-
-    /* language & emit options */
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": false,
-    "noEmitOnError": false,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx"
-  },
-  "include": ["src/**/*", "scripts/**/*"],
-  "exclude": ["node_modules", "dist", "src/routes.js"]
+      "@/*": ["*"],
+      "@/components/*": ["components/*"],
+      "@/contexts/*":   ["contexts/*"],
+      "@/hooks/*":      ["hooks/*"],
+      "@/integrations/*":["integrations/*"],
+      "@/pages/*":      ["pages/*"],
+      "@/types/*":      ["types/*"]
+    }
+  }
 }
