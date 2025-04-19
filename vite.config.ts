@@ -5,36 +5,42 @@ import path from 'path';
 import { Plugin } from 'vite';
 import fs from 'fs';
 import { resolve } from 'path';
-// Import directly from routes.tsx instead of routes.js
-import { routes, getStaticPaths } from './src/routes';
 
 // Simple SSG plugin
 function ssgPlugin(): Plugin {
   return {
     name: 'vite-plugin-ssg',
     closeBundle: async () => {
-      // Get all static paths to pre-render
-      const paths = await getStaticPaths();
-      
-      console.log('Generating static pages for routes:', paths);
-      
-      // Read the built index.html
-      const template = fs.readFileSync(resolve('dist/index.html'), 'utf-8');
-      
-      // Create a directory for each path and copy the index.html
-      for (const path of paths) {
-        if (path === '/') continue; // Skip root as it's already generated
+      try {
+        // Import the routes module dynamically at runtime
+        // This avoids the need for JSX processing in the config file
+        const { getStaticPaths } = await import('./src/routes.js');
         
-        const dirPath = resolve(`dist${path}`);
-        if (!fs.existsSync(dirPath)) {
-          fs.mkdirSync(dirPath, { recursive: true });
+        // Get all static paths to pre-render
+        const paths = await getStaticPaths();
+        
+        console.log('Generating static pages for routes:', paths);
+        
+        // Read the built index.html
+        const template = fs.readFileSync(resolve('dist/index.html'), 'utf-8');
+        
+        // Create a directory for each path and copy the index.html
+        for (const path of paths) {
+          if (path === '/') continue; // Skip root as it's already generated
+          
+          const dirPath = resolve(`dist${path}`);
+          if (!fs.existsSync(dirPath)) {
+            fs.mkdirSync(dirPath, { recursive: true });
+          }
+          
+          fs.writeFileSync(resolve(`dist${path}/index.html`), template);
+          console.log(`Generated static page for: ${path}`);
         }
         
-        fs.writeFileSync(resolve(`dist${path}/index.html`), template);
-        console.log(`Generated static page for: ${path}`);
+        console.log('Static site generation complete!');
+      } catch (error) {
+        console.error('Error during SSG:', error);
       }
-      
-      console.log('Static site generation complete!');
     },
   };
 }
