@@ -1,7 +1,7 @@
 
 /**
  * This script is deprecated in favor of the more robust prerender.js
- * which uses puppeteer to capture the fully rendered HTML.
+ * which uses renderToString to capture the fully rendered HTML.
  * 
  * Keeping this file for reference purposes only.
  */
