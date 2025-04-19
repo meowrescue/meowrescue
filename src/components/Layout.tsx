@@ -1,3 +1,4 @@
+
 import React, { ReactNode, useEffect, lazy, Suspense } from 'react';
 import { useLocation } from 'react-router-dom';
 import Navbar from './Navbar.js';
@@ -57,4 +58,3 @@ const Layout: React.FC<LayoutProps> = ({ children, hideFooter = false }) => {
 };
 
 export default Layout;
-
