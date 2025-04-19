@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User as SupabaseUser, Session } from '@supabase/supabase-js';
+import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../integrations/supabase/client';
 import { AppUser } from '../types/auth';
 
@@ -9,8 +9,6 @@ interface AuthContextType {
   user: AppUser | null;
   session: Session | null;
   isLoading: boolean;
-  loading: boolean; // Added to fix ProtectedRoute error
-  error?: string;
   signIn: (email: string, password: string) => Promise<any>;
   signUp: (email: string, password: string) => Promise<any>;
   signOut: () => Promise<void>;
@@ -23,7 +21,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<AppUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     // Check for existing session
@@ -42,7 +39,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user as AppUser || null);
-      setError(undefined);
     });
     
     return () => {
@@ -58,13 +54,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         password,
       });
       
-      if (error) {
-        setError(error.message);
-        throw error;
-      }
+      if (error) throw error;
       return data;
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Sign in failed');
       throw error;
     }
   };
@@ -76,13 +68,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         password,
       });
       
-      if (error) {
-        setError(error.message);
-        throw error;
-      }
+      if (error) throw error;
       return data;
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Sign up failed');
       throw error;
     }
   };
@@ -90,12 +78,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       const { error } = await supabase.auth.signOut();
-      if (error) {
-        setError(error.message);
-        throw error;
-      }
+      if (error) throw error;
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Sign out failed');
       throw error;
     }
   };
@@ -104,8 +88,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     session,
     isLoading,
-    loading: isLoading, // Added to fix ProtectedRoute error
-    error,
     signIn,
     signUp,
     signOut,
