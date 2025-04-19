@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -6,8 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Calendar, Clock } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import SectionHeading from '@/components/ui/SectionHeading';
-import SEO from '@/components/SEO.tsx';
-import { fetchBlogPostBySlug, BlogPost as BlogPostType } from '@/services/blogService';
+import SEO from '@/components/SEO';
+import { getBlogPost, BlogPost as BlogPostType } from '@/services/blogService';
 
 interface BlogPostProps {
   // No props needed
@@ -20,7 +21,7 @@ const BlogPost: React.FC<BlogPostProps> = () => {
   // Fetch the blog post using the slug
   const { data: post, isLoading, isError } = useQuery({
     queryKey: ['blogPost', slug],
-    queryFn: () => fetchBlogPostBySlug(slug!),
+    queryFn: () => getBlogPost(slug!),
     enabled: !!slug, // Ensure slug is available before running the query
   });
 

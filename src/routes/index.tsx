@@ -1,10 +1,10 @@
 
 import { RouteObject } from 'react-router-dom';
-import { publicRoutes } from './public-routes.js';
-import { protectedRoutes } from './protected-routes.js';
-import { adminRoutes } from './admin-routes.js';
+import { publicRoutes } from './public-routes';
+import { protectedRoutes } from './protected-routes';
+import { adminRoutes } from './admin-routes';
 
-export * from './static-paths.js';
+export * from './static-paths';
 
 export const routes: RouteObject[] = [
   ...publicRoutes,

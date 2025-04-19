@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { Toaster } from "@/components/ui/toaster.tsx";
-import { Toaster as Sonner } from "@/components/ui/sonner.tsx";
-import { TooltipProvider } from "@/components/ui/tooltip.tsx";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route } from "react-router-dom";
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from "./contexts/AuthContext";

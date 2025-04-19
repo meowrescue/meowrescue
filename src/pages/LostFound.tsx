@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect } from "react";
 import Layout from "../components/Layout";
-import SectionHeading from "@/components/ui/SectionHeading.tsx";
+import SectionHeading from "@/components/ui/SectionHeading";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { LostFoundPost } from "@/types/supabase";
-import SEO from "@/components/SEO.tsx";
+import SEO from "@/components/SEO";
 import LostFoundFilters from "@/components/LostFound/LostFoundFilters";
 import LostFoundSearch from "@/components/LostFound/LostFoundSearch";
 import LostFoundGrid from "@/components/LostFound/LostFoundGrid";
