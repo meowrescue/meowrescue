@@ -1,12 +1,12 @@
 
 import React from 'react';
-import { Toaster } from "@/components/ui/toaster.js";
-import { Toaster as Sonner } from "@/components/ui/sonner.js";
-import { TooltipProvider } from "@/components/ui/tooltip.js";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route } from "react-router-dom";
 import { HelmetProvider } from 'react-helmet-async';
-import { AuthProvider } from "./contexts/AuthContext.js";
-import ProtectedRoute from "./components/ProtectedRoute.js";
+import { AuthProvider } from "./contexts/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 // Import all the pages
 import Index from "./pages/Index.js";
