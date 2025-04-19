@@ -1,4 +1,5 @@
 
-import { useToast } from "./use-toast-primitive";
-export { toast } from "./use-toast-primitive";
-export { useToast };
+import { useToast as usePrimitiveToast, toast as primitiveToast } from "./use-toast-primitive";
+
+export const useToast = usePrimitiveToast;
+export const toast = primitiveToast;
