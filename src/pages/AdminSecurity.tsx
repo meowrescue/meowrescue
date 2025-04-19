@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { Container } from '../components/ui/Container';
@@ -50,8 +51,8 @@ const AdminSecurity: React.FC = () => {
     log.user.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Fix Set iteration by converting to array and using proper typing
-  const uniqueIPs: string[] = [...new Set(securityLogs.map(log => log.ip))];
+  // Use Array.from instead of spread syntax for Set iteration
+  const uniqueIPs: string[] = Array.from(new Set(securityLogs.map(log => log.ip)));
 
   return (
     <Layout>

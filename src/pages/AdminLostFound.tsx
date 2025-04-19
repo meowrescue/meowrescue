@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
@@ -78,7 +79,8 @@ const AdminLostFound: React.FC = () => {
     fetchLostFoundPosts();
   }, []);
 
-  const categories: string[] = [...new Set(lostFoundPosts.map(post => post.category))];
+  // Convert Set to Array before iteration using Array.from instead of spread
+  const categories: string[] = Array.from(new Set(lostFoundPosts.map(post => post.category)));
 
   const filteredPosts = lostFoundPosts.filter(post =>
     post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
