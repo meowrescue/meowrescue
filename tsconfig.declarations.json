@@ -21,7 +21,9 @@
     "declarationDir": "./dist/types",
     "emitDeclarationOnly": true,
     "sourceMap": false,
-    "declarationMap": false
+    "declarationMap": false,
+    "baseUrl": ".",
+    "paths": { "@/*": ["src/*"] }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules", "dist", "src/routes.js"]

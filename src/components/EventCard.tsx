@@ -1,50 +1,71 @@
-
 import React from 'react';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { formatDate } from '../utils/dateUtils.js';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
-import { Calendar, Clock, MapPin } from 'lucide-react';
-import { Event } from '../types/events';
+import { CalendarDays, MapPin } from 'lucide-react';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
+import { Event } from '../types/events.js';
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface EventCardProps {
   event: Event;
+  isLoading?: boolean;
 }
 
-const EventCard: React.FC<EventCardProps> = ({ event }) => {
+const EventCard: React.FC<EventCardProps> = ({ event, isLoading }) => {
+  if (isLoading) {
+    return (
+      <Card className="overflow-hidden">
+        <CardHeader>
+          <CardTitle>
+            <Skeleton className="h-5 w-3/4" />
+          </CardTitle>
+          <CardDescription>
+            <Skeleton className="h-4 w-1/2" />
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <Skeleton className="h-32 w-full" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-4 w-5/6" />
+          </div>
+        </CardContent>
+        <CardFooter>
+          <Skeleton className="h-10 w-full" />
+        </CardFooter>
+      </Card>
+    );
+  }
+
   return (
-    <Card className="overflow-hidden flex flex-col h-full">
-      <div className="h-48 overflow-hidden">
-        <img 
-          src={event.imageUrl} 
-          alt={event.title} 
-          className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
-        />
-      </div>
-      <CardContent className="flex-grow p-5">
-        <h3 className="text-xl font-bold mb-2 text-meow-primary">{event.title}</h3>
-        
-        <div className="space-y-2 text-sm text-gray-600 mb-4">
+    <Card className="overflow-hidden">
+      <CardHeader>
+        <CardTitle>{event.title}</CardTitle>
+        <CardDescription>{formatDate(event.date)}</CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-4">
+        <AspectRatio ratio={16 / 9}>
+          <img
+            src={event.imageUrl}
+            alt={event.title}
+            className="object-cover w-full h-full rounded-md"
+          />
+        </AspectRatio>
+        <div className="space-y-2">
           <div className="flex items-center">
-            <Calendar className="h-4 w-4 mr-2" />
-            <span>{event.date}</span>
+            <CalendarDays className="w-4 h-4 mr-2" />
+            {event.date}
           </div>
           <div className="flex items-center">
-            <Clock className="h-4 w-4 mr-2" />
-            <span>{event.time}</span>
-          </div>
-          <div className="flex items-center">
-            <MapPin className="h-4 w-4 mr-2" />
-            <span>{event.location}</span>
+            <MapPin className="w-4 h-4 mr-2" />
+            {event.location}
           </div>
         </div>
-        
-        <p className="text-gray-600 line-clamp-3">
-          {event.description}
-        </p>
       </CardContent>
-      <CardFooter className="px-5 pb-5 pt-0">
-        <Button asChild variant="meowOutline" className="w-full">
-          <Link to={`/events/${event.id}`}>Event Details</Link>
+      <CardFooter>
+        <Button asChild>
+          <a href={`/events/${event.id}`}>View Details</a>
         </Button>
       </CardFooter>
     </Card>
