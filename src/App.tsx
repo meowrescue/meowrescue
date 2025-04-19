@@ -8,7 +8,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Static imports for routes instead of lazy loading
-import Index from "./pages/Index";
+import Index from "./pages/Index";  // Ensure Index is statically imported
 import About from "./pages/About";
 import Cats from "./pages/Cats";
 import CatDetail from "./pages/CatDetail";
