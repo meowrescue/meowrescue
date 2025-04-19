@@ -1,6 +1,6 @@
 import React from 'react';
 import { Container } from './ui/Container.js';
-import SectionHeading from './ui/SectionHeading.js';
+import SectionHeading from './ui/SectionHeading';
 
 interface Testimonial {
   id: number;

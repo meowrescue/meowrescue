@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Layout from '../components/Layout';
 import HeroSection from '../components/HeroSection';
@@ -9,6 +8,7 @@ import FeaturedCatsSection from '../components/FeaturedCatsSection';
 import TestimonialsSection from '../components/TestimonialsSection';
 import SEO from '@/components/SEO';
 import { Helmet } from 'react-helmet-async';
+import SectionHeading from '@/components/ui/SectionHeading';
 
 const Index: React.FC = () => {
   // Define structured data for organization
