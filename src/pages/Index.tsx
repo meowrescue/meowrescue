@@ -9,6 +9,7 @@ import FeaturedCatsSection from '../components/FeaturedCatsSection';
 import TestimonialsSection from '../components/TestimonialsSection';
 import SEO from '@/components/SEO';
 import { Helmet } from 'react-helmet-async';
+import Index from './pages/Index'; // Adjust path if necessary
 
 const Index: React.FC = () => {
   // Define structured data for organization
