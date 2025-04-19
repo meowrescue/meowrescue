@@ -25,8 +25,16 @@
     "rootDir": "./",
     "emitDeclarationOnly": false,
     "composite": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "declarationMap": true  // Add this for better debugging
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.js", "src/**/*.jsx", "scripts/**/*.ts", "scripts/**/*.js"],
+  "include": [
+    "src/**/*.ts", 
+    "src/**/*.tsx", 
+    "src/**/*.js", 
+    "src/**/*.jsx", 
+    "scripts/**/*.ts", 
+    "scripts/**/*.js"
+  ],
   "exclude": ["node_modules", "dist"]
 }
