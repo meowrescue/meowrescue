@@ -1,26 +1,39 @@
-import { lazy } from 'react';
+import Index from './pages/Index'
+import About from './pages/About'
+import Cats from './pages/Cats'
+import CatDetail from './pages/CatDetail'
+import Adopt from './pages/Adopt'
+import AdoptionForm from './pages/AdoptionForm'
+import Blog from './pages/Blog'
+import BlogPost from './pages/BlogPost'
+import Events from './pages/Events'
+import EventDetail from './pages/EventDetail'
+import Resources from './pages/Resources'
+import Contact from './pages/Contact'
+import Donate from './pages/Donate'
+import Volunteer from './pages/Volunteer'
+import VolunteerForm from './pages/VolunteerForm'
 
 /**
  * Central route list used by vite‑react‑ssg.
- * Every page is code‑split with React.lazy().
- * Make sure lazy-loaded components are only used in the client-side render context.
+ * Every page is directly imported for static site generation (SSG).
  */
 const routes = [
-  { path: '/',               element: lazy(() => import('./pages/Index')) },
-  { path: '/about',          element: lazy(() => import('./pages/About')) },
-  { path: '/cats',           element: lazy(() => import('./pages/Cats')) },
-  { path: '/cats/:id',       element: lazy(() => import('./pages/CatDetail')) },
-  { path: '/adopt',          element: lazy(() => import('./pages/Adopt')) },
-  { path: '/adopt/apply',    element: lazy(() => import('./pages/AdoptionForm')) },
-  { path: '/blog',           element: lazy(() => import('./pages/Blog')) },
-  { path: '/blog/:slug',     element: lazy(() => import('./pages/BlogPost')) },
-  { path: '/events',         element: lazy(() => import('./pages/Events')) },
-  { path: '/events/:id',     element: lazy(() => import('./pages/EventDetail')) },
-  { path: '/resources',      element: lazy(() => import('./pages/Resources')) },
-  { path: '/contact',        element: lazy(() => import('./pages/Contact')) },
-  { path: '/donate',         element: lazy(() => import('./pages/Donate')) },
-  { path: '/volunteer',      element: lazy(() => import('./pages/Volunteer')) },
-  { path: '/volunteer/apply',element: lazy(() => import('./pages/VolunteerForm')) },
-];
+  { path: '/', element: <Index /> },
+  { path: '/about', element: <About /> },
+  { path: '/cats', element: <Cats /> },
+  { path: '/cats/:id', element: <CatDetail /> },
+  { path: '/adopt', element: <Adopt /> },
+  { path: '/adopt/apply', element: <AdoptionForm /> },
+  { path: '/blog', element: <Blog /> },
+  { path: '/blog/:slug', element: <BlogPost /> },
+  { path: '/events', element: <Events /> },
+  { path: '/events/:id', element: <EventDetail /> },
+  { path: '/resources', element: <Resources /> },
+  { path: '/contact', element: <Contact /> },
+  { path: '/donate', element: <Donate /> },
+  { path: '/volunteer', element: <Volunteer /> },
+  { path: '/volunteer/apply', element: <VolunteerForm /> },
+]
 
-export default routes;
+export default routes
