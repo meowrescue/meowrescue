@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -34,7 +33,8 @@ const Login: React.FC = () => {
     checked: false,
     connected: false
   });
-  const { user, session, signIn, isLoading: authLoading, error: authError } = useAuth();
+  const { user, session, signIn, isLoading: authLoading } = useAuth();
+  const [authError, setAuthError] = useState<string | null>(null);
 
   // Add debug info to console
   useEffect(() => {
@@ -114,6 +114,7 @@ const Login: React.FC = () => {
     }
     
     setIsLoading(true);
+    setAuthError(null);
     
     try {
       console.log("Calling signIn method with:", values.email);
@@ -133,6 +134,7 @@ const Login: React.FC = () => {
       
     } catch (error: any) {
       console.error("Login error:", error);
+      setAuthError(error.message || "There was a problem with your login.");
       
       toast({
         title: "Login Failed",
@@ -147,7 +149,7 @@ const Login: React.FC = () => {
   // Check for and display persistent auth errors
   useEffect(() => {
     if (authError) {
-      console.error("Auth context error:", authError);
+      console.error("Auth error:", authError);
       toast({
         title: "Authentication Error",
         description: authError,
