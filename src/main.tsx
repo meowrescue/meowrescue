@@ -1,11 +1,12 @@
-import React from 'react'
-import { BrowserRouter } from 'react-router-dom'
-import { createRoot as reactCreateRoot } from 'react-dom/client'
-import App from './App'
-import './index.css'
-import { ViteReactSSG } from 'vite-react-ssg'
-import routes from './routes'
-import About from './pages/About'
+// src/main.tsx or src/index.tsx
+import React from 'react';
+import { BrowserRouter } from 'react-router-dom';
+import { createRoot as reactCreateRoot } from 'react-dom/client';
+import { AuthProvider } from './context/AuthContext';  // Import your AuthProvider
+import App from './App';
+import './index.css';
+import { ViteReactSSG } from 'vite-react-ssg';
+import routes from './routes';
 
 /**
  * ───────────────────────────────────────────────
@@ -15,9 +16,11 @@ import About from './pages/About'
 if (!import.meta.env.SSR) {
   reactCreateRoot(document.getElementById('root')!).render(
     <BrowserRouter>
-      <App />
+      <AuthProvider> {/* Wrap the App component with AuthProvider */}
+        <App />
+      </AuthProvider>
     </BrowserRouter>
-  )
+  );
 }
 
 /**
@@ -27,13 +30,15 @@ if (!import.meta.env.SSR) {
  */
 export const createApp = () => (
   <BrowserRouter>
-    <App />
+    <AuthProvider> {/* Wrap the App component with AuthProvider */}
+      <App />
+    </AuthProvider>
   </BrowserRouter>
-)
+);
 
 export const createRoot = ViteReactSSG(
-  { routes },                          // pre‑render every route in this tree
+  { routes },
   () => {
     /* optional hook – run code once per environment if you need */
   }
-)
+);
