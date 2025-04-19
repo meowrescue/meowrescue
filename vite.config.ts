@@ -1,4 +1,3 @@
-
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
@@ -6,6 +5,7 @@ import { Plugin } from 'vite';
 import fs from 'fs';
 import { resolve } from 'path';
 import { execSync } from 'child_process';
+import { componentTagger } from 'lovable-tagger';
 
 // Define static paths directly in the config to avoid any imports
 const staticPaths = [
@@ -57,14 +57,15 @@ function ssgPlugin(): Plugin {
   };
 }
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   server: {
     port: 8080,
   },
   plugins: [
     react(),
+    mode === 'development' && componentTagger(),
     ssgPlugin(),
-  ],
+  ].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -83,4 +84,4 @@ export default defineConfig({
       }
     }
   }
-});
+}));

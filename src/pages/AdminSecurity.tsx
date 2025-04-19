@@ -1,328 +1,108 @@
+import React, { useState, useEffect } from 'react';
+import Layout from '../components/Layout';
+import { Container } from '../components/ui/Container';
+import SectionHeading from '../components/ui/SectionHeading';
+import { Button } from '../components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import AdminLayout from '@/pages/Admin';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  Shield, 
-  UserPlus, 
-  AlertTriangle, 
-  LogIn, 
-  LogOut, 
-  Lock, 
-  ArrowDown,
-  User,
-  FileText,
-  Trash2,
-  Edit
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { formatDistanceToNow } from 'date-fns';
-import SEO from '@/components/SEO';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
-
-interface ActivityLog {
+interface SecurityLog {
   id: string;
-  activity_type: string;
-  description: string;
-  user_id: string | null;
-  created_at: string;
-  metadata: any;
-  user?: {
-    email: string;
-  };
+  timestamp: string;
+  ip: string;
+  action: string;
+  user: string;
 }
 
-const AdminSecurity = () => {
-  const [activityLimit, setActivityLimit] = useState(10);
-  const [activityTypeFilter, setActivityTypeFilter] = useState('all');
-  const [userFilter, setUserFilter] = useState('all');
+const AdminSecurity: React.FC = () => {
+  const [securityLogs, setSecurityLogs] = useState<SecurityLog[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Fetch activity logs with more debug info
-  const { data: activityLogs, isLoading, error } = useQuery({
-    queryKey: ['activity-logs', activityLimit, activityTypeFilter, userFilter],
-    queryFn: async () => {
-      console.log('Fetching activity logs with filters:', { activityTypeFilter, userFilter, activityLimit });
-      
-      let query = supabase
-        .from('activity_logs')
-        .select(`
-          *,
-          user:user_id (
-            email
-          )
-        `)
-        .order('created_at', { ascending: false });
-      
-      // Apply filters
-      if (activityTypeFilter !== 'all') {
-        query = query.eq('activity_type', activityTypeFilter);
+  useEffect(() => {
+    // Fetch security logs from API endpoint
+    const fetchSecurityLogs = async () => {
+      try {
+        // Replace 'your-api-endpoint' with the actual API endpoint
+        const response = await fetch('your-api-endpoint');
+        const data = await response.json();
+        setSecurityLogs(data);
+      } catch (error) {
+        console.error('Error fetching security logs:', error);
       }
-      
-      if (userFilter !== 'all') {
-        query = query.eq('user_id', userFilter);
-      }
-      
-      query = query.limit(activityLimit);
-      
-      const { data, error } = await query;
-      
-      if (error) {
-        console.error('Error fetching activity logs:', error);
-        throw error;
-      }
-      
-      console.log('Activity logs fetched:', data);
-      return data as ActivityLog[];
-    }
-  });
+    };
 
-  // Fetch users for filter
-  const { data: users } = useQuery({
-    queryKey: ['security-users'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, email, first_name, last_name')
-        .order('email', { ascending: true });
-      
-      if (error) {
-        console.error('Error fetching users:', error);
-        throw error;
-      }
-      
-      console.log('Users fetched for filter:', data);
-      return data;
-    }
-  });
+    fetchSecurityLogs();
+  }, []);
 
-  // Helper function to get icon for activity type
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case 'login':
-        return <LogIn className="h-5 w-5 text-blue-500" />;
-      case 'logout':
-        return <LogOut className="h-5 w-5 text-gray-500" />;
-      case 'create':
-        return <UserPlus className="h-5 w-5 text-green-500" />;
-      case 'update':
-        return <Edit className="h-5 w-5 text-yellow-500" />;
-      case 'delete':
-        return <Trash2 className="h-5 w-5 text-red-500" />;
-      default:
-        return <Lock className="h-5 w-5 text-purple-500" />;
-    }
-  };
+  // Filter security logs based on search query
+  const filteredLogs = securityLogs.filter(log =>
+    log.ip.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    log.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    log.user.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-  // Get unique activity types
-  const activityTypes = activityLogs 
-    ? [...new Set(activityLogs.map(log => log.activity_type))]
-    : [];
-
-  // Ensure there's always some data to display for testing
-  const hasActivityLogs = activityLogs && activityLogs.length > 0;
+  // Convert Set to Array before iteration
+  const uniqueIPs = Array.from(new Set(securityLogs.map(log => log.ip)));
 
   return (
-    <AdminLayout title="Security">
-      <SEO title="Security | Meow Rescue Admin" />
-      
-      <div className="container mx-auto py-10">
-        <h1 className="text-3xl font-bold text-meow-primary mb-6">Security Settings</h1>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Shield className="mr-2 h-5 w-5" />
-                Authentication Settings
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-medium">Password Requirements</h3>
-                  <ul className="list-disc list-inside mt-2 text-gray-600">
-                    <li>Minimum 8 characters</li>
-                    <li>At least one uppercase letter</li>
-                    <li>At least one number</li>
-                    <li>At least one special character</li>
-                  </ul>
-                </div>
-                
-                <div>
-                  <h3 className="text-lg font-medium">Two-Factor Authentication</h3>
-                  <p className="text-gray-600 mt-1">
-                    Enhanced security for admin accounts is enabled by default.
-                  </p>
-                </div>
-                
-                <div>
-                  <h3 className="text-lg font-medium">Session Management</h3>
-                  <p className="text-gray-600 mt-1">
-                    Sessions expire after 7 days of inactivity.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Lock className="mr-2 h-5 w-5" />
-                Access Control
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-medium">User Roles</h3>
-                  <ul className="list-disc list-inside mt-2 text-gray-600">
-                    <li><strong>Admin:</strong> Full access to all features</li>
-                    <li><strong>Staff:</strong> Limited admin access</li>
-                    <li><strong>Foster:</strong> Access to foster-specific features</li>
-                    <li><strong>Volunteer:</strong> Access to volunteer resources</li>
-                    <li><strong>User:</strong> Basic access to public features</li>
-                  </ul>
-                </div>
-                
-                <div>
-                  <h3 className="text-lg font-medium">Permission Hierarchy</h3>
-                  <p className="text-gray-600 mt-1">
-                    Higher roles inherit permissions from lower roles automatically.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+    <Layout>
+      <Container>
+        <SectionHeading title="Admin Security" subtitle="Monitor security logs and user activity" centered={false} />
+
+        <div className="mb-4">
+          <Label htmlFor="search">Search Security Logs:</Label>
+          <Input
+            type="text"
+            id="search"
+            placeholder="Search by IP, action, or user"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
-        
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex justify-between items-center">
-              <div className="flex items-center">
-                <AlertTriangle className="mr-2 h-5 w-5" />
-                Recent Security Events
-              </div>
-              
-              <div className="flex space-x-2">
-                <Select
-                  value={activityTypeFilter}
-                  onValueChange={setActivityTypeFilter}
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Filter by type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    {activityTypes.map(type => (
-                      <SelectItem key={type} value={type}>{type}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                
-                <Select
-                  value={userFilter}
-                  onValueChange={setUserFilter}
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Filter by user" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Users</SelectItem>
-                    {users?.map(user => (
-                      <SelectItem key={user.id} value={user.id}>
-                        {user.first_name && user.last_name 
-                          ? `${user.first_name} ${user.last_name}`
-                          : user.email}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="flex justify-center py-6">
-                <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-meow-primary"></div>
-              </div>
-            ) : error ? (
-              <div className="py-6 text-center text-red-500">
-                <AlertTriangle className="mx-auto h-8 w-8 mb-2" />
-                <p>Error loading activity logs. Please try again.</p>
-                <pre className="mt-2 text-xs text-left bg-gray-100 p-2 rounded overflow-auto max-h-32">
-                  {JSON.stringify(error, null, 2)}
-                </pre>
-              </div>
-            ) : hasActivityLogs ? (
-              <>
-                <div className="space-y-4">
-                  {activityLogs.map((log) => (
-                    <div key={log.id} className="flex items-start border-b pb-4">
-                      <div className="mr-4 mt-1">
-                        {getActivityIcon(log.activity_type)}
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium">
-                          {log.description}
-                        </p>
-                        <div className="flex flex-wrap items-center gap-x-4 mt-1 text-sm text-gray-500">
-                          <span>
-                            {formatDistanceToNow(new Date(log.created_at), { addSuffix: true })}
-                          </span>
-                          {log.user && (
-                            <span>by {log.user.email}</span>
-                          )}
-                          <span className="capitalize bg-gray-100 px-2 py-0.5 rounded-full text-xs">
-                            {log.activity_type}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                <div className="mt-6 text-center">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setActivityLimit(prev => prev + 10)}
-                    className="w-full"
-                  >
-                    <ArrowDown className="mr-2 h-4 w-4" />
-                    Load More
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <div className="py-8 text-center">
-                <p className="text-gray-500 mb-4">
-                  No activity logs found matching your filters.
-                </p>
-                <Button 
-                  variant="outline"
-                  onClick={() => {
-                    // Reset filters
-                    setActivityTypeFilter('all');
-                    setUserFilter('all');
-                  }}
-                  className="text-sm"
-                >
-                  Reset Filters
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </AdminLayout>
+
+        <div className="mb-4">
+          <h3>Unique IPs:</h3>
+          <ul>
+            {uniqueIPs.map((ip, index) => (
+              <li key={index}>{ip}</li>
+            ))}
+          </ul>
+        </div>
+
+        <Table>
+          <TableCaption>A list of recent security logs on your account.</TableCaption>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[100px]">Timestamp</TableHead>
+              <TableHead>IP Address</TableHead>
+              <TableHead>Action</TableHead>
+              <TableHead>User</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredLogs.map(log => (
+              <TableRow key={log.id}>
+                <TableCell className="font-medium">{log.timestamp}</TableCell>
+                <TableCell>{log.ip}</TableCell>
+                <TableCell>{log.action}</TableCell>
+                <TableCell>{log.user}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+
+        <Button variant="outline" onClick={() => alert('Download logs functionality')}>Download Logs</Button>
+      </Container>
+    </Layout>
   );
 };
 
