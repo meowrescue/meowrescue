@@ -44,8 +44,10 @@ const mountApp = () => {
     return;
   }
   
-  // Create root and hydrate - for client-side interaction after SSG
-  const root = ReactDOM.createRoot(rootElement);
+  // Create root with correct arguments
+  const root = ReactDOM.createRoot(rootElement, {
+    // Optional: Add any root configuration if needed
+  });
   
   root.render(
     <React.StrictMode>
