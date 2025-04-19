@@ -1,55 +1,25 @@
-// Updated routes configuration including success‑stories for SSG & sitemap
-export const routes = [
-  { path: '/' },
-  { path: '/about' },
-  { path: '/cats' },
-  { path: '/cats/:id' },
-  { path: '/adopt' },
-  { path: '/adopt/apply' },
-  { path: '/blog' },
-  { path: '/blog/:slug' },
-  { path: '/events' },
-  { path: '/events/:id' },
-  { path: '/resources' },
-  { path: '/contact' },
-  { path: '/donate' },
-  { path: '/volunteer' },
-  { path: '/volunteer/apply' },
-  { path: '/foster' },
-  { path: '/foster/apply' },
-  { path: '/success-stories' },
-  { path: '/login' },
-  { path: '/register' },
-  { path: '/reset-password' },
-  { path: '/privacy-policy' },
-  { path: '/terms-of-service' },
-  { path: '/lost-found' },
-  { path: '/404' }
-];
+import { lazy } from 'react'
 
-// Function to supply static paths for react‑snap, sitemap, etc.
-export const getStaticPaths = () => {
-  const paths = [
-    '/',
-    '/about',
-    '/cats',
-    '/adopt',
-    '/adopt/apply',
-    '/blog',
-    '/events',
-    '/resources',
-    '/contact',
-    '/donate',
-    '/volunteer',
-    '/volunteer/apply',
-    '/foster',
-    '/foster/apply',
-    '/success-stories',
-    '/privacy-policy',
-    '/terms-of-service',
-    '/lost-found',
-    '/404'
-  ];
+/**
+ * Central route list used by vite‑react‑ssg.
+ * Every page is code‑split with React.lazy().
+ */
+const routes = [
+  { path: '/',               element: lazy(() => import('./pages/Index')) },
+  { path: '/about',          element: lazy(() => import('./pages/About')) },
+  { path: '/cats',           element: lazy(() => import('./pages/Cats')) },
+  { path: '/cats/:id',       element: lazy(() => import('./pages/CatDetail')) },
+  { path: '/adopt',          element: lazy(() => import('./pages/Adopt')) },
+  { path: '/adopt/apply',    element: lazy(() => import('./pages/AdoptionForm')) },
+  { path: '/blog',           element: lazy(() => import('./pages/Blog')) },
+  { path: '/blog/:slug',     element: lazy(() => import('./pages/BlogPost')) },
+  { path: '/events',         element: lazy(() => import('./pages/Events')) },
+  { path: '/events/:id',     element: lazy(() => import('./pages/EventDetail')) },
+  { path: '/resources',      element: lazy(() => import('./pages/Resources')) },
+  { path: '/contact',        element: lazy(() => import('./pages/Contact')) },
+  { path: '/donate',         element: lazy(() => import('./pages/Donate')) },
+  { path: '/volunteer',      element: lazy(() => import('./pages/Volunteer')) },
+  { path: '/volunteer/apply',element: lazy(() => import('./pages/VolunteerForm')) },
+]
 
-  return paths;
-};
+export default routes
