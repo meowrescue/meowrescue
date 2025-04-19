@@ -7,7 +7,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-// Static imports for routes instead of lazy loading
+// Static imports for all routes
 import Index from "./pages/Index";  // Ensure Index is statically imported
 import About from "./pages/About";
 import Cats from "./pages/Cats";
@@ -116,11 +116,6 @@ const App = () => (
             <Route path="/admin" element={
               <ProtectedRoute requireAdmin={true}>
                 <AdminDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/cats" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminCats />
               </ProtectedRoute>
             } />
             {/* Admin routes... */}
