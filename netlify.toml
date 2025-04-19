@@ -1,7 +1,6 @@
-
 [build]
   publish = "dist"
-  command = "npx tsc --project tsconfig.server.json && vite build && node scripts/prerender.js"
+  command = "npm run build:ssg"
 
 [build.environment]
   NODE_VERSION = "18.18.0"
