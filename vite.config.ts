@@ -14,7 +14,6 @@ export default defineConfig(({ mode }) => ({
     ssr({
       prerender: mode === 'production' ? {
         partial: true,
-        // Include dynamic routes that should be pre-rendered
         noExtraDir: true,
       } : false,
     }),
@@ -37,9 +36,10 @@ export default defineConfig(({ mode }) => ({
       },
     },
     rollupOptions: {
-      input: {
-        main: path.resolve(__dirname, 'index.html'),
-      },
+      // Remove the HTML entry point that's causing the error
+      // input: {
+      //   main: path.resolve(__dirname, 'index.html'),
+      // },
       output: {
         manualChunks: (id) => {
           if (id.includes('node_modules')) {

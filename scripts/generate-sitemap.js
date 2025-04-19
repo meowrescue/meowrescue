@@ -40,6 +40,9 @@ ${urlset}
     
     // Write sitemap to the dist directory
     const sitemapPath = path.resolve(__dirname, '../dist/sitemap.xml');
+    if (!fs.existsSync(path.dirname(sitemapPath))) {
+      fs.mkdirSync(path.dirname(sitemapPath), { recursive: true });
+    }
     fs.writeFileSync(sitemapPath, sitemap);
     console.log('Generated sitemap at:', sitemapPath);
     
@@ -61,6 +64,10 @@ function runPostBuild() {
   
   // Create robots.txt if it doesn't exist
   const robotsPath = path.resolve(__dirname, '../dist/robots.txt');
+  if (!fs.existsSync(path.dirname(robotsPath))) {
+    fs.mkdirSync(path.dirname(robotsPath), { recursive: true });
+  }
+  
   if (!fs.existsSync(robotsPath)) {
     const robotsContent = `User-agent: *
 Allow: /
