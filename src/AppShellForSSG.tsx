@@ -2,24 +2,24 @@
 // src/AppShellForSSG.tsx
 import { HelmetProvider } from 'react-helmet-async';
 import { Routes, Route } from 'react-router-dom';
-import HomePage from './pages/HomePage';
-import AboutPage from './pages/AboutPage';
-import CatsPage from './pages/CatsPage';
-import AdoptPage from './pages/AdoptPage';
-import ApplyPage from './pages/adopt/ApplyPage';
-import BlogPage from './pages/BlogPage';
-import EventsPage from './pages/EventsPage';
-import ResourcesPage from './pages/ResourcesPage';
-import ContactPage from './pages/ContactPage';
-import DonatePage from './pages/DonatePage';
-import VolunteerPage from './pages/VolunteerPage';
-import VolunteerApplyPage from './pages/volunteer/ApplyPage';
-import FosterPage from './pages/FosterPage';
-import FosterApplyPage from './pages/foster/ApplyPage';
-import LostFoundPage from './pages/LostFoundPage';
-import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
-import TermsOfServicePage from './pages/TermsOfServicePage';
-import NotFoundPage from './pages/NotFoundPage';
+import Index from './pages/Index';
+import About from './pages/About';
+import Cats from './pages/Cats';
+import Adopt from './pages/Adopt';
+import AdoptionForm from './pages/AdoptionForm';
+import Blog from './pages/Blog';
+import Events from './pages/Events';
+import Resources from './pages/Resources';
+import Contact from './pages/Contact';
+import Donate from './pages/Donate';
+import Volunteer from './pages/Volunteer';
+import VolunteerForm from './pages/VolunteerForm';
+import Foster from './pages/Foster';
+import FosterForm from './pages/FosterForm';
+import LostFound from './pages/LostFound';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
+import NotFound from './pages/NotFound';
 
 // ⚡️ ONLY lightweight safe stuff above — no auth, no tooltips, no browser things.
 
@@ -27,24 +27,24 @@ export function AppShellForSSG() {
   return (
     <HelmetProvider>
       <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/cats" element={<CatsPage />} />
-        <Route path="/adopt" element={<AdoptPage />} />
-        <Route path="/adopt/apply" element={<ApplyPage />} />
-        <Route path="/blog" element={<BlogPage />} />
-        <Route path="/events" element={<EventsPage />} />
-        <Route path="/resources" element={<ResourcesPage />} />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/donate" element={<DonatePage />} />
-        <Route path="/volunteer" element={<VolunteerPage />} />
-        <Route path="/volunteer/apply" element={<VolunteerApplyPage />} />
-        <Route path="/foster" element={<FosterPage />} />
-        <Route path="/foster/apply" element={<FosterApplyPage />} />
-        <Route path="/lost-found" element={<LostFoundPage />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-        <Route path="/terms-of-service" element={<TermsOfServicePage />} />
-        <Route path="*" element={<NotFoundPage />} />
+        <Route path="/" element={<Index />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/cats" element={<Cats />} />
+        <Route path="/adopt" element={<Adopt />} />
+        <Route path="/adopt/apply" element={<AdoptionForm />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/events" element={<Events />} />
+        <Route path="/resources" element={<Resources />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/donate" element={<Donate />} />
+        <Route path="/volunteer" element={<Volunteer />} />
+        <Route path="/volunteer/apply" element={<VolunteerForm />} />
+        <Route path="/foster" element={<Foster />} />
+        <Route path="/foster/apply" element={<FosterForm />} />
+        <Route path="/lost-found" element={<LostFound />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-of-service" element={<TermsOfService />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </HelmetProvider>
   );
