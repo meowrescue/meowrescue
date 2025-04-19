@@ -1,11 +1,11 @@
 
 import React from 'react';
-import { formatDate } from '../utils/dateUtils';
+import { formatDate } from '../utils/dateUtils.js';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CalendarDays, MapPin } from 'lucide-react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { Event } from '../types/events';
+import { Event } from '../types/events.js';
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface EventCardProps {

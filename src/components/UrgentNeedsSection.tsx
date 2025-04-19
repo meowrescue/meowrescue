@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { Container } from './ui/Container';
+import { Container } from './ui/Container.js';
 import { Button } from '@/components/ui/button';
-import { SectionHeading } from './ui/SectionHeading';
+import { SectionHeading } from './ui/SectionHeading.js';
 
 const UrgentNeedsSection: React.FC = () => {
   return (
