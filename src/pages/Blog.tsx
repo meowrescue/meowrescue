@@ -79,7 +79,7 @@ const Blog: React.FC = () => {
       <SEO 
         title="Blog | Meow Rescue" 
         description="Read the latest news, updates, and stories from Meow Rescue - a home-based cat rescue in Pasco County, Florida." 
-        type="blog"
+        ogType="blog"
         canonicalUrl="/blog"
         structuredData={blogListStructuredData}
         keywords="cat rescue blog, cat adoption stories, rescue cats, feline care, cat foster stories, meow rescue"

@@ -10,6 +10,13 @@ interface SEOProps {
   ogType?: string;
   ogUrl?: string;
   twitterCard?: string;
+  // Add missing properties
+  type?: string;
+  image?: string;
+  canonicalUrl?: string;
+  publishedTime?: string;
+  modifiedTime?: string;
+  structuredData?: any; // Using any for flexibility with structured data objects
 }
 
 const SEO: React.FC<SEOProps> = ({
@@ -20,8 +27,19 @@ const SEO: React.FC<SEOProps> = ({
   ogType = 'website',
   ogUrl = 'https://meowrescue.org',
   twitterCard = 'summary_large_image',
+  image,
+  canonicalUrl,
+  publishedTime,
+  modifiedTime,
+  structuredData,
+  type,
 }) => {
   const siteTitle = title.includes('Meow Rescue') ? title : `${title} | Meow Rescue`;
+  
+  // Use image prop if provided, otherwise fall back to ogImage
+  const finalImage = image || ogImage;
+  // Use canonicalUrl if provided, otherwise fall back to ogUrl
+  const finalUrl = canonicalUrl ? `https://meowrescue.org${canonicalUrl}` : ogUrl;
   
   return (
     <Helmet>
@@ -29,18 +47,32 @@ const SEO: React.FC<SEOProps> = ({
       <meta name="description" content={description} />
       <meta name="keywords" content={keywords} />
       
+      {/* Canonical URL */}
+      {canonicalUrl && <link rel="canonical" href={finalUrl} />}
+      
       {/* Open Graph */}
       <meta property="og:title" content={siteTitle} />
       <meta property="og:description" content={description} />
-      <meta property="og:image" content={ogImage} />
-      <meta property="og:type" content={ogType} />
-      <meta property="og:url" content={ogUrl} />
+      <meta property="og:image" content={finalImage} />
+      <meta property="og:type" content={type || ogType} />
+      <meta property="og:url" content={finalUrl} />
+      
+      {/* Article specific Open Graph tags */}
+      {publishedTime && <meta property="article:published_time" content={publishedTime} />}
+      {modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
       
       {/* Twitter */}
       <meta name="twitter:card" content={twitterCard} />
       <meta name="twitter:title" content={siteTitle} />
       <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={ogImage} />
+      <meta name="twitter:image" content={finalImage} />
+      
+      {/* Structured data */}
+      {structuredData && (
+        <script type="application/ld+json">
+          {JSON.stringify(structuredData)}
+        </script>
+      )}
     </Helmet>
   );
 };

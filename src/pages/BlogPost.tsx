@@ -110,8 +110,8 @@ const BlogPostPage: React.FC = () => {
       <SEO 
         title={post ? `${post.title} | Meow Rescue Blog` : 'Blog Post | Meow Rescue'} 
         description={post ? post.content.substring(0, 160).replace(/<[^>]*>/g, '') : 'Read our latest blog post'}
-        image={post?.featured_image_url}
-        type="article"
+        ogImage={post?.featured_image_url}
+        ogType="article"
         publishedTime={post?.published_at}
         modifiedTime={post?.updated_at || post?.published_at}
         canonicalUrl={post ? `/blog/${post.slug}` : undefined}
