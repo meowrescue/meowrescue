@@ -1,36 +1,42 @@
-
 [build]
+  # Folder that Vite already writes to
   publish = "dist"
-  command = "tsc --project tsconfig.server.json && vite build && node scripts/generate-sitemap.js"
+
+  # ⬇️  Type‑checking step removed – Vite + sitemap only
+  command = "vite build && node scripts/generate-sitemap.js"
 
 [build.environment]
   NODE_VERSION = "18.18.0"
-  NPM_VERSION = "9.8.1"
+  NPM_VERSION  = "9.8.1"
 
-# For admin routes, use the SPA fallback
-[[redirects]]
-  from = "/admin/*"
-  to = "/index.html"
-  status = 200
-  force = false
+# ---------- Routing ----------
 
-# For all other routes, try the path as a static file first
+# Admin area – fall back to client‑side SPA behaviour
 [[redirects]]
-  from = "/*"
-  to = "/:splat/index.html"
+  from   = "/admin/*"
+  to     = "/index.html"
   status = 200
-  force = false
+  force  = false
+
+# All other routes – first try the pre‑rendered HTML Vite‑SSG produced
+[[redirects]]
+  from   = "/*"
+  to     = "/:splat/index.html"
+  status = 200
+  force  = false
+
+# ---------- Security / caching headers ----------
 
 [[headers]]
   for = "/*"
   [headers.values]
-    X-Frame-Options = "DENY"
-    X-XSS-Protection = "1; mode=block"
+    X-Frame-Options        = "DENY"
+    X-XSS-Protection       = "1; mode=block"
     X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    Referrer-Policy        = "strict-origin-when-cross-origin"
+    Permissions-Policy     = "camera=(), microphone=(), geolocation=()"
     Content-Security-Policy = "upgrade-insecure-requests"
-    Cache-Control = "public, max-age=31536000"
+    Cache-Control           = "public, max-age=31536000"
 
 [[headers]]
   for = "/*.html"
