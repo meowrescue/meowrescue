@@ -1,11 +1,12 @@
 import { lazy } from 'react';
+import Index from './pages/Index';  // Ensure the correct import
 
-/**
- * Central route list used by vite‑react‑ssg.
+/** 
+ * Central route list used by vite‑react‑ssg. 
  * Every page is directly imported for static site generation (SSG).
  */
 const routes = [
-  { path: '/', element: <Index /> }, // Updated to use JSX element directly
+  { path: '/', element: <Index /> },  // Using JSX element directly
   { path: '/about', element: <About /> },
   { path: '/cats', element: <Cats /> },
   { path: '/cats/:id', element: <CatDetail /> },
