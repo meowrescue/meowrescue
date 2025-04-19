@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client'; // Import the correct method for React 18
+import ReactDOM from 'react-dom/client'; // Correct method for React 18
 import App from './App';
 import { AuthProvider } from './contexts/AuthContext';
 import { BrowserRouter } from 'react-router-dom';
@@ -13,16 +13,16 @@ const Main = () => (
   </AuthProvider>
 );
 
-// Hydrate on client-side
+// Client-side rendering
 if (!import.meta.env.SSR) {
   const root = document.getElementById('root');
   if (root) {
-    const rootElement = ReactDOM.createRoot(root);  // Ensure createRoot is used only on the client
-    rootElement.hydrate(<Main />);  // Hydrate only in the browser
+    const rootElement = ReactDOM.createRoot(root); // Ensure this is only called on the client
+    rootElement.render(<Main />); // Render only in the browser
   }
 }
 
-// SSR entry point - ensure SSR logic remains separate
+// SSR entry point (ensure SSR logic remains separate)
 export const createApp = () => (
   <AuthProvider>
     <BrowserRouter>
