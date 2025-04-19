@@ -1,3 +1,4 @@
+
 // src/AppShellForSSG.tsx
 import { HelmetProvider } from 'react-helmet-async';
 import { Routes, Route } from 'react-router-dom';
@@ -48,3 +49,5 @@ export function AppShellForSSG() {
     </HelmetProvider>
   );
 }
+
+export default AppShellForSSG;

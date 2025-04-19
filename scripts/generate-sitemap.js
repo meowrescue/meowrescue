@@ -3,12 +3,33 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { routes } from '../src/routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 console.log('Running post-build setup...');
+
+// Get static paths - define them directly to avoid import issues
+const staticPaths = [
+  '/',
+  '/about',
+  '/cats',
+  '/adopt',
+  '/adopt/apply',
+  '/blog',
+  '/events',
+  '/resources',
+  '/contact',
+  '/donate',
+  '/volunteer',
+  '/volunteer/apply',
+  '/foster',
+  '/foster/apply',
+  '/privacy-policy',
+  '/terms-of-service',
+  '/lost-found',
+  '/404',
+];
 
 // Generate sitemap.xml
 function generateSitemap() {
@@ -16,16 +37,16 @@ function generateSitemap() {
     const baseUrl = 'https://meowrescue.org';
     const today = new Date().toISOString().slice(0, 10);
     
-    // Get all routes from routes.tsx
-    const urlset = routes
-      .filter(route => route.path !== '*' && !route.path.includes(':') && !route.path.includes('admin'))
-      .map(route => {
-        const priority = route.path === '/' ? '1.0' : '0.7';
-        const changefreq = route.path === '/' ? 'daily' : 'weekly';
+    // Map all routes to sitemap entries
+    const urlset = staticPaths
+      .filter(path => path !== '*' && !path.includes(':') && !path.includes('admin') && path !== '/404')
+      .map(path => {
+        const priority = path === '/' ? '1.0' : '0.7';
+        const changefreq = path === '/' ? 'daily' : 'weekly';
         
         return `
   <url>
-    <loc>${baseUrl}${route.path}</loc>
+    <loc>${baseUrl}${path}</loc>
     <lastmod>${today}</lastmod>
     <changefreq>${changefreq}</changefreq>
     <priority>${priority}</priority>

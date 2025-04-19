@@ -1,7 +1,7 @@
 
 [build]
   publish = "dist"
-  command = "npm run build"
+  command = "npx tsc --project tsconfig.server.json && vite build && node scripts/prerender.js"
 
 [build.environment]
   NODE_VERSION = "18.18.0"
