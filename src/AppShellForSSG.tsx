@@ -1,25 +1,23 @@
-
-// src/AppShellForSSG.tsx
 import { HelmetProvider } from 'react-helmet-async';
 import { Routes, Route } from 'react-router-dom';
-import Index from './pages/Index';
-import About from './pages/About';
-import Cats from './pages/Cats';
-import Adopt from './pages/Adopt';
-import AdoptionForm from './pages/AdoptionForm';
-import Blog from './pages/Blog';
-import Events from './pages/Events';
-import Resources from './pages/Resources';
-import Contact from './pages/Contact';
-import Donate from './pages/Donate';
-import Volunteer from './pages/Volunteer';
-import VolunteerForm from './pages/VolunteerForm';
-import Foster from './pages/Foster';
-import FosterForm from './pages/FosterForm';
-import LostFound from './pages/LostFound';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import TermsOfService from './pages/TermsOfService';
-import NotFound from './pages/NotFound';
+import Index from './pages/Index.js';
+import About from './pages/About.js';
+import Cats from './pages/Cats.js';
+import Adopt from './pages/Adopt.js';
+import AdoptionForm from './pages/AdoptionForm.js';
+import Blog from './pages/Blog.js';
+import Events from './pages/Events.js';
+import Resources from './pages/Resources.js';
+import Contact from './pages/Contact.js';
+import Donate from './pages/Donate.js';
+import Volunteer from './pages/Volunteer.js';
+import VolunteerForm from './pages/VolunteerForm.js';
+import Foster from './pages/Foster.js';
+import FosterForm from './pages/FosterForm.js';
+import LostFound from './pages/LostFound.js';
+import PrivacyPolicy from './pages/PrivacyPolicy.js';
+import TermsOfService from './pages/TermsOfService.js';
+import NotFound from './pages/NotFound.js';
 
 // ⚡️ ONLY lightweight safe stuff above — no auth, no tooltips, no browser things.
 

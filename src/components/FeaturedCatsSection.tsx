@@ -1,11 +1,10 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
-import SectionHeading from './ui/SectionHeading';
-import CatCard from './CatCard';
-import { Button } from "@/components/ui/button";
+import SectionHeading from './ui/SectionHeading.js';
+import CatCard from './CatCard.js';
+import { Button } from "./ui/button.js";
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '../integrations/supabase/client.js';
 
 const FeaturedCatsSection: React.FC = () => {
   // Fetch available cats from the database

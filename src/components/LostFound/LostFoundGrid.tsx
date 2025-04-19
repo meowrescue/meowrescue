@@ -1,9 +1,8 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { LostFoundPost } from "@/types/supabase";
-import LostFoundCard from "./LostFoundCard";
+import { Button } from "../ui/button.js";
+import { LostFoundPost } from "../../types/supabase.js";
+import LostFoundCard from "./LostFoundCard.js";
 
 interface LostFoundGridProps {
   posts: LostFoundPost[];

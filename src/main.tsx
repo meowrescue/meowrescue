@@ -5,11 +5,11 @@ import { BrowserRouter } from 'react-router-dom';
 import { StaticRouter } from 'react-router-dom/server';
 import { QueryClient, QueryClientProvider, HydrationBoundary } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
-import { AuthProvider } from './contexts/AuthContext';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { Toaster } from '@/components/ui/toaster';
-import { Toaster as Sonner } from '@/components/ui/sonner';
-import App from './App';
+import { AuthProvider } from './contexts/AuthContext.js';
+import { TooltipProvider } from './components/ui/tooltip.js';
+import { Toaster } from './components/ui/toaster.js';
+import { Toaster as Sonner } from './components/ui/sonner.js';
+import App from './App.js';
 import './index.css';
 
 // Create a client

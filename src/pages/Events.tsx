@@ -1,11 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import Layout from '../components/Layout';
-import SectionHeading from '../components/ui/SectionHeading';
-import { Event } from '../types/events';
-import EventCard from '../components/EventCard';
-import { useScrollToElement } from '@/hooks/use-scroll';
-import { supabase } from '@/integrations/supabase/client';
+import Layout from '../components/Layout.js';
+import SectionHeading from '../components/ui/SectionHeading.js';
+import { Event } from '../types/events.js';
+import EventCard from '../components/EventCard.js';
+import { useScrollToElement } from '../hooks/use-scroll.js';
+import { supabase } from '../integrations/supabase/client.js';
 import { Loader2 } from 'lucide-react';
 
 const Events: React.FC = () => {

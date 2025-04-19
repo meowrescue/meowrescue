@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
@@ -16,9 +15,9 @@ import {
   MessageCircle,
   LogOut
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useSidebarContext } from '@/components/ui/sidebar';
-import { useAuth } from '@/contexts/AuthContext';
+import { Button } from './ui/button.js';
+import { useSidebarContext } from './ui/sidebar.js';
+import { useAuth } from '../contexts/AuthContext.js';
 
 const AdminNavbar: React.FC = () => {
   const location = useLocation();

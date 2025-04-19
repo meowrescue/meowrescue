@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "./ui/badge.js";
 
 interface CatCardProps {
   id: string;
