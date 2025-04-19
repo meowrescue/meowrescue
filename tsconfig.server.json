@@ -19,7 +19,16 @@
     "outDir": "./dist/server",
     "jsx": "react-jsx",
     "baseUrl": ".",
-    "paths": { "@/*": ["src/*"] }
+    "paths": {
+      "@/*": ["src/*"],
+      "@/components/*": ["src/components/*"],
+      "@/hooks/*": ["src/hooks/*"],
+      "@/contexts/*": ["src/contexts/*"],
+      "@/integrations/*": ["src/integrations/*"],
+      "@/utils/*": ["src/utils/*"],
+      "@/types/*": ["src/types/*"],
+      "@/pages/*": ["src/pages/*"]
+    }
   },
   "include": ["src/**/*","scripts/**/*"],
   "exclude": ["node_modules","dist"]

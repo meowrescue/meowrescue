@@ -8,7 +8,7 @@ interface SectionHeadingProps {
   className?: string;
 }
 
-export const SectionHeading: React.FC<SectionHeadingProps> = ({ 
+const SectionHeading: React.FC<SectionHeadingProps> = ({ 
   title, 
   subtitle, 
   centered = false,
