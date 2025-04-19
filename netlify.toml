@@ -7,6 +7,21 @@
   NODE_VERSION = "18.18.0"
   NPM_VERSION = "9.8.1"
 
+# Ensure proper redirects for SPA fallback
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false
+  conditions = {Role = ["admin"]}
+
+# For all other routes, try the path as a static file, then directory index
+[[redirects]]
+  from = "/*"
+  to = "/:splat/index.html"
+  status = 200
+  force = false
+
 [[headers]]
   for = "/*"
   [headers.values]

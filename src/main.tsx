@@ -23,7 +23,28 @@ const queryClient = new QueryClient({
   },
 });
 
-// Mount the app to the DOM
+// Create the app component with all providers
+const AppWithProviders = () => (
+  <React.StrictMode>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <HydrationBoundary>
+          <HelmetProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <AuthProvider>
+                <App />
+              </AuthProvider>
+            </TooltipProvider>
+          </HelmetProvider>
+        </HydrationBoundary>
+      </QueryClientProvider>
+    </BrowserRouter>
+  </React.StrictMode>
+);
+
+// Mount the app to the DOM - dynamic client-side rendering
 const mountApp = () => {
   const rootElement = document.getElementById('root');
   if (!rootElement) {
@@ -31,30 +52,20 @@ const mountApp = () => {
     return;
   }
   
-  const root = ReactDOM.createRoot(rootElement);
-  
-  root.render(
-    <React.StrictMode>
-      <BrowserRouter>
-        <QueryClientProvider client={queryClient}>
-          <HydrationBoundary>
-            <HelmetProvider>
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <AuthProvider>
-                  <App />
-                </AuthProvider>
-              </TooltipProvider>
-            </HelmetProvider>
-          </HydrationBoundary>
-        </QueryClientProvider>
-      </BrowserRouter>
-    </React.StrictMode>
-  );
+  // Check if this is an SSG hydration or a CSR render
+  if (rootElement.innerHTML === '') {
+    // For admin routes and first-time CSR, we use createRoot
+    const root = ReactDOM.createRoot(rootElement);
+    root.render(<AppWithProviders />);
+  } else {
+    // For SSG hydration (public routes), we use hydrateRoot
+    // This expects pre-rendered HTML content
+    const root = ReactDOM.hydrateRoot(rootElement, <AppWithProviders />);
+  }
 };
 
 // Initialize the app
 mountApp();
 
+export { AppWithProviders };
 export default mountApp;
