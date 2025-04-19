@@ -8,9 +8,8 @@ import { renderToString } from 'react-dom/server';
 import { StaticRouter } from 'react-router-dom/server.js';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
-import { AuthProvider } from '../src/contexts/AuthContext';
 import { TooltipProvider } from '../src/components/ui/tooltip';
-import App from '../src/App';
+import AppShellForSSG from '../src/AppShellForSSG';
 
 // Convert ESM __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
@@ -32,9 +31,6 @@ const staticPaths = [
   '/volunteer/apply',
   '/foster',
   '/foster/apply',
-  '/login',
-  '/register',
-  '/reset-password',
   '/privacy-policy',
   '/terms-of-service',
   '/lost-found',
@@ -95,11 +91,7 @@ async function prerender() {
               React.createElement(
                 TooltipProvider,
                 {},
-                React.createElement(
-                  AuthProvider,
-                  {},
-                  React.createElement(App)
-                )
+                React.createElement(AppShellForSSG)
               )
             )
           )
