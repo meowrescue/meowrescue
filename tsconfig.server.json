@@ -1,9 +1,8 @@
-
 {
   "compilerOptions": {
     "target": "ESNext",
     "useDefineForClassFields": true,
-    "lib": ["DOM","DOM.Iterable","ESNext"],
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -18,18 +17,19 @@
     "declaration": true,
     "outDir": "./dist/server",
     "jsx": "react-jsx",
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"],
-      "@/components/*": ["src/components/*"],
-      "@/hooks/*": ["src/hooks/*"],
-      "@/contexts/*": ["src/contexts/*"],
-      "@/integrations/*": ["src/integrations/*"],
-      "@/utils/*": ["src/utils/*"],
-      "@/types/*": ["src/types/*"],
-      "@/pages/*": ["src/pages/*"]
-    }
+    **"baseUrl": ".",**
+    **"paths": {**
+      **"@/*": ["src/*"],**
+      **"@/components/*": ["src/components/*"],**
+      **"@/hooks/*": ["src/hooks/*"],**
+      **"@/contexts/*": ["src/contexts/*"],**
+      **"@/integrations/*": ["src/integrations/*"],**
+      **"@/utils/*": ["src/utils/*"],**
+      **"@/lib/*": ["src/lib/*"],**
+      **"@/types/*": ["src/types/*"],**
+      **"@/pages/*": ["src/pages/*"]**
+    **}**
   },
-  "include": ["src/**/*","scripts/**/*"],
-  "exclude": ["node_modules","dist"]
+  "include": ["src/**/*", "scripts/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
