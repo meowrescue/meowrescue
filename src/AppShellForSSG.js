@@ -23,7 +23,7 @@ import NotFoundPage from './pages/NotFoundPage';
 
 // ⚡️ ONLY lightweight safe stuff above — no auth, no tooltips, no browser things.
 
-export function AppShellForSSG() {
+function AppShellForSSG() {
   return (
     <HelmetProvider>
       <Routes>
@@ -49,3 +49,5 @@ export function AppShellForSSG() {
     </HelmetProvider>
   );
 }
+
+export default AppShellForSSG;
