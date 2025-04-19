@@ -1,3 +1,4 @@
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
@@ -43,7 +44,7 @@ const mountApp = () => {
     return;
   }
   
-  // Create root with correct arguments
+  // Ensure correct typing for createRoot
   const root = ReactDOM.createRoot(rootElement, {
     onRecoverableError: (error) => {
       console.error('Recoverable React error:', error);
