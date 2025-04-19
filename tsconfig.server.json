@@ -9,18 +9,21 @@
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "ESNext",          // <-- updated
+    "moduleResolution": "Bundler", // <-- added
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
     "outDir": "./dist/server",
     "jsx": "react-jsx",
-    "baseUrl": "./src",
+    "baseUrl": ".", 
     "paths": {
-      "@/*": ["*"]
+      "@/*": ["src/*"]
     }
   },
-  "include": ["src/**/*", "scripts/**/*"],
+  "include": [
+    "src/**/*",
+    "scripts/**/*"
+  ],
   "exclude": ["node_modules", "dist", "src/routes.js"]
 }
