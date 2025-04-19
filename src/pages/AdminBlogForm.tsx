@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -36,6 +35,7 @@ const formSchema = z.object({
   meta_description: z.string().max(160, { message: 'Meta description should be under 160 characters' }).optional(),
   keywords: z.string().optional(),
   canonical_url: z.string().optional(),
+  is_featured: z.boolean().default(false),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -62,6 +62,7 @@ const AdminBlogForm: React.FC = () => {
       meta_description: '',
       keywords: '',
       canonical_url: '',
+      is_featured: false,
     },
   });
 
@@ -90,6 +91,7 @@ const AdminBlogForm: React.FC = () => {
             meta_description: data.meta_description || '',
             keywords: data.keywords || '',
             canonical_url: data.canonical_url || '',
+            is_featured: data.is_featured,
           });
 
           if (data.featured_image_url) {
@@ -171,6 +173,14 @@ const AdminBlogForm: React.FC = () => {
       }
 
       const now = new Date().toISOString();
+
+      // Before inserting/updating, unset any existing featured post if this one is being set as featured
+      if (values.is_featured) {
+        await supabase
+          .from('blog_posts')
+          .update({ is_featured: false })
+          .eq('is_featured', true);
+      }
       
       // Prepare post data
       const postData = {
@@ -185,6 +195,7 @@ const AdminBlogForm: React.FC = () => {
         meta_description: values.meta_description,
         keywords: values.keywords,
         canonical_url: values.canonical_url,
+        is_featured: values.is_featured,
       };
 
       // Update or create post
@@ -350,6 +361,27 @@ const AdminBlogForm: React.FC = () => {
                               <FormLabel className="text-base">Published Status</FormLabel>
                               <FormDescription>
                                 Toggle to make this post publicly visible
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="is_featured"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base">Featured Post</FormLabel>
+                              <FormDescription>
+                                Toggle to make this post appear as the featured story on the blog page
                               </FormDescription>
                             </div>
                             <FormControl>
