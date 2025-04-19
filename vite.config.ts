@@ -1,35 +1,24 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
-import { ViteSSG } from 'vite-react-ssg'
+import viteReactSSG from 'vite-react-ssg'          // ✅ default export
 
-// Static routes you want HTML files for
-const pages = [
-  '/',                // home
-  '/about',
-  '/cats',
-  '/adopt',
-  '/donate',
-  '/volunteer',
-  '/foster',
-  '/blog',
-  '/events',
-  '/resources',
-  '/privacy-policy',
-  '/terms-of-service',
-  '/lost-found',
-  '/success-stories',
-  '/404',             // custom 404
+// All public pages you want pre‑rendered
+const routes = [
+  '/', '/about', '/cats', '/adopt', '/donate', '/volunteer', '/foster',
+  '/blog', '/events', '/resources',
+  '/privacy-policy', '/terms-of-service', '/lost-found', '/success-stories',
+  '/404',
 ]
 
 export default defineConfig({
   plugins: [
     react(),
 
-    // ⇢ generates dist/route/index.html for every entry in `pages`
-    ViteSSG({
-      script: 'async',          // inject scripts as <script async>
+    // Static‑site generation
+    viteReactSSG({
+      includedRoutes: routes,
+      script: 'async',
       formatting: 'minify-html',
-      includedRoutes: pages,
     }),
   ],
 })
