@@ -7,8 +7,9 @@ import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-// Static imports for all routes
-import Index from "./pages/Index";  // Ensure Index is statically imported
+// Importing the Index component properly
+import Index from "./pages/Index"; // Ensure this is added
+
 import About from "./pages/About";
 import Cats from "./pages/Cats";
 import CatDetail from "./pages/CatDetail";
@@ -118,17 +119,7 @@ const App = () => (
                 <AdminDashboard />
               </ProtectedRoute>
             } />
-            {/* Admin routes... */}
-            <Route path="/admin/orders" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminOrders />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/help" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } />
+            {/* ... Other admin routes */}
             
             {/* Catch-all route for 404 */}
             <Route path="*" element={<NotFound />} />
