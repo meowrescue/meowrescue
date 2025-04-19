@@ -5,9 +5,10 @@
  */
 const fs = require('fs');
 const path = require('path');
-// Import from routes.js which re-exports from routes.tsx
-const routesModule = require('../src/routes.js');
-const { routes } = routesModule;
+
+// Import directly from the static paths in routes.js
+// Use CommonJS dynamic require since this is a Node.js script file
+const { staticPaths, routes } = require('../src/routes.js');
 
 // Get all static paths to pre-render
 async function generateStaticHTML() {

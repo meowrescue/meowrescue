@@ -5,6 +5,7 @@ import path from 'path';
 import { Plugin } from 'vite';
 import fs from 'fs';
 import { resolve } from 'path';
+import { staticPaths } from './src/routes.js';
 
 // Simple SSG plugin
 function ssgPlugin(): Plugin {
@@ -12,12 +13,8 @@ function ssgPlugin(): Plugin {
     name: 'vite-plugin-ssg',
     closeBundle: async () => {
       try {
-        // Import the routes module dynamically at runtime
-        // This avoids the need for JSX processing in the config file
-        const { getStaticPaths } = await import('./src/routes.js');
-        
-        // Get all static paths to pre-render
-        const paths = await getStaticPaths();
+        // Use the imported static paths directly
+        const paths = staticPaths;
         
         console.log('Generating static pages for routes:', paths);
         
