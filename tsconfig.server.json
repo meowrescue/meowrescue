@@ -21,9 +21,6 @@
       "@/*": ["src/*"]
     }
   },
-  "include": [
-    "src/**/*",
-    "scripts/**/*"
-  ],
+  "include": ["src/**/*", "scripts/**/*"],
   "exclude": ["node_modules", "dist", "src/routes.js"]
 }
