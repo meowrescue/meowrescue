@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Layout from '@/components/Layout';
@@ -77,10 +78,13 @@ const Blog: React.FC = () => {
     return Math.ceil(textLength / wordsPerMinute);
   };
 
-  // Featured post (first featured post, or first post if none is featured)
-  const featuredPost = posts?.find(post => post.is_featured) || (posts && posts.length > 0 ? posts[0] : null);
-  // Rest of the posts (excluding featured)
-  const regularPosts = posts?.filter(post => post !== featuredPost) || [];
+  // Only get featured post if it exists and is marked as featured
+  const featuredPost = posts?.find(post => post.is_featured) || null;
+  
+  // Get all posts if no featured post, or all posts except featured
+  const regularPosts = featuredPost 
+    ? posts?.filter(post => post.id !== featuredPost.id) || []
+    : posts || [];
 
   return (
     <Layout>
@@ -133,7 +137,7 @@ const Blog: React.FC = () => {
             </div>
           ) : posts && posts.length > 0 ? (
             <div>
-              {/* Featured Post */}
+              {/* Featured Post - Only show if there is an explicitly featured post */}
               {featuredPost && (
                 <div className="mb-20">
                   <div className="mb-6">
@@ -141,7 +145,7 @@ const Blog: React.FC = () => {
                     <div className="h-1 bg-meow-secondary w-20 mt-3"></div>
                   </div>
                   <div 
-                    className="grid md:grid-cols-2 gap-8 bg-gray-50 rounded-2xl overflow-hidden shadow-md transition-transform hover:shadow-lg"
+                    className="grid md:grid-cols-2 gap-8 bg-gray-50 rounded-2xl overflow-hidden shadow-md transition-transform hover:shadow-lg cursor-pointer"
                     onClick={() => handleCardClick(featuredPost.slug)}
                   >
                     <div className="relative h-64 md:h-full">
@@ -189,7 +193,7 @@ const Blog: React.FC = () => {
               {/* Regular Posts */}
               <div>
                 <div className="mb-8">
-                  <h2 className="text-2xl font-bold text-gray-900">All Stories</h2>
+                  <h2 className="text-2xl font-bold text-gray-900">{featuredPost ? 'All Stories' : 'Stories'}</h2>
                   <div className="h-1 bg-meow-secondary w-20 mt-3"></div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
