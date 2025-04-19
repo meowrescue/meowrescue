@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +7,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
+// Static imports for routes instead of lazy loading
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Cats from "./pages/Cats";
@@ -123,121 +123,7 @@ const App = () => (
                 <AdminCats />
               </ProtectedRoute>
             } />
-            <Route path="/admin/cats/new" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminCatForm />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/cats/edit/:id" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminCatForm />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/users" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminUsers />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/finance" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminFinance />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/finance/donations" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminFinance />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/finance/income" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminFinance />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/finance/expenses" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminFinance />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/pages" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminPages />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/blog" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminBlog />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/blog/new" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminBlogForm />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/blog/edit/:id" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminBlogForm />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/events" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminEvents />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/lost-found" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminLostFound />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/messages" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminMessages />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/chat" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminChat />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/security" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminSecurity />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/applications" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminApplications />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/supplies" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminSupplies />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/documents" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminDocuments />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/team" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminTeam />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/success-stories" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminSuccessStories />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/business-licenses" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminBusinessLicenses />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/direct-messages" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminDirectMessages />
-              </ProtectedRoute>
-            } />
+            {/* Admin routes... */}
             <Route path="/admin/orders" element={
               <ProtectedRoute requireAdmin={true}>
                 <AdminOrders />
