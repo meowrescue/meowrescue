@@ -1,10 +1,10 @@
 
-import { useState, useEffect } from 'react';
-import { Container } from './ui/Container.js';
-import SectionHeading from './ui/SectionHeading.js';
+import React, { useState, useEffect } from 'react';
+import { Container } from './ui/Container';
+import SectionHeading from './ui/SectionHeading';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
-import CountUp from './CountUp.js';
+import CountUp from './CountUp';
 import { useToast } from '@/hooks/use-toast';
 
 interface Stats {
