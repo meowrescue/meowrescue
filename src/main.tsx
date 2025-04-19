@@ -2,11 +2,12 @@ import React from 'react'
 import { BrowserRouter } from 'react-router-dom'
 import { createRoot } from 'react-dom/client'
 import App from './App'
-import './index.css'          // Tailwind entry
+import './index.css'
 
 /**
- * Normal client‑side render (not during SSG)
- * ------------------------------------------------
+ * ───────────────────────────────────────────────
+ * Normal client‑side hydration
+ * ───────────────────────────────────────────────
  */
 if (import.meta.env.MODE !== 'ssg') {
   createRoot(document.getElementById('root')!).render(
@@ -17,11 +18,9 @@ if (import.meta.env.MODE !== 'ssg') {
 }
 
 /**
- * Static‑site‑generation entry for vite-react-ssg
- * ------------------------------------------------
- * vite-react-ssg looks for — and calls — this export for every
- * route in `includedRoutes`, captures the HTML, and writes it
- * to dist/<route>/index.html.
+ * ───────────────────────────────────────────────
+ * Entry that vite‑react‑ssg calls for each route
+ * ───────────────────────────────────────────────
  */
 export const createApp = () => (
   <BrowserRouter>
