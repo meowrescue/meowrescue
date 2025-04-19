@@ -1,8 +1,8 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import ReactDOMServer from 'react-dom/server';
-import { BrowserRouter, StaticRouter } from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
+import { StaticRouter } from 'react-router-dom/server';
 import { QueryClient, QueryClientProvider, HydrationBoundary } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from './contexts/AuthContext';
