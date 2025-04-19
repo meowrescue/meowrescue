@@ -1,7 +1,7 @@
 
 [build]
   publish = "dist"
-  command = "bun run build"
+  command = "tsc --project tsconfig.server.json && vite build && node scripts/generate-sitemap.js"
 
 [build.environment]
   NODE_VERSION = "18.18.0"
