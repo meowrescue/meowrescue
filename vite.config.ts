@@ -2,7 +2,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
-import ssr from 'vite-plugin-ssr/plugin';
 
 export default defineConfig(({ mode }) => ({
   server: {
@@ -11,15 +10,6 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    ssr({
-      prerender: {
-        // Enable full prerendering for SSG
-        partial: false,
-        noExtraDir: true,
-        // Explicitly tell vite-plugin-ssr this is static generation only
-        disableAutoRun: false,
-      }
-    }),
   ],
   resolve: {
     alias: {
@@ -39,7 +29,9 @@ export default defineConfig(({ mode }) => ({
       },
     },
     rollupOptions: {
-      // We don't specify an HTML entry point as vite-plugin-ssr will handle this
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+      },
       output: {
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
@@ -63,15 +55,5 @@ export default defineConfig(({ mode }) => ({
         }
       },
     },
-  },
-  ssr: {
-    noExternal: [
-      // Libraries that need to be processed by Vite during SSG
-      '@radix-ui/*',
-      'lucide-react',
-      'class-variance-authority',
-      'clsx',
-      'tailwind-merge',
-    ]
   }
 }));
