@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Layout from '@/components/Layout';
@@ -12,32 +11,20 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { supabase } from '@/integrations/supabase/client';
 import SEO from '@/components/SEO';
 import { Calendar, ChevronRight, Clock, Search } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import SectionHeading from '@/components/ui/SectionHeading';
+import { fetchBlogPosts, BlogPost } from '@/services/blogService';
 
 const Blog: React.FC = () => {
   const navigate = useNavigate();
+  
+  // Use the blogService instead of inline supabase query
   const { data: posts, isLoading, isError } = useQuery({
     queryKey: ['blogPosts'],
-    queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .from('blog_posts')
-          .select('*')
-          .eq('is_published', true)
-          .order('is_featured', { ascending: false })
-          .order('published_at', { ascending: false });
-        
-        if (error) throw error;
-        return data || [];
-      } catch (error) {
-        console.error("Error fetching blog posts:", error);
-        return [];
-      }
-    },
+    queryFn: fetchBlogPosts,
+    // Keep these for client-side behavior
     retry: 2,
     retryDelay: 1000
   });
@@ -52,7 +39,7 @@ const Blog: React.FC = () => {
     "@type": "CollectionPage",
     "mainEntity": {
       "@type": "ItemList",
-      "itemListElement": posts ? posts.map((post: any, index: number) => ({
+      "itemListElement": posts ? posts.map((post: BlogPost, index: number) => ({
         "@type": "ListItem",
         "position": index + 1,
         "item": {
@@ -197,7 +184,7 @@ const Blog: React.FC = () => {
                   <div className="h-1 bg-meow-secondary w-20 mt-3"></div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {regularPosts.map((post: any) => (
+                  {regularPosts.map((post: BlogPost) => (
                     <Card 
                       key={post.id} 
                       className="h-full flex flex-col overflow-hidden bg-white border border-gray-100 rounded-xl shadow-sm transition-all hover:shadow-md hover:-translate-y-1 cursor-pointer"

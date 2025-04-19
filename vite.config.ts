@@ -2,6 +2,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
+import ssr from 'vite-plugin-ssr/plugin';
 
 export default defineConfig(({ mode }) => ({
   server: {
@@ -10,6 +11,15 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
+    ssr({
+      prerender: {
+        // Enable pre-rendering for static site generation
+        enabled: mode === 'production',
+        partial: true,
+        // Include dynamic routes that should be pre-rendered
+        noExtraDir: true,
+      }
+    }),
   ],
   resolve: {
     alias: {
@@ -33,7 +43,6 @@ export default defineConfig(({ mode }) => ({
         main: path.resolve(__dirname, 'index.html'),
       },
       output: {
-        // Use a function for manualChunks to avoid conflicts with external modules
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
             // Group by specific package categories
@@ -57,4 +66,14 @@ export default defineConfig(({ mode }) => ({
       },
     },
   },
+  ssr: {
+    noExternal: [
+      // Libraries that need to be processed by Vite during SSR
+      '@radix-ui/*',
+      'lucide-react',
+      'class-variance-authority',
+      'clsx',
+      'tailwind-merge',
+    ]
+  }
 }));
