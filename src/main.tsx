@@ -4,7 +4,7 @@ import App from './App';
 import { AuthProvider } from './contexts/AuthContext'; // Import the AuthProvider
 import { BrowserRouter } from 'react-router-dom';
 
-// Ensure AuthProvider is wrapping the entire app for both client-side and SSR
+// Create the App component inside a function
 const Main = () => (
   <AuthProvider>
     <BrowserRouter>
@@ -13,19 +13,19 @@ const Main = () => (
   </AuthProvider>
 );
 
+// Hydrate on client-side
 if (!import.meta.env.SSR) {
-  // Hydration for client-side
   const root = document.getElementById('root');
   if (root) {
     ReactDOM.hydrate(<Main />, root);
   }
-} else {
-  // SSR entry point
-  export const createApp = () => (
-    <AuthProvider>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </AuthProvider>
-  );
 }
+
+// SSR entry point without the export in the function itself
+export const createApp = () => (
+  <AuthProvider>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </AuthProvider>
+);
