@@ -1,4 +1,3 @@
-
 import { RouteObject } from 'react-router-dom';
 import ProtectedRoute from '../components/ProtectedRoute.js';
 import AdminDashboard from '../pages/AdminDashboard.js';
@@ -22,7 +21,7 @@ import AdminSuccessStories from '../pages/AdminSuccessStories.js';
 import AdminBusinessLicenses from '../pages/AdminBusinessLicenses.js';
 import AdminDirectMessages from '../pages/AdminDirectMessages.js';
 import AdminOrders from '../pages/AdminOrders.js';
-import AdminLayout from '../pages/Admin.tsx';
+import AdminLayout from '../pages/Admin';
 
 export const adminRoutes: RouteObject[] = [
   {

@@ -25,7 +25,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
         </Helmet>
         
         <div className="flex h-screen w-full">
-          <AdminSidebar isCollapsed={isCollapsed} toggleSidebar={toggleSidebar} />
+          <AdminSidebar />
           
           <div className={`flex-1 transition-all duration-300 ${isCollapsed ? 'pl-20' : 'pl-64'}`}>
             <AdminNavbar />
