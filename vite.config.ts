@@ -5,8 +5,9 @@ import path from 'path';
 import { Plugin } from 'vite';
 import fs from 'fs';
 import { resolve } from 'path';
+import { execSync } from 'child_process';
 
-// Define static paths directly in the config to avoid JSX imports
+// Define static paths directly in the config to avoid any imports
 const staticPaths = [
   '/',
   '/about',
@@ -31,37 +32,28 @@ const staticPaths = [
   '/404',
 ];
 
-// Simple SSG plugin that runs AFTER the build is complete
+// SSG plugin that uses prerender script after the build is complete
 function ssgPlugin(): Plugin {
   return {
     name: 'vite-plugin-ssg',
-    enforce: 'post',
     apply: 'build',
-    closeBundle: async () => {
-      try {
-        console.log('Generating static pages for routes:', staticPaths);
-        
-        // Read the built index.html after Vite has finished building it
-        const template = fs.readFileSync(resolve('dist/index.html'), 'utf-8');
-        
-        // Create a directory for each path and copy the index.html
-        for (const path of staticPaths) {
-          if (path === '/') continue; // Skip root as it's already generated
+    closeBundle: {
+      sequential: true, // Make sure this runs after the build is complete
+      order: 'post',    // Run after all other plugins
+      handler: async () => {
+        try {
+          console.log('Starting static pre-rendering for routes:', staticPaths);
           
-          const dirPath = resolve(`dist${path}`);
-          if (!fs.existsSync(dirPath)) {
-            fs.mkdirSync(dirPath, { recursive: true });
-          }
+          // Execute our prerender script as a separate process
+          execSync('node scripts/prerender.js', { stdio: 'inherit' });
           
-          fs.writeFileSync(resolve(`dist${path}/index.html`), template);
-          console.log(`Generated static page for: ${path}`);
+          console.log('Static site generation complete!');
+        } catch (error) {
+          console.error('Error during SSG:', error);
+          throw error; // Re-throw to make build fail if SSG fails
         }
-        
-        console.log('Static site generation complete!');
-      } catch (error) {
-        console.error('Error during SSG:', error);
-      }
-    },
+      },
+    }
   };
 }
 
@@ -81,12 +73,12 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    // Make sure we generate a separate JS bundle for each route
+    // Generate a separate JS bundle for each route
     rollupOptions: {
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': ['@radix-ui/react-tooltip', '@radix-ui/react-label'] // Fixed specific UI components instead of directory
+          'ui-vendor': ['@radix-ui/react-tooltip', '@radix-ui/react-label'] 
         }
       }
     }
