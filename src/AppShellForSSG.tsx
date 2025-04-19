@@ -2,7 +2,6 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
-import { TooltipProvider } from '@/components/ui/tooltip';
 
 // Import only the public routes that need SSG
 import Index from './pages/Index';
@@ -28,30 +27,28 @@ import TermsOfService from './pages/TermsOfService';
 
 const AppShellForSSG = () => (
   <HelmetProvider>
-    <TooltipProvider>
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/cats" element={<Cats />} />
-        <Route path="/adopt" element={<Adopt />} />
-        <Route path="/adopt/apply" element={<AdoptionForm />} />
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/blog/:slug" element={<BlogPost />} />
-        <Route path="/events" element={<Events />} />
-        <Route path="/events/:id" element={<EventDetail />} />
-        <Route path="/resources" element={<Resources />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/donate" element={<Donate />} />
-        <Route path="/volunteer" element={<Volunteer />} />
-        <Route path="/volunteer/apply" element={<VolunteerForm />} />
-        <Route path="/foster" element={<Foster />} />
-        <Route path="/foster/apply" element={<FosterForm />} />
-        <Route path="/lost-found" element={<LostFound />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        <Route path="/terms-of-service" element={<TermsOfService />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </TooltipProvider>
+    <Routes>
+      <Route path="/" element={<Index />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/cats" element={<Cats />} />
+      <Route path="/adopt" element={<Adopt />} />
+      <Route path="/adopt/apply" element={<AdoptionForm />} />
+      <Route path="/blog" element={<Blog />} />
+      <Route path="/blog/:slug" element={<BlogPost />} />
+      <Route path="/events" element={<Events />} />
+      <Route path="/events/:id" element={<EventDetail />} />
+      <Route path="/resources" element={<Resources />} />
+      <Route path="/contact" element={<Contact />} />
+      <Route path="/donate" element={<Donate />} />
+      <Route path="/volunteer" element={<Volunteer />} />
+      <Route path="/volunteer/apply" element={<VolunteerForm />} />
+      <Route path="/foster" element={<Foster />} />
+      <Route path="/foster/apply" element={<FosterForm />} />
+      <Route path="/lost-found" element={<LostFound />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/terms-of-service" element={<TermsOfService />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   </HelmetProvider>
 );
 

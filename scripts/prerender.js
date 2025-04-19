@@ -8,7 +8,6 @@ import { renderToString } from 'react-dom/server';
 import { StaticRouter } from 'react-router-dom/server.js';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
-import { TooltipProvider } from '../src/components/ui/tooltip';
 import AppShellForSSG from '../src/AppShellForSSG';
 
 // Convert ESM __dirname equivalent
@@ -88,11 +87,7 @@ async function prerender() {
             React.createElement(
               HelmetProvider,
               {},
-              React.createElement(
-                TooltipProvider,
-                {},
-                React.createElement(AppShellForSSG)
-              )
+              React.createElement(AppShellForSSG)
             )
           )
         )
