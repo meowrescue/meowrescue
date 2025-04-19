@@ -5,7 +5,7 @@ import App from './App'
 import './index.css'
 import { ViteReactSSG } from 'vite-react-ssg'
 import routes from './routes'
-import About from './pages/About';
+import About from './pages/About'
 
 /**
  * ───────────────────────────────────────────────
