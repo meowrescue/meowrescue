@@ -5,16 +5,17 @@ import App from './App'
 import './index.css'
 import { ViteReactSSG } from 'vite-react-ssg'
 import routes from './routes'
+
 /**
  * ───────────────────────────────────────────────
- * Normal client‑side hydration
+ * Normal client‑side hydration (skipped during SSG build)
  * ───────────────────────────────────────────────
  */
-if (import.meta.env.MODE !== 'ssg') {
+if (!import.meta.env.SSR) {
   reactCreateRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <App />
-    </BrowserRouter>,
+    </BrowserRouter>
   )
 }
 
@@ -28,6 +29,7 @@ export const createApp = () => (
     <App />
   </BrowserRouter>
 )
+
 export const createRoot = ViteReactSSG(
   { routes },                          // pre‑render every route in this tree
   () => {
