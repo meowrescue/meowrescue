@@ -9,5 +9,4 @@ export interface AppUser extends SupabaseUser {
   role?: string;
   unread_chat_count?: number;
   unread_message_count?: number;
-  created_at?: string;
 }
