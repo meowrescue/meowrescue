@@ -1,8 +1,9 @@
+// vite.config.ts
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
-import viteReactSSG from 'vite-react-ssg'          // ✅ default export
+import { viteReactSSG } from 'vite-react-ssg'   // ←  named export
 
-// All public pages you want pre‑rendered
+// Routes you want prerendered (add / remove as needed)
 const routes = [
   '/', '/about', '/cats', '/adopt', '/donate', '/volunteer', '/foster',
   '/blog', '/events', '/resources',
@@ -13,8 +14,6 @@ const routes = [
 export default defineConfig({
   plugins: [
     react(),
-
-    // Static‑site generation
     viteReactSSG({
       includedRoutes: routes,
       script: 'async',
