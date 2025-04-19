@@ -2,7 +2,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-import { QueryClient, QueryClientProvider, Hydrate } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, HydrationBoundary } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from './contexts/AuthContext';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -41,7 +41,7 @@ const mountApp = () => {
     <React.StrictMode>
       <BrowserRouter>
         <QueryClientProvider client={queryClient}>
-          <Hydrate state={dehydratedState}>
+          <HydrationBoundary state={dehydratedState}>
             <HelmetProvider>
               <TooltipProvider>
                 <Toaster />
@@ -51,7 +51,7 @@ const mountApp = () => {
                 </AuthProvider>
               </TooltipProvider>
             </HelmetProvider>
-          </Hydrate>
+          </HydrationBoundary>
         </QueryClientProvider>
       </BrowserRouter>
     </React.StrictMode>

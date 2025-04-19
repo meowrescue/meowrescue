@@ -12,13 +12,11 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     ssr({
-      prerender: {
-        // Enable pre-rendering for static site generation
-        enabled: mode === 'production',
+      prerender: mode === 'production' ? {
         partial: true,
         // Include dynamic routes that should be pre-rendered
         noExtraDir: true,
-      }
+      } : false,
     }),
   ],
   resolve: {
