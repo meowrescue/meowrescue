@@ -11,8 +11,8 @@ import { Toaster as Sonner } from '@/components/ui/sonner';
 import App from './App';
 import './index.css';
 
-// Get any dehydrated state transmitted from the server
-const dehydratedState = window.__REACT_QUERY_STATE__;
+// Get any preloaded state from server-side rendering
+const preloadedState = window.__PRELOADED_STATE__ || {};
 
 // Create a client
 const queryClient = new QueryClient({
@@ -22,9 +22,27 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       staleTime: 60 * 1000,
       gcTime: 5 * 60 * 1000,
+      initialData: () => {
+        // Find matching query from preloaded state
+        const queryCache = preloadedState.find?.(cache => 
+          Array.isArray(cache.queryKey) && 
+          cache.queryKey[0] === 'blogPosts'
+        );
+        return queryCache?.state?.data;
+      }
     },
   },
 });
+
+// Hydrate any queries that were prefetched
+if (preloadedState && Array.isArray(preloadedState)) {
+  queryClient.setQueriesData(
+    preloadedState.map(cache => ({
+      queryKey: cache.queryKey,
+      data: cache.state.data
+    }))
+  );
+}
 
 // Mount the app to the DOM
 const mountApp = () => {
@@ -34,14 +52,14 @@ const mountApp = () => {
     return;
   }
   
-  // Create root and render - explicit client-side hydration
+  // Create root and hydrate - for client-side interaction after SSG
   const root = ReactDOM.createRoot(rootElement);
   
   root.render(
     <React.StrictMode>
       <BrowserRouter>
         <QueryClientProvider client={queryClient}>
-          <HydrationBoundary state={dehydratedState}>
+          <HydrationBoundary state={preloadedState}>
             <HelmetProvider>
               <TooltipProvider>
                 <Toaster />
@@ -58,10 +76,10 @@ const mountApp = () => {
   );
 };
 
-// Declare the global React Query state type
+// Declare the global preloaded state type
 declare global {
   interface Window {
-    __REACT_QUERY_STATE__?: any;
+    __PRELOADED_STATE__?: any;
   }
 }
 

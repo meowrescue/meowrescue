@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -6,46 +5,33 @@ import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { supabase } from '@/integrations/supabase/client';
+import { fetchBlogPostBySlug, BlogPost } from '@/services/blogService';
 import SEO from '@/components/SEO';
 import { Calendar, ArrowLeft, Share2, Clock, ChevronLeft, ChevronRight, Facebook, Twitter, Linkedin, Mail } from 'lucide-react';
 import NotFound from './NotFound';
 
-const BlogPost: React.FC = () => {
+const BlogPostPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [relatedPosts, setRelatedPosts] = useState<any[]>([]);
   
   const { data: post, isLoading, error } = useQuery({
     queryKey: ['blogPost', slug],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .eq('slug', slug)
-        .eq('is_published', true)
-        .single();
-      
-      if (error) {
-        if (error.code === 'PGRST116') {
-          return null; // Not found
-        }
-        throw error;
-      }
-      return data;
-    }
+    queryFn: () => fetchBlogPostBySlug(slug || ''),
+    staleTime: Infinity, // For SSG
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
-  // Fetch related posts when current post loads
+  // For SSG, we'll hydrate related posts from prefetched data when possible
   useEffect(() => {
     const fetchRelatedPosts = async () => {
       if (post) {
-        const { data } = await supabase
-          .from('blog_posts')
-          .select('*')
-          .eq('is_published', true)
-          .neq('id', post.id)
-          .limit(3);
+        // In a real SSG implementation, this would be prefetched during build
+        // For this implementation we'll keep it as is
+        const { data } = await fetch(`/api/related-posts/${post.id}`)
+          .then(res => res.json())
+          .catch(() => ({ data: [] }));
         
         setRelatedPosts(data || []);
       }
@@ -389,4 +375,4 @@ const BlogPost: React.FC = () => {
   );
 };
 
-export default BlogPost;
+export default BlogPostPage;

@@ -20,13 +20,14 @@ import { fetchBlogPosts, BlogPost } from '@/services/blogService';
 const Blog: React.FC = () => {
   const navigate = useNavigate();
   
-  // Use the blogService instead of inline supabase query
+  // Use the blogService but with SSG-friendly options
   const { data: posts, isLoading, isError } = useQuery({
     queryKey: ['blogPosts'],
     queryFn: fetchBlogPosts,
-    // Keep these for client-side behavior
-    retry: 2,
-    retryDelay: 1000
+    // These options help with SSG
+    staleTime: Infinity, // Never consider data stale during client session
+    refetchOnMount: false, // Don't refetch when component mounts
+    refetchOnWindowFocus: false, // Don't refetch when window focuses
   });
 
   const handleCardClick = (slug: string) => {
