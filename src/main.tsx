@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client'; // Import for React 18+
 import App from './App';
 import { AuthProvider } from './contexts/AuthContext'; // Import the AuthProvider
 import { BrowserRouter } from 'react-router-dom';
@@ -15,13 +15,15 @@ const Main = () => (
 
 // Hydrate on client-side
 if (!import.meta.env.SSR) {
-  const root = document.getElementById('root');
-  if (root) {
-    ReactDOM.hydrate(<Main />, root);
+  const rootElement = document.getElementById('root');
+  if (rootElement) {
+    // For React 18+ use createRoot instead of hydrate
+    const root = ReactDOM.createRoot(rootElement);
+    root.render(<Main />); // Using createRoot for client-side rendering
   }
 }
 
-// SSR entry point without the export in the function itself
+// SSR entry point for server-side rendering
 export const createApp = () => (
   <AuthProvider>
     <BrowserRouter>
