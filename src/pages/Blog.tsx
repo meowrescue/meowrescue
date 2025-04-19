@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Layout from '@/components/Layout';
@@ -11,10 +12,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import SEO from '@/components/SEO';
+import SEO from '@/components/SEO.tsx';
 import { Calendar, ChevronRight, Clock, Search } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import SectionHeading from '@/components/ui/SectionHeading';
+import SectionHeading from '@/components/ui/SectionHeading.tsx';
 import { fetchBlogPosts, BlogPost } from '@/services/blogService';
 
 const Blog: React.FC = () => {
