@@ -2,10 +2,9 @@
 export interface Event {
   id: string;
   title: string;
-  description: string;
   date: string;
+  time: string;
   location: string;
-  imageUrl: string;
-  created_at?: string;
-  updated_at?: string;
+  description: string;
+  imageUrl?: string;
 }

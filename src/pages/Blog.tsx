@@ -12,23 +12,34 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { AspectRatio } from '@/components/ui/aspect-ratio';
+import { supabase } from '@/integrations/supabase/client';
 import SEO from '@/components/SEO';
 import { Calendar, ChevronRight, Clock, Search } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import SectionHeading from '@/components/ui/SectionHeading';
-import { fetchBlogPosts, BlogPost } from '@/services/blogService';
 
 const Blog: React.FC = () => {
   const navigate = useNavigate();
-  
-  // Use the blogService but with SSG-friendly options
   const { data: posts, isLoading, isError } = useQuery({
     queryKey: ['blogPosts'],
-    queryFn: fetchBlogPosts,
-    // These options help with SSG
-    staleTime: Infinity, // Never consider data stale during client session
-    refetchOnMount: false, // Don't refetch when component mounts
-    refetchOnWindowFocus: false, // Don't refetch when window focuses
+    queryFn: async () => {
+      try {
+        const { data, error } = await supabase
+          .from('blog_posts')
+          .select('*')
+          .eq('is_published', true)
+          .order('is_featured', { ascending: false })
+          .order('published_at', { ascending: false });
+        
+        if (error) throw error;
+        return data || [];
+      } catch (error) {
+        console.error("Error fetching blog posts:", error);
+        return [];
+      }
+    },
+    retry: 2,
+    retryDelay: 1000
   });
 
   const handleCardClick = (slug: string) => {
@@ -41,7 +52,7 @@ const Blog: React.FC = () => {
     "@type": "CollectionPage",
     "mainEntity": {
       "@type": "ItemList",
-      "itemListElement": posts ? posts.map((post: BlogPost, index: number) => ({
+      "itemListElement": posts ? posts.map((post: any, index: number) => ({
         "@type": "ListItem",
         "position": index + 1,
         "item": {
@@ -80,7 +91,7 @@ const Blog: React.FC = () => {
       <SEO 
         title="Blog | Meow Rescue" 
         description="Read the latest news, updates, and stories from Meow Rescue - a home-based cat rescue in Pasco County, Florida." 
-        ogType="blog"
+        type="blog"
         canonicalUrl="/blog"
         structuredData={blogListStructuredData}
         keywords="cat rescue blog, cat adoption stories, rescue cats, feline care, cat foster stories, meow rescue"
@@ -186,7 +197,7 @@ const Blog: React.FC = () => {
                   <div className="h-1 bg-meow-secondary w-20 mt-3"></div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {regularPosts.map((post: BlogPost) => (
+                  {regularPosts.map((post: any) => (
                     <Card 
                       key={post.id} 
                       className="h-full flex flex-col overflow-hidden bg-white border border-gray-100 rounded-xl shadow-sm transition-all hover:shadow-md hover:-translate-y-1 cursor-pointer"

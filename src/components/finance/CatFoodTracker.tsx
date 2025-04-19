@@ -1,12 +1,13 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card.js';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table.js';
-import { Button } from '../ui/button.js';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { Package, AlertCircle } from 'lucide-react';
-import { supabase } from '../../integrations/supabase/client.js';
-import { CatFood } from '../../types/finance.js';
+import { supabase } from '@/integrations/supabase/client';
+import { CatFood } from '@/types/finance';
 
 interface CatFoodTrackerProps {
   isAdmin?: boolean;

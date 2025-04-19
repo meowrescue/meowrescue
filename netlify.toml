@@ -1,39 +1,28 @@
+
 [build]
   publish = "dist"
-  command = "tsc --project tsconfig.server.json && vite build && node scripts/generate-sitemap.js"
+  command = "npm run build"
 
 [build.environment]
   NODE_VERSION = "18.18.0"
-  NPM_VERSION  = "9.8.1"
-
-# ---------- Routing ----------
-
-# Admin area – fall back to client‑side SPA behaviour
+  NPM_VERSION = "9.8.1"
+  
 [[redirects]]
-  from   = "/admin/*"
-  to     = "/index.html"
+  from = "/*"
+  to = "/index.html"
   status = 200
-  force  = false
-
-# All other routes – first try the pre‑rendered HTML Vite‑SSG produced
-[[redirects]]
-  from   = "/*"
-  to     = "/:splat/index.html"
-  status = 200
-  force  = false
-
-# ---------- Security / caching headers ----------
+  force = false
 
 [[headers]]
   for = "/*"
   [headers.values]
-    X-Frame-Options        = "DENY"
-    X-XSS-Protection       = "1; mode=block"
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
-    Referrer-Policy        = "strict-origin-when-cross-origin"
-    Permissions-Policy     = "camera=(), microphone=(), geolocation=()"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
     Content-Security-Policy = "upgrade-insecure-requests"
-    Cache-Control           = "public, max-age=31536000"
+    Cache-Control = "public, max-age=31536000"
 
 [[headers]]
   for = "/*.html"

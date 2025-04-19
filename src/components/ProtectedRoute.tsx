@@ -14,7 +14,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children, 
   requireAdmin = false 
 }) => {
-  const { user, session, isLoading } = useAuth();
+  const { user, session, loading } = useAuth();
   const { toast } = useToast();
   const [showLoader, setShowLoader] = useState(true);
   const [connectionChecked, setConnectionChecked] = useState(false);
@@ -52,11 +52,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Add a slight delay before showing the loading spinner to prevent flashing
   useEffect(() => {
     const timer = setTimeout(() => {
-      setShowLoader(isLoading);
+      setShowLoader(loading);
     }, 200);
     
     return () => clearTimeout(timer);
-  }, [isLoading]);
+  }, [loading]);
   
   // If still loading, show loading indicator
   if (showLoader || !connectionChecked) {

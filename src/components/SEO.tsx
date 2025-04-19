@@ -3,76 +3,96 @@ import React from 'react';
 import { Helmet } from 'react-helmet-async';
 
 interface SEOProps {
-  title?: string;
+  title: string;
   description?: string;
   keywords?: string;
-  ogImage?: string;
-  ogType?: string;
-  ogUrl?: string;
-  twitterCard?: string;
-  // Add missing properties
-  type?: string;
   image?: string;
-  canonicalUrl?: string;
+  url?: string;
+  type?: string;
   publishedTime?: string;
   modifiedTime?: string;
-  structuredData?: any; // Using any for flexibility with structured data objects
+  canonicalUrl?: string;
+  children?: React.ReactNode;
+  structuredData?: Record<string, any> | Record<string, any>[];
+  noindex?: boolean;
 }
 
 const SEO: React.FC<SEOProps> = ({
-  title = 'Meow Rescue | Cat Rescue and Adoption',
-  description = 'Meow Rescue is dedicated to rescuing, rehabilitating, and finding forever homes for cats in need throughout Pasco County, Florida.',
-  keywords = 'cat rescue, cat adoption, pet adoption, animal shelter, Florida, Pasco County',
-  ogImage = '/images/og-image.jpg',
-  ogType = 'website',
-  ogUrl = 'https://meowrescue.org',
-  twitterCard = 'summary_large_image',
+  title,
+  description,
+  keywords,
   image,
-  canonicalUrl,
+  url,
+  type = 'website',
   publishedTime,
   modifiedTime,
+  canonicalUrl,
   structuredData,
-  type,
+  noindex = false,
+  children
 }) => {
-  const siteTitle = title.includes('Meow Rescue') ? title : `${title} | Meow Rescue`;
+  const siteUrl = 'https://meowrescue.org';
+  const defaultImage = `${siteUrl}/images/meow-rescue-logo.jpg`;
+  const fullCanonicalUrl = canonicalUrl ? (canonicalUrl.startsWith('http') ? canonicalUrl : `${siteUrl}${canonicalUrl}`) : url;
   
-  // Use image prop if provided, otherwise fall back to ogImage
-  const finalImage = image || ogImage;
-  // Use canonicalUrl if provided, otherwise fall back to ogUrl
-  const finalUrl = canonicalUrl ? `https://meowrescue.org${canonicalUrl}` : ogUrl;
+  // Convert single structuredData to array if it's not already
+  const structuredDataArray = structuredData 
+    ? Array.isArray(structuredData) 
+      ? structuredData 
+      : [structuredData] 
+    : [];
   
   return (
     <Helmet>
-      <title>{siteTitle}</title>
-      <meta name="description" content={description} />
-      <meta name="keywords" content={keywords} />
+      {/* Basic Meta Tags */}
+      <title>{title}</title>
+      {description && <meta name="description" content={description} />}
+      {keywords && <meta name="keywords" content={keywords} />}
+      
+      {/* Prevent indexing if specified */}
+      {noindex && <meta name="robots" content="noindex,nofollow" />}
       
       {/* Canonical URL */}
-      {canonicalUrl && <link rel="canonical" href={finalUrl} />}
+      {fullCanonicalUrl && <link rel="canonical" href={fullCanonicalUrl} />}
       
-      {/* Open Graph */}
-      <meta property="og:title" content={siteTitle} />
-      <meta property="og:description" content={description} />
-      <meta property="og:image" content={finalImage} />
-      <meta property="og:type" content={type || ogType} />
-      <meta property="og:url" content={finalUrl} />
+      {/* Open Graph Meta Tags */}
+      <meta property="og:title" content={title} />
+      {description && <meta property="og:description" content={description} />}
+      <meta property="og:type" content={type} />
+      <meta property="og:image" content={image || defaultImage} />
+      <meta property="og:url" content={url || siteUrl} />
+      <meta property="og:site_name" content="Meow Rescue" />
       
-      {/* Article specific Open Graph tags */}
-      {publishedTime && <meta property="article:published_time" content={publishedTime} />}
-      {modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
+      {/* Twitter Card Meta Tags */}
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content={title} />
+      {description && <meta name="twitter:description" content={description} />}
+      <meta name="twitter:image" content={image || defaultImage} />
       
-      {/* Twitter */}
-      <meta name="twitter:card" content={twitterCard} />
-      <meta name="twitter:title" content={siteTitle} />
-      <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={finalImage} />
-      
-      {/* Structured data */}
-      {structuredData && (
-        <script type="application/ld+json">
-          {JSON.stringify(structuredData)}
-        </script>
+      {/* Article-specific Meta Tags */}
+      {type === 'article' && publishedTime && (
+        <meta property="article:published_time" content={publishedTime} />
       )}
+      {type === 'article' && modifiedTime && (
+        <meta property="article:modified_time" content={modifiedTime} />
+      )}
+      
+      {/* Content Freshness for SEO */}
+      {modifiedTime && <meta name="last-modified" content={modifiedTime} />}
+      
+      {/* Structured Data JSON-LD */}
+      {structuredDataArray.map((data, index) => (
+        <script key={index} type="application/ld+json">
+          {JSON.stringify(data)}
+        </script>
+      ))}
+      
+      {/* Preconnect to important domains */}
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      <link rel="preconnect" href="https://images.unsplash.com" />
+      
+      {children}
     </Helmet>
   );
 };

@@ -1,13 +1,13 @@
 
 import React, { ReactNode, useEffect, lazy, Suspense } from 'react';
 import { useLocation } from 'react-router-dom';
-import Navbar from './Navbar.js';
-import Footer from './Footer.js';
-import { BusinessHoursProvider } from './BusinessHoursProvider.js';
-import { scrollToTop } from '../utils/scrollUtils.js';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import { BusinessHoursProvider } from '@/components/BusinessHoursProvider';
+import { scrollToTop } from '@/utils/scrollUtils';
 
 // Lazy load the ChatWidget component as it's not needed immediately
-const ChatWidget = lazy(() => import('./ChatWidget.js'));
+const ChatWidget = lazy(() => import('@/components/ChatWidget'));
 
 interface LayoutProps {
   children: ReactNode;

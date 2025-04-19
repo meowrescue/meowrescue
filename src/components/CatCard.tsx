@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Badge } from "./ui/badge.js";
+import { Badge } from "@/components/ui/badge";
 
 interface CatCardProps {
   id: string;
@@ -13,8 +13,8 @@ interface CatCardProps {
   status: 'Available' | 'Pending' | 'Adopted';
 }
 
-const statusColors: Record<'Available' | 'Pending' | 'Adopted', string> = {
-  Available: 'bg-green-100 text-green-800',
+const statusColors = {
+  Available: 'bg-green-100 text-green-800', // Changed from orange to green
   Pending: 'bg-yellow-100 text-yellow-800',
   Adopted: 'bg-blue-100 text-blue-800'
 };

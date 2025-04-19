@@ -1,7 +1,8 @@
+
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
 import SectionHeading from './ui/SectionHeading';
+import { Button } from "@/components/ui/button";
+import { Link } from 'react-router-dom';
 
 const MissionSection: React.FC = () => {
   return (
