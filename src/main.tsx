@@ -1,36 +1,11 @@
 import React from 'react';
-import { BrowserRouter } from 'react-router-dom';
-import { createRoot } from 'react-dom/client';
+import ReactDOM from 'react-dom';
 import App from './App';
-import './index.css';
-import { ViteReactSSG } from 'vite-react-ssg';
-import routes from './routes';
-import { AuthProvider } from './contexts/AuthContext';  // Import the AuthProvider
+import { AuthProvider } from './contexts/AuthContext'; // Import the AuthProvider
+import { BrowserRouter } from 'react-router-dom';
 
-/**
- * ───────────────────────────────────────────────
- * Normal client‑side hydration (skipped during SSG build)
- * ───────────────────────────────────────────────
- */
-if (!import.meta.env.SSR) {
-  const root = document.getElementById('root');
-  if (root) {
-    createRoot(root).render(
-      <AuthProvider>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
-      </AuthProvider>
-    );
-  }
-}
-
-/**
- * ───────────────────────────────────────────────
- * Entry that vite‑react‑ssg calls for each route
- * ───────────────────────────────────────────────
- */
-export const createApp = () => (
+// Ensure AuthProvider is wrapping the entire app for both client-side and SSR
+const Main = () => (
   <AuthProvider>
     <BrowserRouter>
       <App />
@@ -38,7 +13,19 @@ export const createApp = () => (
   </AuthProvider>
 );
 
-export const createRoot = ViteReactSSG(
-  { routes },
-  () => {}
-);
+if (!import.meta.env.SSR) {
+  // Hydration for client-side
+  const root = document.getElementById('root');
+  if (root) {
+    ReactDOM.hydrate(<Main />, root);
+  }
+} else {
+  // SSR entry point
+  export const createApp = () => (
+    <AuthProvider>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </AuthProvider>
+  );
+}
