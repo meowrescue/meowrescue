@@ -17,9 +17,8 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": false,
-    "jsx": "react-jsx",
-    "outDir": "./dist/server"
+    "noEmit": true,
+    "jsx": "react-jsx"
   },
   "include": ["src/**/*", "scripts/**/*"],
   "exclude": ["node_modules", "dist", "src/routes.js"]
