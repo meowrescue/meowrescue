@@ -11,7 +11,7 @@ export { getStaticPaths };
 
 export const passToClient = ['pageProps', 'urlPathname', 'queryState'];
 
-// onBeforeRender function for server-side rendering
+// This is used for static site generation
 export async function onBeforeRender(pageContext) {
   // Get rendered content from our render function
   const { html, helmet, dehydratedState } = pageContext.exports.render ? 
@@ -35,7 +35,7 @@ export async function onBeforeRender(pageContext) {
   };
 }
 
-// This function is used to render the page's HTML
+// This function is used to render the page's HTML for static generation
 export function render(pageContext) {
   const { renderedHtml, documentProps = {}, queryState } = pageContext;
   

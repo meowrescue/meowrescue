@@ -12,10 +12,13 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     ssr({
-      prerender: mode === 'production' ? {
-        partial: true,
+      prerender: {
+        // Enable full prerendering for SSG
+        partial: false,
         noExtraDir: true,
-      } : false,
+        // Explicitly tell vite-plugin-ssr this is static generation only
+        disableAutoRun: false,
+      }
     }),
   ],
   resolve: {
@@ -36,10 +39,7 @@ export default defineConfig(({ mode }) => ({
       },
     },
     rollupOptions: {
-      // Remove the HTML entry point that's causing the error
-      // input: {
-      //   main: path.resolve(__dirname, 'index.html'),
-      // },
+      // We don't specify an HTML entry point as vite-plugin-ssr will handle this
       output: {
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
@@ -66,7 +66,7 @@ export default defineConfig(({ mode }) => ({
   },
   ssr: {
     noExternal: [
-      // Libraries that need to be processed by Vite during SSR
+      // Libraries that need to be processed by Vite during SSG
       '@radix-ui/*',
       'lucide-react',
       'class-variance-authority',

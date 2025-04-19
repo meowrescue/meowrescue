@@ -7,11 +7,8 @@
   NODE_VERSION = "18.18.0"
   NPM_VERSION = "9.8.1"
   
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-  force = false
+# Removed the redirect to index.html since we're using static rendering now
+# Each route has its own index.html file generated during build
 
 [[headers]]
   for = "/*"

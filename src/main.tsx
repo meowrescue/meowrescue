@@ -34,7 +34,7 @@ const mountApp = () => {
     return;
   }
   
-  // Create root and render - explicit client-side rendering
+  // Create root and render - explicit client-side hydration
   const root = ReactDOM.createRoot(rootElement);
   
   root.render(
