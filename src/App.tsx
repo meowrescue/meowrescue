@@ -20,7 +20,7 @@ import AdminSettings from "./pages/AdminSettings.js";
 import AdminSecurity from "./pages/AdminSecurity.js";
 
 /* UI providers / feedback */
-import { Toaster } from "@/components/ui/toaster"; 
+import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
