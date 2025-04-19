@@ -29,6 +29,9 @@ export default defineConfig(({ mode }) => ({
       },
     },
     rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+      },
       output: {
         // Use a function for manualChunks to avoid conflicts with external modules
         manualChunks: (id) => {
