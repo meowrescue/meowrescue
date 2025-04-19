@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -82,6 +83,11 @@ const AdminBlogForm: React.FC = () => {
         if (error) throw error;
 
         if (data) {
+          // Convert keywords array to string for the form
+          const keywordsString = Array.isArray(data.keywords) 
+            ? data.keywords.join(', ')
+            : data.keywords || '';
+
           form.reset({
             title: data.title,
             slug: data.slug,
@@ -89,7 +95,7 @@ const AdminBlogForm: React.FC = () => {
             featured_image_url: data.featured_image_url || '',
             is_published: data.is_published,
             meta_description: data.meta_description || '',
-            keywords: data.keywords || '',
+            keywords: keywordsString,
             canonical_url: data.canonical_url || '',
             is_featured: data.is_featured,
           });
@@ -174,6 +180,11 @@ const AdminBlogForm: React.FC = () => {
 
       const now = new Date().toISOString();
 
+      // Convert keywords string to array for database
+      const keywordsArray = values.keywords
+        ? values.keywords.split(',').map(keyword => keyword.trim()).filter(Boolean)
+        : null;
+
       // Before inserting/updating, unset any existing featured post if this one is being set as featured
       if (values.is_featured) {
         await supabase
@@ -193,7 +204,7 @@ const AdminBlogForm: React.FC = () => {
         author_profile_id: user?.id,
         updated_at: now,
         meta_description: values.meta_description,
-        keywords: values.keywords,
+        keywords: keywordsArray,
         canonical_url: values.canonical_url,
         is_featured: values.is_featured,
       };
