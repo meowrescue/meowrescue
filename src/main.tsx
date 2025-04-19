@@ -22,14 +22,6 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       staleTime: 60 * 1000,
       gcTime: 5 * 60 * 1000,
-      initialData: () => {
-        // Find matching query from preloaded state
-        const queryCache = preloadedState.find?.(cache => 
-          Array.isArray(cache.queryKey) && 
-          cache.queryKey[0] === 'blogPosts'
-        );
-        return queryCache?.state?.data;
-      }
     },
   },
 });

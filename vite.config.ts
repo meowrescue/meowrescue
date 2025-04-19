@@ -2,7 +2,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
-import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig(({ mode }) => ({
   server: {
@@ -11,18 +10,6 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    viteStaticCopy({
-      targets: [
-        {
-          src: 'public/robots.txt',
-          dest: ''
-        },
-        {
-          src: 'public/sitemap.xml',
-          dest: ''
-        }
-      ]
-    })
   ],
   resolve: {
     alias: {
@@ -32,8 +19,7 @@ export default defineConfig(({ mode }) => ({
   build: {
     outDir: 'dist',
     sourcemap: true,
-    assetsInlineLimit: 4096,
-    cssCodeSplit: true,
+    emptyOutDir: true,
     minify: 'terser',
     terserOptions: {
       compress: {

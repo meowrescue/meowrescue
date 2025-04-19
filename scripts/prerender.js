@@ -7,10 +7,8 @@ import React from 'react';
 import { StaticRouter } from 'react-router-dom/server';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
-import { routes } from '../src/routes.js';
-import App from '../src/App';
-import { fetchBlogPosts } from '../src/services/blogService';
-import { supabase } from '../src/integrations/supabase/client';
+import App from '../src/App.js';
+import { fetchBlogPosts } from '../src/services/blogService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
