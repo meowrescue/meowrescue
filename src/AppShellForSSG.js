@@ -1,4 +1,5 @@
 // src/AppShellForSSG.tsx
+import React from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import { Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage';
