@@ -1,12 +1,13 @@
+// vite.config.ts
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
+import path from 'path'
 
-// 👇  NO import from “vite‑react‑ssg” here.
-// The SSG CLI wraps Vite for the build – the config stays 100 % normal.
 export default defineConfig({
   plugins: [react()],
-  build: {
-    outDir: 'dist',
-    sourcemap: true
-  }
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'src'),   //  <-- makes @/… work at build time
+    },
+  },
 })
