@@ -1,3 +1,4 @@
+
 {
   "compilerOptions": {
     "target": "ESNext",
@@ -16,10 +17,12 @@
     "noEmit": false,
     "outDir": "./dist/server",
     "jsx": "react-jsx",
+    "declaration": true,
+    "declarationDir": "./dist/types",
     "paths": {
       "@/*": ["./src/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.js", "src/**/*.jsx", "scripts/**/*.ts", "scripts/**/*.js"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "exclude": ["node_modules"]
 }
