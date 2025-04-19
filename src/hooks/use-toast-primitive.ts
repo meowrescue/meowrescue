@@ -10,6 +10,7 @@ type ToasterToast = {
   description?: React.ReactNode;
   action?: React.ReactNode;
   variant?: "default" | "destructive";
+  open?: boolean; // Add the open property to fix the type error
 };
 
 const actionTypes = {
@@ -87,13 +88,9 @@ export const reducer = (state: State, action: Action): State => {
 
     case "DISMISS_TOAST": {
       const { toastId } = action;
-
-      // ! Side effects ! - This could be extracted into a dismissToast() action,
-      // but I'll keep it here for simplicity
       if (toastId) {
         addToRemoveQueue(toastId);
       }
-
       return {
         ...state,
         toasts: state.toasts.map((t) =>
