@@ -26,7 +26,7 @@
     "emitDeclarationOnly": false,
     "composite": true,
     "sourceMap": true,
-    "declarationMap": true  // Add this for better debugging
+    "declarationMap": true
   },
   "include": [
     "src/**/*.ts", 

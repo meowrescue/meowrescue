@@ -1,6 +1,7 @@
+
 [build]
   publish = "dist"
-  command = "npm run build:ssg"
+  command = "bun run build"
 
 [build.environment]
   NODE_VERSION = "18.18.0"
