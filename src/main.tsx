@@ -45,9 +45,7 @@ const mountApp = () => {
   }
   
   // Create root with correct arguments
-  const root = ReactDOM.createRoot(rootElement, {
-    // Optional: Add any root configuration if needed
-  });
+  const root = ReactDOM.createRoot(rootElement);
   
   root.render(
     <React.StrictMode>
