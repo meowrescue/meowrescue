@@ -21,8 +21,9 @@
     "declarationDir": "./dist/types",
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "rootDir": "./"
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.js", "src/**/*.jsx", "scripts/**/*.ts", "scripts/**/*.js"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "dist"]
 }
