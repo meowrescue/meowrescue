@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../integrations/supabase/client';
+import { Session } from '@supabase/supabase-js';
 import { AppUser } from '../types/auth';
 
 // Define the shape of the AuthContext
