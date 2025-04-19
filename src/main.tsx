@@ -14,7 +14,7 @@ const Main = () => (
 );
 
 // Client-side rendering
-if (!import.meta.env.SSR) {
+if (typeof window !== "undefined" && !import.meta.env.SSR) {
   const root = document.getElementById('root');
   if (root) {
     const rootElement = ReactDOM.createRoot(root); // Ensure this is only called on the client
