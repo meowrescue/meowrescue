@@ -22,98 +22,99 @@ import AdminSuccessStories from '../pages/AdminSuccessStories.js';
 import AdminBusinessLicenses from '../pages/AdminBusinessLicenses.js';
 import AdminDirectMessages from '../pages/AdminDirectMessages.js';
 import AdminOrders from '../pages/AdminOrders.js';
+import AdminLayout from '../pages/Admin.tsx';
 
 export const adminRoutes: RouteObject[] = [
   {
     path: '/admin',
-    element: <ProtectedRoute requireAdmin={true}><AdminDashboard /></ProtectedRoute>
+    element: <ProtectedRoute requireAdmin={true}><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>
   },
   {
     path: '/admin/cats',
-    element: <ProtectedRoute requireAdmin={true}><AdminCats /></ProtectedRoute>
+    element: <ProtectedRoute requireAdmin={true}><AdminLayout title="Cats"><AdminCats /></AdminLayout></ProtectedRoute>
   },
   {
     path: '/admin/cats/new',
-    element: <ProtectedRoute requireAdmin={true}><AdminCatForm /></ProtectedRoute>
+    element: <ProtectedRoute requireAdmin={true}><AdminLayout title="New Cat"><AdminCatForm /></AdminLayout></ProtectedRoute>
   },
   {
     path: '/admin/cats/edit/:id',
-    element: <ProtectedRoute requireAdmin={true}><AdminCatForm /></ProtectedRoute>
+    element: <ProtectedRoute requireAdmin={true}><AdminLayout title="Edit Cat"><AdminCatForm /></AdminLayout></ProtectedRoute>
   },
   {
     path: '/admin/users',
-    element: <ProtectedRoute requireAdmin={true}><AdminUsers /></ProtectedRoute>
+    element: <ProtectedRoute requireAdmin={true}><AdminLayout title="Users"><AdminUsers /></AdminLayout></ProtectedRoute>
   },
   {
     path: '/admin/finance',
-    element: <ProtectedRoute requireAdmin={true}><AdminFinance /></ProtectedRoute>
+    element: <ProtectedRoute requireAdmin={true}><AdminLayout title="Finance"><AdminFinance /></AdminLayout></ProtectedRoute>
   },
   {
     path: '/admin/pages',
-    element: <ProtectedRoute requireAdmin={true}><AdminPages /></ProtectedRoute>
+    element: <ProtectedRoute requireAdmin={true}><AdminLayout title="Pages"><AdminPages /></AdminLayout></ProtectedRoute>
   },
   {
     path: '/admin/blog',
-    element: <ProtectedRoute requireAdmin={true}><AdminBlog /></ProtectedRoute>
+    element: <ProtectedRoute requireAdmin={true}><AdminLayout title="Blog"><AdminBlog /></AdminLayout></ProtectedRoute>
   },
   {
     path: '/admin/blog/new',
-    element: <ProtectedRoute requireAdmin={true}><AdminBlogForm /></ProtectedRoute>
+    element: <ProtectedRoute requireAdmin={true}><AdminLayout title="New Blog Post"><AdminBlogForm /></AdminLayout></ProtectedRoute>
   },
   {
     path: '/admin/blog/edit/:id',
-    element: <ProtectedRoute requireAdmin={true}><AdminBlogForm /></ProtectedRoute>
+    element: <ProtectedRoute requireAdmin={true}><AdminLayout title="Edit Blog Post"><AdminBlogForm /></AdminLayout></ProtectedRoute>
   },
   {
     path: '/admin/events',
-    element: <ProtectedRoute requireAdmin={true}><AdminEvents /></ProtectedRoute>
+    element: <ProtectedRoute requireAdmin={true}><AdminLayout title="Events"><AdminEvents /></AdminLayout></ProtectedRoute>
   },
   {
     path: '/admin/lost-found',
-    element: <ProtectedRoute requireAdmin={true}><AdminLostFound /></ProtectedRoute>
+    element: <ProtectedRoute requireAdmin={true}><AdminLayout title="Lost & Found"><AdminLostFound /></AdminLayout></ProtectedRoute>
   },
   {
     path: '/admin/messages',
-    element: <ProtectedRoute requireAdmin={true}><AdminMessages /></ProtectedRoute>
+    element: <ProtectedRoute requireAdmin={true}><AdminLayout title="Messages"><AdminMessages /></AdminLayout></ProtectedRoute>
   },
   {
     path: '/admin/chat',
-    element: <ProtectedRoute requireAdmin={true}><AdminChat /></ProtectedRoute>
+    element: <ProtectedRoute requireAdmin={true}><AdminLayout title="Chat"><AdminChat /></AdminLayout></ProtectedRoute>
   },
   {
     path: '/admin/security',
-    element: <ProtectedRoute requireAdmin={true}><AdminSecurity /></ProtectedRoute>
+    element: <ProtectedRoute requireAdmin={true}><AdminLayout title="Security"><AdminSecurity /></AdminLayout></ProtectedRoute>
   },
   {
     path: '/admin/applications',
-    element: <ProtectedRoute requireAdmin={true}><AdminApplications /></ProtectedRoute>
+    element: <ProtectedRoute requireAdmin={true}><AdminLayout title="Applications"><AdminApplications /></AdminLayout></ProtectedRoute>
   },
   {
     path: '/admin/supplies',
-    element: <ProtectedRoute requireAdmin={true}><AdminSupplies /></ProtectedRoute>
+    element: <ProtectedRoute requireAdmin={true}><AdminLayout title="Supplies"><AdminSupplies /></AdminLayout></ProtectedRoute>
   },
   {
     path: '/admin/documents',
-    element: <ProtectedRoute requireAdmin={true}><AdminDocuments /></ProtectedRoute>
+    element: <ProtectedRoute requireAdmin={true}><AdminLayout title="Documents"><AdminDocuments /></AdminLayout></ProtectedRoute>
   },
   {
     path: '/admin/team',
-    element: <ProtectedRoute requireAdmin={true}><AdminTeam /></ProtectedRoute>
+    element: <ProtectedRoute requireAdmin={true}><AdminLayout title="Team"><AdminTeam /></AdminLayout></ProtectedRoute>
   },
   {
     path: '/admin/success-stories',
-    element: <ProtectedRoute requireAdmin={true}><AdminSuccessStories /></ProtectedRoute>
+    element: <ProtectedRoute requireAdmin={true}><AdminLayout title="Success Stories"><AdminSuccessStories /></AdminLayout></ProtectedRoute>
   },
   {
     path: '/admin/business-licenses',
-    element: <ProtectedRoute requireAdmin={true}><AdminBusinessLicenses /></ProtectedRoute>
+    element: <ProtectedRoute requireAdmin={true}><AdminLayout title="Business Licenses"><AdminBusinessLicenses /></AdminLayout></ProtectedRoute>
   },
   {
     path: '/admin/direct-messages',
-    element: <ProtectedRoute requireAdmin={true}><AdminDirectMessages /></ProtectedRoute>
+    element: <ProtectedRoute requireAdmin={true}><AdminLayout title="Direct Messages"><AdminDirectMessages /></AdminLayout></ProtectedRoute>
   },
   {
     path: '/admin/orders',
-    element: <ProtectedRoute requireAdmin={true}><AdminOrders /></ProtectedRoute>
+    element: <ProtectedRoute requireAdmin={true}><AdminLayout title="Orders"><AdminOrders /></AdminLayout></ProtectedRoute>
   }
 ];
