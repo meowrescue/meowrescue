@@ -5,7 +5,8 @@ import path from 'path';
 import { Plugin } from 'vite';
 import fs from 'fs';
 import { resolve } from 'path';
-import { routes, getStaticPaths } from './src/routes.js';
+// Import directly from routes.tsx instead of routes.js
+import { routes, getStaticPaths } from './src/routes';
 
 // Simple SSG plugin
 function ssgPlugin(): Plugin {
