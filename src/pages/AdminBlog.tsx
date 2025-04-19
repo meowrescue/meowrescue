@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
@@ -118,6 +117,42 @@ const AdminBlog: React.FC = () => {
     }
   };
 
+  // Add function to toggle featured status
+  const toggleFeaturedStatus = async (id: string, currentStatus: boolean) => {
+    try {
+      // If setting as featured, first unset any existing featured post
+      if (!currentStatus) {
+        await supabase
+          .from('blog_posts')
+          .update({ is_featured: false })
+          .eq('is_featured', true);
+      }
+
+      const { error } = await supabase
+        .from('blog_posts')
+        .update({ 
+          is_featured: !currentStatus,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: `Post ${!currentStatus ? 'set as' : 'removed from'} featured`,
+      });
+      
+      refetch();
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update featured status',
+        variant: 'destructive',
+      });
+    }
+  };
+
   // Filter posts based on search term
   const filteredPosts = posts ? posts.filter(post => 
     post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -184,7 +219,14 @@ const AdminBlog: React.FC = () => {
                   const seoStatus = getSeoStatus(post);
                   return (
                     <TableRow key={post.id}>
-                      <TableCell className="font-medium">{post.title}</TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          {post.is_featured && (
+                            <Badge className="bg-meow-secondary">Featured</Badge>
+                          )}
+                          {post.title}
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <Badge 
                           variant={post.is_published ? "default" : "outline"} 

@@ -27,6 +27,7 @@ const Blog: React.FC = () => {
           .from('blog_posts')
           .select('*')
           .eq('is_published', true)
+          .order('is_featured', { ascending: false })
           .order('published_at', { ascending: false });
         
         if (error) throw error;
@@ -76,10 +77,10 @@ const Blog: React.FC = () => {
     return Math.ceil(textLength / wordsPerMinute);
   };
 
-  // Featured post (first post)
-  const featuredPost = posts && posts.length > 0 ? posts[0] : null;
-  // Rest of the posts
-  const regularPosts = posts && posts.length > 1 ? posts.slice(1) : [];
+  // Featured post (first featured post, or first post if none is featured)
+  const featuredPost = posts?.find(post => post.is_featured) || (posts && posts.length > 0 ? posts[0] : null);
+  // Rest of the posts (excluding featured)
+  const regularPosts = posts?.filter(post => post !== featuredPost) || [];
 
   return (
     <Layout>
