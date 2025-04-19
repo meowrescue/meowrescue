@@ -78,8 +78,7 @@ const AdminLostFound: React.FC = () => {
     fetchLostFoundPosts();
   }, []);
 
-  // Convert Set to Array before iteration
-  const categories = Array.from(new Set(lostFoundPosts.map(post => post.category)));
+  const categories: string[] = [...new Set(lostFoundPosts.map(post => post.category))];
 
   const filteredPosts = lostFoundPosts.filter(post =>
     post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||

@@ -74,7 +74,6 @@ export default defineConfig(({ mode }) => ({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    // Generate a separate JS bundle for each route
     rollupOptions: {
       output: {
         manualChunks: {

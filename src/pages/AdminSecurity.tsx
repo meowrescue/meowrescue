@@ -50,8 +50,8 @@ const AdminSecurity: React.FC = () => {
     log.user.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Convert Set to Array before iteration
-  const uniqueIPs = Array.from(new Set(securityLogs.map(log => log.ip)));
+  // Fix Set iteration by converting to array and using proper typing
+  const uniqueIPs: string[] = [...new Set(securityLogs.map(log => log.ip))];
 
   return (
     <Layout>
