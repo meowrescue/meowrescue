@@ -1,7 +1,9 @@
 {
   "compilerOptions": {
-    // ... existing configuration
+    /* base project settings */
     "baseUrl": ".",
+
+    /* path aliases */
     "paths": {
       "@/*": ["src/*"],
       "@/components/*": ["src/components/*"],
@@ -9,9 +11,12 @@
       "@/contexts/*": ["src/contexts/*"],
       "@/integrations/*": ["src/integrations/*"],
       "@/utils/*": ["src/utils/*"],
+      "@/lib/*": ["src/lib/*"],      // <‑‑ added
       "@/types/*": ["src/types/*"],
       "@/pages/*": ["src/pages/*"]
     },
+
+    /* language & emit options */
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "allowJs": true,
     "skipLibCheck": true,
