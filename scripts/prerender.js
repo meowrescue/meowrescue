@@ -10,7 +10,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
 
 // Import the compiled version of AppShellForSSG
-import { AppShellForSSG } from '../dist/server/AppShellForSSG.js';
+import { AppShellForSSG } from '../dist/server/src/AppShellForSSG.js';
 
 // Convert ESM __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);

@@ -22,7 +22,10 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "rootDir": "./"
+    "rootDir": "./",
+    "emitDeclarationOnly": false,
+    "composite": true,
+    "sourceMap": true
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.js", "src/**/*.jsx", "scripts/**/*.ts", "scripts/**/*.js"],
   "exclude": ["node_modules", "dist"]
