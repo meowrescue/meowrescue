@@ -16,7 +16,8 @@
     "jsx": "react-jsx",
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"],
