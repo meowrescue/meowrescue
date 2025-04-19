@@ -1,13 +1,15 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { supabase } from '../integrations/supabase/client';
+import { AppUser } from '../types/auth';
 
 // Define the shape of the AuthContext
 interface AuthContextType {
-  user: User | null;
+  user: AppUser | null;
   session: Session | null;
   isLoading: boolean;
+  loading: boolean; // Added to fix ProtectedRoute error
   error?: string;
   signIn: (email: string, password: string) => Promise<any>;
   signUp: (email: string, password: string) => Promise<any>;
@@ -18,7 +20,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | undefined>(undefined);
@@ -30,7 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const currentSession = data.session;
       
       setSession(currentSession);
-      setUser(currentSession?.user || null);
+      setUser(currentSession?.user as AppUser || null);
       setIsLoading(false);
     };
 
@@ -39,7 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Listen for auth changes
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
-      setUser(session?.user || null);
+      setUser(session?.user as AppUser || null);
       setError(undefined);
     });
     
@@ -102,6 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     session,
     isLoading,
+    loading: isLoading, // Added to fix ProtectedRoute error
     error,
     signIn,
     signUp,
