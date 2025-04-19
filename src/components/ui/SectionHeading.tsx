@@ -16,10 +16,10 @@ const SectionHeading: React.FC<SectionHeadingProps> = ({
 }) => {
   return (
     <div className={`mb-8 ${centered ? 'text-center' : ''} ${className}`}>
-      <h2 className="text-3xl md:text-4xl font-bold text-meow-primary relative inline-block mb-8">
+      <h2 className="text-3xl md:text-4xl font-bold text-meow-primary relative inline-block">
         {title}
-        <span className="absolute bottom-[-16px] left-0 w-20 h-1 bg-meow-secondary"></span>
       </h2>
+      <div className={`h-1 bg-meow-secondary w-20 mt-4 mb-2 ${centered ? 'mx-auto' : ''}`}></div>
       {subtitle && (
         <p className="text-lg text-gray-600 mt-4">{subtitle}</p>
       )}

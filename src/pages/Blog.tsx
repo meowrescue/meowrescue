@@ -135,9 +135,10 @@ const Blog: React.FC = () => {
               {/* Featured Post */}
               {featuredPost && (
                 <div className="mb-20">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6 inline-block relative after:content-[''] after:absolute after:w-full after:h-1 after:bg-meow-secondary after:bottom-0 after:left-0 after:transform after:-translate-y-2">
-                    Featured Story
-                  </h2>
+                  <div className="mb-6">
+                    <h2 className="text-2xl font-bold text-gray-900">Featured Story</h2>
+                    <div className="h-1 bg-meow-secondary w-20 mt-3"></div>
+                  </div>
                   <div 
                     className="grid md:grid-cols-2 gap-8 bg-gray-50 rounded-2xl overflow-hidden shadow-md transition-transform hover:shadow-lg"
                     onClick={() => handleCardClick(featuredPost.slug)}
@@ -186,9 +187,10 @@ const Blog: React.FC = () => {
 
               {/* Regular Posts */}
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-8 inline-block relative after:content-[''] after:absolute after:w-full after:h-1 after:bg-meow-secondary after:bottom-0 after:left-0 after:transform after:-translate-y-2">
-                  All Stories
-                </h2>
+                <div className="mb-8">
+                  <h2 className="text-2xl font-bold text-gray-900">All Stories</h2>
+                  <div className="h-1 bg-meow-secondary w-20 mt-3"></div>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {regularPosts.map((post: any) => (
                     <Card 
