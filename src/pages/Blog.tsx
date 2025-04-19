@@ -1,8 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Layout from '@/components/Layout';
-import PageHeader from '@/components/PageHeader';
-import { pageBackgrounds } from '@/config/pageBackgrounds';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -94,12 +92,19 @@ const Blog: React.FC = () => {
         keywords="cat rescue blog, cat adoption stories, rescue cats, feline care, cat foster stories, meow rescue"
       />
 
-      {/* Updated Header */}
-      <PageHeader
-        title="Our Stories"
-        subtitle="Tales of rescue, recovery, and finding forever homes"
-        backgroundImage={pageBackgrounds.blog}
-      />
+      {/* Hero Section */}
+      <div className="relative bg-gradient-to-r from-meow-primary/90 to-meow-primary py-20 md:py-28 overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba')] bg-cover bg-center mix-blend-overlay opacity-20"></div>
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-3xl mx-auto text-center">
+            <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 tracking-tight">Our Stories</h1>
+            <p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto leading-relaxed">
+              Tales of rescue, recovery, and finding forever homes
+            </p>
+          </div>
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent"></div>
+      </div>
 
       {/* Content Section */}
       <div className="bg-white py-16">
@@ -130,10 +135,9 @@ const Blog: React.FC = () => {
               {/* Featured Post */}
               {featuredPost && (
                 <div className="mb-20">
-                  <SectionHeading 
-                    title="Featured Story"
-                    centered={false}
-                  />
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6 inline-block relative after:content-[''] after:absolute after:w-full after:h-1 after:bg-meow-secondary after:bottom-0 after:left-0 after:transform after:-translate-y-2">
+                    Featured Story
+                  </h2>
                   <div 
                     className="grid md:grid-cols-2 gap-8 bg-gray-50 rounded-2xl overflow-hidden shadow-md transition-transform hover:shadow-lg"
                     onClick={() => handleCardClick(featuredPost.slug)}
@@ -182,10 +186,9 @@ const Blog: React.FC = () => {
 
               {/* Regular Posts */}
               <div>
-                <SectionHeading 
-                  title="All Stories"
-                  centered={false}
-                />
+                <h2 className="text-2xl font-bold text-gray-900 mb-8 inline-block relative after:content-[''] after:absolute after:w-full after:h-1 after:bg-meow-secondary after:bottom-0 after:left-0 after:transform after:-translate-y-2">
+                  All Stories
+                </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {regularPosts.map((post: any) => (
                     <Card 

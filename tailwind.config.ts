@@ -1,25 +1,26 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
-  darkMode: ["class"],
-  content: [
-    "./pages/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./app/**/*.{ts,tsx}",
-    "./src/**/*.{ts,tsx}",
-  ],
-  prefix: "",
-  theme: {
-    container: {
-      center: true,
-      padding: "2rem",
-      screens: {
-        "2xl": "1400px",
-      },
-    },
-    extend: {
-      colors: {
-        border: 'hsl(var(--border))',
+	darkMode: ["class"],
+	content: [
+		"./pages/**/*.{ts,tsx}",
+		"./components/**/*.{ts,tsx}",
+		"./app/**/*.{ts,tsx}",
+		"./src/**/*.{ts,tsx}",
+	],
+	prefix: "",
+	theme: {
+		container: {
+			center: true,
+			padding: '2rem',
+			screens: {
+				'2xl': '1400px'
+			}
+		},
+		extend: {
+			colors: {
+				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
 				background: 'hsl(var(--background))',
@@ -59,15 +60,6 @@ export default {
 					accent: '#85DCBA',     // Calming teal
 					light: '#F8F9FA',      // Light background
 					dark: '#343A40',       // Text dark
-          neutral: '#8E9196',    // Neutral gray
-          purple: {
-            dark: '#1A1F2C',
-            soft: '#E5DEFF'
-          },
-          peach: '#FDE1D3',
-          gray: {
-            soft: '#F1F0FB'
-          }
 				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
