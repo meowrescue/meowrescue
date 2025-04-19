@@ -8,7 +8,7 @@ import { renderToString } from 'react-dom/server';
 import { StaticRouter } from 'react-router-dom/server.js';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
-import AppShellForSSG from '../src/AppShellForSSG.jsx';
+import AppShellForSSG from '../src/AppShellForSSG.js';
 
 // Convert ESM __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
