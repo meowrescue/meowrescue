@@ -1,16 +1,8 @@
-/* -------------------------------------------------------------
-   src/components/ui/toaster.tsx
-   Simple wrapper around Sonner’s <Toaster> so it can be used
-   from anywhere via  import { Toaster } from '@/components/ui/toaster'
-   ------------------------------------------------------------- */
+// src/components/ui/toaster.tsx
+import { Toaster as SonnerToaster } from 'sonner'  // or shadcn/ui
 
-'use client';
+/** Global toaster container */
+const Toaster = () => <SonnerToaster richColors closeButton />
 
-import { Toaster as SonnerToaster } from 'sonner';
-
-/** Global toast container — include once at app‑root level */
-export function Toaster() {
-  return <SonnerToaster richColors closeButton />;
-}
-
-export default Toaster;
+export { Toaster }
+export default Toaster
