@@ -44,8 +44,14 @@ const mountApp = () => {
     return;
   }
   
-  // Create root with correct arguments
-  const root = ReactDOM.createRoot(rootElement);
+  // Create root with optional configuration
+  const root = ReactDOM.createRoot(rootElement, {
+    // Optional: Add any root configuration if needed
+    // Example: onRecoverableError for handling specific errors
+    onRecoverableError: (error) => {
+      console.error('Recoverable React error:', error);
+    }
+  });
   
   root.render(
     <React.StrictMode>
