@@ -1,10 +1,11 @@
 import React from 'react';
-import { createRoot } from 'react-dom/client';  // Ensure this is correct
 import { BrowserRouter } from 'react-router-dom';
+import { createRoot } from 'react-dom/client';
 import App from './App';
 import './index.css';
 import { ViteReactSSG } from 'vite-react-ssg';
 import routes from './routes';
+import { AuthProvider } from './contexts/AuthContext';  // Import the AuthProvider
 
 /**
  * ───────────────────────────────────────────────
@@ -15,9 +16,11 @@ if (!import.meta.env.SSR) {
   const root = document.getElementById('root');
   if (root) {
     createRoot(root).render(
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </AuthProvider>
     );
   }
 }
@@ -28,12 +31,14 @@ if (!import.meta.env.SSR) {
  * ───────────────────────────────────────────────
  */
 export const createApp = () => (
-  <BrowserRouter>
-    <App />
-  </BrowserRouter>
-)
+  <AuthProvider>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </AuthProvider>
+);
 
 export const createRoot = ViteReactSSG(
   { routes },
   () => {}
-)
+);
