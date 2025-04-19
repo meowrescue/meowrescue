@@ -1,6 +1,7 @@
+
 import React from 'react';
-import { Container } from './ui/Container.js';
-import { SectionHeading } from './ui/SectionHeading.js';
+import { Container } from './ui/Container';
+import { SectionHeading } from './ui/SectionHeading';
 
 const TestimonialsSection: React.FC = () => {
   return (
