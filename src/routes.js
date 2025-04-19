@@ -1,8 +1,9 @@
-import { lazy } from 'react'
+import { lazy } from 'react';
 
 /**
  * Central route list used by vite‑react‑ssg.
  * Every page is code‑split with React.lazy().
+ * Make sure lazy-loaded components are only used in the client-side render context.
  */
 const routes = [
   { path: '/',               element: lazy(() => import('./pages/Index')) },
@@ -20,6 +21,6 @@ const routes = [
   { path: '/donate',         element: lazy(() => import('./pages/Donate')) },
   { path: '/volunteer',      element: lazy(() => import('./pages/Volunteer')) },
   { path: '/volunteer/apply',element: lazy(() => import('./pages/VolunteerForm')) },
-]
+];
 
-export default routes
+export default routes;
