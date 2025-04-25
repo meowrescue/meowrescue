@@ -1,0 +1,205 @@
+
+.page-header {
+  @apply bg-meow-light py-16 px-4;
+  position: relative;
+  overflow: hidden;
+}
+
+.page-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background: linear-gradient(to right, var(--meow-primary), var(--meow-secondary));
+  z-index: 5;
+}
+
+.admin-layout {
+  min-height: 100vh;
+  display: flex;
+  width: 100%;
+}
+
+.admin-sidebar {
+  width: 260px;
+  transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  background: linear-gradient(to bottom, #1A1F2C, #2A303C);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  min-height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 40;
+}
+
+.admin-sidebar.collapsed {
+  width: 80px;
+}
+
+.admin-main {
+  flex: 1;
+  overflow-y: auto;
+  /* This makes admin-main always as tall as viewport */
+  min-height: 100vh;
+  margin-left: 260px; /* width of sidebar */
+}
+
+.admin-sidebar-logo {
+  padding: 16px;
+  border-bottom: 1px solid rgba(229, 231, 235, 1);
+  display: flex;
+  align-items: center;
+}
+
+@media (max-width: 1023px) {
+  .admin-sidebar {
+    position: static;
+    min-height: unset;
+    height: auto;
+    margin-left: 0;
+  }
+  .admin-main {
+    margin-left: 0;
+  }
+}
+
+#google-map {
+  border-radius: 0 0 1rem 1rem;
+}
+
+.map-container {
+  height: 100%;
+  width: 100%;
+}
+
+.address-link {
+  @apply text-meow-primary underline hover:text-meow-primary/80 transition;
+  position: relative;
+}
+
+.skip-to-content {
+  @apply sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-white focus:text-meow-primary focus:outline-none focus:shadow-md;
+}
+
+.container {
+  max-width: 1280px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  box-sizing: border-box;
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* Make sure these fill to edge on screens - fix right gap */
+body, html {
+  width: 100vw !important;
+  overflow-x: hidden !important;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+main, #main-content {
+  width: 100% !important;
+  box-sizing: border-box;
+  margin: 0 auto;
+}
+
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 50;
+}
+
+/* Ensure content starts right after the navbar without gap */
+.site-header + main,
+#main-content {
+  padding-top: 64px; /* Exact height of navbar (h-16 = 64px) */
+}
+
+/* Hero sections need special treatment */
+section.hero-section,
+section.min-h-\[80vh\],
+div.relative.min-h-\[80vh\] {
+  margin-top: -64px; /* Offset the padding-top to make hero sections touch navbar */
+  padding-top: 0;
+}
+
+/* Fix for dropdown spacing in navbar */
+.navbar-container .dropdown-menu {
+  margin-top: 0.5rem;
+}
+
+/* Improved section spacing */
+.section-spacer {
+  padding: 6rem 0;
+}
+
+.section-spacer-sm {
+  padding: 3rem 0;
+}
+
+/* Glass effect */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* Gradient border */
+.gradient-border {
+  position: relative;
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(to right, var(--meow-primary), var(--meow-secondary));
+  border-radius: 3px 3px 0 0;
+}
+
+/* Curved section divider */
+.curve-divider {
+  position: relative;
+  height: 150px;
+  overflow: hidden;
+}
+
+.curve-divider::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: white;
+  border-radius: 0 0 50% 50% / 0 0 100% 100%;
+  transform: scaleX(1.5);
+}

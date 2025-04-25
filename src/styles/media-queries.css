@@ -1,0 +1,151 @@
+/* Base responsive adjustments */
+@media (max-width: 640px) {
+  h1, .h1 {
+    font-size: 2.25rem;
+  }
+  
+  h2, .h2 {
+    font-size: 1.75rem;
+  }
+  
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .hero-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .section-spacer {
+    padding: 3rem 0;
+  }
+
+  /* Adjust navbar spacing on mobile */
+  .navbar-container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  
+  /* Fix menu layout in mobile view */
+  .mobile-menu-container {
+    width: 100%;
+  }
+  
+  /* Fix mobile menu animation */
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease-out;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (min-width: 641px) and (max-width: 768px) {
+  .container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  
+  .section-spacer {
+    padding: 4rem 0;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* Specific component responsive adjustments */
+@media (max-width: 768px) {
+  .cat-card-grid {
+    grid-template-columns: repeat(1, 1fr);
+  }
+  
+  .feature-grid {
+    grid-template-columns: repeat(1, 1fr);
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  /* Admin responsive adjustments */
+  .admin-layout {
+    flex-direction: column;
+  }
+  
+  .admin-sidebar {
+    width: 100%;
+    position: relative;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .cat-card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .feature-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Fix for navbar in tablet/mobile */
+@media (max-width: 1024px) {
+  .navbar-spacing {
+    padding-right: 2rem;
+  }
+}
+
+/* Dark mode preference */
+@media (prefers-color-scheme: dark) {
+  .auto-dark-mode {
+    background-color: var(--meow-dark);
+    color: white;
+  }
+  
+  .auto-dark-mode-text {
+    color: rgba(255, 255, 255, 0.8);
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    font-size: 12pt;
+    color: black;
+    background-color: white;
+  }
+  
+  a {
+    text-decoration: underline;
+    color: black;
+  }
+}
+
+/* Animated elements should respect user preferences */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

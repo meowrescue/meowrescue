@@ -1,0 +1,326 @@
+.meow-card {
+  @apply bg-white rounded-xl shadow-lg overflow-hidden border border-gray-50 transition-all hover:shadow-xl;
+  transform: translateZ(0);
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.meow-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1), 0 8px 12px rgba(0, 0, 0, 0.05);
+}
+
+.meow-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(to right, var(--meow-primary), var(--meow-secondary));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.meow-card:hover::after {
+  transform: scaleX(1);
+}
+
+.custom-card {
+  @apply rounded-xl shadow-lg overflow-hidden bg-white border border-gray-50;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.custom-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.card-section + .card-section {
+  margin-top: 6rem;
+}
+
+.hover-card-effect {
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+  will-change: transform, box-shadow;
+}
+
+.hover-card-effect:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Fancy gradient cards */
+.gradient-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.gradient-card::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  z-index: -1;
+  background: linear-gradient(45deg, var(--meow-primary), var(--meow-secondary));
+  border-radius: 1.1rem;
+  transition: all 0.3s ease;
+  opacity: 0;
+}
+
+.gradient-card:hover::before {
+  opacity: 1;
+}
+
+/* Frosted glass card */
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+  transform: translateY(-5px);
+}
+
+/* Featured card with accent */
+.feature-card {
+  border-radius: 1rem;
+  border-left: 4px solid var(--meow-primary);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.feature-card:hover {
+  border-left-color: var(--meow-secondary);
+  transform: translateY(-5px);
+}
+
+/* Timeline card */
+.timeline-card {
+  position: relative;
+  margin-left: 20px;
+}
+
+.timeline-card::before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: 0;
+  height: 100%;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--meow-primary), var(--meow-secondary));
+}
+
+.timeline-card::after {
+  content: '';
+  position: absolute;
+  left: -26px;
+  top: 20px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--meow-primary);
+  border: 2px solid white;
+}
+
+/* Ultra Modern Success Story Card */
+.ultra-modern-card {
+  position: relative;
+  background: linear-gradient(135deg, rgba(255,255,255,0.82) 80%, #e2d1c3 100%);
+  border-radius: 2rem;
+  box-shadow: 0 12px 36px -12px rgba(36,57,73,0.13), 0 1.5px 16px -3px rgba(0,0,0,0.05);
+  border: 1.5px solid rgba(222,229,255,0.5);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.3s cubic-bezier(.23,1,.32,1), transform 0.25s;
+  backdrop-filter: blur(12px);
+  min-height: 450px;
+}
+
+.ultra-modern-card:hover {
+  box-shadow: 0 24px 48px -16px rgba(36,57,73,0.18), 0 0px 26px -4px rgba(0,0,0,0.07);
+  transform: translateY(-5px) scale(1.025);
+}
+
+.ultra-modern-card__image-area {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+  border-top-left-radius: 2rem;
+  border-top-right-radius: 2rem;
+  background: linear-gradient(90deg, hsla(24, 100%, 83%, 1) 0%, hsla(341, 91%, 68%, 1) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ultra-modern-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s cubic-bezier(.23,1,.32,1);
+  will-change: transform;
+}
+
+.ultra-modern-card:hover .ultra-modern-card__image {
+  transform: scale(1.045);
+}
+
+.ultra-modern-card__top-gradient-glow {
+  position: absolute;
+  z-index: 2;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.48) 0%, transparent 80%);
+  pointer-events: none;
+}
+
+.ultra-modern-card__content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: 1 1 auto;
+  padding: 2rem 1.65rem 1.3rem 1.65rem;
+  background: transparent;
+}
+
+.ultra-modern-card__title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 1.2rem;
+}
+
+.ultra-modern-card__cat-badge {
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: #fff;
+  background: linear-gradient(90deg, #ff719a 0%, #ffa99f 100%);
+  border-radius: 12px;
+  padding: 0.28rem 0.95rem;
+  box-shadow: 0 2px 10px 0 #ff719a21;
+  letter-spacing: 0.01em;
+}
+
+.ultra-modern-card__title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #1a2b40;
+  letter-spacing: -0.01em;
+  flex: 1 1 0;
+  margin: 0;
+  line-height: 1.12;
+  text-shadow: 0 1px 4px rgba(255,255,255,0.13);
+}
+
+.ultra-modern-card__date {
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #abb8c3;
+  gap: 0.375em;
+  margin-bottom: 1em;
+}
+
+.ultra-modern-card__story {
+  color: #434a56;
+  font-size: 1.06rem;
+  line-height: 1.6;
+  margin-bottom: 2.2rem;
+  /* Clamp for max 5 lines */
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ultra-modern-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #f2ede9;
+  padding-top: 1rem;
+  margin-top: auto;
+}
+
+.ultra-modern-card__home {
+  display: flex;
+  align-items: center;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #ff719a;
+  gap: 0.65em;
+}
+
+.ultra-modern-card__cta {
+  color: #7e69ab;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.36em;
+  padding: 0.35em 0.75em;
+  border-radius: 9px;
+  transition: background 0.2s;
+  background: none;
+  border: none;
+  text-decoration: none;
+}
+
+.ultra-modern-card__cta:hover {
+  background: linear-gradient(90deg, #ffe29f 0%, #ffa99f 100%);
+  color: #1a2b40;
+  text-decoration: none;
+}
+
+@media (max-width: 1024px) {
+  .ultra-modern-card { min-height: 410px; }
+  .ultra-modern-card__content { padding: 1.35rem 1.1rem 1rem 1.1rem; }
+  .ultra-modern-card__title { font-size: 1.12rem; }
+}
+
+/* Responsive optimization for ultra-modern cards */
+@media (max-width: 640px) {
+  .ultra-modern-card {
+    border-radius: 1.09rem;
+    min-height: 340px;
+  }
+  .ultra-modern-card__image-area {
+    height: 148px;
+    border-top-left-radius: 1.09rem;
+    border-top-right-radius: 1.09rem;
+  }
+  .ultra-modern-card__content {
+    padding: 1rem 0.7rem 0.6rem 0.7rem;
+  }
+  .ultra-modern-card__title { font-size: 1rem; }
+}
+
+/* Modern Success Story Card (Glass + Minimal, per screenshot) */
+.success-story-new-card {
+  @apply rounded-2xl bg-meow-primary/10 shadow-xl p-6;
+  background: rgba(205, 222, 247, 0.41); /* Gentle blue tint, adjust for theme */
+  backdrop-filter: blur(16px);
+  border: 1.5px solid rgba(120, 130, 200, 0.14); 
+  transition: box-shadow 0.25s, transform 0.18s;
+  box-shadow: 0 6px 36px -12px rgba(36,57,73,0.12), 0 1px 7px -2px rgba(0,0,0,0.05);
+}
+
+.success-story-new-card:hover {
+  box-shadow: 0 18px 45px -10px rgba(36,57,73,0.17), 0 4px 18px -4px rgba(0,0,0,0.06);
+  transform: scale(1.045) translateY(-3px);
+}

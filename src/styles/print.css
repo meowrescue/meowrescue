@@ -1,0 +1,36 @@
+
+@media print {
+  body {
+    background: white;
+    color: black;
+    margin: 0;
+    padding: 0;
+  }
+  .no-print {
+    display: none !important;
+  }
+  a {
+    text-decoration: none;
+    color: #000;
+  }
+  .print-break-after {
+    page-break-after: always;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  .dark-mode-styles {
+    background-color: #121212;
+    color: #f7f7f7;
+  }
+}
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  body {
+    color: black;
+    background: white;
+  }
+  a {
+    color: navy;
+    text-decoration: underline;
+  }
+}

@@ -1,0 +1,241 @@
+/* Main button styles: NO gradients, only solid color backgrounds using new palette */
+
+.btn-meow,
+.meow-button,
+.btn-primary,
+.btn-primary:not(.btn-outline) {
+  background-color: var(--meow-primary) !important;
+  color: white !important;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.5rem;
+  border: none;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  text-shadow: none;
+  box-shadow: 0 2px 8px rgba(0,64,128,0.05);
+}
+
+.btn-meow:before, .btn-meow:after {
+  display: none !important;
+}
+
+.btn-meow:hover,
+.meow-button:hover,
+.btn-primary:hover,
+.btn-primary:not(.btn-outline):hover {
+  background-color: #003366 !important;
+  transform: translateY(-2px);
+}
+
+.meow-button-secondary,
+.btn-secondary,
+.btn-secondary:not(.btn-outline) {
+  background-color: var(--meow-secondary) !important;
+  color: white !important;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.5rem;
+  border: none;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.meow-button-secondary:hover,
+.btn-secondary:hover,
+.btn-secondary:not(.btn-outline):hover {
+  background-color: #cc6400 !important;
+  transform: translateY(-2px);
+}
+
+/* Green accent (optional use) */
+.btn-green {
+  background-color: var(--meow-tertiary) !important;
+  color: white !important;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.5rem;
+  border: none;
+}
+.btn-green:hover {
+  background-color: #388e3c !important;
+}
+
+.meow-button-outline,
+.btn-outline {
+  border: 2px solid var(--meow-primary) !important;
+  color: var(--meow-primary) !important;
+  background-color: transparent !important;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+}
+.meow-button-outline:hover,
+.btn-outline:hover {
+  background-color: rgba(0, 64, 128, 0.07) !important;
+  color: var(--meow-primary) !important;
+  transform: translateY(-2px);
+}
+
+/* Remove any gradient or shiny effects entirely */
+.shiny-button,
+.shiny-button::after {
+  background: none !important;
+  box-shadow: none !important;
+  animation: none !important;
+}
+
+/* All other styles, keep the rest of the file unchanged (focus, disabled states, structure, etc.) */
+/* Remove gradients and adjust solid color values for new color scheme */
+/* Only keep solid backgrounds for all buttons */
+
+.hero-donate-button {
+  background-color: var(--meow-secondary);
+  color: white;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-donate-button:after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 0;
+  top: 0;
+  left: 0;
+  background: rgba(255,255,255,0.2);
+  transition: all 0.3s ease;
+}
+
+.hero-donate-button:hover {
+  background-color: rgba(249, 115, 22, 0.9);
+  transform: translateY(-3px);
+  box-shadow: 0 7px 14px rgba(249, 115, 22, 0.2);
+}
+
+.hero-donate-button:hover:after {
+  height: 100%;
+}
+
+/* WCAG compliant focus states for all buttons */
+button:focus-visible,
+.btn:focus-visible,
+a.btn:focus-visible,
+.button:focus-visible {
+  outline: none;
+  ring: 2px;
+  ring-offset: 2px;
+  ring-color: var(--meow-primary);
+  box-shadow: 0 0 0 4px rgba(155, 135, 245, 0.3);
+}
+
+/* Consistent hover effects */
+.btn, 
+.button,
+button[type="submit"],
+button[type="button"] {
+  transition: all 300ms cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Disabled button states */
+.btn:disabled,
+.button:disabled,
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Button sizes for consistency */
+.btn-sm,
+.button-sm {
+  font-size: 0.75rem;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
+.btn-lg,
+.button-lg {
+  font-size: 1rem;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.btn-xl,
+.button-xl {
+  font-size: 1.125rem;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
+
+/* Rounded button variations */
+.btn-rounded,
+.button-rounded {
+  border-radius: 9999px;
+}
+
+/* Button with icons */
+.btn-icon,
+.button-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* High contrast buttons for better accessibility */
+.btn-high-contrast {
+  background-color: var(--meow-primary);
+  color: white;
+}
+
+.btn-high-contrast:hover {
+  background-color: rgba(155, 135, 245, 0.9);
+}
+
+/* Ensure all text on colored backgrounds meets WCAG contrast requirements */
+.meow-primary-bg button.btn-outline,
+.meow-secondary-bg button.btn-outline {
+  border-color: white;
+  color: white;
+  hover:bg-white/20;
+}
+
+.meow-primary-bg button.btn-outline:hover,
+.meow-secondary-bg button.btn-outline:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Animated buttons */
+.pulse-button {
+  animation: pulse 2s infinite;
+  box-shadow: 0 0 0 0 rgba(155, 135, 245, 0.7);
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(155, 135, 245, 0.7);
+  }
+  
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(155, 135, 245, 0);
+  }
+  
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(155, 135, 245, 0);
+  }
+}
+
+/* Shiny effect on buttons */
+
