@@ -38,12 +38,16 @@ const Footer: React.FC = () => {
           .from('business_licenses')
           .select('license_number, issue_date')
           .eq('license_type', 'Business License')
-          .single();
+          .limit(1); // Fetch at most one record
         
-        if (data && !error) {
-          setLicenseInfo(data);
+        // Check if data is an array and has at least one element
+        if (!error && data && data.length > 0) {
+          setLicenseInfo(data[0]); // Use the first license found
         } else {
-          // Use default license info if table doesn't exist or there's an error
+          // Use default license info if no matching license found or there's an error
+          if (error && error.code !== 'PGRST116') { // PGRST116: 'Exact one row expected' - ignore this if we removed .single()
+            console.warn('Error fetching license info:', error.message);
+          }
           setLicenseInfo({
             license_number: 'MR-2023-001',
             issue_date: '2023-01-15'

@@ -62,25 +62,31 @@ export const BusinessHoursProvider: React.FC<BusinessHoursProviderProps> = ({ ch
         .from('content_blocks')
         .select('content')
         .eq('block_identifier', 'business_hours_settings')
-        .single();
+        .limit(1); // Fetch at most one record
       
-      if (error) {
-        console.log("Using default business hours settings due to:", error.message);
-        // Use default settings if table doesn't exist or error occurs
-        setBusinessHoursSettings(defaultBusinessHours);
-        setIsLoading(false);
-        return;
-      }
-      
-      if (data && data.content) {
-        try {
-          const settings = JSON.parse(data.content);
-          setBusinessHoursSettings(settings);
-        } catch (parseError) {
-          console.log("Using default business hours settings due to parse error");
-          // Use default settings if parsing fails
+      // Check if data is an array and has at least one element
+      if (!error && data && data.length > 0) {
+        const settingsData = data[0];
+        if (settingsData && settingsData.content) {
+          try {
+            const settings = JSON.parse(settingsData.content);
+            setBusinessHoursSettings(settings);
+          } catch (parseError) {
+            console.error("Error parsing business hours settings, using defaults:", parseError);
+            setBusinessHoursSettings(defaultBusinessHours);
+          }
+        } else {
+          // Use default if content is missing in the returned row
           setBusinessHoursSettings(defaultBusinessHours);
         }
+      } else {
+        // Use default settings if no settings found or error occurs
+        if (error && error.code !== 'PGRST116') { // PGRST116: 'Exact one row expected'
+          console.log("Using default business hours settings due to Supabase error:", error.message);
+        } else {
+          console.log("Using default business hours settings (no record found).");
+        }
+        setBusinessHoursSettings(defaultBusinessHours);
       }
     } catch (err) {
       console.log("Error in business hours fetch, using defaults");
