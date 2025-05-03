@@ -22,6 +22,7 @@ interface FinancialStats {
   previousMonthExpenses: number;
   budgetCategories: any[];
   campaigns: FundraisingCampaign[];
+  expenses: any[];
   isLoading: {
     monthlyIncome: boolean;
     monthlyExpenses: boolean;
@@ -31,6 +32,7 @@ interface FinancialStats {
     budgetCategories: boolean;
     totalIncome: boolean;
     totalExpenses: boolean;
+    expenses: boolean;
     campaigns: boolean;
   };
 }
@@ -165,6 +167,15 @@ export const useFinancialStats = () => {
     ...commonConfig
   });
 
+  const { 
+    data: expenses = [], 
+    isLoading: expensesLoading 
+  } = useQuery({
+    queryKey: ['expenses'],
+    queryFn: () => getExpensesSum(),
+    ...commonConfig
+  });
+
   // Function to refetch all financial stats
   const refetchFinancialStats = async () => {
     console.log("Refetching all financial stats...");
@@ -176,7 +187,8 @@ export const useFinancialStats = () => {
       queryClient.refetchQueries({ queryKey: ['total-budget'] }),
       queryClient.refetchQueries({ queryKey: ['budget-categories-base'] }),
       queryClient.refetchQueries({ queryKey: ['total-donations'] }),
-      queryClient.refetchQueries({ queryKey: ['current-campaigns'] })
+      queryClient.refetchQueries({ queryKey: ['current-campaigns'] }),
+      queryClient.refetchQueries({ queryKey: ['expenses'] })
     ]);
     console.log("All financial stats refetched");
   };
@@ -203,6 +215,7 @@ export const useFinancialStats = () => {
       previousMonthExpenses: previousMonthExpenses,
       budgetCategories: budgetCategories || [],
       campaigns: campaigns || [],
+      expenses: expenses || [],
       isLoading: {
         monthlyIncome: monthlyDonationsLoading,
         monthlyExpenses: monthlyExpensesLoading,
@@ -212,6 +225,7 @@ export const useFinancialStats = () => {
         budgetCategories: budgetCategoriesLoading || baseBudgetCategoriesLoading,
         totalIncome: ytdDonationsLoading,
         totalExpenses: ytdExpensesLoading,
+        expenses: expensesLoading,
         campaigns: campaignsLoading
       }
     } as FinancialStats

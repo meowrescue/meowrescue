@@ -117,13 +117,13 @@ const processRecentDonors = (data: any[]): Donor[] => {
   
   // Format the data and ensure consistency between is_anonymous and isAnonymous properties
   return sortedData.map(donor => {
-    // Parse the date from MM-DD-YYYY or ISO to M/D/YYYY H:mm if possible
+    // Parse the date from MM-DD-YYYY or ISO to M/D/YYYY format (without time)
     let formattedDate = donor.date;
     // Try to parse full datetime for display
     const tryDate = new Date(donor.date);
     if (!isNaN(tryDate.getTime())) {
-      // Include time in the formatted date for proper sorting
-      formattedDate = `${tryDate.getMonth() + 1}/${tryDate.getDate()}/${tryDate.getFullYear()} ${tryDate.getHours().toString().padStart(2, '0')}:${tryDate.getMinutes().toString().padStart(2, '0')}`;
+      // Format as M/D/YYYY without time for display
+      formattedDate = `${tryDate.getMonth() + 1}/${tryDate.getDate()}/${tryDate.getFullYear()}`;
     } else {
       const dateParts = donor.date.split('-');
       if (dateParts.length === 3) {

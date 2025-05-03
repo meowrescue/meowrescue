@@ -171,13 +171,13 @@ const FinancialTransparency: React.FC = () => {
             campaigns={financialStats.campaigns || []}
             recentDonors={recentDonors}
             topDonors={topDonors}
-            expenses={financialStats.totalExpenses ? [{ amount: financialStats.totalExpenses }] : []}
+            expenses={financialStats.expenses || []}
             isLoading={{
               budgetCategories: financialStats.isLoading.budgetCategories,
               campaigns: financialStats.isLoading.campaigns,
               donorsLoading,
               topDonorsLoading,
-              expensesLoading: financialStats.isLoading.totalExpenses
+              expensesLoading: financialStats.isLoading.expenses
             }}
             onDonate={handleDonate}
             onLoadMoreRecentDonors={handleLoadMoreRecentDonors}
