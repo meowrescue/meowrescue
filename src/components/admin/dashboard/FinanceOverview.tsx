@@ -7,11 +7,13 @@ import { calculatePercentageChange } from '@/utils/financeUtils';
 import FinanceStatCard from './finance/FinanceStatCard';
 
 const FinanceOverview = () => {
+  const { financialStats } = useFinancialStats();
+  
   const { 
     monthlyDonations, 
     monthlyExpenses, 
     previousMonthDonations 
-  } = useFinancialStats();
+  } = financialStats;
 
   const donationsPercentChange = 
     previousMonthDonations !== undefined && monthlyDonations !== undefined

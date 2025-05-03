@@ -45,9 +45,8 @@ export const useFinancialDashboard = () => {
   });
 
   // Get financial data from custom hooks
-  const financialStatsResult = useFinancialStats();
+  const { financialStats } = useFinancialStats();
   
-  // Extract all the properties directly
   const {
     budgetCategories,
     monthlyDonations,
@@ -57,7 +56,7 @@ export const useFinancialDashboard = () => {
     campaigns,
     isLoading: financialStatsLoading,
     refetchFinancialStats
-  } = financialStatsResult;
+  } = financialStats;
 
   // Fetch donors and expenses using custom hooks with explicit configuration
   const { 

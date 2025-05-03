@@ -19,7 +19,7 @@ export function useCatData(id: string) {
         return preloadedCat;
       }
       
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('cats')
         .select('*')
         .eq('id', id)
@@ -42,7 +42,7 @@ export function useCatData(id: string) {
         return preloadedMedicalRecords;
       }
       
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('cat_medical_records')
         .select('*')
         .eq('cat_id', id)
