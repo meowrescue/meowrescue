@@ -62,6 +62,11 @@ const getSupabaseClient = () => {
         auth: {
           autoRefreshToken: true,
           persistSession: true
+        },
+        global: {
+          headers: {
+            'Accept': 'application/json'
+          }
         }
       }
     );

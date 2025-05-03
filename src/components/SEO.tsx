@@ -157,13 +157,15 @@ const SEO: React.FC<SEOProps> = ({
       <meta 
         http-equiv="Content-Security-Policy" 
         content="default-src 'self';
-          script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.gpteng.co;
-          img-src 'self' data: https://meowrescue.windsurf.build https://sfrlnidbiviniuqhryyc.supabase.co https://images.unsplash.com;
-          connect-src 'self' https: wss://*.supabase.co;
+          script-src 'self' 'unsafe-inline' 'unsafe-eval' https://sfrlnidbiviniuqhryyc.supabase.co;
           style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-          font-src 'self' data: https://fonts.gstatic.com;
-          frame-src 'none';
-          object-src 'none'"/>
+          font-src 'self' https://fonts.gstatic.com;
+          img-src 'self' data: blob: https://meowrescue.windsurf.build https://sfrlnidbiviniuqhryyc.supabase.co https://images.unsplash.com;
+          connect-src 'self' https://sfrlnidbiviniuqhryyc.supabase.co wss://sfrlnidbiviniuqhryyc.supabase.co https:;
+          object-src 'none';
+          base-uri 'self';
+          form-action 'self';"
+      />
 
       {children}
     </Helmet>
