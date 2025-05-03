@@ -1,3 +1,4 @@
+
 {
   "name": "meowrescue",
   "private": true,
@@ -13,7 +14,7 @@
     "typecheck": "tsc --noEmit",
     "build:dev": "vite build --mode development",
     "test:seo": "node scripts/test-build.js",
-    "update-supabase": "chmod +x ./update-supabase-imports.sh && ./update-supabase-imports.sh"
+    "update-supabase": "node update-supabase-imports.js"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
