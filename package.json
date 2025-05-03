@@ -13,7 +13,6 @@
     "typecheck": "tsc --noEmit",
     "build:dev": "vite build --mode development",
     "test:seo": "node scripts/test-build.js",
-    "update-supabase": "node scripts/update-supabase-imports.js"
     "update-supabase": "chmod +x ./update-supabase-imports.sh && ./update-supabase-imports.sh"
   },
   "dependencies": {
