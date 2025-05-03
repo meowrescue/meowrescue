@@ -2,28 +2,14 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 import { componentTagger } from "lovable-tagger";
+import { getViteCSP } from './src/config/security';
 
 export default defineConfig(({ mode, command }) => ({
   server: {
     port: 3000,
     host: "::",
     headers: {
-      'Content-Security-Policy': `
-        default-src 'self';
-        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://sfrlnidbiviniuqhryyc.supabase.co;
-        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-        img-src 'self' data: blob: https://meowrescue.windsurf.build https://sfrlnidbiviniuqhryyc.supabase.co https://images.unsplash.com;
-        frame-src 'self' https:;
-        connect-src 'self' https://sfrlnidbiviniuqhryyc.supabase.co wss://sfrlnidbiviniuqhryyc.supabase.co https:;
-        font-src 'self' https://fonts.gstatic.com data:;
-        media-src 'self' https: data:;
-        object-src 'none';
-        base-uri 'self';
-        form-action 'self';
-        frame-ancestors 'self';
-        manifest-src 'self';
-        worker-src 'self' blob:;
-      `
+      'Content-Security-Policy': getViteCSP()
     }
   },
   plugins: [

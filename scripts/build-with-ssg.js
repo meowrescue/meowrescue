@@ -97,6 +97,20 @@ try {
     process.exit(1);
   }
 
+  // Apply security headers for production
+  console.log('\n🔒 Applying security headers...');
+  try {
+    execSync('node scripts/apply-security-headers.js', {
+      stdio: 'inherit',
+      cwd: rootDir,
+      env: { ...process.env, NODE_ENV: 'production' }
+    });
+    console.log('✅ Security headers applied successfully');
+  } catch (error) {
+    console.error('Error applying security headers:', error);
+    console.warn('⚠️ Continuing with build despite security headers error');
+  }
+
   // Fix paths for Netlify compatibility
   console.log('\n🔧 Fixing paths for Netlify compatibility...');
   try {
@@ -149,6 +163,12 @@ try {
         return;
       }
       
+      // Skip csp-fix.js as we're now using proper CSP headers
+      if (file === 'csp-fix.js') {
+        console.log(`Skipping ${file} as we now use proper CSP configuration`);
+        return;
+      }
+      
       // Copy the file, overwriting if necessary
       copyFileSync(src, dest);
       console.log(`Copied ${file}`);
@@ -181,6 +201,11 @@ try {
   // Skip detailed SEO verification which might be causing issues
   console.log('\n✅ Build completed successfully!');
   console.log(`Final build size: ${(getDirSize(distDir) / (1024 * 1024)).toFixed(2)} MB`);
+  
+  console.log('\n🔔 REMINDER: Database security policies are not automatically applied during build.');
+  console.log('To apply the RLS policies to your Supabase database, run:');
+  console.log('node scripts/apply-database-policies.js');
+  
 } catch (error) {
   console.error('❌ Build process failed:', error);
   process.exit(1);

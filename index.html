@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <script src="/csp-fix.js"></script>
+    <!-- CSP will be properly injected by the build system -->
     <meta charset="UTF-8" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -202,7 +202,6 @@
         });
       })();
     </script>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.gpteng.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://meowrescue.windsurf.build https://sfrlnidbiviniuqhryyc.supabase.co; connect-src 'self' https://sfrlnidbiviniuqhryyc.supabase.co wss://sfrlnidbiviniuqhryyc.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
   </head>
   <body class="no-js">
     <div id="root"></div>

@@ -21,6 +21,8 @@
   to = "/index.html"
   status = 200
 
+# Security headers are now applied dynamically during build using the centralized security config
+# See scripts/apply-security-headers.js for implementation
 [[headers]]
   for = "/*"
   [headers.values]
@@ -28,9 +30,8 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.gpteng.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https://meowrescue.windsurf.build https://sfrlnidbiviniuqhryyc.supabase.co https://images.unsplash.com *; connect-src 'self' https://sfrlnidbiviniuqhryyc.supabase.co wss://sfrlnidbiviniuqhryyc.supabase.co; frame-src 'self' https://sfrlnidbiviniuqhryyc.supabase.co https:; object-src 'none'"
+    # Content-Security-Policy is injected by build process
 
-# Add specific headers for assets
 [[headers]]
   for = "*.js"
   [headers.values]

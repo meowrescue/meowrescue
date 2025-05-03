@@ -12,14 +12,24 @@ import '@fontsource/playfair-display/400.css'
 import '@fontsource/playfair-display/600.css'
 import '@fontsource/playfair-display/700.css'
 import { checkSupabaseSchema } from './integrations/supabase/diagnostics'
-import { ensureGlobalSupabase } from './utils/supabaseHelper'
-import { initSupabaseFixes } from './utils/supabaseFixClient'
+import { ensureBackwardCompatibility } from './utils/supabaseClient'
+import { initializeGlobalErrorHandling } from './services/errorLogging'
+import { initDatabaseMonitor } from './services/databaseMonitor'
 
-// Initialize Supabase fixes before any components try to use it
-initSupabaseFixes();
+// Initialize Supabase backward compatibility for legacy code
+ensureBackwardCompatibility();
 
-// Initialize global Supabase instance before any components try to use it
-ensureGlobalSupabase();
+// Initialize global error handling
+initializeGlobalErrorHandling();
+
+// Initialize database connection monitoring
+initDatabaseMonitor({
+  onConnectionChange: (status) => {
+    if (!status.connected && status.errorCount > 1) {
+      console.warn('Database connection issues detected. Some features may be unavailable.');
+    }
+  }
+});
 
 // Error Boundary Component to catch initialization errors
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: Error | null}> {
