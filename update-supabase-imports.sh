@@ -26,6 +26,7 @@ update_file() {
     # Replace direct usage of supabase
     sed -i 's/\([^a-zA-Z0-9_]\)supabase\([^a-zA-Z0-9_]\)/\1getSupabaseClient()\2/g' "$temp_file"
     sed -i 's/\([^a-zA-Z0-9_]\)supabase$/\1getSupabaseClient()/g' "$temp_file"
+    sed -i 's/^supabase\./getSupabaseClient()./g' "$temp_file"
     
     # Overwrite the original file
     mv "$temp_file" "$file"
