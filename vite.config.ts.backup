@@ -1,31 +1,61 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
-import { componentTagger } from "lovable-tagger";
 
-export default defineConfig(({ mode, command }) => ({
+export default defineConfig({
   server: {
     port: 3000,
     host: "::",
-    headers: {
-      'Content-Security-Policy': `
-        default-src 'self';
-        script-src 'self' 'unsafe-inline' 'unsafe-eval';
-        style-src 'self' 'unsafe-inline';
-        img-src 'self' data: blob: https:;
-        frame-src 'self' https:;
-        connect-src 'self' https:;
-        font-src 'self' https: data:;
-        media-src 'self' https: data:;
-        object-src 'none';
-        base-uri 'self';
-        form-action 'self';
-        frame-ancestors 'self';
-        manifest-src 'self';
-        worker-src 'self' blob:;
-      `
-    }
   },
+  plugins: [
+    react(),
+  ],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+});
+    plugins: [
+      react(),
+      mode === 'development' && componentTagger(),
+    ].filter(Boolean),
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "./src"),
+      },
+    },
+    build: {
+      outDir: 'dist',
+      sourcemap: mode === 'development',
+      assetsInlineLimit: 4096,
+      cssCodeSplit: true,
+      minify: mode === 'production' ? 'terser' : false,
+      ssrManifest: true,
+      rollupOptions: {
+        input: {
+          main: path.resolve(__dirname, 'index.html'),
+        },
+        output: {
+          assetFileNames: (assetInfo) => {
+            let extType = assetInfo.name.split('.').at(1);
+            if (/font|woff|woff2|eot|ttf|otf/.test(extType)) {
+              extType = 'fonts';
+            }
+            return `assets/${extType}/[name]-[hash][extname]`;
+          },
+          inlineDynamicImports: false,
+        },
+      },
+      terserOptions: {
+        compress: {
+          drop_console: mode === 'production',
+          drop_debugger: mode === 'production',
+        },
+      },
+    },
+  };
+});
   plugins: [
     react(),
     mode === 'development' && componentTagger(),

@@ -22,23 +22,37 @@ const getSupabaseClient = () => {
     
     // Check if credentials are available
     if (!supabaseUrl || !supabaseKey) {
-      throw new Error('Supabase credentials missing. Please check Netlify environment variables.');
-    }
-
-    // Validate credentials format
-    if (!supabaseUrl.startsWith('https://')) {
-      throw new Error('Invalid Supabase URL format. Must start with https://');
-    }
-    if (!supabaseKey.startsWith('eyJ')) {
-      throw new Error('Invalid Supabase key format. Must be a valid JWT token starting with eyJ');
-    }
-
-    // Test connection immediately
-    const testClient = createClient(supabaseUrl, supabaseKey);
-    const { error } = await testClient.auth.getSession();
-    
-    if (error) {
-      throw new Error(`Supabase connection failed: ${error.message}`);
+      console.error('Supabase credentials missing. Please check Netlify environment variables.');
+      
+      // In development, show more helpful error
+      if (import.meta.env.DEV) {
+        console.warn('In development, make sure you have a .env file with VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY');
+        console.warn('In production, ensure these are set as environment variables in your Netlify dashboard');
+      }
+      
+      // Return a dummy client that logs errors instead of failing silently
+      return {
+        from: () => ({
+          select: () => ({
+            order: () => ({
+              limit: () => Promise.resolve({ data: [], error: new Error('Supabase credentials missing') })
+            }),
+            limit: () => Promise.resolve({ data: [], error: new Error('Supabase credentials missing') }),
+            eq: () => Promise.resolve({ data: [], error: new Error('Supabase credentials missing') })
+          }),
+          insert: () => Promise.resolve({ data: null, error: new Error('Supabase credentials missing') }),
+          update: () => Promise.resolve({ data: null, error: new Error('Supabase credentials missing') }),
+          delete: () => Promise.resolve({ data: null, error: new Error('Supabase credentials missing') }),
+        }),
+        channel: () => ({
+          on: () => ({ subscribe: () => ({ unsubscribe: () => {} }) }),
+        }),
+        auth: {
+          onAuthStateChange: () => ({ data: null, error: null }),
+          getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+          signOut: () => Promise.resolve({ error: null })
+        }
+      };
     }
 
     supabaseInstance = createClient(
@@ -47,14 +61,7 @@ const getSupabaseClient = () => {
       {
         auth: {
           autoRefreshToken: true,
-          persistSession: true,
-          detectSessionInUrl: false
-        },
-        global: {
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          }
+          persistSession: true
         }
       }
     );
