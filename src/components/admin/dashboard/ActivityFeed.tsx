@@ -24,7 +24,7 @@ const ActivityFeed = () => {
   const { data: recentActivity, isLoading, error } = useQuery({
     queryKey: ['recent-activity'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('activity_logs')
         .select(`
           *,

@@ -47,16 +47,21 @@ export const useFinancialDashboard = () => {
   // Get financial data from custom hooks
   const { financialStats } = useFinancialStats();
   
+  // We need to destructure the financialStats object properly
   const {
-    budgetCategories,
-    monthlyDonations,
+    monthlyIncome: monthlyDonations,
     monthlyExpenses,
-    previousMonthDonations,
+    previousMonthIncome: previousMonthDonations,
     previousMonthExpenses,
+    budgetCategories,
     campaigns,
     isLoading: financialStatsLoading,
-    refetchFinancialStats
+    totalIncome,
+    totalExpenses: totalFinancialExpenses
   } = financialStats;
+
+  // We need to get the refetchFinancialStats function from the hook directly
+  const { refetchFinancialStats } = useFinancialStats();
 
   // Fetch donors and expenses using custom hooks with explicit configuration
   const { 

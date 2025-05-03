@@ -9,7 +9,7 @@ const StatCards = () => {
   const { data: catsCount } = useQuery({
     queryKey: ['cats-count'],
     queryFn: async () => {
-      const { count, error } = await supabase
+      const { count, error } = await getSupabaseClient()
         .from('cats')
         .select('*', { count: 'exact', head: true });
       
@@ -21,7 +21,7 @@ const StatCards = () => {
   const { data: adoptionsCount } = useQuery({
     queryKey: ['adoptions-count'],
     queryFn: async () => {
-      const { count, error } = await supabase
+      const { count, error } = await getSupabaseClient()
         .from('applications')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'approved');
@@ -34,7 +34,7 @@ const StatCards = () => {
   const { data: pendingApplications } = useQuery({
     queryKey: ['pending-applications'],
     queryFn: async () => {
-      const { count, error } = await supabase
+      const { count, error } = await getSupabaseClient()
         .from('applications')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'pending');
@@ -47,7 +47,7 @@ const StatCards = () => {
   const { data: unreadMessages } = useQuery({
     queryKey: ['unread-messages'],
     queryFn: async () => {
-      const { count, error } = await supabase
+      const { count, error } = await getSupabaseClient()
         .from('contact_messages')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'New');

@@ -85,7 +85,7 @@ export const useExpenseEntry = ({ onSuccess }: ExpenseEntryProps = {}) => {
       }
 
       // First, create the expense record
-      const { data: expense, error: expenseError } = await supabase
+      const { data: expense, error: expenseError } = await getSupabaseClient()
         .from("expenses")
         .insert({
           description: capitalizedDescription,
@@ -118,7 +118,7 @@ export const useExpenseEntry = ({ onSuccess }: ExpenseEntryProps = {}) => {
           .getPublicUrl(filePath);
 
         // Update the expense record with the receipt URL
-        const { error: updateError } = await supabase
+        const { error: updateError } = await getSupabaseClient()
           .from("expenses")
           .update({ receipt_url: publicURLData.publicUrl })
           .eq("id", expense.id);

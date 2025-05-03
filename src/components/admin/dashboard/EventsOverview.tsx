@@ -10,7 +10,7 @@ const EventsOverview = () => {
   const { data: upcomingEvents } = useQuery({
     queryKey: ['upcoming-events'],
     queryFn: async () => {
-      const { count, error } = await supabase
+      const { count, error } = await getSupabaseClient()
         .from('events')
         .select('*', { count: 'exact', head: true })
         .gt('date_start', new Date().toISOString());

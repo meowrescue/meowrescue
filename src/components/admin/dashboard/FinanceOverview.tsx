@@ -10,9 +10,9 @@ const FinanceOverview = () => {
   const { financialStats } = useFinancialStats();
   
   const { 
-    monthlyDonations, 
+    monthlyIncome: monthlyDonations, 
     monthlyExpenses, 
-    previousMonthDonations 
+    previousMonthIncome: previousMonthDonations 
   } = financialStats;
 
   const donationsPercentChange = 

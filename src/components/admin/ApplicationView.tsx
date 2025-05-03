@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Application } from '@/types/applications';
 import { Button } from '@/components/ui/button';
@@ -33,7 +32,7 @@ const ApplicationView: React.FC<ApplicationViewProps> = ({ application, onClose 
         // Check which table to update based on application type
         if (application.application_type === 'adoption') {
           // Try to update adoption_applications first
-          const { data: adoptionData, error: adoptionError } = await supabase
+          const { data: adoptionData, error: adoptionError } = await getSupabaseClient()
             .from('adoption_applications')
             .update({ 
               status: status.charAt(0).toUpperCase() + status.slice(1), // Capitalize status for adoption_applications
@@ -50,7 +49,7 @@ const ApplicationView: React.FC<ApplicationViewProps> = ({ application, onClose 
         }
         
         // Fallback to applications table or for other application types
-        const { data, error } = await supabase
+        const { data, error } = await getSupabaseClient()
           .rpc('update_application_status', {
             p_application_id: id,
             p_status: status,
@@ -61,7 +60,7 @@ const ApplicationView: React.FC<ApplicationViewProps> = ({ application, onClose 
           console.error('Error updating application status with RPC:', error);
           
           // Direct update if RPC fails
-          const { data: updateData, error: updateError } = await supabase
+          const { data: updateData, error: updateError } = await getSupabaseClient()
             .from('applications')
             .update({ 
               status: status,
@@ -127,6 +126,7 @@ const ApplicationView: React.FC<ApplicationViewProps> = ({ application, onClose 
     });
   };
 
+  
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
