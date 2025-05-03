@@ -51,97 +51,144 @@ const prerenderPages = async () => {
       installProcess.on('close', (code) => {
         if (code === 0) {
           console.log('✅ Puppeteer installed successfully!');
+          puppeteer = require('puppeteer');
           resolve();
         } else {
-          console.error('❌ Failed to install puppeteer.');
-          reject(new Error(`npm install puppeteer exited with code ${code}`));
+          console.error('❌ Failed to install puppeteer with exit code:', code);
+          reject(new Error(`Installation failed with code ${code}`));
         }
       });
+      installProcess.on('error', (err) => {
+        console.error('❌ Error installing puppeteer:', err);
+        reject(err);
+      });
     });
-    puppeteer = require('puppeteer');
   }
   
-  const routes = {
-    '/': { title: 'Home - Meow Rescue', description: 'MeowRescue is a home-based cat rescue in Pasco County, Florida, dedicated to rescuing, rehabilitating, and rehoming cats in need.' },
-    '/about': { title: 'About Us - Meow Rescue', description: 'Learn more about Meow Rescue, our mission, and our team dedicated to cat welfare in Pasco County, Florida.' },
-    '/adopt': { title: 'Adopt a Cat - Meow Rescue', description: 'Find your perfect feline companion at Meow Rescue. View cats available for adoption in Pasco County, Florida.' },
-    '/cats': { title: 'Our Cats - Meow Rescue', description: 'Meet all the cats at Meow Rescue waiting for their forever homes in Pasco County, Florida.' },
-    '/blog': { title: 'Blog - Meow Rescue', description: 'Read the latest news, tips, and stories about cat care and rescue from Meow Rescue.' },
-    '/events': { title: 'Events - Meow Rescue', description: 'Join us at upcoming events to support Meow Rescue and meet cats available for adoption.' },
-    '/foster': { title: 'Foster a Cat - Meow Rescue', description: 'Become a foster parent to a cat in need with Meow Rescue in Pasco County, Florida.' },
-    '/lost-found': { title: 'Lost & Found Cats - Meow Rescue', description: 'Report or search for lost and found cats in Pasco County, Florida with Meow Rescue.' },
-    '/resources': { title: 'Cat Care Resources - Meow Rescue', description: 'Access helpful resources and guides for cat care and ownership from Meow Rescue.' },
-    '/success-stories': { title: 'Success Stories - Meow Rescue', description: 'Read heartwarming stories of cats adopted through Meow Rescue and their new families.' },
-    '/volunteer': { title: 'Volunteer - Meow Rescue', description: 'Join our team of volunteers at Meow Rescue to help cats in need in Pasco County, Florida.' },
-    '/donate': { title: 'Donate - Meow Rescue', description: 'Support Meow Rescue by donating to help us rescue and care for cats in Pasco County, Florida.' },
-    '/financial-transparency': { title: 'Financial Transparency - Meow Rescue', description: 'View financial reports and transparency information for Meow Rescue, ensuring trust in our operations.' },
-    '/privacy-policy': { title: 'Privacy Policy - Meow Rescue', description: 'Read the privacy policy of Meow Rescue to understand how we handle your data.' },
-    '/terms-of-service': { title: 'Terms of Service - Meow Rescue', description: 'Review the terms of service for using the Meow Rescue website and services.' }
-  };
+  // Array of base routes to start crawling from - ensuring all public pages are included
+  const baseRoutes = [
+    "/",
+    "/about",
+    "/cats",
+    "/adopt",
+    "/volunteer",
+    "/volunteer/apply",
+    "/foster",
+    "/foster/apply",
+    "/donate",
+    "/events",
+    "/blog",
+    "/contact",
+    "/resources",
+    "/success-stories",
+    "/financial-transparency",
+    "/lost-found",
+    "/privacy-policy",
+    "/terms-of-service",
+    "/faq",
+    "/wishlist"
+  ];
   
   // Function to fetch dynamic routes from the site
-  const fetchDynamicRoutes = async (baseRoute, titlePrefix, descriptionPrefix) => {
+  const fetchDynamicRoutes = async (baseRoute, visited = new Set()) => {
     console.log(`Fetching dynamic routes for ${baseRoute}...`);
-    await page.goto(`http://localhost:5173${baseRoute}`, { waitUntil: ['load', 'domcontentloaded', 'networkidle0', 'networkidle2'], timeout: 60000 });
-    await page.waitForFunction('document.querySelector("#root").innerText.length > 0', { timeout: 60000 });
-    await new Promise(resolve => setTimeout(resolve, 10000));
-    const links = await page.evaluate((base) => {
-      const anchors = Array.from(document.querySelectorAll('a'));
-      return anchors
-        .filter(a => a.href.startsWith(`http://localhost:5173${base}`) && a.href !== `http://localhost:5173${base}`)
-        .map(a => {
-          const href = a.href.replace('http://localhost:5173', '');
-          // Strip any hash fragments from the route
-          const cleanHref = href.split('#')[0];
-          return {
-            route: cleanHref,
-            title: `${a.textContent.trim()} - Meow Rescue`,
-            description: `Learn more about ${a.textContent.trim()} at Meow Rescue.`
-          };
-        });
-    }, baseRoute);
-    console.log(`Found ${links.length} dynamic routes for ${baseRoute}`);
-    return links;
+    try {
+      const serverUrl = `http://localhost:${serverPort}${baseRoute}`;
+      console.log(`Navigating to ${serverUrl}`);
+      await page.goto(serverUrl, { waitUntil: ['load', 'domcontentloaded', 'networkidle0', 'networkidle2'], timeout: 60000 });
+      await page.waitForFunction('document.querySelector("#root").innerText.length > 0', { timeout: 60000 });
+      await new Promise(resolve => setTimeout(resolve, 3000)); // Reduced from 10 seconds to 3 seconds for faster builds
+      const links = await page.evaluate((base, port) => {
+        return Array.from(document.querySelectorAll('a[href]'))
+          .filter(a => a.href.startsWith(`http://localhost:${port}`) && !a.href.includes('/login') && !a.href.includes('/register') && !a.href.includes('/reset-password'))
+          .map(a => {
+            const href = a.href.replace(`http://localhost:${port}`, '');
+            // Strip any hash fragments from the route
+            const cleanHref = href.split('#')[0];
+            return {
+              route: cleanHref,
+              title: `${a.textContent.trim()} - Meow Rescue`,
+              description: `Learn more about ${a.textContent.trim()} at Meow Rescue.`
+            };
+          });
+      }, baseRoute, serverPort);
+      console.log(`Found ${links.length} dynamic routes for ${baseRoute}`);
+      
+      let allLinks = links;
+      for (const link of links) {
+        if (!visited.has(link.route)) {
+          visited.add(link.route);
+          const subLinks = await fetchDynamicRoutes(link.route, visited);
+          allLinks = allLinks.concat(subLinks);
+        }
+      }
+      return allLinks;
+    } catch (error) {
+      console.error(`Error fetching dynamic routes for ${baseRoute}:`, error);
+      return [];
+    }
   };
   
   // Start a temporary Vite server for rendering
   console.log('Starting temporary Vite server for prerendering...');
   let serverProcess;
   let serverStarted = false;
+  let serverPort = 5173; // Default port
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
-      serverProcess = spawn('npx', ['vite', 'preview', '--port', '5173'], { stdio: 'inherit', shell: true });
-      console.log(`Attempt ${attempt} to start Vite server...`);
-      
-      // Wait for server to start by listening to output
+      serverProcess = spawn('npx', ['vite', '--port', serverPort.toString()], { stdio: ['inherit', 'pipe', 'pipe'], shell: true, cwd: rootDir, env: { ...process.env, NODE_ENV: 'development' } });
+      console.log(`Attempt ${attempt}/3 to start Vite server on port ${serverPort}...`);
       await new Promise((resolve, reject) => {
+        if (serverProcess.stdout) {
+          serverProcess.stdout.on('data', (data) => {
+            const output = data.toString();
+            console.log(output);
+            if (output.includes('ready in') || output.includes('http://localhost:')) {
+              console.log('✅ Vite server started!');
+              serverStarted = true;
+              // Extract the actual port from the output
+              const portMatch = output.match(/http:\/\/localhost:(\d+)/);
+              if (portMatch && portMatch[1]) {
+                serverPort = parseInt(portMatch[1], 10);
+                console.log(`Detected Vite server running on port ${serverPort}`);
+              }
+              resolve();
+            }
+          });
+        } else {
+          console.error('stdout is null, cannot attach event listener');
+        }
+
+        if (serverProcess.stderr) {
+          serverProcess.stderr.on('data', (data) => {
+            console.error(data.toString());
+          });
+        } else {
+          console.error('stderr is null, cannot attach event listener');
+        }
+
         serverProcess.on('error', (err) => {
+          console.error('❌ Server process error:', err);
           reject(err);
         });
-        // Timeout in case server doesn't start
-        setTimeout(() => {
-          console.log('Checking if server is running...');
-          // Use a simple HTTP request to check if server is up
-          const http = require('http');
-          http.get('http://localhost:5173', (res) => {
-            console.log('Server is up and running!');
-            serverStarted = true;
-            resolve();
-          }).on('error', () => {
-            console.log('Server not yet running, will retry...');
-            reject(new Error('Server not detected yet'));
-          });
-        }, 20000);
+
+        serverProcess.on('close', (code) => {
+          console.log(`Server process exited with code ${code}`);
+          reject(new Error(`Server process exited with code ${code}`));
+        });
       });
       if (serverStarted) break;
-    } catch (error) {
-      console.error(`❌ Error starting server on attempt ${attempt}:`, error);
+    } catch (err) {
+      console.error(`❌ Attempt ${attempt} failed:`, err);
       if (serverProcess) serverProcess.kill();
       if (attempt === 3) {
         console.error('❌ Failed to start server after 3 attempts. Aborting prerendering.');
         return;
       }
-      await new Promise(resolve => setTimeout(resolve, 10000)); // Wait before retry
+      // Try a different port on the next attempt
+      serverPort = 5173 + attempt;
+      console.log(`Trying a different port (${serverPort}) on next attempt...`);
+      await new Promise(resolve => setTimeout(resolve, 3000)); // Wait before retry
     }
   }
   
@@ -151,148 +198,96 @@ const prerenderPages = async () => {
   }
   
   // Give additional time for server stability
-  await new Promise(resolve => setTimeout(resolve, 10000));
+  await new Promise(resolve => setTimeout(resolve, 3000)); // Reduced from 10 seconds to 3 seconds
   
   // Launch puppeteer browser
-  let browser;
-  try {
-    browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'], timeout: 60000 });
-    console.log('✅ Puppeteer launched successfully!');
-  } catch (error) {
-    console.error('❌ Error launching puppeteer:', error);
-    if (serverProcess) serverProcess.kill();
-    return;
+  console.log('Launching Puppeteer browser...');
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    timeout: 60000
+  });
+  console.log('✅ Puppeteer browser launched!');
+  const page = await browser.newPage();
+  
+  // Set a reasonable viewport
+  await page.setViewport({ width: 1280, height: 720 });
+  
+  // Collect all dynamic routes
+  console.log('Collecting all dynamic routes from base pages...');
+  let dynamicRoutes = {};
+  const globalVisited = new Set();
+  for (const baseRoute of baseRoutes) {
+    if (!globalVisited.has(baseRoute)) {
+      globalVisited.add(baseRoute);
+      const links = await fetchDynamicRoutes(baseRoute, globalVisited);
+      links.forEach(link => {
+        dynamicRoutes[link.route] = link;
+      });
+    } else {
+      console.log(`Skipping already visited base route: ${baseRoute}`);
+    }
   }
   
-  const page = await browser.newPage();
-  // Set a longer timeout for page operations
-  page.setDefaultTimeout(60000);
-  // Set user agent to avoid detection as headless
-  await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
-  
-  // Fetch dynamic routes for various sections
-  const catsRoutes = await fetchDynamicRoutes('/cats', 'Cat', 'Meet this cat available for adoption');
-  const blogRoutes = await fetchDynamicRoutes('/blog', 'Blog Post', 'Read this blog post');
-  const eventsRoutes = await fetchDynamicRoutes('/events', 'Event', 'Join us at this event');
-  const successStoriesRoutes = await fetchDynamicRoutes('/success-stories', 'Success Story', 'Read this heartwarming adoption story');
-  const lostFoundRoutes = await fetchDynamicRoutes('/lost-found', 'Lost & Found', 'Help with this lost or found cat');
-  
-  // Combine all dynamic routes
-  const dynamicRoutes = [
-    ...catsRoutes,
-    ...blogRoutes,
-    ...eventsRoutes,
-    ...successStoriesRoutes,
-    ...lostFoundRoutes
-  ].reduce((acc, { route, title, description }) => {
-    acc[route] = { title, description };
-    return acc;
-  }, {});
-  
   // Combine all routes
-  const allRoutes = { ...routes, ...dynamicRoutes };
+  const allRoutes = { ...baseRoutes.reduce((acc, route) => ({ ...acc, [route]: { title: `Meow Rescue - ${route}`, description: `Learn more about ${route} at Meow Rescue.` } }), {}), ...dynamicRoutes };
   const outputDir = path.join(process.cwd(), 'dist');
   
   for (const [route, metadata] of Object.entries(allRoutes)) {
-    let retries = 0;
-    let success = false;
-    const maxRetries = 5;
-    while (retries < maxRetries && !success) {
+    console.log(`Prerendering ${route}...`);
+    for (let attempt = 1; attempt <= 5; attempt++) {
       try {
-        console.log(`Prerendering ${route}... Attempt ${retries + 1}/${maxRetries}`);
-        await page.goto(`http://localhost:5173${route}`, { waitUntil: ['load', 'domcontentloaded', 'networkidle0', 'networkidle2'], timeout: 60000 });
-        // Wait for React to fully render the content
-        await page.waitForFunction('document.querySelector("#root").innerText.length > 0', { timeout: 60000 });
-        // Additional wait to ensure all dynamic content loads
-        await new Promise(resolve => setTimeout(resolve, 10000)); // Increased wait time
+        console.log(`Navigating to http://localhost:${serverPort}${route} (Attempt ${attempt}/5)`);
+        const response = await page.goto(`http://localhost:${serverPort}${route}`, { waitUntil: ['load', 'domcontentloaded', 'networkidle0', 'networkidle2'], timeout: 60000 });
+        if (!response.ok()) {
+          console.warn(`⚠️ Warning: HTTP status ${response.status()} for ${route}`);
+        }
         
-        // Fix for duplicate navbar links
-        await page.evaluate(() => {
-          // Remove any duplicate navigation links that might appear as unformatted text
-          const style = document.createElement('style');
-          style.textContent = `
-            /* Hide any duplicate navigation elements that appear as unformatted text */
-            #root > div > nav + div:not([class]):not([id]) {
-              display: none !important;
-            }
-            /* Ensure headers and footers are properly styled and visible */
-            header, footer {
-              display: block !important;
-              visibility: visible !important;
-              opacity: 1 !important;
-            }
-          `;
-          document.head.appendChild(style);
-          
-          // Wait for React hydration to complete
-          return new Promise(resolve => setTimeout(resolve, 2000));
-        });
+        // Wait for the #root element to have content
+        await page.waitForFunction('document.querySelector("#root").innerText.length > 0', { timeout: 60000 });
+        // Additional wait time for dynamic content - reduced to 3 seconds
+        await new Promise(resolve => setTimeout(resolve, 3000));
         
         // Get the full HTML content
-        const content = await page.content();
-        // Adjusted validation to check for common header and footer class names or IDs
-        const hasHeader = content.includes('<header') || content.includes('class="header') || content.includes('id="header');
-        const hasFooter = content.includes('<footer') || content.includes('class="footer') || content.includes('id="footer');
-        console.log(`Debugging content for ${route}:`);
-        console.log(`HTML length: ${content.length}`);
-        console.log(`Contains #root: ${content.includes('#root')}`);
-        console.log(`Contains header: ${hasHeader}`);
-        console.log(`Contains footer: ${hasFooter}`);
-        // Verify that content includes expected elements - loosening the check to just look for some content
-        if (content.length > 5000) { // Basic check for substantial content
-          // Ensure the directory structure exists
-          const filePath = path.join(outputDir, route === '/' ? 'index.html' : `${route.slice(1)}.html`);
-          const dirPath = path.dirname(filePath);
-          if (!fs.existsSync(dirPath)) {
-            fs.mkdirSync(dirPath, { recursive: true });
-          }
-          fs.writeFileSync(filePath, content, 'utf8');
-          console.log(`✅ Prerendered ${route} to ${filePath}`);
-          success = true;
+        const htmlContent = await page.content();
+        console.log(`HTML content length for ${route}: ${htmlContent.length}`);
+        
+        // Determine the file path
+        let filePath;
+        if (route === '/') {
+          filePath = path.join(outputDir, 'index.html');
         } else {
-          console.error(`❌ Content validation failed for ${route}. Insufficient content length.`);
-          retries++;
-          await new Promise(resolve => setTimeout(resolve, 10000)); // Wait longer before retry
+          filePath = path.join(outputDir, `${route.slice(1)}.html`);
         }
+        
+        // Ensure the directory exists
+        fs.mkdirSync(path.dirname(filePath), { recursive: true });
+        
+        // Write the HTML content to file
+        fs.writeFileSync(filePath, htmlContent, 'utf8');
+        console.log(`✅ Successfully prerendered ${route} to ${filePath}`);
+        break; // Exit retry loop on success
       } catch (error) {
-        console.error(`❌ Error prerendering ${route}:`, error);
-        retries++;
-        await new Promise(resolve => setTimeout(resolve, 10000)); // Wait before retry
-      }
-    }
-    if (!success) {
-      console.error(`❌ Failed to prerender ${route} after ${maxRetries} attempts. Saving whatever content is available.`);
-      // Save whatever content we have as a fallback
-      try {
-        const content = await page.content();
-        const filePath = path.join(outputDir, route === '/' ? 'index.html' : `${route.slice(1)}.html`);
-        fs.writeFileSync(filePath, content, 'utf8');
-        console.log(`⚠️ Saved partial content for ${route} to ${filePath}`);
-      } catch (err) {
-        console.error(`❌ Failed to save partial content for ${route}:`, err);
+        console.error(`❌ Error prerendering ${route} on attempt ${attempt}:`, error);
+        if (attempt === 5) {
+          console.error(`❌ Failed to prerender ${route} after 5 attempts.`);
+        }
+        await new Promise(resolve => setTimeout(resolve, 5000 * attempt)); // Exponential backoff
       }
     }
   }
   
-  // Close puppeteer browser
+  console.log('Closing Puppeteer browser...');
   await browser.close();
   console.log('✅ Puppeteer browser closed.');
   
-  // Stop the temporary server
   console.log('Stopping temporary Vite server...');
   if (serverProcess) {
-    serverProcess.kill('SIGTERM');
-    // Force kill if it doesn't terminate gracefully
-    setTimeout(() => {
-      if (serverProcess && !serverProcess.killed) {
-        serverProcess.kill('SIGKILL');
-        console.log('Forced termination of Vite server.');
-      }
-    }, 5000);
+    serverProcess.kill();
   }
   console.log('✅ Prerendering completed!');
   
-  // Generate sitemap with all routes
+  // Generate sitemap with all discovered routes
   generateSitemap(Object.keys(allRoutes));
 };
 
@@ -325,6 +320,21 @@ ${routes.map(route => {
   console.log('✅ Sitemap generated!');
 };
 
+// Function to generate robots.txt
+const generateRobotsTxt = () => {
+  console.log('📝 Generating robots.txt...');
+  const robotsContent = `# Meow Rescue Robots.txt
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://meowrescue.org/sitemap.xml
+`;
+  const outputDir = path.join(process.cwd(), 'dist');
+  fs.writeFileSync(path.join(outputDir, 'robots.txt'), robotsContent, 'utf8');
+  console.log('✅ Robots.txt generated!');
+};
+
 // Main build function
 const main = async () => {
   try {
@@ -338,7 +348,11 @@ const main = async () => {
     // Prerender all public pages
     await prerenderPages();
     
+    // Generate robots.txt
+    generateRobotsTxt();
+    
     console.log('🎉 Build process completed successfully!');
+    process.exit(0); // Ensure the script terminates
   } catch (error) {
     console.error('❌ Build process failed:', error);
     process.exit(1);
@@ -346,4 +360,7 @@ const main = async () => {
 };
 
 // Run the build process
-main();
+main().catch(err => {
+  console.error('Build process failed:', err);
+  process.exit(1);
+});

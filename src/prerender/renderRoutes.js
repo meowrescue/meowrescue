@@ -197,6 +197,59 @@ async function renderRoutes(staticPaths, outDir) {
         finalHtml = finalHtml.replace('</body>', navLinksHTML + '\n</body>');
       }
       
+      // Add data attributes for hydration of interactive elements
+      if (route === '/' || route === '/about' || route === '/cats' || route === '/adopt' || route === '/donate' || route === '/volunteer' || route === '/foster' || route === '/contact' || route === '/blog' || route === '/events' || route === '/financial-transparency' || route === '/login') {
+        finalHtml = finalHtml.replace(/<button/g, '<button data-hydrate="true"');
+        finalHtml = finalHtml.replace(/<a[^>]*href=[^>]*>/g, match => match.includes('data-hydrate') ? match : match.replace('<a', '<a data-hydrate="true"'));
+        finalHtml = finalHtml.replace(/<input/g, '<input data-hydrate="true"');
+        finalHtml = finalHtml.replace(/<form/g, '<form data-hydrate="true"');
+        finalHtml = finalHtml.replace(/<nav/g, '<nav data-hydrate="true"');
+        finalHtml = finalHtml.replace(/<div[^>]*class=[^>]*navbar[^>]*>/gi, match => match.includes('data-hydrate') ? match : match.replace('<div', '<div data-hydrate="true"'));
+      }
+      
+      // Add client-side navigation and hydration script
+      const hydrationScript = `
+        <script>
+          // Initialize client-side navigation and hydration for deployment
+          if (typeof window !== 'undefined') {
+            window.addEventListener('DOMContentLoaded', () => {
+              console.log('DOM loaded, initializing navigation and hydration for deployment');
+              // Placeholder for React Router navigation
+              window.navigate = function(path) {
+                console.log('Navigate function not yet loaded, using default navigation for: ' + path);
+                window.location.href = path;
+              };
+              // Add event listeners to all internal links until React Router loads
+              document.querySelectorAll('a[href^="/"]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                  if (window.navigate) {
+                    e.preventDefault();
+                    const href = this.getAttribute('href');
+                    console.log('Client-side navigating to ' + href);
+                    window.navigate(href);
+                  }
+                });
+              });
+              // Diagnostic for dynamic content loading
+              console.log('Checking dynamic content initialization...');
+              // Simulate a test for API or dynamic content loading (this would be replaced by actual app logic)
+              setTimeout(() => {
+                if (typeof window.fetch === 'function') {
+                  console.log('Fetch API available, dynamic content loading should work if app initializes.');
+                } else {
+                  console.error('Fetch API not available, dynamic content loading may fail.');
+                }
+              }, 1000);
+              // Ensure main app bundle loads to take over with React hydration
+              console.log('Loading main app bundle for hydration');
+            });
+          }
+        </script>
+        <!-- Adjust script path for deployment environment -->
+        <script type="module" src="/assets/index.js"></script>
+      `;
+      finalHtml = finalHtml.replace('</head>', hydrationScript + '\n</head>');
+      
       // Ensure the sitemap link is in the head
       if (!finalHtml.includes('<link rel="sitemap"')) {
         finalHtml = finalHtml.replace('</head>', '<link rel="sitemap" type="application/xml" href="/sitemap.xml" />\n</head>');

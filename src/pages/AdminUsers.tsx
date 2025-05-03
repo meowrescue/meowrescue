@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/supabase/client';
 import AdminLayout from '@/pages/Admin';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -73,7 +73,7 @@ const AdminUsers = () => {
   const addUserMutation = useMutation({
     mutationFn: async (userData: typeof newUser) => {
       // Create auth user first
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const { data: authData, error: authError } = await getSupabaseClient().auth.signUp({
         email: userData.email,
         password: userData.password,
         options: {

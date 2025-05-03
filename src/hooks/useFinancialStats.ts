@@ -1,8 +1,7 @@
-
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  getMonthlyDonations,
-  getMonthlyExpenses,
+  getDonationsSum,
+  getExpensesSum,
   getPreviousMonthDonations,
   getPreviousMonthExpenses,
   getTotalBudget,
@@ -12,6 +11,29 @@ import {
   getCurrentCampaigns
 } from '@/services/finance';
 import { FundraisingCampaign } from '@/types/finance';
+
+interface FinancialStats {
+  totalIncome: number;
+  totalExpenses: number;
+  totalBudget: number;
+  monthlyIncome: number;
+  monthlyExpenses: number;
+  previousMonthIncome: number;
+  previousMonthExpenses: number;
+  budgetCategories: any[];
+  campaigns: FundraisingCampaign[];
+  isLoading: {
+    monthlyIncome: boolean;
+    monthlyExpenses: boolean;
+    previousMonthIncome: boolean;
+    previousMonthExpenses: boolean;
+    totalBudget: boolean;
+    budgetCategories: boolean;
+    totalIncome: boolean;
+    totalExpenses: boolean;
+    campaigns: boolean;
+  };
+}
 
 export const useFinancialStats = () => {
   const queryClient = useQueryClient();
@@ -24,21 +46,45 @@ export const useFinancialStats = () => {
     refetchOnWindowFocus: true
   };
 
-  const { 
-    data: monthlyDonations = 0, 
-    isLoading: monthlyDonationsLoading 
+  // Get current month's first day
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  // YTD queries
+  const {
+    data: ytdDonations = 0,
+    isLoading: ytdDonationsLoading
   } = useQuery({
-    queryKey: ['monthly-donations'],
-    queryFn: getMonthlyDonations,
+    queryKey: ['ytd-donations'],
+    queryFn: () => getDonationsSum(),
     ...commonConfig
   });
 
-  const { 
-    data: monthlyExpenses = 0, 
-    isLoading: monthlyExpensesLoading 
+  const {
+    data: ytdExpenses = 0,
+    isLoading: ytdExpensesLoading
+  } = useQuery({
+    queryKey: ['ytd-expenses'],
+    queryFn: () => getExpensesSum(),
+    ...commonConfig
+  });
+
+  // Monthly queries (current month)
+  const {
+    data: monthlyDonations = 0,
+    isLoading: monthlyDonationsLoading
+  } = useQuery({
+    queryKey: ['monthly-donations'],
+    queryFn: () => getDonationsSum({ startDate: startOfMonth, endDate: now }),
+    ...commonConfig
+  });
+
+  const {
+    data: monthlyExpenses = 0,
+    isLoading: monthlyExpensesLoading
   } = useQuery({
     queryKey: ['monthly-expenses'],
-    queryFn: getMonthlyExpenses,
+    queryFn: () => getExpensesSum({ startDate: startOfMonth, endDate: now }),
     ...commonConfig
   });
 
@@ -123,8 +169,8 @@ export const useFinancialStats = () => {
   const refetchFinancialStats = async () => {
     console.log("Refetching all financial stats...");
     await Promise.all([
-      queryClient.refetchQueries({ queryKey: ['monthly-donations'] }),
-      queryClient.refetchQueries({ queryKey: ['monthly-expenses'] }),
+      queryClient.refetchQueries({ queryKey: ['ytd-donations'] }),
+      queryClient.refetchQueries({ queryKey: ['ytd-expenses'] }),
       queryClient.refetchQueries({ queryKey: ['prev-monthly-donations'] }),
       queryClient.refetchQueries({ queryKey: ['prev-monthly-expenses'] }),
       queryClient.refetchQueries({ queryKey: ['total-budget'] }),
@@ -137,8 +183,8 @@ export const useFinancialStats = () => {
 
   // Log the values for debugging
   console.log({
-    monthlyDonations: Number(monthlyDonations),
-    monthlyExpenses: Number(monthlyExpenses),
+    monthlyDonations: Number(ytdDonations),
+    monthlyExpenses: Number(ytdExpenses),
     totalBudget: Number(totalBudget),
     budgetCategoriesCount: budgetCategories?.length,
     baseBudgetCategoriesCount: baseBudgetCategories?.length,
@@ -147,24 +193,27 @@ export const useFinancialStats = () => {
   });
 
   return {
-    monthlyDonations: Number(monthlyDonations),
-    monthlyExpenses: Number(monthlyExpenses),
-    previousMonthDonations: Number(previousMonthDonations),
-    previousMonthExpenses: Number(previousMonthExpenses),
-    totalBudget: Number(totalBudget),
-    budgetCategories,
-    totalDonations: Number(totalDonations),
-    campaigns,
-    refetchFinancialStats,
-    isLoading: {
-      monthlyDonations: monthlyDonationsLoading,
-      monthlyExpenses: monthlyExpensesLoading,
-      previousMonthDonations: previousMonthDonationsLoading,
-      previousMonthExpenses: previousMonthExpensesLoading,
-      totalBudget: totalBudgetLoading,
-      budgetCategories: budgetCategoriesLoading || baseBudgetCategoriesLoading,
-      totalDonations: totalDonationsLoading,
-      campaigns: campaignsLoading
-    }
+    financialStats: {
+      totalIncome: ytdDonations,
+      totalExpenses: ytdExpenses,
+      totalBudget: totalBudget,
+      monthlyIncome: monthlyDonations,
+      monthlyExpenses: monthlyExpenses,
+      previousMonthIncome: previousMonthDonations,
+      previousMonthExpenses: previousMonthExpenses,
+      budgetCategories: budgetCategories || [],
+      campaigns: campaigns || [],
+      isLoading: {
+        monthlyIncome: monthlyDonationsLoading,
+        monthlyExpenses: monthlyExpensesLoading,
+        previousMonthIncome: previousMonthDonationsLoading,
+        previousMonthExpenses: previousMonthExpensesLoading,
+        totalBudget: totalBudgetLoading,
+        budgetCategories: budgetCategoriesLoading || baseBudgetCategoriesLoading,
+        totalIncome: ytdDonationsLoading,
+        totalExpenses: ytdExpensesLoading,
+        campaigns: campaignsLoading
+      }
+    } as FinancialStats
   };
 };

@@ -5,7 +5,7 @@ import AdminLayout from '@/pages/Admin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/supabase/client';
 import SEO from '@/components/SEO';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -217,7 +217,7 @@ const AdminChat: React.FC = () => {
       
       try {
         console.log("Sending admin message to chat:", selectedChatId);
-        const adminId = (await supabase.auth.getUser()).data.user?.id;
+        const adminId = (await getSupabaseClient().auth.getUser()).data.user?.id;
         
         // Create message object
         const newMessageObj = {

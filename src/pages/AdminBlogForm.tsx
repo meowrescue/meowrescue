@@ -21,7 +21,7 @@ import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { ArrowLeft, Image, Save, Search } from 'lucide-react';
 import { slugify } from '@/utils/stringUtils';
@@ -164,14 +164,14 @@ const AdminBlogForm: React.FC = () => {
         const fileName = `${Date.now()}.${fileExt}`;
         const filePath = `${fileName}`;
 
-        const { error: uploadError, data: uploadData } = await supabase.storage
+        const { error: uploadError, data: uploadData } = await getSupabaseClient().storage
           .from('blog-images')
           .upload(filePath, imageFile);
 
         if (uploadError) throw uploadError;
 
         // Get the public URL
-        const { data: urlData } = supabase.storage
+        const { data: urlData } = getSupabaseClient().storage
           .from('blog-images')
           .getPublicUrl(filePath);
 

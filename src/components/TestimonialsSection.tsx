@@ -1,6 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/supabase/client';
 import SectionHeading from './ui/SectionHeading';
 import SuccessStoryCard from './SuccessStoryCard';
 

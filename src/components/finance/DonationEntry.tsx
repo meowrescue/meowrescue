@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Check, DollarSign, Search, Plus, User } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -80,7 +80,7 @@ const DonationEntry: React.FC = () => {
     
     // Get current user
     const getCurrentUser = async () => {
-      const { data } = await supabase.auth.getUser();
+      const { data } = await getSupabaseClient().auth.getUser();
       if (data && data.user) {
         setCurrentUser(data.user);
       }
@@ -237,7 +237,7 @@ const DonationEntry: React.FC = () => {
       }
       
       // Create donation record
-      const { error } = await supabase.from('donations').insert({
+      const { error } = await getSupabaseClient().from('donations').insert({
         amount: amountNum,
         donor_name: data.donorType !== 'anonymous' ? data.donorName : null,
         donor_email: data.donorType !== 'anonymous' ? data.donorEmail : null,

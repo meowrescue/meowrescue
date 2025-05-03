@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { PieChart, FileText, DollarSign } from 'lucide-react';
 import { useFinancialStats } from '@/hooks/useFinancialStats';
-import { supabase } from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/supabase/client';
 import MonthlyRevenueCard from "@/components/finance/dashboard/MonthlyRevenueCard";
 import MonthlyExpensesCard from "@/components/finance/dashboard/MonthlyExpensesCard";
 import TaxDeadlinesCard from "@/components/finance/dashboard/TaxDeadlinesCard";

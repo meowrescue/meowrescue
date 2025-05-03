@@ -1,8 +1,8 @@
-
 import React from "react";
 import { Heart, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NavbarUserMenu from "./NavbarUserMenu";
+import { useNavigate } from "react-router-dom";
 
 interface NavbarRightSectionProps {
   user: any;
@@ -20,7 +20,17 @@ const NavbarRightSection: React.FC<NavbarRightSectionProps> = ({
   onMobileToggle,
 }) => (
   <div className="flex items-center gap-2 flex-shrink-0 ml-4">
-    <a href="/donate" className="mr-1">
+    <a
+      href="/donate"
+      className="mr-1"
+      onClick={(e) => {
+        if (typeof window !== "undefined" && useNavigate) {
+          const navigate = useNavigate();
+          e.preventDefault();
+          navigate("/donate");
+        }
+      }}
+    >
       <Button variant="meowSecondary" size="sm" className="hidden sm:flex">
         <Heart className="mr-1 h-4 w-4" /> Donate
       </Button>

@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/supabase/client';
 import AdminLayout from '@/pages/Admin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -106,7 +106,7 @@ const AdminOrders = () => {
       
       if (status === 'Approved') {
         updateData.approved_at = new Date().toISOString();
-        updateData.approved_by = (await supabase.auth.getUser()).data.user?.id;
+        updateData.approved_by = (await getSupabaseClient().auth.getUser()).data.user?.id;
       }
       
       if (trackingNumber) {

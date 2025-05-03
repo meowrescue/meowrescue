@@ -1,6 +1,6 @@
 
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/supabase/client';
 
 export interface ExpenseDetail {
   id: string;

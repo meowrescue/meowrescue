@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import SEO from "@/components/SEO";
@@ -9,12 +8,30 @@ import { toast } from "sonner";
 import { checkSupabaseConnection, checkFinancialData } from "@/integrations/supabase/client";
 import FinancialOverview from "@/components/finance/FinancialOverview";
 import FinancialDataTabs from "@/components/finance/FinancialDataTabs";
-import { useFinancialDashboard } from "@/hooks/useFinancialDashboard";
+import { useFinancialStats } from '@/hooks/useFinancialStats';
+import { useRecentDonors } from '@/hooks/finance/useRecentDonors';
+import { useTopDonors } from '@/hooks/finance/useTopDonors';
+import getSupabaseClient from '@/integrations/supabase/client';
 
 const FinancialTransparency: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("summary");
+  const [donorLimit, setDonorLimit] = useState<number>(10); // for pagination
   const navigate = useNavigate();
-  const { financialStats, donorData, expenses, refetchData } = useFinancialDashboard();
+  // Use YTD stats only for transparency page
+  const { financialStats } = useFinancialStats();
+  const [isHydrated, setIsHydrated] = useState<boolean>(false);
+
+  // Fetch paginated all-time donors
+  const { data: recentDonors = [], isLoading: donorsLoading } = useRecentDonors({ limit: donorLimit });
+  const { data: topDonors = [], isLoading: topDonorsLoading } = useTopDonors({ limit: donorLimit });
+
+  // Handler for loading more donors
+  const handleLoadMoreDonors = () => setDonorLimit((prev) => prev + 10);
+
+  // Mark when client-side hydration is complete
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   // Test connection and fetch data on page load
   useEffect(() => {
@@ -28,12 +45,6 @@ const FinancialTransparency: React.FC = () => {
           toast.error("Unable to connect to the database. Some data may not be available.");
           return;
         }
-
-        // Perform a manual data refresh
-        await refetchData.refetchFinancialStats();
-        await refetchData.refetchRecentDonors();
-        await refetchData.refetchTopDonors();
-        await refetchData.refetchExpenses();
 
         // Check if we have actual data
         const sampleData = await checkFinancialData();
@@ -51,8 +62,39 @@ const FinancialTransparency: React.FC = () => {
       }
     };
 
-    init();
-  }, [refetchData]);
+    // Only run initialization if we're in the browser (client-side)
+    if (typeof window !== 'undefined') {
+      init();
+    }
+  }, []); // Ensure this runs only once on mount
+
+  // Subscribe to real-time updates for financial data
+  useEffect(() => {
+    // Skip subscription during server-side rendering
+    if (typeof window === 'undefined') return;
+    
+    console.log('Setting up real-time subscription for financial data');
+    
+    const subscription = getSupabaseClient()
+      .channel('financial-data-updates')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'donations' }, (payload) => {
+        console.log('Donation update received:', payload);
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'expenses' }, (payload) => {
+        console.log('Expense update received:', payload);
+      })
+      .subscribe();
+
+    // Mark elements as having real-time data for initialization script
+    document.querySelectorAll('[data-realtime]').forEach(el => {
+      el.setAttribute('data-initialized', 'true');
+    });
+
+    return () => {
+      console.log('Unsubscribing from financial data updates');
+      subscription.unsubscribe();
+    };
+  }, [isHydrated]);
 
   // Handle donations
   const handleDonate = (campaignId: string, assignedBudgetCategory?: string) => {
@@ -66,17 +108,21 @@ const FinancialTransparency: React.FC = () => {
 
   // Log data for debugging
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     console.log("Financial Transparency Render Data:", {
       totalBudget: financialStats.totalBudget,
-      totalDonations: financialStats.totalDonations,
-      monthlyDonations: financialStats.monthlyDonations,
-      monthlyExpenses: financialStats.monthlyExpenses,
-      loading: financialStats.isLoading,
-      recentDonorsCount: donorData.recentDonors?.length,
-      topDonorsCount: donorData.topDonors?.length,
-      expensesCount: expenses.data?.length
+      totalDonations: financialStats.totalIncome,
+      totalExpenses: financialStats.totalExpenses,
+      netBalance: financialStats.totalIncome - financialStats.totalExpenses,
+      isLoading: {
+        totalBudget: financialStats.isLoading.totalBudget,
+        totalDonations: financialStats.isLoading.totalIncome,
+        totalExpenses: financialStats.isLoading.totalExpenses,
+      },
+      isHydrated
     });
-  }, [financialStats, donorData, expenses]);
+  }, [financialStats, isHydrated]);
 
   return (
     <Layout>
@@ -90,34 +136,42 @@ const FinancialTransparency: React.FC = () => {
       <div className="container mx-auto py-8 px-2 sm:px-4">
         <div className="max-w-5xl mx-auto flex flex-col w-full items-center">
           <FinancialOverview
-            totalBudget={financialStats.totalBudget}
-            totalDonations={financialStats.totalDonations}
-            monthlyDonations={financialStats.monthlyDonations}
-            monthlyExpenses={financialStats.monthlyExpenses}
-            previousMonthDonations={financialStats.previousMonthDonations}
-            previousMonthExpenses={financialStats.previousMonthExpenses}
+            data-realtime="financial-overview"
+            totalBudget={financialStats.totalBudget || 0}
+            totalIncome={financialStats.totalIncome || 0} 
+            totalExpenses={financialStats.totalExpenses || 0} 
+            monthlyIncome={financialStats.monthlyIncome || 0} 
+            monthlyExpenses={financialStats.monthlyExpenses || 0} 
+            previousMonthIncome={financialStats.previousMonthIncome || 0} 
+            previousMonthExpenses={financialStats.previousMonthExpenses || 0} 
             isLoading={{
+              monthlyIncome: financialStats.isLoading.monthlyIncome,
+              monthlyExpenses: financialStats.isLoading.monthlyExpenses,
+              previousMonthIncome: financialStats.isLoading.previousMonthIncome,
+              previousMonthExpenses: financialStats.isLoading.previousMonthExpenses,
               totalBudget: financialStats.isLoading.totalBudget,
-              totalDonations: financialStats.isLoading.totalDonations,
-              monthlyDonations: financialStats.isLoading.monthlyDonations,
-              monthlyExpenses: financialStats.isLoading.monthlyExpenses
+              budgetCategories: false,
+              totalIncome: financialStats.isLoading.totalIncome,
+              campaigns: false,
+              totalExpenses: financialStats.isLoading.totalExpenses
             }}
           />
           
           <FinancialDataTabs
+            data-realtime="financial-tabs"
             activeTab={activeTab}
             setActiveTab={setActiveTab}
-            budgetCategories={financialStats.budgetCategories}
-            campaigns={financialStats.campaigns}
-            recentDonors={donorData.recentDonors}
-            topDonors={donorData.topDonors}
-            expenses={expenses.data}
+            budgetCategories={financialStats.budgetCategories || []}
+            campaigns={financialStats.campaigns || []}
+            recentDonors={recentDonors}
+            topDonors={topDonors}
+            expenses={financialStats.totalExpenses ? [{ amount: financialStats.totalExpenses }] : []}
             isLoading={{
               budgetCategories: financialStats.isLoading.budgetCategories,
               campaigns: financialStats.isLoading.campaigns,
-              donorsLoading: donorData.donorsLoading,
-              topDonorsLoading: donorData.topDonorsLoading,
-              expensesLoading: expenses.isLoading
+              donorsLoading,
+              topDonorsLoading,
+              expensesLoading: financialStats.isLoading.totalExpenses
             }}
             onDonate={handleDonate}
           />
@@ -127,6 +181,11 @@ const FinancialTransparency: React.FC = () => {
               <InfoIcon className="h-4 w-4 mr-2" />
               This dashboard updates automatically with our financial records. Last updated: {new Date().toLocaleDateString()}
             </p>
+            {!isHydrated && (
+              <p className="text-xs mt-2 text-yellow-600">
+                Loading real-time data...
+              </p>
+            )}
           </div>
         </div>
       </div>

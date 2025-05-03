@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase, checkSupabaseConnection } from '@/integrations/supabase/client';
+import getSupabaseClient, { checkSupabaseConnection } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 interface ProtectedRouteProps {

@@ -15,7 +15,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { supabase } from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { PenSquare, Trash2, Plus, Search, ExternalLink, Eye, EyeOff, FileText } from 'lucide-react';
 import SEO from '@/components/SEO';
@@ -54,8 +54,8 @@ const AdminBlog: React.FC = () => {
       if (error) throw error;
 
       // Log activity
-      await supabase.from('activity_logs').insert({
-        user_id: (await supabase.auth.getUser()).data.user?.id,
+      await getSupabaseClient().from('activity_logs').insert({
+        user_id: (await getSupabaseClient().auth.getUser()).data.user?.id,
         activity_type: 'Delete',
         description: 'Deleted blog post',
       });

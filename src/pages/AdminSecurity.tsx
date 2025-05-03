@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/supabase/client';
 import AdminLayout from '@/pages/Admin';
 import { Card, CardContent } from '@/components/ui/card';
 import {

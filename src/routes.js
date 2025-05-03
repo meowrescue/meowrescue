@@ -1,7 +1,7 @@
 
 // Exporting all routes information for SSG processing
 import App from './App';
-import { supabase } from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/supabase/client';
 
 // Define all base routes for the application
 export const routes = [

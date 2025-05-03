@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/supabase/client';
 import AdminLayout from '@/pages/Admin';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -254,7 +254,7 @@ const AdminDocuments = () => {
       
       // Delete from storage if needed
       if (document.file_path.startsWith('documents/')) {
-        const { error: storageError } = await supabase.storage
+        const { error: storageError } = await getSupabaseClient().storage
           .from('documents')
           .remove([document.file_path.replace('documents/', '')]);
         
@@ -390,14 +390,14 @@ const AdminDocuments = () => {
     const filePath = `documents/${fileName}`;
     
     // Upload to Supabase storage
-    supabase.storage
+    getSupabaseClient().storage
       .from('documents')
       .upload(filePath, file)
       .then(({ data, error }) => {
         if (error) throw error;
         
         // Get the public URL
-        const { data: urlData } = supabase.storage
+        const { data: urlData } = getSupabaseClient().storage
           .from('documents')
           .getPublicUrl(filePath);
         

@@ -6,7 +6,7 @@ import { formatCurrency } from "@/lib/utils";
 
 interface DonationSummaryProps {
   summary: {
-    totalDonations: number;
+    totalIncome: number;
     totalExpenses: number;
     netBalance: number;
     percentChange: number;
@@ -23,7 +23,7 @@ const DonationSummary: React.FC<DonationSummaryProps> = ({
       <CardHeader className="pb-2">
         <CardTitle className="text-lg flex items-center">
           <DollarSign className="h-5 w-5 mr-2 text-green-500" />
-          Total Donations
+          Total Income (YTD)
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -31,7 +31,7 @@ const DonationSummary: React.FC<DonationSummaryProps> = ({
           <div className="h-10 bg-gray-200 animate-pulse rounded-md"></div>
         ) : (
           <div className="text-3xl font-bold text-green-600">
-            {formatCurrency(summary?.totalDonations || 0)}
+            {formatCurrency(summary?.totalIncome || 0)}
           </div>
         )}
       </CardContent>

@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/supabase/client';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 
 // Define type for supply
@@ -63,7 +63,7 @@ const AdminSupplies = () => {
   // Add supply mutation
   const addSupplyMutation = useMutation({
     mutationFn: async (supplyData: NewSupply) => {
-      const { data, error } = await supabase.rpc('add_supply', {
+      const { data, error } = await getSupabaseClient().rpc('add_supply', {
         p_name: supplyData.name,
         p_description: supplyData.description,
         p_category: supplyData.category,

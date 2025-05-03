@@ -23,7 +23,7 @@ import {
   Stethoscope
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/supabase/client';
 import SEO from '@/components/SEO';
 import ImageUploader from '@/components/ImageUploader';
 import CatMedicalRecords from '@/components/admin/CatMedicalRecords';

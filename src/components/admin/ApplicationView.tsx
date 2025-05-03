@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/supabase/client';
 import {
   Dialog,
   DialogContent,
@@ -67,7 +67,7 @@ const ApplicationView: React.FC<ApplicationViewProps> = ({ application, onClose 
               status: status,
               feedback,
               reviewed_at: new Date().toISOString(),
-              reviewer_id: (await supabase.auth.getUser()).data.user?.id,
+              reviewer_id: (await getSupabaseClient().auth.getUser()).data.user?.id,
               updated_at: new Date().toISOString()
             })
             .eq('id', id)

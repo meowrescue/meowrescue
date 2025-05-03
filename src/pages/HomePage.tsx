@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import SEO from '@/components/SEO';
 import HeroSection from '@/components/HeroSection';
@@ -8,6 +7,7 @@ import MissionSection from '@/components/MissionSection';
 import UrgentNeedsSection from '@/components/UrgentNeedsSection';
 import FeaturedCatsSection from '@/components/FeaturedCatsSection';
 import TestimonialsSection from '@/components/TestimonialsSection';
+import getSupabaseClient from '@/integrations/supabase/client'; // Import supabase instance
 
 // The HomePage component is the main entry point for the home page
 const HomePage: React.FC = () => {
@@ -100,6 +100,28 @@ const HomePage: React.FC = () => {
     { lang: "es", url: "https://meowrescue.org/es/" }
   ];
 
+  // Assuming featuredCats is fetched using a hook or state, we'll use a simple state update for refetching
+  const [refreshKey, setRefreshKey] = useState(0);
+  const refetchFeaturedCats = () => {
+    setRefreshKey(prevKey => prevKey + 1);
+  };
+
+  // Subscribe to real-time updates for featured cats
+  useEffect(() => {
+    const supabase = getSupabaseClient();
+    const subscription = supabase
+      .channel('featured-cats-updates')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'cats' }, (payload) => {
+        console.log('Cat update received:', payload);
+        refetchFeaturedCats();
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [refetchFeaturedCats]);
+
   return (
     <Layout>
       <SEO 
@@ -125,7 +147,7 @@ const HomePage: React.FC = () => {
       <StatsSection />
       <MissionSection />
       <UrgentNeedsSection />
-      <FeaturedCatsSection />
+      <FeaturedCatsSection key={refreshKey} />
       <TestimonialsSection />
     </Layout>
   );

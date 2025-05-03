@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Upload, Image as ImageIcon, X, ZoomIn } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -32,7 +32,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       const fileName = `${Date.now()}.${fileExt}`;
       const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
 
-      const { data, error } = await supabase.storage
+      const { data, error } = await getSupabaseClient().storage
         .from(bucketName)
         .upload(filePath, file, {
           cacheControl: '3600',
@@ -41,7 +41,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 
       if (error) throw error;
 
-      const { data: { publicUrl } } = supabase.storage
+      const { data: { publicUrl } } = getSupabaseClient().storage
         .from(bucketName)
         .getPublicUrl(filePath);
 
@@ -87,7 +87,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         throw new Error('Could not determine file path');
       }
       
-      const { error } = await supabase.storage
+      const { error } = await getSupabaseClient().storage
         .from(bucketName)
         .remove([filePath]);
       

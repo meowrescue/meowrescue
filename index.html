@@ -1,7 +1,7 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <script src="/csp-fix.js"></script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -180,6 +180,29 @@
         }
       }
     </style>
+    <script>
+      // This script ensures proper routing when accessing subpages directly
+      (function() {
+        // Store the current path for React Router to use
+        window.__INITIAL_PATH__ = window.location.pathname;
+        
+        // Add a class to indicate JavaScript is available
+        document.documentElement.className = document.documentElement.className.replace('no-js', 'js');
+
+        // Force any links to use local redirects
+        document.addEventListener('DOMContentLoaded', function() {
+          // Add debug message
+          console.log('Initializing navigation for: ' + window.location.pathname);
+          
+          // Ensure the app shell is visible
+          var root = document.getElementById('root');
+          if (root) {
+            root.style.display = 'block';
+          }
+        });
+      })();
+    </script>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.gpteng.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://meowrescue.windsurf.build https://sfrlnidbiviniuqhryyc.supabase.co; connect-src 'self' https://sfrlnidbiviniuqhryyc.supabase.co wss://sfrlnidbiviniuqhryyc.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
   </head>
   <body class="no-js">
     <div id="root"></div>
@@ -208,8 +231,6 @@
     
     <!-- Required Lovable script must be loaded BEFORE the application script -->
     <script src="https://cdn.gpteng.co/gptengineer.min.js" type="module"></script>
-    <!-- Lovable Select feature script -->
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
 
     <!-- Script to handle body transition -->
     <script>

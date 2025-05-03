@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/supabase/client';
 import { Cat } from 'lucide-react';
 
 // Schema for the email form
@@ -65,7 +65,7 @@ const ResetPassword: React.FC = () => {
     setIsLoading(true);
     try {
       // Use Supabase's password reset functionality
-      const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
+      const { error } = await getSupabaseClient().auth.resetPasswordForEmail(values.email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
 
@@ -91,7 +91,7 @@ const ResetPassword: React.FC = () => {
   const onSubmitReset = async (values: ResetFormValues) => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({
+      const { error } = await getSupabaseClient().auth.updateUser({
         password: values.password
       });
 

@@ -1,10 +1,11 @@
-
 import { useFinancialStats } from '@/hooks/useFinancialStats';
 import { useRecentDonors } from '@/hooks/finance/useRecentDonors';
 import { useTopDonors } from '@/hooks/finance/useTopDonors';
 import { useExpenses } from '@/hooks/finance/useExpenses';
 import { useEffect } from 'react';
 import { checkSupabaseConnection, checkFinancialData } from '@/integrations/supabase/client';
+import { getDonationsSum, getExpensesSum } from '@/services/finance';
+import { useQuery } from '@tanstack/react-query';
 
 export const useFinancialDashboard = () => {
   // First check the Supabase connection
@@ -27,17 +28,30 @@ export const useFinancialDashboard = () => {
     verifyConnection();
   }, []);
 
+  // Get current year boundaries
+  const currentYear = new Date().getFullYear();
+  const startOfYear = new Date(currentYear, 0, 1);
+  const today = new Date();
+
+  // Fetch YTD donations and expenses
+  const { data: totalDonations, refetch: refetchDonations, isLoading: loadingDonations } = useQuery({
+    queryKey: ['ytd-donations'],
+    queryFn: () => getDonationsSum({ startDate: startOfYear, endDate: today })
+  });
+  const { data: totalExpenses, refetch: refetchExpenses, isLoading: loadingExpenses } = useQuery({
+    queryKey: ['ytd-expenses'],
+    queryFn: () => getExpensesSum({ startDate: startOfYear, endDate: today })
+  });
+
   // Get financial data from custom hooks
   const {
-    totalBudget,
-    totalDonations,
     budgetCategories,
     monthlyDonations,
     monthlyExpenses,
     previousMonthDonations,
     previousMonthExpenses,
     campaigns,
-    isLoading,
+    isLoading: financialStatsLoading,
     refetchFinancialStats
   } = useFinancialStats();
 
@@ -68,8 +82,7 @@ export const useFinancialDashboard = () => {
   
   const { 
     data: expenses, 
-    isLoading: expensesLoading, 
-    refetch: refetchExpenses 
+    isLoading: expensesLoading 
   } = useExpenses({
     staleTime: 5000, // 5 seconds for very fresh data
     gcTime: 60000, // Formerly cacheTime - 1 minute
@@ -93,8 +106,8 @@ export const useFinancialDashboard = () => {
         const topDonorsResult = await refetchTopDonors();
         console.log("Top donors refetch result:", topDonorsResult.data);
         
-        const expensesResult = await refetchExpenses();
-        console.log("Expenses refetch result:", expensesResult.data);
+        await refetchDonations();
+        await refetchExpenses();
       } catch (error) {
         console.error("Error refetching financial data:", error);
       }
@@ -107,13 +120,13 @@ export const useFinancialDashboard = () => {
     const intervalId = setInterval(fetchAllData, 15000); // Refresh every 15 seconds
     
     return () => clearInterval(intervalId);
-  }, [refetchRecentDonors, refetchTopDonors, refetchExpenses, refetchFinancialStats]);
+  }, [refetchRecentDonors, refetchTopDonors, refetchFinancialStats, refetchDonations, refetchExpenses]);
   
   // Debug logging
   useEffect(() => {
     console.log("Financial Dashboard Data:", {
-      totalBudget,
       totalDonations,
+      totalExpenses,
       budgetCategoriesCount: budgetCategories?.length,
       monthlyDonations,
       monthlyExpenses,
@@ -121,26 +134,27 @@ export const useFinancialDashboard = () => {
       topDonorsCount: topDonors?.length,
       expensesCount: expenses?.length,
       loadingStates: {
-        totalBudget: isLoading.totalBudget,
-        totalDonations: isLoading.totalDonations,
+        totalDonations: loadingDonations,
+        totalExpenses: loadingExpenses,
         donors: donorsLoading,
         topDonors: topDonorsLoading,
-        expenses: expensesLoading
+        expenses: expensesLoading,
+        financialStats: financialStatsLoading
       }
     });
-  }, [totalBudget, totalDonations, budgetCategories, monthlyDonations, monthlyExpenses, recentDonors, topDonors, expenses, isLoading, donorsLoading, topDonorsLoading, expensesLoading]);
+  }, [totalDonations, totalExpenses, budgetCategories, monthlyDonations, monthlyExpenses, recentDonors, topDonors, expenses, loadingDonations, loadingExpenses, donorsLoading, topDonorsLoading, expensesLoading, financialStatsLoading]);
 
   return {
     financialStats: {
-      totalBudget,
       totalDonations,
+      totalExpenses,
       monthlyDonations,
       monthlyExpenses,
       previousMonthDonations,
       previousMonthExpenses,
       budgetCategories: budgetCategories || [],
       campaigns: campaigns || [],
-      isLoading
+      isLoading: financialStatsLoading
     },
     donorData: {
       recentDonors: recentDonors || [],
@@ -156,7 +170,8 @@ export const useFinancialDashboard = () => {
       refetchFinancialStats,
       refetchRecentDonors,
       refetchTopDonors,
-      refetchExpenses
+      refetchExpenses,
+      refetchDonations
     }
   };
 };

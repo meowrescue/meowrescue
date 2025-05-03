@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import SectionHeading from '../components/ui/SectionHeading';
@@ -8,10 +7,10 @@ import { Calendar, MapPin, Clock, ArrowLeft } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { usePageData } from '@/contexts/PageDataContext';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/supabase/client';
 
 const EventDetail: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id: eventId } = useParams<{ id: string }>();
   
   // Get any pre-rendered data from PageDataContext
   const pageData = usePageData();
@@ -19,9 +18,9 @@ const EventDetail: React.FC = () => {
   
   // Use React Query to fetch event data
   const { data: event } = useQuery({
-    queryKey: ['event', id],
+    queryKey: ['event', eventId],
     queryFn: async () => {
-      if (!id) throw new Error("Event ID is required");
+      if (!eventId) throw new Error("Event ID is required");
       
       // If we already have the data from SSR/SSG, use it
       if (preloadedEvent) {
@@ -30,10 +29,11 @@ const EventDetail: React.FC = () => {
       }
       
       // Client-side fetching fallback
+      const supabase = getSupabaseClient();
       const { data, error } = await supabase
         .from('events')
         .select('*')
-        .eq('id', id)
+        .eq('id', eventId)
         .single();
 
       if (error) throw error;
@@ -41,12 +41,12 @@ const EventDetail: React.FC = () => {
       return data;
     },
     // Don't refetch if we already have data from SSR
-    enabled: !!id && !preloadedEvent,
+    enabled: !!eventId && !preloadedEvent,
     // Use SSR data as initial data if available
     initialData: preloadedEvent,
     // Use a fallback event if data is missing
     placeholderData: {
-      id: parseInt(id || '1'),
+      id: parseInt(eventId || '1'),
       title: "Adoption Event at PetSmart",
       date_start: "2025-04-20T11:00:00",
       date_end: "2025-04-20T15:00:00",
@@ -56,6 +56,22 @@ const EventDetail: React.FC = () => {
       long_description: "Join us for a special adoption event at PetSmart in New Port Richey. Our team will be bringing several adoptable cats and kittens who are looking for their forever homes. This is a great opportunity to meet our cats in person and learn more about our adoption process. Our knowledgeable volunteers will be available to answer any questions you might have about specific cats or the adoption process in general. If you're thinking about adding a feline friend to your family, this is the perfect event to attend!"
     }
   });
+
+  useEffect(() => {
+    if (!eventId) return;
+    const supabase = getSupabaseClient();
+    const subscription = supabase
+      .channel(`event-${eventId}-updates`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'events', filter: `id=eq.${eventId}` }, (payload) => {
+        console.log('Event update received:', payload);
+        window.location.reload(); // Temporary workaround to refresh the page
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [eventId]);
 
   const formatDate = (dateString: string) => {
     if (!dateString) return '';

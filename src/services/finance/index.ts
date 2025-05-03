@@ -1,13 +1,14 @@
-
 export { 
   getMonthlyDonations, 
   getPreviousMonthDonations, 
-  getTotalDonations 
+  getTotalDonations,
+  getDonationsSum
 } from './donations';
 
 export { 
   getMonthlyExpenses, 
-  getPreviousMonthExpenses 
+  getPreviousMonthExpenses,
+  getExpensesSum
 } from './expenses';
 
 export { 

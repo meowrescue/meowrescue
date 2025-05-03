@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import SEO from '@/components/SEO';
@@ -10,16 +9,33 @@ import CatPhotosSection from '@/components/cat/CatDetails/CatPhotosSection';
 import CatInfoSection from '@/components/cat/CatDetails/CatInfoSection';
 import AdoptionProcessSection from '@/components/cat/CatDetails/AdoptionProcessSection';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import getSupabaseClient from '@/integrations/supabase/client';
 
 const CatDetail = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id: catId } = useParams<{ id: string }>();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   
-  const { cat, medicalRecords, isLoading, isError, error } = useCatData(id!);
+  const { cat, medicalRecords, isLoading, isError, error, refetch } = useCatData(catId!);
 
   const handleImageClick = (image: string) => {
     setSelectedImage(image);
   };
+
+  useEffect(() => {
+    if (!catId) return;
+    const subscription = supabase
+      .channel(`cat-${catId}-updates`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'cats', filter: `id=eq.${catId}` }, (payload) => {
+        console.log('Cat update received:', payload);
+        // Temporary workaround to refresh the page since refetch function is not available
+        window.location.reload();
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [catId]);
 
   if (isLoading) {
     return (

@@ -2,6 +2,24 @@
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
+
+// Create Supabase client for fetching blog posts
+const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
+const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || '';
+
+// Create Supabase client only if credentials are available
+let supabase = null;
+if (supabaseUrl && supabaseKey) {
+  supabase = createClient(supabaseUrl, supabaseKey);
+  console.log('Supabase client initialized successfully');
+} else {
+  console.warn('Supabase credentials not available. Will generate sitemap with static routes only.');
+}
 
 // Function to validate URLs
 const validateUrl = async (url) => {
@@ -36,13 +54,7 @@ const routes = [
   { path: '/faq', priority: '0.6', changefreq: 'monthly' },
   { path: '/privacy-policy', priority: '0.5', changefreq: 'yearly' },
   { path: '/terms-of-service', priority: '0.5', changefreq: 'yearly' },
-  // Add dynamic/detail route examples
-  { path: '/cats/felix', priority: '0.8', changefreq: 'weekly' },
-  { path: '/cats/luna', priority: '0.8', changefreq: 'weekly' },
-  { path: '/cats/max', priority: '0.8', changefreq: 'weekly' },
-  { path: '/blog/caring-for-senior-cats', priority: '0.7', changefreq: 'monthly' },
-  { path: '/blog/kitten-season-tips', priority: '0.7', changefreq: 'monthly' },
-  { path: '/blog/adoption-success-stories', priority: '0.7', changefreq: 'monthly' },
+  { path: '/financial-transparency', priority: '0.7', changefreq: 'monthly' },
 ];
 
 // Always use production absolute links
@@ -54,18 +66,51 @@ function createUrl(path) {
 // Generate sitemap
 const generateSitemap = async () => {
   const today = new Date().toISOString().split('T')[0];
+  
+  // Fetch all published blog posts
+  console.log('Fetching blog posts for sitemap...');
+  let blogPosts = [];
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('slug, published_at, updated_at, is_featured')
+        .eq('is_published', true)
+        .order('published_at', { ascending: false });
+        
+      if (error) {
+        console.error('Error fetching blog posts:', error);
+      } else {
+        blogPosts = data || [];
+        console.log(`Found ${blogPosts.length} published blog posts for sitemap`);
+      }
+    } catch (err) {
+      console.error('Failed to fetch blog posts:', err);
+    }
+  } else {
+    console.log('Skipping blog posts due to missing Supabase credentials');
+  }
+  
+  // Create blog post routes
+  const blogPostRoutes = blogPosts.map(post => ({
+    path: `/blog/${post.slug}`,
+    priority: post.is_featured ? '0.8' : '0.7',
+    changefreq: 'monthly',
+    lastmod: new Date(post.updated_at || post.published_at).toISOString().split('T')[0]
+  }));
+  
+  // Combine static routes with blog post routes
+  const allRoutes = [...routes, ...blogPostRoutes];
 
   const sitemapUrls = [];
-  for (const route of routes) {
+  for (const route of allRoutes) {
     const fullUrl = createUrl(route.path);
-    if (await validateUrl(fullUrl)) {
-      sitemapUrls.push({
-        url: fullUrl,
-        lastmod: today,
-        changefreq: route.changefreq,
-        priority: route.priority,
-      });
-    }
+    sitemapUrls.push({
+      url: fullUrl,
+      lastmod: route.lastmod || today,
+      changefreq: route.changefreq,
+      priority: route.priority,
+    });
   }
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
@@ -81,7 +126,6 @@ ${sitemapUrls.map(url => `
     <changefreq>${url.changefreq}</changefreq>
     <priority>${url.priority}</priority>
     <xhtml:link rel="alternate" hreflang="en" href="${url.url}" />
-    <xhtml:link rel="alternate" hreflang="es" href="${createUrl('/es' + url.url.split(baseUrl)[1])}" />
     <xhtml:link rel="alternate" hreflang="x-default" href="${url.url}" />
   </url>
 `).join('')}
@@ -92,6 +136,7 @@ ${sitemapUrls.map(url => `
   const distPath = join(dirname(fileURLToPath(import.meta.url)), '../dist');
   if (!fs.existsSync(distPath)) {
     fs.mkdirSync(distPath, { recursive: true });
+    console.log('Created output directory');
   }
   fs.writeFileSync(join(distPath, 'sitemap.xml'), sitemap);
   console.log('Sitemap generated successfully in dist/sitemap.xml!');

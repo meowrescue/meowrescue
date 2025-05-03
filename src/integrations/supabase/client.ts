@@ -1,9 +1,4 @@
-
 import { createClient } from '@supabase/supabase-js';
-
-// Use the actual values directly instead of environment variables
-const supabaseUrl = 'https://sfrlnidbiviniuqhryyc.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmcmxuaWRiaXZpbml1cWhyeXljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ1MDMxNTEsImV4cCI6MjA2MDA3OTE1MX0.vHK31AKqwD0a6GKGUQWMEFWo3zOb37LAEMXAmOATawI';
 
 // Ensure we use a singleton pattern for the Supabase client
 let supabaseInstance = null;
@@ -11,46 +6,98 @@ let supabaseInstance = null;
 /**
  * Create and return the Supabase client instance.
  * Uses a singleton pattern to prevent multiple instances.
+ * 
+ * This client accesses environment variables injected by Netlify
+ * during the build process for client-side use.
  */
 const getSupabaseClient = () => {
   if (supabaseInstance) {
     return supabaseInstance;
   }
 
-  supabaseInstance = createClient(
-    supabaseUrl,
-    supabaseKey,
-    {
-      auth: {
-        autoRefreshToken: true,
-        persistSession: true,
-        storage: typeof window !== 'undefined' ? window.localStorage : undefined
-      },
-      global: {
-        headers: {
-          'X-Client-Info': 'meow-rescue-financial-transparency'
-        },
-      },
-      // Increase timeouts to prevent query timeout issues
-      realtime: {
-        params: {
-          eventsPerSecond: 10
+  try {
+    // Get environment variables injected by Netlify
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    
+    // Check if credentials are available
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('Supabase credentials missing. Please check Netlify environment variables.');
+      
+      // In development, show more helpful error
+      if (import.meta.env.DEV) {
+        console.warn('In development, make sure you have a .env file with VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY');
+        console.warn('In production, ensure these are set as environment variables in your Netlify dashboard');
+      }
+      
+      // Return a dummy client that logs errors instead of failing silently
+      return {
+        from: () => ({
+          select: () => ({
+            order: () => ({
+              limit: () => Promise.resolve({ data: [], error: new Error('Supabase credentials missing') })
+            }),
+            limit: () => Promise.resolve({ data: [], error: new Error('Supabase credentials missing') }),
+            eq: () => Promise.resolve({ data: [], error: new Error('Supabase credentials missing') })
+          }),
+          insert: () => Promise.resolve({ data: null, error: new Error('Supabase credentials missing') }),
+          update: () => Promise.resolve({ data: null, error: new Error('Supabase credentials missing') }),
+          delete: () => Promise.resolve({ data: null, error: new Error('Supabase credentials missing') }),
+        }),
+        channel: () => ({
+          on: () => ({ subscribe: () => ({ unsubscribe: () => {} }) }),
+        }),
+        auth: {
+          onAuthStateChange: () => ({ data: null, error: null }),
+          getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+          signOut: () => Promise.resolve({ error: null })
+        }
+      };
+    }
+
+    supabaseInstance = createClient(
+      supabaseUrl,
+      supabaseKey,
+      {
+        auth: {
+          autoRefreshToken: true,
+          persistSession: true
         }
       }
-    }
-  );
-
-  return supabaseInstance;
+    );
+    
+    return supabaseInstance;
+  } catch (error) {
+    console.error('Error initializing Supabase client:', error);
+    
+    // Return a dummy client in case of error
+    return {
+      from: () => ({
+        select: () => ({
+          limit: () => Promise.resolve({ data: [], error })
+        }),
+        insert: () => Promise.resolve({ data: null, error }),
+        update: () => Promise.resolve({ data: null, error }),
+        delete: () => Promise.resolve({ data: null, error }),
+      }),
+      channel: () => ({
+        on: () => ({ subscribe: () => ({ unsubscribe: () => {} }) }),
+      }),
+      auth: {
+        onAuthStateChange: () => ({ data: null, error: null }),
+        getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+        signOut: () => Promise.resolve({ error: null })
+      }
+    };
+  }
 };
-
-// Export the singleton instance
-export const supabase = getSupabaseClient();
 
 // Add a health check function to verify connection
 export const checkSupabaseConnection = async () => {
   try {
     console.log('Checking Supabase connection...');
     // Simple query to test connection
+    const supabase = await getSupabaseClient();
     const { data, error } = await supabase.from('donations').select('id').limit(1);
     
     if (error) {
@@ -76,6 +123,7 @@ export const checkFinancialData = async () => {
     console.log('Checking financial data availability...');
     
     // Check donations
+    const supabase = await getSupabaseClient();
     const { data: donations, error: donationsError } = await supabase
       .from('donations')
       .select('id, amount, donation_date')
@@ -125,3 +173,10 @@ export const checkFinancialData = async () => {
     };
   }
 };
+
+// Create a lazy-initialized supabase instance for backward compatibility
+// This maintains compatibility with existing code that imports { supabase }
+export const supabase = getSupabaseClient();
+
+// Default export for new code to use the getter function
+export default getSupabaseClient;

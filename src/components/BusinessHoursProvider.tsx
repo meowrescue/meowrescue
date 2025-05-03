@@ -1,7 +1,6 @@
-
 import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/supabase/client';
 
 interface BusinessHours {
   day: number; // 0 = Sunday, 1 = Monday, etc.
@@ -50,47 +49,56 @@ interface BusinessHoursProviderProps {
 
 export const BusinessHoursProvider: React.FC<BusinessHoursProviderProps> = ({ children }) => {
   const { user } = useAuth();
+  const [isBusinessHours, setIsBusinessHours] = useState(false);
   const [isAdminOnline, setIsAdminOnline] = useState(false);
   const [businessHoursSettings, setBusinessHoursSettings] = useState<BusinessHoursSettings>(defaultBusinessHours);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Fetch business hours settings from the database
-  useEffect(() => {
-    const fetchBusinessHours = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('content_blocks')
-          .select('content')
-          .eq('block_identifier', 'business_hours_settings')
-          .single();
-        
-        if (error) {
-          console.error("Error fetching business hours settings:", error);
-          // Use default settings if table doesn't exist or error occurs
-          return;
-        }
-        
-        if (data && data.content) {
-          try {
-            const settings = JSON.parse(data.content);
-            setBusinessHoursSettings(settings);
-          } catch (parseError) {
-            console.error("Error parsing business hours settings:", parseError);
-          }
-        }
-      } catch (err) {
-        console.error("Error in business hours fetch:", err);
-      } finally {
+
+  // Fetch business hours settings from Supabase
+  const fetchBusinessHours = async () => {
+    try {
+      const supabase = getSupabaseClient();
+      const { data, error } = await supabase
+        .from('content_blocks')
+        .select('content')
+        .eq('block_identifier', 'business_hours_settings')
+        .single();
+      
+      if (error) {
+        console.log("Using default business hours settings due to:", error.message);
+        // Use default settings if table doesn't exist or error occurs
+        setBusinessHoursSettings(defaultBusinessHours);
         setIsLoading(false);
+        return;
       }
-    };
-    
+      
+      if (data && data.content) {
+        try {
+          const settings = JSON.parse(data.content);
+          setBusinessHoursSettings(settings);
+        } catch (parseError) {
+          console.log("Using default business hours settings due to parse error");
+          // Use default settings if parsing fails
+          setBusinessHoursSettings(defaultBusinessHours);
+        }
+      }
+    } catch (err) {
+      console.log("Error in business hours fetch, using defaults");
+      // Use default settings for any other errors
+      setBusinessHoursSettings(defaultBusinessHours);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  useEffect(() => {
     fetchBusinessHours();
   }, []);
   
   // Update business hours settings in the database
   const updateBusinessHours = async (settings: BusinessHoursSettings) => {
     try {
+      const supabase = getSupabaseClient();
       // First check if the table exists to prevent errors
       const { count, error: checkError } = await supabase
         .from('content_blocks')
@@ -153,6 +161,7 @@ export const BusinessHoursProvider: React.FC<BusinessHoursProviderProps> = ({ ch
 
     const checkIfAdmin = async () => {
       try {
+        const supabase = getSupabaseClient();
         const { data, error } = await supabase
           .from('profiles')
           .select('role')

@@ -1,18 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Layout from "../components/Layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, AlertCircle, RefreshCw } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import getSupabaseClient from '@/integrations/supabase/client';
 import { LostFoundPost } from "@/types/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import SEO from "@/components/SEO";
 
 const LostFoundDetail = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id: postId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -20,15 +20,16 @@ const LostFoundDetail = () => {
 
   // Fetch post details
   const { data: post, isLoading, error, refetch } = useQuery({
-    queryKey: ['lost-found-post', id, errorRetries],
+    queryKey: ['lost-found-post', postId, errorRetries],
     queryFn: async () => {
-      console.log(`Fetching lost & found post with ID: ${id}`);
+      console.log(`Fetching lost & found post with ID: ${postId}`);
       
       try {
+        const supabase = getSupabaseClient();
         const { data, error } = await supabase
           .from('lost_found_posts')
           .select('*')
-          .eq('id', id)
+          .eq('id', postId)
           .single();
 
         if (error) throw error;
@@ -59,6 +60,23 @@ const LostFoundDetail = () => {
     },
     retry: false
   });
+
+  // Subscribe to real-time updates for this lost and found post
+  useEffect(() => {
+    if (!postId) return;
+    const supabase = getSupabaseClient();
+    const subscription = supabase
+      .channel(`lost-found-${postId}-updates`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'lost_found_posts', filter: `id=eq.${postId}` }, (payload) => {
+        console.log('Lost and found update received:', payload);
+        window.location.reload(); // Temporary workaround to refresh the page
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [postId]);
 
   // Function to handle retry
   const handleRetry = () => {
@@ -211,7 +229,7 @@ const LostFoundDetail = () => {
             {isAuthor && (
               <div>
                 <Button asChild variant="meow">
-                  <Link to={`/lost-found/edit/${id}`}>Edit Post</Link>
+                  <Link to={`/lost-found/edit/${postId}`}>Edit Post</Link>
                 </Button>
               </div>
             )}

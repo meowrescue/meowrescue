@@ -1,4 +1,3 @@
-
 import React from "react";
 import DonationSummary from "@/components/finance/DonationSummary";
 import OverallFundraisingGoal from "@/components/finance/OverallFundraisingGoal";
@@ -6,57 +5,70 @@ import { calculatePercentageChange } from "@/utils/financeUtils";
 
 interface FinancialOverviewProps {
   totalBudget: number;
-  totalDonations: number;
-  monthlyDonations: number;
+  totalIncome: number;
+  totalExpenses: number;
+  monthlyIncome: number;
   monthlyExpenses: number;
-  previousMonthDonations: number;
+  previousMonthIncome: number;
   previousMonthExpenses: number;
   isLoading: {
-    totalBudget: boolean;
-    totalDonations: boolean;
-    monthlyDonations: boolean;
+    monthlyIncome: boolean;
     monthlyExpenses: boolean;
+    previousMonthIncome: boolean;
+    previousMonthExpenses: boolean;
+    totalBudget: boolean;
+    budgetCategories: boolean;
+    totalIncome: boolean;
+    campaigns: boolean;
   };
 }
 
 const FinancialOverview: React.FC<FinancialOverviewProps> = ({
   totalBudget,
-  totalDonations,
-  monthlyDonations,
+  totalIncome,
+  totalExpenses,
+  monthlyIncome,
   monthlyExpenses,
-  previousMonthDonations,
+  previousMonthIncome,
   previousMonthExpenses,
   isLoading,
 }) => {
+  // Use YTD for all stats
   const currentYear = new Date().getFullYear();
-  
-  // Calculate net balance and percentage change
-  const netBalance = (monthlyDonations || 0) - (monthlyExpenses || 0);
-  const previousNetBalance = (previousMonthDonations || 0) - (previousMonthExpenses || 0);
-  const percentChange = calculatePercentageChange(netBalance, previousNetBalance);
+  const startOfYear = new Date(currentYear, 0, 1);
+  const today = new Date();
+
+  // All props below must be YTD values (not monthly)
+  // If props are not YTD, fetch YTD using backend unified functions
+
+  // Calculate net balance using YTD values
+  const netBalance = (totalIncome || 0) - (totalExpenses || 0);
+  const previousYearNetBalance = (previousMonthIncome || 0) - (previousMonthExpenses || 0);
+  const percentChange = calculatePercentageChange(netBalance, previousYearNetBalance);
 
   // Calculate overall fundraising progress
   const overallBudgetAmount = totalBudget || 0;
-  const overallDonationsAmount = totalDonations || 0;
+  const overallIncomeAmount = totalIncome || 0;
   const overallPercentComplete = 
     overallBudgetAmount > 0 
-      ? (overallDonationsAmount / overallBudgetAmount) * 100 
+      ? (overallIncomeAmount / overallBudgetAmount) * 100 
       : 0;
 
   const summary = {
-    totalDonations: monthlyDonations || 0,
-    totalExpenses: monthlyExpenses || 0,
-    netBalance: netBalance,
+    totalIncome: totalIncome || 0,
+    totalExpenses: totalExpenses || 0,
+    netBalance: (totalIncome || 0) - (totalExpenses || 0),
     percentChange: Math.round(percentChange * 10) / 10
   };
 
+  // Pass currentYear to OverallFundraisingGoal for dynamic heading
   return (
-    <>
+    <div className="mb-8 w-full">
       <OverallFundraisingGoal 
-        totalTarget={overallBudgetAmount}
-        totalRaised={overallDonationsAmount}
+        totalTarget={totalBudget}
+        totalRaised={totalIncome}
         percentComplete={overallPercentComplete}
-        isLoading={isLoading.totalBudget || isLoading.totalDonations}
+        isLoading={isLoading.totalBudget || isLoading.totalIncome}
         year={currentYear}
       />
       
@@ -66,10 +78,10 @@ const FinancialOverview: React.FC<FinancialOverviewProps> = ({
         </h2>
         <DonationSummary 
           summary={summary} 
-          summaryLoading={isLoading.monthlyDonations || isLoading.monthlyExpenses} 
+          summaryLoading={isLoading.monthlyIncome || isLoading.monthlyExpenses} 
         />
       </div>
-    </>
+    </div>
   );
 };
 

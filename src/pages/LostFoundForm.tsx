@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import getSupabaseClient from '@/integrations/supabase/client';
 import { useToast } from "@/hooks/use-toast";
 import { ChevronLeft, Upload, X, Loader2 } from "lucide-react";
 import { LostFoundPost } from "@/types/supabase";
@@ -163,7 +163,7 @@ const LostFoundForm = () => {
       const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
       const filePath = `${user!.id}/${fileName}`;
 
-      const { data, error } = await supabase.storage
+      const { data, error } = await getSupabaseClient().storage
         .from("lost_found_photos")
         .upload(filePath, photo);
 
@@ -172,7 +172,7 @@ const LostFoundForm = () => {
         throw new Error("Failed to upload one or more photos.");
       }
 
-      const { data: urlData } = supabase.storage
+      const { data: urlData } = getSupabaseClient().storage
         .from("lost_found_photos")
         .getPublicUrl(filePath);
 
@@ -193,7 +193,7 @@ const LostFoundForm = () => {
       const filePath = pathParts.slice(3).join("/");
 
       if (bucketName && filePath) {
-        await supabase.storage.from("lost_found_photos").remove([filePath]);
+        await getSupabaseClient().storage.from("lost_found_photos").remove([filePath]);
       }
     }
   };

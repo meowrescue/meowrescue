@@ -1,4 +1,3 @@
-
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
@@ -6,8 +5,26 @@ import { componentTagger } from "lovable-tagger";
 
 export default defineConfig(({ mode, command }) => ({
   server: {
-    port: 8080,
+    port: 3000,
     host: "::",
+    headers: {
+      'Content-Security-Policy': `
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' 'unsafe-eval';
+        style-src 'self' 'unsafe-inline';
+        img-src 'self' data: blob: https:;
+        frame-src 'self' https:;
+        connect-src 'self' https:;
+        font-src 'self' https: data:;
+        media-src 'self' https: data:;
+        object-src 'none';
+        base-uri 'self';
+        form-action 'self';
+        frame-ancestors 'self';
+        manifest-src 'self';
+        worker-src 'self' blob:;
+      `
+    }
   },
   plugins: [
     react(),
@@ -24,32 +41,33 @@ export default defineConfig(({ mode, command }) => ({
     assetsInlineLimit: 4096,
     cssCodeSplit: true,
     minify: mode === 'production' ? 'terser' : false,
-    ssrManifest: true, // Enabled for proper SSG support
-    terserOptions: {
-      compress: {
-        drop_console: false, // Keep console logs for debugging
-        drop_debugger: mode === 'production',
-      },
-    },
+    ssrManifest: true,
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, 'index.html'),
       },
       output: {
-        // Use predictable, simple file names for assets
-        entryFileNames: 'assets/[name].js', // Keep main.js as is for easier reference
+        entryFileNames: 'assets/[name].js',
         chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: (assetInfo) => {
-          // For CSS files, use a consistent, simple name
           if (assetInfo.name && assetInfo.name.endsWith('.css')) {
             return 'assets/index.css';
           }
           return 'assets/[name]-[hash][extname]';
         },
-        // Ensure proper exports for SSR/SSG
         inlineDynamicImports: false,
       },
     },
+    terserOptions: {
+      compress: {
+        drop_console: false,
+        drop_debugger: mode === 'production',
+      },
+    },
+  },
+  define: {
+    'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(process.env.VITE_SUPABASE_URL || ''),
+    'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(process.env.VITE_SUPABASE_ANON_KEY || ''),
   },
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
@@ -58,12 +76,10 @@ export default defineConfig(({ mode, command }) => ({
     },
   },
   ssr: {
-    // List external dependencies that shouldn't be bundled in SSR build
     noExternal: ['react-helmet-async', '@radix-ui/*', 'lucide-react'],
-    // Enable thread optimization
     optimizeDeps: {
-      include: ['react', 'react-dom', 'react-router-dom'],
+      include: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
     }
   },
-  base: '/', // Ensure base URL is set correctly
+  base: '/',
 }));

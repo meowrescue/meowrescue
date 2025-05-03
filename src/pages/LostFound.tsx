@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Layout from "../components/Layout";
-import { supabase } from "@/integrations/supabase/client";
+import getSupabaseClient from '@/integrations/supabase/client';
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { LostFoundPost } from "@/types/supabase";
@@ -59,6 +59,56 @@ const LostFound = () => {
       setIsLoading(false);
     }
   };
+
+  const refetchLostFound = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      let query = supabase
+        .from("lost_found_posts")
+        .select("*")
+        .neq("status", "archived") // Exclude archived posts
+        .order("created_at", { ascending: false });
+
+      if (filter !== "all") {
+        query = query.eq("status", filter);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error("Error refetching posts:", error);
+        setError(error.message);
+        toast({
+          title: "Error refetching posts",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setPosts(data as unknown as LostFoundPost[]);
+    } catch (error: any) {
+      console.error("Unexpected error:", error);
+      setError(error.message || "An unexpected error occurred");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const subscription = supabase
+      .channel('lost-found-updates')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'lost_found_posts' }, (payload) => {
+        console.log('Lost and found update received:', payload);
+        refetchLostFound();
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [refetchLostFound]);
 
   const filteredPosts = searchTerm
     ? posts?.filter(

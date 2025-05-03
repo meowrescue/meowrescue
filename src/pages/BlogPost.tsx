@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { supabase } from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/supabase/client';
 import SEO from '@/components/SEO';
 import { Calendar, ArrowLeft, Share2, Clock, ChevronLeft, ChevronRight, Facebook, Twitter, Linkedin, Mail } from 'lucide-react';
 import NotFound from './NotFound';
@@ -14,10 +14,12 @@ const BlogPost: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [relatedPosts, setRelatedPosts] = useState<any[]>([]);
+  const queryClient = useQueryClient();
   
-  const { data: post, isLoading, error } = useQuery({
+  const { data: post, isLoading, error, refetch } = useQuery({
     queryKey: ['blogPost', slug],
     queryFn: async () => {
+      const supabase = getSupabaseClient();
       const { data, error } = await supabase
         .from('blog_posts')
         .select('*')
@@ -39,6 +41,7 @@ const BlogPost: React.FC = () => {
   useEffect(() => {
     const fetchRelatedPosts = async () => {
       if (post) {
+        const supabase = getSupabaseClient();
         const { data } = await supabase
           .from('blog_posts')
           .select('*')
@@ -54,6 +57,23 @@ const BlogPost: React.FC = () => {
       fetchRelatedPosts();
     }
   }, [post]);
+  
+  // Subscribe to real-time updates for this blog post
+  useEffect(() => {
+    if (!post?.id) return;
+    const supabase = getSupabaseClient();
+    const subscription = supabase
+      .channel(`blog-post-${post.id}-updates`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'blog_posts', filter: `id=eq.${post.id}` }, (payload) => {
+        console.log('Blog post update received:', payload);
+        refetch();
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [post?.id, refetch]);
   
   // If post not found or not published
   if (!isLoading && !post && !error) {

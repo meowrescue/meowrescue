@@ -17,7 +17,7 @@ import {
 } from "recharts";
 import { formatCurrency } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/supabase/client';
 
 const config = {
   donations: { color: "#4ade80" }, // Green

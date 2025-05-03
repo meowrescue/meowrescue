@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -63,15 +62,18 @@ export const NavbarNavItems: React.FC<NavbarNavItemsProps> = ({
   isActive,
   setOpenDropdown
 }) => {
-  const navigate = useNavigate();
+  const navigate = typeof window !== 'undefined' ? useNavigate() : null;
   const [isMouseInDropdown, setIsMouseInDropdown] = useState(false);
   const [dropdownTimeout, setDropdownTimeout] = useState<NodeJS.Timeout | null>(null);
   
   // Function to handle dropdown item click
   const handleDropdownItemClick = (path: string) => {
-    navigate(path);
-    // Close dropdown after navigation
-    setTimeout(() => setOpenDropdown(null), 50);
+    if (navigate) {
+      navigate(path);
+      // Close dropdown after navigation
+      setTimeout(() => setOpenDropdown(null), 50);
+    }
+    // For static HTML, the href on the <a> tag will handle navigation
   };
 
   // Handle mouse enter for dropdown containers
@@ -114,17 +116,25 @@ export const NavbarNavItems: React.FC<NavbarNavItemsProps> = ({
       {navItems.map((item) => {
         if (!item.dropdown) {
           return (
-            <Link
+            <a
               key={item.name}
-              to={item.path || '/'}
+              href={item.path}
               className={`px-3 py-2 rounded-md text-medium font-medium transition-colors ${
-                isActive(item.path || '/') 
+                isActive(item.path || "/") 
                   ? 'text-meow-primary' 
                   : 'text-gray-700 hover:text-meow-primary'
               }`}
+              onClick={(e) => {
+                if (navigate) {
+                  e.preventDefault();
+                  navigate(item.path || "/");
+                }
+                // Default <a> href behavior for static HTML
+              }}
+              role="menuitem"
             >
               {item.name}
-            </Link>
+            </a>
           );
         }
         
@@ -179,14 +189,21 @@ export const NavbarNavItems: React.FC<NavbarNavItemsProps> = ({
               >
                 <div className="py-1" role="menu" aria-orientation="vertical">
                   {item.dropdown.map((subItem) => (
-                    <button
+                    <a
                       key={subItem.path}
+                      href={subItem.path}
                       className="block w-full text-left px-4 py-2 text-medium text-gray-700 hover:bg-gray-100 hover:text-meow-primary"
                       role="menuitem"
-                      onClick={() => handleDropdownItemClick(subItem.path)}
+                      onClick={(e) => {
+                        if (navigate) {
+                          e.preventDefault();
+                          handleDropdownItemClick(subItem.path);
+                        }
+                        // Default <a> href behavior for static HTML
+                      }}
                     >
                       {subItem.name}
-                    </button>
+                    </a>
                   ))}
                 </div>
               </div>

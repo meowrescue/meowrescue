@@ -1,5 +1,4 @@
-
-import { supabase } from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/supabase/client';
 
 /**
  * Fetches budget categories from database
@@ -9,6 +8,7 @@ export const getBudgetCategories = async () => {
     // Let's try a more direct approach without filtering by year first
     console.log('Fetching budget categories (all years)');
     
+    const supabase = getSupabaseClient();
     const { data: allCategories, error: initialError } = await supabase
       .from('budget_categories')
       .select('*')
@@ -46,6 +46,7 @@ export const calculateCategorySpending = async (categories) => {
     console.log(`Calculating spending for ${categories.length} categories`);
     const enrichedCategories = await Promise.all(
       categories.map(async (category) => {
+        const supabase = getSupabaseClient();
         // Query expenses for this category
         const { data: expenses, error } = await supabase
           .from('expenses')

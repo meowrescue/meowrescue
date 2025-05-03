@@ -152,6 +152,18 @@ const SEO: React.FC<SEOProps> = ({
       {/* Sitemap link (absolute url) */}
       <link rel="sitemap" type="application/xml" href={`${SEO_DOMAIN}/sitemap.xml`} />
 
+      {/* Content Security Policy */}
+      <meta 
+        http-equiv="Content-Security-Policy" 
+        content="default-src 'self';
+          script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.gpteng.co;
+          img-src 'self' data: https://meowrescue.windsurf.build https://sfrlnidbiviniuqhryyc.supabase.co https://images.unsplash.com;
+          connect-src 'self' https: wss://*.supabase.co;
+          style-src 'self' 'unsafe-inline';
+          font-src 'self' data:;
+          frame-src 'none';
+          object-src 'none'"/>
+
       {children}
     </Helmet>
   );

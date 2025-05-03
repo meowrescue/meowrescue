@@ -1,5 +1,5 @@
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { supabase } from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/supabase/client';
 import SEO from '@/components/SEO';
 import PageHeader from '@/components/ui/PageHeader';
 import { Calendar, ChevronRight, Clock, Search } from 'lucide-react';
@@ -20,7 +20,8 @@ import SectionHeading from '@/components/ui/SectionHeading';
 
 const Blog: React.FC = () => {
   const navigate = useNavigate();
-  const { data: posts, isLoading, isError } = useQuery({
+  const queryClient = useQueryClient();
+  const { data: posts, isLoading, isError, refetch: refetchBlogPosts } = useQuery({
     queryKey: ['blogPosts'],
     queryFn: async () => {
       try {
@@ -41,6 +42,20 @@ const Blog: React.FC = () => {
     retry: 2,
     retryDelay: 1000
   });
+
+  useEffect(() => {
+    const subscription = supabase
+      .channel('blog-posts-updates')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'blog_posts' }, (payload) => {
+        console.log('Blog post update received:', payload);
+        refetchBlogPosts();
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [refetchBlogPosts]);
 
   const handleCardClick = (slug: string) => {
     navigate(`/blog/${slug}`);

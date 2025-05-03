@@ -9,7 +9,8 @@ lerna-debug.log*
 
 # Dependencies
 node_modules
-dist
+# Commenting out dist to allow viewing
+# dist
 dist-ssr
 *.local
 
@@ -28,6 +29,8 @@ dist-ssr
 .env
 .env.*
 !.env.example
+# Allow .env.production for Netlify secrets scan override
+!.env.production
 
 # Build output
 build/

@@ -3,7 +3,7 @@ import Layout from '../components/Layout';
 import { Event } from '../types/events';
 import EventCard from '../components/EventCard';
 import { useScrollToElement } from '@/hooks/use-scroll';
-import { supabase } from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 import PageHeader from '@/components/ui/PageHeader';
 import { Link } from 'react-router-dom';
@@ -66,6 +66,66 @@ const Events: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const refetchEvents = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .order('date_start', { ascending: true });
+      
+      if (error) throw error;
+      
+      if (!data || data.length === 0) {
+        setEvents([]);
+        setLoading(false);
+        return;
+      }
+      
+      // Transform to match Event interface
+      const transformedEvents: Event[] = data.map(event => ({
+        id: event.id,
+        title: event.title,
+        date: new Date(event.date_start).toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        }),
+        time: `${new Date(event.date_start).toLocaleTimeString('en-US', { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        })} - ${new Date(event.date_end).toLocaleTimeString('en-US', { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        })}`,
+        location: event.location,
+        description: event.description,
+        imageUrl: event.image_url || "https://images.unsplash.com/photo-1570304816841-906a17d7b067?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80"
+      }));
+      
+      setEvents(transformedEvents);
+    } catch (error: any) {
+      console.error("Error refetching events:", error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const subscription = supabase
+      .channel('events-updates')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, (payload) => {
+        console.log('Event update received:', payload);
+        refetchEvents();
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [refetchEvents]);
 
   return (
     <Layout>

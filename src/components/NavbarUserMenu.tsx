@@ -1,6 +1,5 @@
-
 import React from "react";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -29,6 +28,8 @@ const NavbarUserMenu: React.FC<NavbarUserMenuProps> = ({
   signOut,
   getUserInitials,
 }) => {
+  const navigate = typeof window !== 'undefined' ? useNavigate() : null;
+
   return user ? (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -55,15 +56,47 @@ const NavbarUserMenu: React.FC<NavbarUserMenuProps> = ({
           </div>
         </div>
         <DropdownMenuItem asChild>
-          <Link to="/profile" className="w-full cursor-pointer">
+          <a 
+            href="/profile" 
+            className="w-full cursor-pointer"
+            onClick={e => {
+              if (navigate) {
+                e.preventDefault();
+                navigate('/profile');
+              }
+            }}
+          >
             Profile
-          </Link>
+          </a>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <a 
+            href="/settings" 
+            className="w-full cursor-pointer"
+            onClick={e => {
+              if (navigate) {
+                e.preventDefault();
+                navigate('/settings');
+              }
+            }}
+          >
+            Settings
+          </a>
         </DropdownMenuItem>
         {(user.role === "admin" || user.email?.endsWith("@meowrescue.org")) && (
           <DropdownMenuItem asChild>
-            <Link to="/admin" className="w-full cursor-pointer">
+            <a 
+              href="/admin" 
+              className="w-full cursor-pointer"
+              onClick={e => {
+                if (navigate) {
+                  e.preventDefault();
+                  navigate('/admin');
+                }
+              }}
+            >
               Admin Dashboard
-            </Link>
+            </a>
           </DropdownMenuItem>
         )}
         <DropdownMenuItem onClick={signOut} className="cursor-pointer">
@@ -72,11 +105,18 @@ const NavbarUserMenu: React.FC<NavbarUserMenuProps> = ({
       </DropdownMenuContent>
     </DropdownMenu>
   ) : (
-    <Link to="/login">
-      <Button variant="ghost" size="sm">
+    <a href="/login">
+      <Button variant="ghost" size="sm"
+        onClick={e => {
+          if (navigate) {
+            e.preventDefault();
+            navigate('/login');
+          }
+        }}
+      >
         <LogIn className="mr-1 h-4 w-4" /> Login
       </Button>
-    </Link>
+    </a>
   );
 };
 

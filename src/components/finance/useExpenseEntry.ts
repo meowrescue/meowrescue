@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import getSupabaseClient from '@/integrations/supabase/client';
 import { format } from "date-fns";
 import { capitalizeWords } from "@/utils/stringUtils";
 
@@ -107,13 +107,13 @@ export const useExpenseEntry = ({ onSuccess }: ExpenseEntryProps = {}) => {
         const fileName = `${expense.id}-${Date.now()}.${fileExt}`;
         const filePath = `${fileName}`;
 
-        const { error: uploadError } = await supabase.storage
+        const { error: uploadError } = await getSupabaseClient().storage
           .from("expense-receipts")
           .upload(filePath, expenseData.receiptFile);
 
         if (uploadError) throw uploadError;
 
-        const { data: publicURLData } = supabase.storage
+        const { data: publicURLData } = getSupabaseClient().storage
           .from("expense-receipts")
           .getPublicUrl(filePath);
 

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import NavbarMobileDropdown from "./NavbarMobileDropdown";
@@ -27,16 +26,19 @@ const NavbarMobileMenu: React.FC<NavbarMobileMenuProps> = ({
   navLinks,
   onClose,
 }) => {
-  const navigate = useNavigate();
+  const navigate = typeof window !== 'undefined' ? useNavigate() : null;
   const [openDropdown, setOpenDropdown] = React.useState<string | null>(null);
 
   const isActive = (path: string) => window.location.pathname === path;
 
   const handleNavigation = (path: string) => {
-    navigate(path);
-    setTimeout(() => {
-      onClose();
-    }, 500); // Increased delay to ensure menu closes properly
+    if (navigate) {
+      navigate(path);
+      setTimeout(() => {
+        onClose();
+      }, 500); // Increased delay to ensure menu closes properly
+    }
+    // For static HTML, the href on the <a> tag will handle navigation
   };
 
   const toggleDropdown = (id: string) => {
@@ -73,20 +75,23 @@ const NavbarMobileMenu: React.FC<NavbarMobileMenuProps> = ({
             </li>
           ))}
           <li>
-            <button
-              type="button"
-              className="block w-full text-left font-medium text-meow-secondary hover:text-meow-secondary/80 text-base"
+            <a
+              href="/donate"
+              className="block w-full text-left font-bold text-meow-primary hover:text-meow-primary/90 text-lg py-2 px-3 rounded-md bg-meow-secondary/10 border border-meow-secondary/20"
               onClick={e => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleNavigation("/donate");
+                if (navigate) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleNavigation("/donate");
+                }
+                // Default <a> href behavior for static HTML
               }}
             >
-              <div className="flex items-center">
-                <Heart className="mr-2 h-4 w-4" />
-                Donate
+              <div className="flex items-center justify-center">
+                <Heart className="mr-2 h-5 w-5 fill-meow-primary" />
+                Donate Now
               </div>
-            </button>
+            </a>
           </li>
           {/* Removing the duplicate Financial Transparency link that was here */}
         </ul>

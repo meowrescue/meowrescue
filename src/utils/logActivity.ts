@@ -1,5 +1,4 @@
-
-import { supabase } from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/supabase/client';
 
 /**
  * Logs an activity to the activity_logs table
@@ -15,6 +14,8 @@ export const logActivity = async (
   metadata?: Record<string, any>
 ): Promise<string | null> => {
   try {
+    const supabase = getSupabaseClient();
+    
     // Call the RPC function to log activity
     const { data, error } = await supabase.rpc('log_activity', {
       p_activity_type: activityType,
@@ -39,15 +40,48 @@ export const logActivity = async (
  */
 export const logAuth = {
   login: async (userId: string, email: string) => {
-    return logActivity('login', `User logged in: ${email}`, { user_id: userId, email });
+    const supabase = getSupabaseClient();
+    return supabase.rpc('log_activity', {
+      p_activity_type: 'login',
+      p_description: `User logged in: ${email}`,
+      p_metadata: JSON.stringify({ user_id: userId, email })
+    }).then(({ data, error }) => {
+      if (error) {
+        console.error('Error logging activity:', error);
+        return null;
+      }
+      return data;
+    });
   },
   
   logout: async (userId: string, email: string) => {
-    return logActivity('logout', `User logged out: ${email}`, { user_id: userId, email });
+    const supabase = getSupabaseClient();
+    return supabase.rpc('log_activity', {
+      p_activity_type: 'logout',
+      p_description: `User logged out: ${email}`,
+      p_metadata: JSON.stringify({ user_id: userId, email })
+    }).then(({ data, error }) => {
+      if (error) {
+        console.error('Error logging activity:', error);
+        return null;
+      }
+      return data;
+    });
   },
   
   register: async (userId: string, email: string) => {
-    return logActivity('create', `New user registered: ${email}`, { user_id: userId, email });
+    const supabase = getSupabaseClient();
+    return supabase.rpc('log_activity', {
+      p_activity_type: 'create',
+      p_description: `New user registered: ${email}`,
+      p_metadata: JSON.stringify({ user_id: userId, email })
+    }).then(({ data, error }) => {
+      if (error) {
+        console.error('Error logging activity:', error);
+        return null;
+      }
+      return data;
+    });
   }
 };
 
@@ -56,14 +90,47 @@ export const logAuth = {
  */
 export const logData = {
   create: async (entity: string, id: string, name: string) => {
-    return logActivity('create', `Created ${entity}: ${name}`, { entity, id, name });
+    const supabase = getSupabaseClient();
+    return supabase.rpc('log_activity', {
+      p_activity_type: 'create',
+      p_description: `Created ${entity}: ${name}`,
+      p_metadata: JSON.stringify({ entity, id, name })
+    }).then(({ data, error }) => {
+      if (error) {
+        console.error('Error logging activity:', error);
+        return null;
+      }
+      return data;
+    });
   },
   
   update: async (entity: string, id: string, name: string) => {
-    return logActivity('update', `Updated ${entity}: ${name}`, { entity, id, name });
+    const supabase = getSupabaseClient();
+    return supabase.rpc('log_activity', {
+      p_activity_type: 'update',
+      p_description: `Updated ${entity}: ${name}`,
+      p_metadata: JSON.stringify({ entity, id, name })
+    }).then(({ data, error }) => {
+      if (error) {
+        console.error('Error logging activity:', error);
+        return null;
+      }
+      return data;
+    });
   },
   
   delete: async (entity: string, id: string, name: string) => {
-    return logActivity('delete', `Deleted ${entity}: ${name}`, { entity, id, name });
+    const supabase = getSupabaseClient();
+    return supabase.rpc('log_activity', {
+      p_activity_type: 'delete',
+      p_description: `Deleted ${entity}: ${name}`,
+      p_metadata: JSON.stringify({ entity, id, name })
+    }).then(({ data, error }) => {
+      if (error) {
+        console.error('Error logging activity:', error);
+        return null;
+      }
+      return data;
+    });
   }
 };

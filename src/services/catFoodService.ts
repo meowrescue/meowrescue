@@ -1,9 +1,9 @@
-
-import { supabase } from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/supabase/client';
 import { CatFoodAPI, CatFood, CatFeedingRecord, Cat } from '@/types/finance';
 
 export async function getCatFood(): Promise<CatFood[]> {
   try {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .rpc('get_cat_food');
       
@@ -27,6 +27,7 @@ export async function addCatFood(
   purchaseDate: Date
 ): Promise<CatFood> {
   try {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .rpc('add_cat_food', {
         p_brand: brand,
@@ -50,6 +51,7 @@ export async function addCatFood(
 
 export async function getCatFeedingRecords(): Promise<CatFeedingRecord[]> {
   try {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .rpc('get_cat_feeding_records');
       
@@ -71,6 +73,7 @@ export async function addCatFeedingRecord(
   feedingDate: Date
 ): Promise<CatFeedingRecord> {
   try {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .rpc('add_cat_feeding_record', {
         p_cat_id: catId,
@@ -92,6 +95,7 @@ export async function addCatFeedingRecord(
 
 export async function getCats(): Promise<Cat[]> {
   try {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('cats')
       .select('id, name, status')

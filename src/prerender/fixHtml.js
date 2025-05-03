@@ -248,7 +248,7 @@ function fixHtml(route, html) {
   const headerContent = html.match(/<header[^>]*>[\s\S]*?<\/header>/i)?.[0] || fullNavHeader;
   
   // Compose a "fixed" html string with guaranteed SEO elements and complete content
-  return `<!DOCTYPE html>
+  let htmlContent = `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -311,7 +311,7 @@ function fixHtml(route, html) {
       ${footerContent}
     </div>
     
-    <div id="root">
+    <div id="root" data-reactroot="">
       <!-- Ensure header is included for SEO -->
       ${headerContent}
       
@@ -326,8 +326,18 @@ function fixHtml(route, html) {
     </script>
     <script src="https://cdn.gpteng.co/gptengineer.min.js" type="module"></script>
     <script type="module" src="/assets/main.js"></script>
+    <script type="module">
+      import React from 'react';
+      import ReactDOM from 'react-dom/client';
+      import App from '../App.tsx';
+      
+      // Hydrate the prerendered content
+      const root = ReactDOM.hydrateRoot(document.getElementById('root'), <App />);
+    </script>
   </body>
 </html>`;
+
+  return htmlContent;
 }
 
 export { fixHtml };

@@ -5,7 +5,7 @@ import SectionHeading from './ui/SectionHeading';
 import CatCard from './CatCard';
 import { Button } from "@/components/ui/button";
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/supabase/client';
 
 const FeaturedCatsSection: React.FC = () => {
   // Fetch available cats from the database

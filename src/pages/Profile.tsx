@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { supabase } from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/supabase/client';
 import SEO from '@/components/SEO';
 import { useQuery } from '@tanstack/react-query';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -111,7 +111,7 @@ const Profile: React.FC = () => {
         throw new Error("Authentication session is missing. Please log in again.");
       }
       
-      const { error } = await supabase.auth.updateUser({
+      const { error } = await getSupabaseClient().auth.updateUser({
         data: { 
           first_name: data.firstName,
           last_name: data.lastName 
@@ -153,7 +153,7 @@ const Profile: React.FC = () => {
         throw new Error("Authentication session is missing. Please log in again.");
       }
       
-      const { error } = await supabase.auth.updateUser({
+      const { error } = await getSupabaseClient().auth.updateUser({
         password: data.password
       });
       
@@ -225,14 +225,14 @@ const Profile: React.FC = () => {
       const fileName = `${user.id}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
       const filePath = `avatars/${fileName}`;
       
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError } = await getSupabaseClient().storage
         .from('profiles')
         .upload(filePath, selectedFile);
         
       if (uploadError) throw uploadError;
       
       // Get the public URL for the uploaded file
-      const { data: publicUrlData } = supabase.storage
+      const { data: publicUrlData } = getSupabaseClient().storage
         .from('profiles')
         .getPublicUrl(filePath);
         

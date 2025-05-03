@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Search, Filter } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/supabase/client';
 import SEO from '@/components/SEO';
 import PageHeader from '@/components/ui/PageHeader';
 import { scrollToTop } from '@/utils/scrollUtils';
@@ -50,6 +50,21 @@ const Cats: React.FC = () => {
     retry: 2,
     retryDelay: 1000
   });
+
+  // Subscribe to real-time updates for adoptable cats
+  useEffect(() => {
+    const subscription = supabase
+      .channel('adoptable-cats-updates')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'cats' }, (payload) => {
+        console.log('Cat update received:', payload);
+        refetch();
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [refetch]);
 
   // Apply filters
   const filteredCats = cats.filter(cat => {

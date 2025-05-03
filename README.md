@@ -1,4 +1,3 @@
-
 # MeowRescue - Cat Rescue Website
 
 A complete website for MeowRescue, a home-based cat rescue in Pasco County, Florida. The site includes features for adoption listings, donation handling, volunteer management, and other essential rescue operations.
@@ -47,6 +46,28 @@ npm run typecheck
 
 The site is automatically deployed to Netlify when changes are pushed to the main branch. The static site generation happens during the build process.
 
+### Environment Variables
+
+The following environment variables must be set in the Netlify dashboard:
+
+- `VITE_SUPABASE_URL` - Your Supabase project URL
+- `VITE_SUPABASE_ANON_KEY` - Your Supabase anonymous key
+
+For local development, create a `.env` file in the root directory with these variables. An example file `.env.example` is provided as a template.
+
+### Secrets Management
+
+This project is configured to handle Supabase credentials securely:
+
+1. All credentials are sourced from environment variables
+2. No hardcoded credentials in any source files
+3. Netlify's secrets scanning is configured to ignore specific paths where environment variables might be embedded during the build process
+
+If you encounter build failures related to secrets scanning, check the following:
+- Ensure all credentials are properly set as environment variables in Netlify
+- Verify that no hardcoded credentials exist in the codebase
+- Check the `netlify.toml` configuration for proper secrets scanning settings
+
 ## Project Structure
 
 - `src/pages/` - Page components
@@ -63,4 +84,4 @@ When new cats are added to the database, the site needs to be rebuilt to generat
 
 ## License
 
-Copyright © 2025 MeowRescue. All rights reserved.
+Copyright 2025 MeowRescue. All rights reserved.

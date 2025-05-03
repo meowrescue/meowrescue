@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import React, { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import getSupabaseClient from '@/integrations/supabase/client';
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import SEO from "@/components/SEO";
@@ -11,8 +11,9 @@ import PageHeader from "@/components/ui/PageHeader";
 
 const SuccessStories: React.FC = () => {
   const [visibleCount, setVisibleCount] = useState(15);
+  const queryClient = useQueryClient();
 
-  const { data: stories, isLoading } = useQuery({
+  const { data: stories, isLoading, refetch } = useQuery({
     queryKey: ["successStories"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -24,6 +25,20 @@ const SuccessStories: React.FC = () => {
       return data || [];
     }
   });
+
+  useEffect(() => {
+    const subscription = supabase
+      .channel('success-stories-updates')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'success_stories' }, (payload) => {
+        console.log('Success story update received:', payload);
+        refetch();
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [refetch]);
 
   const handleLoadMore = () => {
     setVisibleCount((prev) => prev + 15);
