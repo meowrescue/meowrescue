@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -46,6 +45,7 @@ const AdminCats: React.FC = () => {
   const { data: cats, isLoading, error, refetch } = useQuery({
     queryKey: ['cats'],
     queryFn: async () => {
+      const supabase = getSupabaseClient();
       const { data, error } = await supabase
         .from('cats')
         .select('*')
@@ -76,6 +76,7 @@ const AdminCats: React.FC = () => {
     if (!window.confirm("Are you sure you want to delete this cat?")) return;
     
     try {
+      const supabase = getSupabaseClient();
       const { error } = await supabase
         .from('cats')
         .delete()

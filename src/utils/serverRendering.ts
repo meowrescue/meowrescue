@@ -1,4 +1,3 @@
-
 import { QueryClient } from '@tanstack/react-query';
 import { matchRoutes } from 'react-router-dom';
 import * as React from 'react';
@@ -8,9 +7,9 @@ export const createQueryClient = () => new QueryClient({
   defaultOptions: {
     queries: {
       retry: false,
-      refetchOnWindowFocus: false,
-      gcTime: Infinity,
-      staleTime: Infinity,
+      refetchOnWindowFocus: true,
+      gcTime: 30 * 1000, // 30 seconds
+      staleTime: 10 * 1000, // 10 seconds
     },
   },
 });

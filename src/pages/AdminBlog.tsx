@@ -19,6 +19,7 @@ import getSupabaseClient from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { PenSquare, Trash2, Plus, Search, ExternalLink, Eye, EyeOff, FileText } from 'lucide-react';
 import SEO from '@/components/SEO';
+import { ensureSupabaseClient } from '@/utils/supabaseHelpers';
 
 const AdminBlog: React.FC = () => {
   const navigate = useNavigate();
@@ -31,6 +32,7 @@ const AdminBlog: React.FC = () => {
   const { data: posts, isLoading, refetch } = useQuery({
     queryKey: ['adminBlogPosts'],
     queryFn: async () => {
+      const supabase = ensureSupabaseClient();
       const { data, error } = await supabase
         .from('blog_posts')
         .select('*')
@@ -46,6 +48,7 @@ const AdminBlog: React.FC = () => {
     if (!postToDelete) return;
 
     try {
+      const supabase = ensureSupabaseClient();
       const { error } = await supabase
         .from('blog_posts')
         .delete()
@@ -54,8 +57,9 @@ const AdminBlog: React.FC = () => {
       if (error) throw error;
 
       // Log activity
-      await getSupabaseClient().from('activity_logs').insert({
-        user_id: (await getSupabaseClient().auth.getUser()).data.user?.id,
+      const user = await supabase.auth.getUser();
+      await supabase.from('activity_logs').insert({
+        user_id: user.data.user?.id,
         activity_type: 'Delete',
         description: 'Deleted blog post',
       });
@@ -95,6 +99,7 @@ const AdminBlog: React.FC = () => {
     };
 
     try {
+      const supabase = ensureSupabaseClient();
       const { error } = await supabase
         .from('blog_posts')
         .update(updateData)
@@ -120,6 +125,7 @@ const AdminBlog: React.FC = () => {
   // Add function to toggle featured status
   const toggleFeaturedStatus = async (id: string, currentStatus: boolean) => {
     try {
+      const supabase = ensureSupabaseClient();
       // If setting as featured, first unset any existing featured post
       if (!currentStatus) {
         await supabase
@@ -140,7 +146,7 @@ const AdminBlog: React.FC = () => {
 
       toast({
         title: 'Success',
-        description: `Post ${!currentStatus ? 'set as' : 'removed from'} featured`,
+        description: `Blog post ${!currentStatus ? 'set as featured' : 'removed from featured'} successfully`,
       });
       
       refetch();
@@ -154,62 +160,68 @@ const AdminBlog: React.FC = () => {
   };
 
   // Filter posts based on search term
-  const filteredPosts = posts ? posts.filter(post => 
+  const filteredPosts = posts?.filter(post => 
     post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     post.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (post.meta_description && post.meta_description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (post.keywords && post.keywords.toLowerCase().includes(searchTerm.toLowerCase()))
-  ) : [];
+    post.excerpt.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   // SEO status function
   const getSeoStatus = (post: any) => {
-    let score = 0;
-    if (post.meta_description && post.meta_description.length > 50) score += 1;
-    if (post.keywords && post.keywords.length > 10) score += 1;
-    if (post.featured_image_url) score += 1;
+    const hasSeoTitle = post.seo_title && post.seo_title.length > 0;
+    const hasSeoDescription = post.seo_description && post.seo_description.length > 0;
     
-    if (score === 3) return { label: 'Good', color: 'bg-green-500 hover:bg-green-600' };
-    if (score === 2) return { label: 'Fair', color: 'bg-yellow-500 hover:bg-yellow-600' };
-    return { label: 'Poor', color: 'bg-red-500 hover:bg-red-600' };
+    if (hasSeoTitle && hasSeoDescription) return "Complete";
+    if (hasSeoTitle || hasSeoDescription) return "Partial";
+    return "Missing";
   };
 
   return (
     <AdminLayout title="Blog Management">
-      <SEO title="Blog Management | Meow Rescue Admin" />
+      <SEO 
+        title="Blog Management | Admin Dashboard" 
+        description="Manage blog posts for Meow Rescue."
+        noindex={true}
+      />
       
-      <div className="container mx-auto py-10">
-        <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
-          <h1 className="text-3xl font-bold text-meow-primary">Blog Posts</h1>
-          <div className="flex items-center gap-4 w-full md:w-auto">
-            <div className="relative w-full md:w-auto">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" aria-hidden="true" />
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-meow-primary mb-2">Blog Management</h1>
+            <p className="text-gray-600">Create, edit, and manage blog posts</p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                placeholder="Search blog posts..."
+                placeholder="Search posts..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 w-full md:w-64"
-                aria-label="Search blog posts"
+                className="pl-10"
               />
             </div>
-            <Button onClick={() => navigate('/admin/blog/new')} className="w-full md:w-auto">
-              <Plus className="h-4 w-4 mr-2" aria-hidden="true" /> Create New Post
+            
+            <Button onClick={() => navigate('/admin/blog/new')} className="whitespace-nowrap">
+              <Plus className="mr-2 h-4 w-4" /> New Post
             </Button>
           </div>
         </div>
-
+        
         {isLoading ? (
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
           </div>
-        ) : filteredPosts.length > 0 ? (
+        ) : filteredPosts && filteredPosts.length > 0 ? (
           <div className="bg-white rounded-lg shadow overflow-hidden">
             <Table>
-              <TableCaption>All blog posts.</TableCaption>
+              <TableCaption>A list of all blog posts</TableCaption>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Title</TableHead>
+                  <TableHead className="w-[300px]">Title</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>SEO</TableHead>
+                  <TableHead>Featured</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -217,31 +229,35 @@ const AdminBlog: React.FC = () => {
               <TableBody>
                 {filteredPosts.map((post) => {
                   const seoStatus = getSeoStatus(post);
+                  
                   return (
                     <TableRow key={post.id}>
                       <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
-                          {post.is_featured && (
-                            <Badge className="bg-meow-secondary">Featured</Badge>
-                          )}
-                          {post.title}
-                        </div>
+                        {post.title}
                       </TableCell>
                       <TableCell>
-                        <Badge 
-                          variant={post.is_published ? "default" : "outline"} 
-                          className={post.is_published ? "bg-green-500 hover:bg-green-600" : ""}
-                        >
-                          {post.is_published ? 'Published' : 'Draft'}
+                        <Badge className={post.is_published ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}>
+                          {post.is_published ? "Published" : "Draft"}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge 
-                          variant="default" 
-                          className={seoStatus.color}
-                        >
-                          {seoStatus.label}
+                        <Badge className={
+                          seoStatus === "Complete" ? "bg-green-100 text-green-800" : 
+                          seoStatus === "Partial" ? "bg-yellow-100 text-yellow-800" : 
+                          "bg-red-100 text-red-800"
+                        }>
+                          {seoStatus}
                         </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => toggleFeaturedStatus(post.id, post.is_featured)}
+                          className={post.is_featured ? "text-amber-500 hover:text-amber-600" : "text-gray-500 hover:text-gray-600"}
+                        >
+                          {post.is_featured ? "Featured ★" : "Set Featured"}
+                        </Button>
                       </TableCell>
                       <TableCell>
                         {post.is_published && post.published_at

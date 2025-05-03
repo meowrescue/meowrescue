@@ -82,28 +82,10 @@ const handleInitialNavigation = () => {
 // Run the initial navigation handler
 handleInitialNavigation();
 
-// Initialize enhanced client-side navigation
+// Initialize enhanced client-side navigation - DISABLED to fix back button issues
 const initializeClientNavigation = () => {
-  // Create enhanced client-side navigation
-  document.addEventListener('click', (e) => {
-    const target = e.target as HTMLElement;
-    const link = target.closest('a');
-    
-    // Only intercept internal links
-    if (link && 
-        link.href && 
-        link.href.startsWith(window.location.origin) && 
-        !link.getAttribute('target') && 
-        !link.hasAttribute('download') &&
-        !link.hasAttribute('data-no-intercept')) {
-      
-      e.preventDefault();
-      window.history.pushState({}, '', link.href);
-      
-      // Trigger a navigation event that React Router can listen to
-      window.dispatchEvent(new PopStateEvent('popstate'));
-    }
-  });
+  // This function is now disabled to fix back button navigation issues
+  console.log('Custom navigation interceptor disabled to fix back button issues');
 };
 
 const initializeDynamicElements = () => {
@@ -127,7 +109,9 @@ const initializeDynamicElements = () => {
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchOnWindowFocus: false,
+      refetchOnWindowFocus: true,
+      staleTime: 10 * 1000, // 10 seconds
+      gcTime: 30 * 1000, // 30 seconds
     },
   },
 });
@@ -135,8 +119,8 @@ const queryClient = new QueryClient({
 const dehydratedState = window.__INITIAL_DATA__?.queryClient || null;
 const pageData = window.__INITIAL_DATA__?.pageData || null;
 
-// Initialize client-side navigation enhancement
-initializeClientNavigation();
+// Initialize client-side navigation enhancement - DISABLED
+// initializeClientNavigation();
 
 // Remove prerendered SSG content to avoid React hydration mismatch
 const ssgContent = document.getElementById('ssg-content');
