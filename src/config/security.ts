@@ -57,9 +57,33 @@ export const getMetaCSP = () => {
   return generateCSPString('meta');
 };
 
+/**
+ * Generate a CSP with reporting functionality to detect violations
+ * @param reportUri The endpoint to send CSP violation reports to
+ * @returns A CSP object with reporting enabled
+ */
+export const getCSPWithReporting = (reportUri = '/api/csp-report'): Record<string, string[]> => {
+  const policy = { ...baseCSP };
+  policy['report-uri'] = [reportUri];
+  return policy;
+};
+
+/**
+ * Convert CSP with reporting to string format for use in headers
+ * @param reportUri The endpoint to send CSP violation reports to
+ * @returns CSP as a string with reporting enabled
+ */
+export const getNetlifyCSPWithReporting = (reportUri = '/api/csp-report'): string => {
+  return Object.entries(getCSPWithReporting(reportUri))
+    .map(([directive, sources]) => `${directive} ${sources.join(' ')}`)
+    .join('; ');
+};
+
 export default {
   generateCSPString,
   getViteCSP,
   getNetlifyCSP,
-  getMetaCSP
+  getMetaCSP,
+  getCSPWithReporting,
+  getNetlifyCSPWithReporting
 };

@@ -10,7 +10,8 @@ export enum ErrorSeverity {
   INFO = 'info',
   WARNING = 'warning',
   ERROR = 'error',
-  CRITICAL = 'critical'
+  CRITICAL = 'critical',
+  SECURITY = 'security' // New severity level for security-related events
 }
 
 // Error context information
@@ -19,6 +20,7 @@ interface ErrorContext {
   location?: string;
   user?: string | null;
   additionalData?: Record<string, unknown>;
+  securityRelevant?: boolean; // Flag to indicate security-relevant errors
 }
 
 /**
@@ -53,12 +55,51 @@ export function logError(
       console.error(`[CRITICAL] ${errorObj.message}`, errorObj);
       // Could add additional handling for critical errors
       break;
+    case ErrorSeverity.SECURITY:
+      console.error(`[SECURITY] ${errorObj.message}`, errorObj);
+      // Security events should be logged more prominently
+      logSecurityEvent(errorObj);
+      break;
   }
 
   // In production, you could send to a service like Sentry, LogRocket, etc.
   if (import.meta.env.PROD) {
     // Example of how you could send to a remote service
     // sendToErrorService(errorObj);
+  }
+}
+
+/**
+ * Log a security-specific event
+ * This handles security-relevant errors and events separately
+ */
+export function logSecurityEvent(
+  eventData: Record<string, any>
+): void {
+  // In a production environment, you might want to:
+  // 1. Store these separately from regular errors
+  // 2. Alert administrators
+  // 3. Possibly block suspicious behavior
+
+  // For now, we'll just log it with special formatting
+  console.group('🔐 SECURITY EVENT DETECTED');
+  console.error(JSON.stringify(eventData, null, 2));
+  console.groupEnd();
+
+  // In production, you would send this to a security monitoring service
+  if (import.meta.env.PROD) {
+    try {
+      // Example: Send to your Netlify function endpoint
+      if (typeof window !== 'undefined' && 'fetch' in window) {
+        fetch('/api/security-event', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(eventData)
+        }).catch(err => console.error('Failed to report security event:', err));
+      }
+    } catch (err) {
+      console.error('Error sending security event report:', err);
+    }
   }
 }
 
@@ -87,11 +128,24 @@ export async function handleAsyncError<T>(
   } catch (error) {
     logError(
       error instanceof Error ? error : new Error(`${errorMessage}: ${error}`),
-      ErrorSeverity.ERROR,
+      context.securityRelevant ? ErrorSeverity.SECURITY : ErrorSeverity.ERROR,
       context
     );
     return null;
   }
+}
+
+/**
+ * Log a security-specific error or suspicious activity
+ */
+export function logSecurityIssue(
+  issue: string | Error,
+  context: ErrorContext = {}
+): void {
+  logError(issue, ErrorSeverity.SECURITY, {
+    ...context,
+    securityRelevant: true
+  });
 }
 
 // Set up global error handlers
@@ -106,13 +160,23 @@ export function initializeGlobalErrorHandling(): void {
 
     // Handle uncaught exceptions
     window.addEventListener('error', (event) => {
-      logError(event.error || event.message, ErrorSeverity.ERROR, {
-        location: event.filename,
-        additionalData: {
-          line: event.lineno,
-          column: event.colno
+      // Check if this might be security-relevant (e.g., CORS errors often are)
+      const isCORSError = event.message && (
+        event.message.includes('CORS') || 
+        event.message.includes('cross-origin')
+      );
+      
+      logError(event.error || event.message, 
+        isCORSError ? ErrorSeverity.SECURITY : ErrorSeverity.ERROR, 
+        {
+          location: event.filename,
+          securityRelevant: isCORSError,
+          additionalData: {
+            line: event.lineno,
+            column: event.colno
+          }
         }
-      });
+      );
     });
   }
 }
@@ -122,5 +186,7 @@ export default {
   createErrorBoundaryHandler,
   handleAsyncError,
   initializeGlobalErrorHandling,
+  logSecurityEvent,
+  logSecurityIssue,
   ErrorSeverity
 };

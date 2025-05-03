@@ -66,3 +66,13 @@
 [secrets_scan]
   omit_keys = ["VITE_SUPABASE_URL", "VITE_SUPABASE_ANON_KEY"]
   omit_paths = ["dist/assets/main.js", "dist/server/assets/entry-server.js"]
+
+# Special settings for deploy previews
+[context.deploy-preview]
+  command = "npm run build"
+  [context.deploy-preview.environment]
+    NODE_ENV = "development"
+    ENABLE_AUTH = "false"  # Disable auth in previews
+    # Override Supabase settings for previews to use a test environment if needed
+    # VITE_SUPABASE_URL = ""  # Uncomment and set to test environment URL if you have one
+    VITE_SUPABASE_ANON_KEY = ""  # Blank to prevent accidental data access

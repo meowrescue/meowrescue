@@ -297,6 +297,7 @@
   "src/components/ui/toast.tsx": [],
   "src/components/ui/toaster.tsx": [],
   "src/components/ui/tooltip.tsx": [],
+  "src/config/supabase.ts": [],
   "src/contexts/AuthContext.tsx": [],
   "src/contexts/PageDataContext.tsx": [],
   "src/entry-server.tsx": [],
@@ -380,5 +381,5 @@
   "src/utils/scrollUtils.ts": [],
   "src/utils/seo.ts": [],
   "src/utils/stringUtils.ts": [],
-  "src/utils/supabaseHelper.ts": []
+  "src/utils/supabaseClient.ts": []
 }

@@ -13,6 +13,9 @@ import '@fontsource/playfair-display/600.css'
 import '@fontsource/playfair-display/700.css'
 import { checkSupabaseSchema } from './integrations/supabase/diagnostics'
 import { ensureBackwardCompatibility } from './utils/supabaseClient'
+import { initErrorLogging } from './services/errorLogging'
+import { initDatabaseMonitoring } from './services/databaseMonitoring'
+import auditLogging from './services/auditLogging'
 import { initializeGlobalErrorHandling } from './services/errorLogging'
 import { initDatabaseMonitor } from './services/databaseMonitor'
 
@@ -30,6 +33,11 @@ initDatabaseMonitor({
     }
   }
 });
+
+// Initialize security services
+initErrorLogging()
+initDatabaseMonitoring()
+auditLogging.ensureAuditLogsTable()
 
 // Error Boundary Component to catch initialization errors
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: Error | null}> {
