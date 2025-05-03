@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 
 interface ContactMapProps {
@@ -37,7 +36,11 @@ const ContactMap: React.FC<ContactMapProps> = ({
       // Define the callback globally
       window.initMap = initMap;
       
-      document.head.appendChild(script);
+      try {
+        document.head.appendChild(script);
+      } catch (error) {
+        console.error('Error appending Google Maps script:', error);
+      }
 
       // Cleanup
       return () => {
