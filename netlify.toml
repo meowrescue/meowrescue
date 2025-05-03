@@ -1,7 +1,15 @@
 [build]
   publish = "dist"
   command = "node scripts/netlify-build.js"
-  
+
+  # Environment configuration
+  [build.environment]
+    NODE_VERSION = "18.18.0"
+    NPM_VERSION = "9.8.1"
+    # These must be set in Netlify dashboard
+    VITE_SUPABASE_URL = ""
+    VITE_SUPABASE_ANON_KEY = ""
+
   # Cache configuration
   [build.cache]
     restore = true
