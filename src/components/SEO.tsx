@@ -156,15 +156,15 @@ const SEO: React.FC<SEOProps> = ({
       {/* Content Security Policy */}
       <meta 
         http-equiv="Content-Security-Policy" 
-        content="default-src 'self';
-          script-src 'self' 'unsafe-inline' 'unsafe-eval' https://sfrlnidbiviniuqhryyc.supabase.co;
-          style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-          font-src 'self' https://fonts.gstatic.com;
-          img-src 'self' data: blob: https://meowrescue.windsurf.build https://sfrlnidbiviniuqhryyc.supabase.co https://images.unsplash.com;
-          connect-src 'self' https://sfrlnidbiviniuqhryyc.supabase.co wss://sfrlnidbiviniuqhryyc.supabase.co https:;
-          object-src 'none';
-          base-uri 'self';
-          form-action 'self';"
+        content="
+          default-src 'self'; 
+          script-src 'self' 'unsafe-inline' 'unsafe-eval'; 
+          style-src 'self' 'unsafe-inline'; 
+          img-src 'self' https://sfrlnidbiviniuqhryyc.supabase.co data:; 
+          font-src 'self'; 
+          connect-src 'self' https://sfrlnidbiviniuqhryyc.supabase.co; 
+          frame-src 'self' https://sfrlnidbiviniuqhryyc.supabase.co;
+        " 
       />
 
       {children}

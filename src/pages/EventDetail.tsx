@@ -9,26 +9,19 @@ import { usePageData } from '@/contexts/PageDataContext';
 import { useQuery } from '@tanstack/react-query';
 import getSupabaseClient from '@/integrations/supabase/client';
 
-const EventDetail: React.FC = () => {
+interface EventDetailProps {
+  event: any; // Replace with proper event type
+}
+
+const EventDetail: React.FC<EventDetailProps> = ({ event: initialEvent }) => {
   const { id: eventId } = useParams<{ id: string }>();
   
-  // Get any pre-rendered data from PageDataContext
-  const pageData = usePageData();
-  const preloadedEvent = pageData?.pageType === 'eventDetail' ? pageData.event : null;
-  
-  // Use React Query to fetch event data
+  // Use React Query to fetch event data, with initial data from SSG
   const { data: event } = useQuery({
     queryKey: ['event', eventId],
     queryFn: async () => {
       if (!eventId) throw new Error("Event ID is required");
       
-      // If we already have the data from SSR/SSG, use it
-      if (preloadedEvent) {
-        console.log('Using preloaded event data from SSR');
-        return preloadedEvent;
-      }
-      
-      // Client-side fetching fallback
       const supabase = getSupabaseClient();
       const { data, error } = await supabase
         .from('events')
@@ -37,24 +30,10 @@ const EventDetail: React.FC = () => {
         .single();
 
       if (error) throw error;
-      
       return data;
     },
-    // Don't refetch if we already have data from SSR
-    enabled: !!eventId && !preloadedEvent,
-    // Use SSR data as initial data if available
-    initialData: preloadedEvent,
-    // Use a fallback event if data is missing
-    placeholderData: {
-      id: parseInt(eventId || '1'),
-      title: "Adoption Event at PetSmart",
-      date_start: "2025-04-20T11:00:00",
-      date_end: "2025-04-20T15:00:00",
-      location: "PetSmart, US-19, New Port Richey",
-      description: "Meet some of our adorable adoptable cats and kittens! Our volunteers will be on hand to answer questions about specific cats or the adoption process.",
-      image_url: "https://images.unsplash.com/photo-1570304816841-906a17d7b067?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-      long_description: "Join us for a special adoption event at PetSmart in New Port Richey. Our team will be bringing several adoptable cats and kittens who are looking for their forever homes. This is a great opportunity to meet our cats in person and learn more about our adoption process. Our knowledgeable volunteers will be available to answer any questions you might have about specific cats or the adoption process in general. If you're thinking about adding a feline friend to your family, this is the perfect event to attend!"
-    }
+    initialData: initialEvent,
+    staleTime: 60 * 1000 * 5, // Data is fresh for 5 minutes
   });
 
   useEffect(() => {
@@ -111,6 +90,25 @@ const EventDetail: React.FC = () => {
       <SEO 
         title={`${eventData.title} | Meow Rescue Events`}
         description={eventData.description}
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "Event",
+          "name": eventData.title,
+          "description": eventData.description,
+          "image": eventData.image_url,
+          "startDate": eventData.date_start,
+          "endDate": eventData.date_end,
+          "location": {
+            "@type": "Place",
+            "name": eventData.location,
+            "address": eventData.location
+          },
+          "organizer": {
+            "@type": "Organization",
+            "name": "Meow Rescue",
+            "url": "https://meowrescue.org"
+          }
+        }}
       />
       
       <div className="container mx-auto px-4 pt-24 pb-12">
@@ -189,3 +187,92 @@ const EventDetail: React.FC = () => {
 };
 
 export default EventDetail;
+
+/**
+ * Generates static paths for all events at build time
+ */
+export const getStaticPaths = async () => {
+  try {
+    const supabase = getSupabaseClient();
+    const { data: events, error } = await supabase
+      .from('events')
+      .select('id');
+
+    if (error) {
+      console.error('Error fetching event IDs for static paths:', error);
+      return {
+        paths: [],
+        fallback: 'blocking'
+      };
+    }
+
+    if (!events || events.length === 0) {
+      console.warn('No events found for static paths');
+      return {
+        paths: [],
+        fallback: 'blocking'
+      };
+    }
+
+    const paths = events.map(event => ({
+      params: { id: event.id.toString() }
+    }));
+
+    console.log(`Generated ${paths.length} static paths for events`);
+    return {
+      paths,
+      fallback: 'blocking' // Generate pages on-demand if not pre-rendered
+    };
+  } catch (error) {
+    console.error('Unexpected error in getStaticPaths for events:', error);
+    return {
+      paths: [],
+      fallback: 'blocking'
+    };
+  }
+};
+
+/**
+ * Fetches event data for each static page at build time
+ */
+export const getStaticProps = async ({ params }: { params: { id: string } }) => {
+  try {
+    if (!params || !params.id) {
+      return {
+        notFound: true,
+        revalidate: 60 // Revalidate every minute if something goes wrong
+      };
+    }
+
+    const eventId = params.id;
+    const supabase = getSupabaseClient();
+
+    // Fetch event details
+    const { data: event, error } = await supabase
+      .from('events')
+      .select('*')
+      .eq('id', eventId)
+      .single();
+
+    if (error || !event) {
+      console.error(`Error fetching event ${eventId}:`, error);
+      return {
+        notFound: true,
+        revalidate: 60
+      };
+    }
+
+    return {
+      props: {
+        event
+      },
+      revalidate: 3600 // Revalidate every hour
+    };
+  } catch (error) {
+    console.error(`Unexpected error fetching event ${params?.id}:`, error);
+    return {
+      notFound: true,
+      revalidate: 60
+    };
+  }
+};
