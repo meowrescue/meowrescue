@@ -20,10 +20,10 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				display: ['Poppins', 'Inter', 'Roboto', 'sans-serif'],
-				sans: ['Poppins', 'Inter', 'Roboto', 'sans-serif'],
-				poppins: ['Poppins', 'sans-serif'],
-				playfair: ['Playfair Display', 'serif'],
+				display: ['Open Sans', 'sans-serif'],
+				sans: ['Open Sans', 'sans-serif'],
+				opensans: ['Open Sans', 'sans-serif'],
+				playfair: ['Open Sans', 'serif'],
 			},
 			colors: {
 				border: '#F5F7FA',

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import getSupabaseClient from '@/integrations/supabase/client';
@@ -13,6 +14,7 @@ const About = () => {
   const { data: teamMembers = [], isLoading } = useQuery({
     queryKey: ['team-members'],
     queryFn: async () => {
+      const supabase = getSupabaseClient();
       const { data, error } = await supabase
         .from('profiles')
         .select('id, first_name, last_name, avatar_url, role, role_title, bio, show_in_team, created_at')
@@ -81,17 +83,17 @@ const About = () => {
           </div>
           
           <div>
-            <h2 className="text-2xl font-bold text-meow-primary mb-4">Our Founder's Story</h2>
-            <p className="text-gray-700 mb-4">
+            <h2 className="text-2xl md:text-3xl font-bold text-meow-primary mb-4">Our Founder's Story</h2>
+            <p className="text-gray-700 mb-4 text-base md:text-lg">
               Patrick has had a deep connection with animals since childhood, often feeling a special ability to understand them when others couldn't. After years in IT, he decided to follow his true passion for animal welfare—realizing this brings genuine happiness and allows him to use his unique gift.
             </p>
-            <p className="text-gray-700 mb-4">
+            <p className="text-gray-700 mb-4 text-base md:text-lg">
               His long-term dream is to open a dedicated animal sanctuary for all kinds of animals in need. While skilled in IT, Patrick acknowledges the learning curve in running a rescue operation but is committed to his dream despite the challenges.
             </p>
-            <p className="text-gray-700 mb-4">
+            <p className="text-gray-700 mb-4 text-base md:text-lg">
               The catalyst for Meow Rescue came when Patrick moved to Pasco County (near Moon Lake) about three years ago and observed a significant stray cat population. Cats in distress—injured, starving—began appearing at his home, seemingly sensing it was a safe place.
             </p>
-            <p className="text-gray-700">
+            <p className="text-gray-700 text-base md:text-lg">
               What started as personally funding vet care and feeding for these animals has now formalized into "Meow Rescue," as Patrick seeks community support to continue and expand this vital work.
             </p>
           </div>

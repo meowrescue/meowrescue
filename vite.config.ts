@@ -1,10 +1,11 @@
+
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 
 export default defineConfig({
   server: {
-    port: 3000,
+    port: 8080,
     host: "::",
   },
   plugins: [
@@ -15,83 +16,32 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-});
-    plugins: [
-      react(),
-      mode === 'development' && componentTagger(),
-    ].filter(Boolean),
-    resolve: {
-      alias: {
-        "@": path.resolve(__dirname, "./src"),
-      },
-    },
-    build: {
-      outDir: 'dist',
-      sourcemap: mode === 'development',
-      assetsInlineLimit: 4096,
-      cssCodeSplit: true,
-      minify: mode === 'production' ? 'terser' : false,
-      ssrManifest: true,
-      rollupOptions: {
-        input: {
-          main: path.resolve(__dirname, 'index.html'),
-        },
-        output: {
-          assetFileNames: (assetInfo) => {
-            let extType = assetInfo.name.split('.').at(1);
-            if (/font|woff|woff2|eot|ttf|otf/.test(extType)) {
-              extType = 'fonts';
-            }
-            return `assets/${extType}/[name]-[hash][extname]`;
-          },
-          inlineDynamicImports: false,
-        },
-      },
-      terserOptions: {
-        compress: {
-          drop_console: mode === 'production',
-          drop_debugger: mode === 'production',
-        },
-      },
-    },
-  };
-});
-  plugins: [
-    react(),
-    mode === 'development' && componentTagger(),
-  ].filter(Boolean),
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
-  },
   build: {
     outDir: 'dist',
-    sourcemap: mode === 'development',
+    sourcemap: process.env.NODE_ENV === 'development',
     assetsInlineLimit: 4096,
     cssCodeSplit: true,
-    minify: mode === 'production' ? 'terser' : false,
+    minify: process.env.NODE_ENV === 'production' ? 'terser' : false,
     ssrManifest: true,
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, 'index.html'),
       },
       output: {
-        entryFileNames: 'assets/[name].js',
-        chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: (assetInfo) => {
-          if (assetInfo.name && assetInfo.name.endsWith('.css')) {
-            return 'assets/index.css';
+          let extType = assetInfo.name.split('.').at(1);
+          if (/font|woff|woff2|eot|ttf|otf/.test(extType)) {
+            extType = 'fonts';
           }
-          return 'assets/[name]-[hash][extname]';
+          return `assets/${extType}/[name]-[hash][extname]`;
         },
         inlineDynamicImports: false,
       },
     },
     terserOptions: {
       compress: {
-        drop_console: false,
-        drop_debugger: mode === 'production',
+        drop_console: process.env.NODE_ENV === 'production',
+        drop_debugger: process.env.NODE_ENV === 'production',
       },
     },
   },
@@ -112,4 +62,4 @@ export default defineConfig({
     }
   },
   base: '/',
-}));
+});
