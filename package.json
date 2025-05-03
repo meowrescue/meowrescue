@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit",
     "build:dev": "vite build --mode development",
     "test:seo": "node scripts/test-build.js",
-    "update-supabase": "node update-supabase-imports.js"
+    "update-supabase": "node update-supabase-imports.js",
+    "fix-supabase-pattern": "node scripts/fix-supabase-pattern.js"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
