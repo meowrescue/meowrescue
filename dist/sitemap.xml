@@ -4,176 +4,214 @@
         xmlns:xhtml="http://www.w3.org/1999/xhtml"
         xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
         http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
-
   <url>
-    <loc>https://meowrescue.org/</loc>
-    <lastmod>2025-05-01</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/" />
+    <loc>https://meowrescue.org</loc>
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/" />
   </url>
-
-  <url>
-    <loc>https://meowrescue.org/cats</loc>
-    <lastmod>2025-05-01</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/cats" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/cats" />
-  </url>
-
-  <url>
-    <loc>https://meowrescue.org/adopt</loc>
-    <lastmod>2025-05-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/adopt" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/adopt" />
-  </url>
-
-  <url>
-    <loc>https://meowrescue.org/donate</loc>
-    <lastmod>2025-05-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/donate" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/donate" />
-  </url>
-
   <url>
     <loc>https://meowrescue.org/about</loc>
-    <lastmod>2025-05-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/about" />
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/about" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/about" />
   </url>
-
   <url>
-    <loc>https://meowrescue.org/blog</loc>
-    <lastmod>2025-05-01</lastmod>
+    <loc>https://meowrescue.org/cats</loc>
+    <lastmod>2025-05-03</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/blog" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/blog" />
+    <priority>0.8</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/cats" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/cats" />
   </url>
-
+  <url>
+    <loc>https://meowrescue.org/adopt</loc>
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/adopt" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/adopt" />
+  </url>
   <url>
     <loc>https://meowrescue.org/volunteer</loc>
-    <lastmod>2025-05-01</lastmod>
+    <lastmod>2025-05-03</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/volunteer" />
+    <priority>0.8</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/volunteer" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/volunteer" />
   </url>
-
+  <url>
+    <loc>https://meowrescue.org/volunteer/apply</loc>
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/volunteer/apply" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/volunteer/apply" />
+  </url>
   <url>
     <loc>https://meowrescue.org/foster</loc>
-    <lastmod>2025-05-01</lastmod>
+    <lastmod>2025-05-03</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/foster" />
+    <priority>0.8</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/foster" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/foster" />
   </url>
-
+  <url>
+    <loc>https://meowrescue.org/foster/apply</loc>
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/foster/apply" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/foster/apply" />
+  </url>
+  <url>
+    <loc>https://meowrescue.org/donate</loc>
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/donate" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/donate" />
+  </url>
   <url>
     <loc>https://meowrescue.org/events</loc>
-    <lastmod>2025-05-01</lastmod>
+    <lastmod>2025-05-03</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/events" />
+    <priority>0.8</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/events" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/events" />
   </url>
-
+  <url>
+    <loc>https://meowrescue.org/blog</loc>
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/blog" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/blog" />
+  </url>
   <url>
     <loc>https://meowrescue.org/contact</loc>
-    <lastmod>2025-05-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/contact" />
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/contact" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/contact" />
   </url>
-
-  <url>
-    <loc>https://meowrescue.org/success-stories</loc>
-    <lastmod>2025-05-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/success-stories" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/success-stories" />
-  </url>
-
   <url>
     <loc>https://meowrescue.org/resources</loc>
-    <lastmod>2025-05-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/resources" />
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/resources" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/resources" />
   </url>
-
   <url>
-    <loc>https://meowrescue.org/lost-found</loc>
-    <lastmod>2025-05-01</lastmod>
+    <loc>https://meowrescue.org/success-stories</loc>
+    <lastmod>2025-05-03</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/lost-found" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/lost-found" />
+    <priority>0.8</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/success-stories" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/success-stories" />
   </url>
-
-  <url>
-    <loc>https://meowrescue.org/faq</loc>
-    <lastmod>2025-05-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/faq" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/faq" />
-  </url>
-
-  <url>
-    <loc>https://meowrescue.org/privacy-policy</loc>
-    <lastmod>2025-05-01</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/privacy-policy" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/privacy-policy" />
-  </url>
-
-  <url>
-    <loc>https://meowrescue.org/terms-of-service</loc>
-    <lastmod>2025-05-01</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/terms-of-service" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/terms-of-service" />
-  </url>
-
   <url>
     <loc>https://meowrescue.org/financial-transparency</loc>
-    <lastmod>2025-05-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/financial-transparency" />
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/financial-transparency" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/financial-transparency" />
   </url>
-
   <url>
-    <loc>https://meowrescue.org/blog/will-this-be-picked-up-by-the-prerender-script</loc>
-    <lastmod>2025-04-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/blog/will-this-be-picked-up-by-the-prerender-script" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/blog/will-this-be-picked-up-by-the-prerender-script" />
+    <loc>https://meowrescue.org/lost-found</loc>
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/lost-found" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/lost-found" />
   </url>
-
+  <url>
+    <loc>https://meowrescue.org/privacy-policy</loc>
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/privacy-policy" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/privacy-policy" />
+  </url>
+  <url>
+    <loc>https://meowrescue.org/terms-of-service</loc>
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/terms-of-service" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/terms-of-service" />
+  </url>
   <url>
     <loc>https://meowrescue.org/blog/exciting-news-were-officially-starting-meow-rescue</loc>
-    <lastmod>2025-04-19</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/blog/exciting-news-were-officially-starting-meow-rescue" />
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/blog/exciting-news-were-officially-starting-meow-rescue" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/blog/exciting-news-were-officially-starting-meow-rescue" />
   </url>
-
+  <url>
+    <loc>https://meowrescue.org/blog/index</loc>
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/blog/index" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/blog/index" />
+  </url>
+  <url>
+    <loc>https://meowrescue.org/blog/will-this-be-picked-up-by-the-prerender-script</loc>
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/blog/will-this-be-picked-up-by-the-prerender-script" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/blog/will-this-be-picked-up-by-the-prerender-script" />
+  </url>
+  <url>
+    <loc>https://meowrescue.org/cats/f3bebe8a-92b6-4bd0-ad93-3064634b1ef4</loc>
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/cats/f3bebe8a-92b6-4bd0-ad93-3064634b1ef4" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/cats/f3bebe8a-92b6-4bd0-ad93-3064634b1ef4" />
+  </url>
+  <url>
+    <loc>https://meowrescue.org/cats/index</loc>
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/cats/index" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/cats/index" />
+  </url>
+  <url>
+    <loc>https://meowrescue.org/events/index</loc>
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/events/index" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/events/index" />
+  </url>
+  <url>
+    <loc>https://meowrescue.org/lost-found/9c560b45-b1a5-4011-a1de-f11f0c6739d3</loc>
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/lost-found/9c560b45-b1a5-4011-a1de-f11f0c6739d3" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/lost-found/9c560b45-b1a5-4011-a1de-f11f0c6739d3" />
+  </url>
+  <url>
+    <loc>https://meowrescue.org/lost-found/index</loc>
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/lost-found/index" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/lost-found/index" />
+  </url>
+  <url>
+    <loc>https://meowrescue.org/success-stories/e21cc10b-dfdc-49b2-8de5-e8aac2c083af</loc>
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/success-stories/e21cc10b-dfdc-49b2-8de5-e8aac2c083af" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/success-stories/e21cc10b-dfdc-49b2-8de5-e8aac2c083af" />
+  </url>
+  <url>
+    <loc>https://meowrescue.org/success-stories/index</loc>
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/success-stories/index" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/success-stories/index" />
+  </url>
+  <url>
+    <loc>https://meowrescue.org/volunteer/apply</loc>
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/volunteer/apply" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/volunteer/apply" />
+  </url>
+  <url>
+    <loc>https://meowrescue.org/foster/apply</loc>
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/foster/apply" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/foster/apply" />
+  </url>
 </urlset>
