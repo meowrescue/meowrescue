@@ -6,6 +6,8 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+console.log('Starting JS-based Supabase imports update...');
+
 // Function to walk through directory recursively
 const walkDir = (dir, callback) => {
   fs.readdirSync(dir).forEach(f => {
@@ -28,27 +30,50 @@ const updateFile = async (filePath) => {
     
     // Replace import statements
     let newContent = content;
+    let modified = false;
     
     // Replace direct imports
-    newContent = newContent.replace(
-      /import\s+{\s*supabase\s*}\s+from\s+['"]@\/integrations\/supabase\/client['"];?/g, 
-      `import getSupabaseClient from '@/integrations/supabase/client';`
-    );
+    const importPattern = /import\s+{\s*supabase\s*}\s+from\s+['"]@\/integrations\/supabase\/client['"];?/g;
+    if (importPattern.test(newContent)) {
+      newContent = newContent.replace(
+        importPattern,
+        `import getSupabaseClient from '@/integrations/supabase/client';`
+      );
+      modified = true;
+    }
     
     // Replace imports with other items
-    newContent = newContent.replace(
-      /import\s+{\s*supabase,\s*(.+?)\s*}\s+from\s+['"]@\/integrations\/supabase\/client['"];?/g, 
-      `import getSupabaseClient, { $1 } from '@/integrations/supabase/client';`
-    );
+    const importWithOthersPattern = /import\s+{\s*supabase,\s*(.+?)\s*}\s+from\s+['"]@\/integrations\/supabase\/client['"];?/g;
+    if (importWithOthersPattern.test(newContent)) {
+      newContent = newContent.replace(
+        importWithOthersPattern,
+        `import getSupabaseClient, { $1 } from '@/integrations/supabase/client';`
+      );
+      modified = true;
+    }
     
     // Replace direct usage of supabase with getSupabaseClient()
-    newContent = newContent.replace(
-      /(?<![a-zA-Z0-9_])supabase(?=\.|$|\s|\)|\(|\[|\]|;|,)/g,
-      `getSupabaseClient()`
-    );
+    const usagePattern = /(?<![a-zA-Z0-9_])supabase\./g;
+    if (usagePattern.test(newContent)) {
+      newContent = newContent.replace(
+        usagePattern,
+        `getSupabaseClient().`
+      );
+      modified = true;
+    }
+    
+    // Replace supabase when used alone (like in conditionals or assignments)
+    const standalonePattern = /(?<![a-zA-Z0-9_])supabase(?![a-zA-Z0-9_\.])/g;
+    if (standalonePattern.test(newContent)) {
+      newContent = newContent.replace(
+        standalonePattern,
+        `getSupabaseClient()`
+      );
+      modified = true;
+    }
     
     // Write updated content back to file if changes were made
-    if (newContent !== content) {
+    if (modified) {
       await fs.promises.writeFile(filePath, newContent, 'utf8');
       console.log(`Updated: ${filePath}`);
     }
@@ -59,18 +84,22 @@ const updateFile = async (filePath) => {
 
 // Main execution
 const main = async () => {
-  const srcDir = path.join(__dirname, 'src');
-  
-  console.log(`Searching for files in: ${srcDir}`);
-  
-  // Process all files in src directory
-  const promises = [];
-  walkDir(srcDir, (filePath) => {
-    promises.push(updateFile(filePath));
-  });
-  
-  await Promise.all(promises);
-  console.log('Update complete!');
+  try {
+    const srcDir = path.join(process.cwd(), 'src');
+    
+    console.log(`Searching for files in: ${srcDir}`);
+    
+    // Process all files in src directory
+    const processedFiles = [];
+    walkDir(srcDir, (filePath) => {
+      processedFiles.push(updateFile(filePath));
+    });
+    
+    await Promise.all(processedFiles);
+    console.log('Update complete!');
+  } catch (err) {
+    console.error('Error during update process:', err);
+  }
 };
 
 main().catch(console.error);

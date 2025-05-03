@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -15,7 +16,7 @@ const CatDetail = () => {
   const { id: catId } = useParams<{ id: string }>();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   
-  const { cat, medicalRecords, isLoading, isError, error, refetch } = useCatData(catId!);
+  const { cat, medicalRecords, isLoading, isError, error } = useCatData(catId!);
 
   const handleImageClick = (image: string) => {
     setSelectedImage(image);
