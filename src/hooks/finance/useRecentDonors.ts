@@ -103,7 +103,11 @@ const processRecentDonors = (data: any[]): Donor[] => {
       }
       return 0;
     };
-    return parseDateTime(b.date) - parseDateTime(a.date);
+    
+    const dateA = parseDateTime(a.date);
+    const dateB = parseDateTime(b.date);
+    console.log(`Comparing dates: ${a.date} (${dateA}) vs ${b.date} (${dateB})`);
+    return dateB - dateA;
   });
   
   // Format the data and ensure consistency between is_anonymous and isAnonymous properties

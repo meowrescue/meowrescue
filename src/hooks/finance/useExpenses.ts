@@ -1,4 +1,3 @@
-
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
 import getSupabaseClient from '@/integrations/supabase/client';
 
@@ -23,6 +22,8 @@ interface UseExpensesOptions extends Omit<UseQueryOptions<ExpenseDetail[], Error
 }
 
 export const useExpenses = (options?: UseExpensesOptions) => {
+  const supabase = getSupabaseClient();
+  
   return useQuery<ExpenseDetail[], Error>({
     queryKey: ['expenses'],
     queryFn: async () => {
