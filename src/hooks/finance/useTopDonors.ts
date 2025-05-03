@@ -15,19 +15,56 @@ interface UseTopDonorsOptions extends Omit<UseQueryOptions<TopDonor[], Error>, '
 
 export const useTopDonors = (options?: UseTopDonorsOptions) => {
   const limit = options?.limit || 10;
-  const supabase = getSupabaseClient();
   
   return useQuery<TopDonor[], Error>({
     queryKey: ['top-donors', limit],
     queryFn: async () => {
       try {
         console.log("Fetching top donors...");
+        const supabase = getSupabaseClient();
+        
+        // Use the get_top_donors RPC function
         const { data, error } = await supabase
           .rpc('get_top_donors', { limit_count: limit });
           
         if (error) {
           console.error("Error fetching top donors:", error);
-          throw new Error(error.message);
+          
+          // If RPC fails, try direct query as fallback
+          console.log("Attempting fallback query for top donors...");
+          const { data: fallbackData, error: fallbackError } = await supabase
+            .from('donations')
+            .select('id, name, amount, donation_date, is_anonymous')
+            .eq('status', 'completed')
+            .order('amount', { ascending: false })
+            .limit(limit);
+            
+          if (fallbackError) {
+            console.error("Fallback query also failed:", fallbackError);
+            throw new Error("Failed to fetch top donors: " + error.message);
+          }
+          
+          if (!fallbackData || fallbackData.length === 0) {
+            console.log("No top donors found in fallback query");
+            return [];
+          }
+          
+          console.log("Got top donors from fallback query:", fallbackData);
+          
+          // Format fallback data to match expected format
+          const formattedData = fallbackData.map((donation, index) => ({
+            name: donation.name,
+            amount: donation.amount,
+            is_anonymous: donation.is_anonymous,
+            position: getOrdinalSuffix(index + 1)
+          }));
+          
+          return formattedData;
+        }
+        
+        if (!data || data.length === 0) {
+          console.log("No top donors found from RPC");
+          return [];
         }
         
         console.log("Top donors data received:", data);

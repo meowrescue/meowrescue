@@ -106,9 +106,14 @@ const processRecentDonors = (data: any[]): Donor[] => {
     
     const dateA = parseDateTime(a.date);
     const dateB = parseDateTime(b.date);
-    console.log(`Comparing dates: ${a.date} (${dateA}) vs ${b.date} (${dateB})`);
+    
+    // Ensure we're sorting by most recent first
     return dateB - dateA;
   });
+  
+  console.log("Sorted donors by date (most recent first):", 
+    sortedData.map(d => ({ name: d.name, date: d.date }))
+  );
   
   // Format the data and ensure consistency between is_anonymous and isAnonymous properties
   return sortedData.map(donor => {
@@ -117,7 +122,8 @@ const processRecentDonors = (data: any[]): Donor[] => {
     // Try to parse full datetime for display
     const tryDate = new Date(donor.date);
     if (!isNaN(tryDate.getTime())) {
-      formattedDate = `${tryDate.getMonth() + 1}/${tryDate.getDate()}/${tryDate.getFullYear()}${tryDate.getHours() || tryDate.getMinutes() ? ` ${tryDate.getHours()}:${String(tryDate.getMinutes()).padStart(2, '0')}` : ''}`;
+      // Include time in the formatted date for proper sorting
+      formattedDate = `${tryDate.getMonth() + 1}/${tryDate.getDate()}/${tryDate.getFullYear()} ${tryDate.getHours().toString().padStart(2, '0')}:${tryDate.getMinutes().toString().padStart(2, '0')}`;
     } else {
       const dateParts = donor.date.split('-');
       if (dateParts.length === 3) {
