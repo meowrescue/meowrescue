@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="/supabase-fix.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redirecting...</title>
@@ -14,7 +15,9 @@
             window.location.href = '/?path=' + encodeURIComponent(path);
         })();
     </script>
-</head>
+    <script src="/supabase-env.js"></script>
+    <script src="/blog-query-fix.js"></script>
+  </head>
 <body>
     <p>Redirecting to Meow Rescue...</p>
 </body>
