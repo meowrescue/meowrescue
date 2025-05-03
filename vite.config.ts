@@ -10,12 +10,12 @@ export default defineConfig(({ mode, command }) => ({
     headers: {
       'Content-Security-Policy': `
         default-src 'self';
-        script-src 'self' 'unsafe-inline' 'unsafe-eval';
-        style-src 'self' 'unsafe-inline';
-        img-src 'self' data: blob: https:;
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.gpteng.co;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+        img-src 'self' data: blob: https://meowrescue.windsurf.build https://sfrlnidbiviniuqhryyc.supabase.co https://images.unsplash.com;
         frame-src 'self' https:;
-        connect-src 'self' https:;
-        font-src 'self' https: data:;
+        connect-src 'self' https://sfrlnidbiviniuqhryyc.supabase.co wss://sfrlnidbiviniuqhryyc.supabase.co https:;
+        font-src 'self' https://fonts.gstatic.com data:;
         media-src 'self' https: data:;
         object-src 'none';
         base-uri 'self';
