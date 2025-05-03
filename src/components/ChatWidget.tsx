@@ -30,12 +30,12 @@ const ChatWidget: React.FC = () => {
       try {
         // Check for existing chat session in local storage
         const storedSessionId = localStorage.getItem('chatSessionId');
-        const supabase = getSupabaseClient();
+        const getSupabaseClient() = getSupabaseClient();
         
         if (storedSessionId) {
           setChatSessionId(storedSessionId);
           // Fetch existing messages
-          const { data, error } = await supabase
+          const { data, error } = await getSupabaseClient()
             .from('chat_messages')
             .select('*')
             .eq('chat_session_id', storedSessionId)
@@ -44,7 +44,7 @@ const ChatWidget: React.FC = () => {
           setMessages(data || []);
         } else {
           // Create a new chat session
-          const { data, error } = await supabase
+          const { data, error } = await getSupabaseClient()
             .from('chat_sessions')
             .insert([{ status: 'active' }])
             .select()
@@ -66,8 +66,8 @@ const ChatWidget: React.FC = () => {
   useEffect(() => {
     if (!chatSessionId) return;
     
-    const supabase = getSupabaseClient();
-    const subscription = supabase
+    const getSupabaseClient() = getSupabaseClient();
+    const subscription = getSupabaseClient()
       .channel(`chat-session-${chatSessionId}-updates`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_messages', filter: `chat_session_id=eq.${chatSessionId}` }, (payload) => {
         console.log('Chat message update received:', payload);
@@ -88,8 +88,8 @@ const ChatWidget: React.FC = () => {
     if (!newMessage.trim() || !chatSessionId) return;
     
     try {
-      const supabase = getSupabaseClient();
-      const { data, error } = await supabase
+      const getSupabaseClient() = getSupabaseClient();
+      const { data, error } = await getSupabaseClient()
         .from('chat_messages')
         .insert([{
           chat_session_id: chatSessionId,

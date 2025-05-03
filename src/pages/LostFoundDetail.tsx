@@ -25,8 +25,8 @@ const LostFoundDetail = () => {
       console.log(`Fetching lost & found post with ID: ${postId}`);
       
       try {
-        const supabase = getSupabaseClient();
-        const { data, error } = await supabase
+        const getSupabaseClient() = getSupabaseClient();
+        const { data, error } = await getSupabaseClient()
           .from('lost_found_posts')
           .select('*')
           .eq('id', postId)
@@ -37,7 +37,7 @@ const LostFoundDetail = () => {
         // Fetch author profile separately
         let authorProfile = null;
         if (data.profile_id) {
-          const { data: profileData, error: profileError } = await supabase
+          const { data: profileData, error: profileError } = await getSupabaseClient()
             .from('profiles')
             .select('first_name, last_name, email')
             .eq('id', data.profile_id)
@@ -64,8 +64,8 @@ const LostFoundDetail = () => {
   // Subscribe to real-time updates for this lost and found post
   useEffect(() => {
     if (!postId) return;
-    const supabase = getSupabaseClient();
-    const subscription = supabase
+    const getSupabaseClient() = getSupabaseClient();
+    const subscription = getSupabaseClient()
       .channel(`lost-found-${postId}-updates`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'lost_found_posts', filter: `id=eq.${postId}` }, (payload) => {
         console.log('Lost and found update received:', payload);

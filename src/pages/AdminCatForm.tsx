@@ -80,7 +80,7 @@ const AdminCatForm: React.FC = () => {
     queryFn: async () => {
       if (!id) return null;
       
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('cats')
         .select('*')
         .eq('id', id)
@@ -141,7 +141,7 @@ const AdminCatForm: React.FC = () => {
   // Create cat mutation
   const createCatMutation = useMutation({
     mutationFn: async (catData: any) => {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('cats')
         .insert([catData])
         .select();
@@ -168,7 +168,7 @@ const AdminCatForm: React.FC = () => {
   // Update cat mutation
   const updateCatMutation = useMutation({
     mutationFn: async ({ id, catData }: { id: string; catData: any }) => {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('cats')
         .update(catData)
         .eq('id', id)

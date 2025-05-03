@@ -65,7 +65,7 @@ const AdminDirectMessages = () => {
   const { data: profiles } = useQuery({
     queryKey: ['user-profiles'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('profiles')
         .select('id, first_name, last_name, email, avatar_url, role')
         .eq('is_active', true)
@@ -83,7 +83,7 @@ const AdminDirectMessages = () => {
     queryFn: async () => {
       if (!user?.id) throw new Error("User not authenticated");
       
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('direct_messages')
         .select(`
           id, 
@@ -116,7 +116,7 @@ const AdminDirectMessages = () => {
   useEffect(() => {
     if (selectedConversation && user?.id) {
       const markAsRead = async () => {
-        const { error } = await supabase
+        const { error } = await getSupabaseClient()
           .from('direct_messages')
           .update({ read_at: new Date().toISOString() })
           .eq('sender_id', selectedConversation)
@@ -135,7 +135,7 @@ const AdminDirectMessages = () => {
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async ({ recipientId, content }: { recipientId: string; content: string }) => {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('direct_messages')
         .insert([{
           sender_id: user?.id,

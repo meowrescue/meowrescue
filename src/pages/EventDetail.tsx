@@ -29,8 +29,8 @@ const EventDetail: React.FC = () => {
       }
       
       // Client-side fetching fallback
-      const supabase = getSupabaseClient();
-      const { data, error } = await supabase
+      const getSupabaseClient() = getSupabaseClient();
+      const { data, error } = await getSupabaseClient()
         .from('events')
         .select('*')
         .eq('id', eventId)
@@ -59,8 +59,8 @@ const EventDetail: React.FC = () => {
 
   useEffect(() => {
     if (!eventId) return;
-    const supabase = getSupabaseClient();
-    const subscription = supabase
+    const getSupabaseClient() = getSupabaseClient();
+    const subscription = getSupabaseClient()
       .channel(`event-${eventId}-updates`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'events', filter: `id=eq.${eventId}` }, (payload) => {
         console.log('Event update received:', payload);

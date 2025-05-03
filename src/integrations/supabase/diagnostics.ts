@@ -7,12 +7,12 @@ import getSupabaseClient from './client';
  */
 export const checkSupabaseSchema = async () => {
   console.log('=== CHECKING SUPABASE SCHEMA ===');
-  const supabase = getSupabaseClient();
+  const getSupabaseClient() = getSupabaseClient();
   
   // 1. Check connection
   try {
     console.log('Checking Supabase connection...');
-    const { data: connectionTest, error: connectionError } = await supabase
+    const { data: connectionTest, error: connectionError } = await getSupabaseClient()
       .from('donations')
       .select('count(*)', { count: 'exact', head: true });
       
@@ -28,7 +28,7 @@ export const checkSupabaseSchema = async () => {
   // 2. Check donations table
   try {
     console.log('\nChecking donations table...');
-    const { data: donationsInfo, error: donationsInfoError } = await supabase
+    const { data: donationsInfo, error: donationsInfoError } = await getSupabaseClient()
       .from('donations')
       .select('*')
       .limit(1);
@@ -61,7 +61,7 @@ export const checkSupabaseSchema = async () => {
   // 3. Check expenses table
   try {
     console.log('\nChecking expenses table...');
-    const { data: expensesInfo, error: expensesInfoError } = await supabase
+    const { data: expensesInfo, error: expensesInfoError } = await getSupabaseClient()
       .from('expenses')
       .select('*')
       .limit(1);
@@ -94,7 +94,7 @@ export const checkSupabaseSchema = async () => {
   // 4. Check get_recent_donors RPC function
   try {
     console.log('\nChecking get_recent_donors RPC function...');
-    const { data: recentDonors, error: recentDonorsError } = await supabase
+    const { data: recentDonors, error: recentDonorsError } = await getSupabaseClient()
       .rpc('get_recent_donors', { limit_count: 5 });
 
     if (recentDonorsError) {
@@ -127,7 +127,7 @@ export const checkSupabaseSchema = async () => {
     console.log('\n=== CHECKING DATA COUNTS ===');
     
     // Count completed donations
-    const { count: donationsCount, error: donationsCountError } = await supabase
+    const { count: donationsCount, error: donationsCountError } = await getSupabaseClient()
       .from('donations')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'completed');
@@ -139,7 +139,7 @@ export const checkSupabaseSchema = async () => {
     }
     
     // Count all donations
-    const { count: allDonationsCount, error: allDonationsCountError } = await supabase
+    const { count: allDonationsCount, error: allDonationsCountError } = await getSupabaseClient()
       .from('donations')
       .select('*', { count: 'exact', head: true });
 
@@ -150,7 +150,7 @@ export const checkSupabaseSchema = async () => {
     }
     
     // Count expenses
-    const { count: expensesCount, error: expensesCountError } = await supabase
+    const { count: expensesCount, error: expensesCountError } = await getSupabaseClient()
       .from('expenses')
       .select('*', { count: 'exact', head: true });
 
@@ -170,7 +170,7 @@ export const checkSupabaseSchema = async () => {
     const now = new Date();
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     
-    const { data: monthlyDonations, error: monthlyDonationsError } = await supabase
+    const { data: monthlyDonations, error: monthlyDonationsError } = await getSupabaseClient()
       .from('donations')
       .select('amount')
       .eq('status', 'completed')
@@ -203,14 +203,14 @@ export const checkSupabaseSchema = async () => {
  * Usage: window.checkMay2025FinancialData()
  */
 export const checkMay2025FinancialData = async () => {
-  const supabase = getSupabaseClient();
+  const getSupabaseClient() = getSupabaseClient();
   const start = '2025-05-01T00:00:00Z';
   const end = '2025-05-31T23:59:59Z';
 
   // Donations in May 2025
   try {
     console.log('\n=== Donations for May 2025 ===');
-    const { data: donations, error: donationsError } = await supabase
+    const { data: donations, error: donationsError } = await getSupabaseClient()
       .from('donations')
       .select('id, amount, donation_date, status')
       .gte('donation_date', start)
@@ -233,7 +233,7 @@ export const checkMay2025FinancialData = async () => {
   // Expenses in May 2025
   try {
     console.log('\n=== Expenses for May 2025 ===');
-    const { data: expenses, error: expensesError } = await supabase
+    const { data: expenses, error: expensesError } = await getSupabaseClient()
       .from('expenses')
       .select('id, amount, expense_date')
       .gte('expense_date', start)

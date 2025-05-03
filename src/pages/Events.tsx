@@ -24,7 +24,7 @@ const Events: React.FC = () => {
   const fetchEvents = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('events')
         .select('*')
         .order('date_start', { ascending: true });
@@ -70,7 +70,7 @@ const Events: React.FC = () => {
   const refetchEvents = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('events')
         .select('*')
         .order('date_start', { ascending: true });
@@ -114,7 +114,7 @@ const Events: React.FC = () => {
   };
 
   useEffect(() => {
-    const subscription = supabase
+    const subscription = getSupabaseClient()
       .channel('events-updates')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, (payload) => {
         console.log('Event update received:', payload);

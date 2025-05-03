@@ -31,7 +31,7 @@ const AdminBlog: React.FC = () => {
   const { data: posts, isLoading, refetch } = useQuery({
     queryKey: ['adminBlogPosts'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('blog_posts')
         .select('*')
         .order('created_at', { ascending: false });
@@ -46,7 +46,7 @@ const AdminBlog: React.FC = () => {
     if (!postToDelete) return;
 
     try {
-      const { error } = await supabase
+      const { error } = await getSupabaseClient()
         .from('blog_posts')
         .delete()
         .eq('id', postToDelete);
@@ -95,7 +95,7 @@ const AdminBlog: React.FC = () => {
     };
 
     try {
-      const { error } = await supabase
+      const { error } = await getSupabaseClient()
         .from('blog_posts')
         .update(updateData)
         .eq('id', id);
@@ -122,13 +122,13 @@ const AdminBlog: React.FC = () => {
     try {
       // If setting as featured, first unset any existing featured post
       if (!currentStatus) {
-        await supabase
+        await getSupabaseClient()
           .from('blog_posts')
           .update({ is_featured: false })
           .eq('is_featured', true);
       }
 
-      const { error } = await supabase
+      const { error } = await getSupabaseClient()
         .from('blog_posts')
         .update({ 
           is_featured: !currentStatus,

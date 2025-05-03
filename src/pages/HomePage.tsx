@@ -7,7 +7,7 @@ import MissionSection from '@/components/MissionSection';
 import UrgentNeedsSection from '@/components/UrgentNeedsSection';
 import FeaturedCatsSection from '@/components/FeaturedCatsSection';
 import TestimonialsSection from '@/components/TestimonialsSection';
-import getSupabaseClient from '@/integrations/supabase/client'; // Import supabase instance
+import getSupabaseClient from '@/integrations/supabase/client'; // Import getSupabaseClient() instance
 
 // The HomePage component is the main entry point for the home page
 const HomePage: React.FC = () => {
@@ -108,8 +108,8 @@ const HomePage: React.FC = () => {
 
   // Subscribe to real-time updates for featured cats
   useEffect(() => {
-    const supabase = getSupabaseClient();
-    const subscription = supabase
+    const getSupabaseClient() = getSupabaseClient();
+    const subscription = getSupabaseClient()
       .channel('featured-cats-updates')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'cats' }, (payload) => {
         console.log('Cat update received:', payload);

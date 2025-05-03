@@ -55,7 +55,7 @@ const AdminLicenses = () => {
   const { data: licenses, isLoading } = useQuery({
     queryKey: ['business-licenses'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('business_licenses')
         .select('*')
         .order('expiry_date', { ascending: true });
@@ -77,7 +77,7 @@ const AdminLicenses = () => {
         notes: formData.notes || null
       };
       
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('business_licenses')
         .insert([newLicense])
         .select();
@@ -116,7 +116,7 @@ const AdminLicenses = () => {
         notes: formData.notes || null
       };
       
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('business_licenses')
         .update(updatedLicense)
         .eq('id', id)
@@ -149,7 +149,7 @@ const AdminLicenses = () => {
   // Delete license mutation
   const deleteLicenseMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await getSupabaseClient()
         .from('business_licenses')
         .delete()
         .eq('id', id);

@@ -54,7 +54,7 @@ const AdminBusinessLicenses = () => {
   const { data: licenses, isLoading } = useQuery({
     queryKey: ['business-licenses'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('business_licenses')
         .select('*')
         .order('created_at', { ascending: false });
@@ -67,7 +67,7 @@ const AdminBusinessLicenses = () => {
   // Add license mutation
   const addLicenseMutation = useMutation({
     mutationFn: async (license: typeof formData) => {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('business_licenses')
         .insert([{
           license_type: license.license_type,
@@ -103,7 +103,7 @@ const AdminBusinessLicenses = () => {
   // Delete license mutation
   const deleteLicenseMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await getSupabaseClient()
         .from('business_licenses')
         .delete()
         .eq('id', id);

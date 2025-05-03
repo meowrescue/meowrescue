@@ -51,7 +51,7 @@ const AdminFundraisingCampaigns = () => {
   const fetchCampaigns = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('fundraising_campaigns')
         .select('*')
         .order('start_date', { ascending: false });
@@ -132,7 +132,7 @@ const AdminFundraisingCampaigns = () => {
       };
       
       if (isEditing && currentCampaign) {
-        const { error } = await supabase
+        const { error } = await getSupabaseClient()
           .from('fundraising_campaigns')
           .update(campaignData)
           .eq('id', currentCampaign.id);
@@ -144,7 +144,7 @@ const AdminFundraisingCampaigns = () => {
           description: 'Campaign updated successfully.',
         });
       } else {
-        const { error } = await supabase
+        const { error } = await getSupabaseClient()
           .from('fundraising_campaigns')
           .insert({
             ...campaignData,
@@ -173,7 +173,7 @@ const AdminFundraisingCampaigns = () => {
   
   const handleDeleteCampaign = async (id: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await getSupabaseClient()
         .from('fundraising_campaigns')
         .delete()
         .eq('id', id);

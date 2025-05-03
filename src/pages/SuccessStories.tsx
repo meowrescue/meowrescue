@@ -16,7 +16,7 @@ const SuccessStories: React.FC = () => {
   const { data: stories, isLoading, refetch } = useQuery({
     queryKey: ["successStories"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from("success_stories")
         .select("*, cats(name, photos_urls)")
         .order("created_at", { ascending: false });
@@ -27,7 +27,7 @@ const SuccessStories: React.FC = () => {
   });
 
   useEffect(() => {
-    const subscription = supabase
+    const subscription = getSupabaseClient()
       .channel('success-stories-updates')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'success_stories' }, (payload) => {
         console.log('Success story update received:', payload);

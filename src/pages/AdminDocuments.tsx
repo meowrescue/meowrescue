@@ -107,7 +107,7 @@ const AdminDocuments = () => {
   const { data: documents, isLoading: loadingDocuments } = useQuery({
     queryKey: ['admin-documents'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('documents')
         .select(`
           *,
@@ -126,7 +126,7 @@ const AdminDocuments = () => {
   const { data: categories, isLoading: loadingCategories } = useQuery({
     queryKey: ['document-categories'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('document_categories')
         .select('*')
         .order('name');
@@ -140,7 +140,7 @@ const AdminDocuments = () => {
   const { data: cats } = useQuery({
     queryKey: ['cats-list'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('cats')
         .select('id, name')
         .order('name');
@@ -154,7 +154,7 @@ const AdminDocuments = () => {
   const { data: supplies } = useQuery({
     queryKey: ['supplies-list'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('supplies')
         .select('id, name')
         .order('name');
@@ -182,7 +182,7 @@ const AdminDocuments = () => {
       };
       
       // Insert into the database
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('documents')
         .insert([documentData])
         .select();
@@ -211,7 +211,7 @@ const AdminDocuments = () => {
   // Add category mutation
   const addCategoryMutation = useMutation({
     mutationFn: async (category: typeof newCategory) => {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('document_categories')
         .insert([category])
         .select();
@@ -244,7 +244,7 @@ const AdminDocuments = () => {
   const deleteDocumentMutation = useMutation({
     mutationFn: async (documentId: string) => {
       // Get the document to find the file path
-      const { data: document, error: getError } = await supabase
+      const { data: document, error: getError } = await getSupabaseClient()
         .from('documents')
         .select('file_path')
         .eq('id', documentId)
@@ -262,7 +262,7 @@ const AdminDocuments = () => {
       }
       
       // Delete from database
-      const { error } = await supabase
+      const { error } = await getSupabaseClient()
         .from('documents')
         .delete()
         .eq('id', documentId);

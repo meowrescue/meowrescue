@@ -8,8 +8,8 @@ export const getBudgetCategories = async () => {
     // Let's try a more direct approach without filtering by year first
     console.log('Fetching budget categories (all years)');
     
-    const supabase = getSupabaseClient();
-    const { data: allCategories, error: initialError } = await supabase
+    const getSupabaseClient() = getSupabaseClient();
+    const { data: allCategories, error: initialError } = await getSupabaseClient()
       .from('budget_categories')
       .select('*')
       .order('name');
@@ -46,9 +46,9 @@ export const calculateCategorySpending = async (categories) => {
     console.log(`Calculating spending for ${categories.length} categories`);
     const enrichedCategories = await Promise.all(
       categories.map(async (category) => {
-        const supabase = getSupabaseClient();
+        const getSupabaseClient() = getSupabaseClient();
         // Query expenses for this category
-        const { data: expenses, error } = await supabase
+        const { data: expenses, error } = await getSupabaseClient()
           .from('expenses')
           .select('amount')
           .eq('category', category.name);

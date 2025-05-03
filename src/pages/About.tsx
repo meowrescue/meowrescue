@@ -14,8 +14,8 @@ const About = () => {
   const { data: teamMembers = [], isLoading } = useQuery({
     queryKey: ['team-members'],
     queryFn: async () => {
-      const supabase = getSupabaseClient();
-      const { data, error } = await supabase
+      const getSupabaseClient() = getSupabaseClient();
+      const { data, error } = await getSupabaseClient()
         .from('profiles')
         .select('id, first_name, last_name, avatar_url, role, role_title, bio, show_in_team, created_at')
         .eq('show_in_team', true)

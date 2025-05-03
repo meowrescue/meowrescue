@@ -27,8 +27,8 @@ export const useExpenses = (options?: UseExpensesOptions) => {
     queryKey: ['expenses'],
     queryFn: async () => {
       try {
-        const supabase = getSupabaseClient();
-        const { data, error } = await supabase
+        const getSupabaseClient() = getSupabaseClient();
+        const { data, error } = await getSupabaseClient()
           .from('expenses')
           .select('*, cats(name)')
           .order('expense_date', { ascending: false });

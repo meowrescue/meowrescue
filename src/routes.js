@@ -41,7 +41,7 @@ export async function getStaticPaths() {
 // Function to fetch all cat IDs for dynamic route generation
 export async function fetchAllCatIds() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseClient()
       .from('cats')
       .select('id')
       .order('name', { ascending: true });
@@ -61,7 +61,7 @@ export async function fetchAllCatIds() {
 // Function to fetch all blog post slugs
 export async function fetchAllBlogSlugs() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseClient()
       .from('blog_posts')
       .select('slug')
       .order('published_at', { ascending: false });
@@ -81,7 +81,7 @@ export async function fetchAllBlogSlugs() {
 // Function to fetch all event IDs
 export async function fetchAllEventIds() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseClient()
       .from('events')
       .select('id')
       .order('date', { ascending: true });

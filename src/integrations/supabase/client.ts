@@ -98,8 +98,8 @@ export const checkSupabaseConnection = async () => {
   try {
     console.log('Checking Supabase connection...');
     // Simple query to test connection
-    const supabase = getSupabaseClient();
-    const { data, error } = await supabase.from('donations').select('id').limit(1);
+    const getSupabaseClient() = getSupabaseClient();
+    const { data, error } = await getSupabaseClient().from('donations').select('id').limit(1);
     
     if (error) {
       console.error('Supabase connection error:', error.message);
@@ -124,8 +124,8 @@ export const checkFinancialData = async () => {
     console.log('Checking financial data availability...');
     
     // Check donations
-    const supabase = getSupabaseClient();
-    const { data: donations, error: donationsError } = await supabase
+    const getSupabaseClient() = getSupabaseClient();
+    const { data: donations, error: donationsError } = await getSupabaseClient()
       .from('donations')
       .select('id, amount, donation_date')
       .limit(5);
@@ -137,7 +137,7 @@ export const checkFinancialData = async () => {
     }
     
     // Check expenses
-    const { data: expenses, error: expensesError } = await supabase
+    const { data: expenses, error: expensesError } = await getSupabaseClient()
       .from('expenses')
       .select('id, amount, expense_date, category')
       .limit(5);
@@ -149,7 +149,7 @@ export const checkFinancialData = async () => {
     }
     
     // Check budget categories
-    const { data: budgets, error: budgetsError } = await supabase
+    const { data: budgets, error: budgetsError } = await getSupabaseClient()
       .from('budget_categories')
       .select('id, name, amount, year')
       .limit(5);
@@ -175,9 +175,9 @@ export const checkFinancialData = async () => {
   }
 };
 
-// Create a lazy-initialized supabase instance for backward compatibility
-// This maintains compatibility with existing code that imports { supabase }
-export const supabase = getSupabaseClient();
+// Create a lazy-initialized getSupabaseClient() instance for backward compatibility
+// This maintains compatibility with existing code that imports { getSupabaseClient() }
+export const getSupabaseClient() = getSupabaseClient();
 
 // Default export for new code to use the getter function
 export default getSupabaseClient;

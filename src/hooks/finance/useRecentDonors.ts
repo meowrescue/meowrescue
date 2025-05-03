@@ -21,10 +21,10 @@ export const useRecentDonors = (options?: UseRecentDonorsOptions) => {
     queryFn: async () => {
       try {
         console.log("Fetching recent donors...");
-        const supabase = getSupabaseClient();
+        const getSupabaseClient() = getSupabaseClient();
         
         // Use the get_recent_donors RPC function
-        const { data, error } = await supabase
+        const { data, error } = await getSupabaseClient()
           .rpc('get_recent_donors', { limit_count: limit });
           
         if (error) {
@@ -32,7 +32,7 @@ export const useRecentDonors = (options?: UseRecentDonorsOptions) => {
           
           // If RPC fails, try direct query as fallback
           console.log("Attempting fallback query for recent donors...");
-          const { data: fallbackData, error: fallbackError } = await supabase
+          const { data: fallbackData, error: fallbackError } = await getSupabaseClient()
             .from('donations')
             .select('id, name, amount, donation_date, is_anonymous')
             .eq('status', 'completed')

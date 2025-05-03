@@ -90,7 +90,7 @@ const DonationEntry: React.FC = () => {
     
     // Load campaigns
     const fetchCampaigns = async () => {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('fundraising_campaigns')
         .select('id, name, assignedBudgetCategory')
         .eq('is_active', true);
@@ -103,7 +103,7 @@ const DonationEntry: React.FC = () => {
     // Load budget categories
     const fetchBudgetCategories = async () => {
       const currentYear = new Date().getFullYear();
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('budget_categories')
         .select('id, name')
         .eq('year', currentYear)
@@ -157,7 +157,7 @@ const DonationEntry: React.FC = () => {
   const searchProfiles = async () => {
     if (!searchQuery || searchQuery.length < 3) return;
     
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseClient()
       .from('profiles')
       .select('id, email, first_name, last_name')
       .or(`first_name.ilike.%${searchQuery}%,last_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`)
@@ -186,7 +186,7 @@ const DonationEntry: React.FC = () => {
         const lastName = nameParts.slice(1).join(' ');
         
         // Create profile record
-        const { data: profileData, error: profileError } = await supabase
+        const { data: profileData, error: profileError } = await getSupabaseClient()
           .from('profiles')
           .insert({
             email: data.donorEmail,

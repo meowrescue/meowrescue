@@ -33,7 +33,7 @@ const Cats: React.FC = () => {
     queryKey: ['adoptable-cats'],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase
+        const { data, error } = await getSupabaseClient()
           .from('cats')
           .select('*')
           .eq('status', 'Available')
@@ -53,7 +53,7 @@ const Cats: React.FC = () => {
 
   // Subscribe to real-time updates for adoptable cats
   useEffect(() => {
-    const subscription = supabase
+    const subscription = getSupabaseClient()
       .channel('adoptable-cats-updates')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'cats' }, (payload) => {
         console.log('Cat update received:', payload);

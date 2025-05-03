@@ -28,7 +28,7 @@ const LostFound = () => {
     setIsLoading(true);
     setError(null);
     try {
-      let query = supabase
+      let query = getSupabaseClient()
         .from("lost_found_posts")
         .select("*")
         .neq("status", "archived") // Exclude archived posts
@@ -64,7 +64,7 @@ const LostFound = () => {
     setIsLoading(true);
     setError(null);
     try {
-      let query = supabase
+      let query = getSupabaseClient()
         .from("lost_found_posts")
         .select("*")
         .neq("status", "archived") // Exclude archived posts
@@ -97,7 +97,7 @@ const LostFound = () => {
   };
 
   useEffect(() => {
-    const subscription = supabase
+    const subscription = getSupabaseClient()
       .channel('lost-found-updates')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'lost_found_posts' }, (payload) => {
         console.log('Lost and found update received:', payload);

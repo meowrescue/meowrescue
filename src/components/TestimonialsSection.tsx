@@ -9,8 +9,8 @@ const TestimonialsSection: React.FC = () => {
   const { data: testimonials, isLoading } = useQuery({
     queryKey: ['homepage-testimonials'],
     queryFn: async () => {
-      const supabase = getSupabaseClient();
-      const { data, error } = await supabase
+      const getSupabaseClient() = getSupabaseClient();
+      const { data, error } = await getSupabaseClient()
         .from('success_stories')
         .select('*, cats(name)')
         .eq('show_on_homepage', true)

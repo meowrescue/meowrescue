@@ -50,7 +50,7 @@ const AdminSupplies = () => {
   const { data: supplies, isLoading, error } = useQuery({
     queryKey: ['admin-supplies'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('supplies')
         .select('*')
         .order('name', { ascending: true });

@@ -56,7 +56,7 @@ const AdminEvents: React.FC = () => {
     queryFn: async () => {
       try {
         console.log("Fetching events");
-        const { data, error } = await supabase
+        const { data, error } = await getSupabaseClient()
           .from('events')
           .select('*')
           .order('date', { ascending: true });
@@ -89,7 +89,7 @@ const AdminEvents: React.FC = () => {
         
         const isNewEvent = !event.id;
         
-        const { data, error } = await supabase
+        const { data, error } = await getSupabaseClient()
           .from('events')
           .upsert([
             {
@@ -139,7 +139,7 @@ const AdminEvents: React.FC = () => {
     mutationFn: async (id: string) => {
       try {
         console.log("Deleting event:", id);
-        const { error } = await supabase
+        const { error } = await getSupabaseClient()
           .from('events')
           .delete()
           .eq('id', id);

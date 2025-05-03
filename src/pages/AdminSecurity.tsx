@@ -55,7 +55,7 @@ const AdminSecurity = () => {
   const { data: activityLogs, isLoading, error } = useQuery({
     queryKey: ['activity-logs', activityLimit, activityTypeFilter, userFilter, searchQuery],
     queryFn: async () => {
-      let query = supabase
+      let query = getSupabaseClient()
         .from('activity_logs')
         .select(`
           *,
@@ -94,7 +94,7 @@ const AdminSecurity = () => {
   const { data: users } = useQuery({
     queryKey: ['security-users'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('profiles')
         .select('id, email, first_name, last_name')
         .order('email', { ascending: true });

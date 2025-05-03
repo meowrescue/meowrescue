@@ -72,7 +72,7 @@ const AdminBudget: React.FC = () => {
     queryFn: async () => {
       try {
         // Try to get budget categories from table
-        const { data, error } = await supabase
+        const { data, error } = await getSupabaseClient()
           .from("budget_categories")
           .select("*")
           .eq("year", currentYear)
@@ -89,7 +89,7 @@ const AdminBudget: React.FC = () => {
         await createDefaultBudgetCategories();
         
         // Fetch again after creating defaults
-        const { data: newData, error: newError } = await supabase
+        const { data: newData, error: newError } = await getSupabaseClient()
           .from("budget_categories")
           .select("*")
           .eq("year", currentYear)
@@ -108,7 +108,7 @@ const AdminBudget: React.FC = () => {
   const { data: catFood } = useQuery({
     queryKey: ["cat-food-for-budget"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from("cat_food")
         .select("id, brand, type, cost_per_unit")
         .order("brand");
@@ -122,7 +122,7 @@ const AdminBudget: React.FC = () => {
   const { data: catCount } = useQuery({
     queryKey: ["cat-count-for-budget"],
     queryFn: async () => {
-      const { count, error } = await supabase
+      const { count, error } = await getSupabaseClient()
         .from("cats")
         .select("*", { count: 'exact', head: true });
         
@@ -139,7 +139,7 @@ const AdminBudget: React.FC = () => {
       const startDate = new Date(currentYear, 0, 1).toISOString(); // Jan 1st
       const endDate = new Date(currentYear, 11, 31).toISOString(); // Dec 31st
       
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from("expenses")
         .select("category, amount")
         .gte("expense_date", startDate)
@@ -204,7 +204,7 @@ const AdminBudget: React.FC = () => {
   async function createDefaultBudgetCategories() {
     try {
       // Get unique expense categories from database
-      const { data: expenseCategories, error: expError } = await supabase
+      const { data: expenseCategories, error: expError } = await getSupabaseClient()
         .from("expenses")
         .select("category")
         .order("category");
@@ -236,7 +236,7 @@ const AdminBudget: React.FC = () => {
       }));
       
       // Insert into database
-      const { error: insertError } = await supabase
+      const { error: insertError } = await getSupabaseClient()
         .from("budget_categories")
         .insert(defaultCategories);
         
@@ -254,7 +254,7 @@ const AdminBudget: React.FC = () => {
   // Add category mutation
   const addCategoryMutation = useMutation({
     mutationFn: async (categoryData: Omit<BudgetCategory, "id" | "created_at" | "updated_at">) => {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from("budget_categories")
         .insert([categoryData])
         .select()
@@ -290,7 +290,7 @@ const AdminBudget: React.FC = () => {
   // Update category mutation
   const updateCategoryMutation = useMutation({
     mutationFn: async (category: BudgetCategory) => {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from("budget_categories")
         .update({
           name: category.name,
@@ -325,7 +325,7 @@ const AdminBudget: React.FC = () => {
   // Delete category mutation
   const deleteCategoryMutation = useMutation({
     mutationFn: async (categoryId: string) => {
-      const { error } = await supabase
+      const { error } = await getSupabaseClient()
         .from("budget_categories")
         .delete()
         .eq("id", categoryId);

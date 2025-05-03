@@ -25,7 +25,7 @@ const Blog: React.FC = () => {
     queryKey: ['blogPosts'],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase
+        const { data, error } = await getSupabaseClient()
           .from('blog_posts')
           .select('*')
           .eq('is_published', true)
@@ -44,7 +44,7 @@ const Blog: React.FC = () => {
   });
 
   useEffect(() => {
-    const subscription = supabase
+    const subscription = getSupabaseClient()
       .channel('blog-posts-updates')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'blog_posts' }, (payload) => {
         console.log('Blog post update received:', payload);

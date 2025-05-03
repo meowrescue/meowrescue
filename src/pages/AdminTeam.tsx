@@ -49,7 +49,7 @@ const AdminTeam = () => {
   const { data: teamMembers, isLoading } = useQuery({
     queryKey: ['team-members'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('team_members')
         .select('*')
         .order('display_order', { ascending: true });
@@ -65,7 +65,7 @@ const AdminTeam = () => {
       if (isEditMode) {
         // Update existing member
         const { id, ...updateData } = member;
-        const { data, error } = await supabase
+        const { data, error } = await getSupabaseClient()
           .from('team_members')
           .update(updateData)
           .eq('id', id)
@@ -75,7 +75,7 @@ const AdminTeam = () => {
         return data[0];
       } else {
         // Add new member
-        const { data, error } = await supabase
+        const { data, error } = await getSupabaseClient()
           .from('team_members')
           .insert([member])
           .select();
@@ -105,7 +105,7 @@ const AdminTeam = () => {
   // Delete team member mutation
   const deleteMemberMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await getSupabaseClient()
         .from('team_members')
         .delete()
         .eq('id', id);
@@ -132,7 +132,7 @@ const AdminTeam = () => {
   // Update display order mutation
   const updateOrderMutation = useMutation({
     mutationFn: async ({ id, newOrder }: { id: string; newOrder: number }) => {
-      const { error } = await supabase
+      const { error } = await getSupabaseClient()
         .from('team_members')
         .update({ display_order: newOrder })
         .eq('id', id);

@@ -39,16 +39,16 @@ export const useFinancialDashboard = () => {
 
   // Function to fetch financial data
   const fetchFinancialStats = async () => {
-    const supabase = getSupabaseClient();
+    const getSupabaseClient() = getSupabaseClient();
     
     // Fetch total donations
-    const { data: totalDonationsData } = await supabase
+    const { data: totalDonationsData } = await getSupabaseClient()
       .from('donations')
       .select('amount')
       .eq('status', 'completed');
     
     // Fetch total expenses
-    const { data: totalExpensesData } = await supabase
+    const { data: totalExpensesData } = await getSupabaseClient()
       .from('expenses')
       .select('amount');
     
@@ -62,7 +62,7 @@ export const useFinancialDashboard = () => {
     const lastDayOfPrevMonth = new Date(now.getFullYear(), now.getMonth(), 0).toISOString();
     
     // Fetch monthly donations
-    const { data: monthlyDonationsData } = await supabase
+    const { data: monthlyDonationsData } = await getSupabaseClient()
       .from('donations')
       .select('amount')
       .eq('status', 'completed')
@@ -70,7 +70,7 @@ export const useFinancialDashboard = () => {
       .lte('donation_date', lastDayOfMonth);
     
     // Fetch previous month donations
-    const { data: prevMonthDonationsData } = await supabase
+    const { data: prevMonthDonationsData } = await getSupabaseClient()
       .from('donations')
       .select('amount')
       .eq('status', 'completed')
@@ -78,14 +78,14 @@ export const useFinancialDashboard = () => {
       .lte('donation_date', lastDayOfPrevMonth);
     
     // Fetch monthly expenses
-    const { data: monthlyExpensesData } = await supabase
+    const { data: monthlyExpensesData } = await getSupabaseClient()
       .from('expenses')
       .select('amount')
       .gte('expense_date', firstDayOfMonth)
       .lte('expense_date', lastDayOfMonth);
     
     // Fetch previous month expenses
-    const { data: prevMonthExpensesData } = await supabase
+    const { data: prevMonthExpensesData } = await getSupabaseClient()
       .from('expenses')
       .select('amount')
       .gte('expense_date', firstDayOfPrevMonth)
@@ -110,7 +110,7 @@ export const useFinancialDashboard = () => {
     const previousMonthExpenses = prevMonthExpensesData?.reduce((sum, item) => sum + Number(item.amount), 0) || 0;
     
     // Fetch recent donations
-    const { data: recentDonations } = await supabase
+    const { data: recentDonations } = await getSupabaseClient()
       .from('donations')
       .select(`
         id,

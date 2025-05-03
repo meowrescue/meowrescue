@@ -30,7 +30,7 @@ const AdminNotifications: React.FC = () => {
   const { data: notifications, isLoading } = useQuery({
     queryKey: ['notifications', filter],
     queryFn: async () => {
-      let query = supabase
+      let query = getSupabaseClient()
         .from('notifications')
         .select('*')
         .order('created_at', { ascending: false });
@@ -51,7 +51,7 @@ const AdminNotifications: React.FC = () => {
   // Mark as read mutation
   const markAsReadMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await getSupabaseClient()
         .from('notifications')
         .update({ is_read: true })
         .eq('id', id);
@@ -78,7 +78,7 @@ const AdminNotifications: React.FC = () => {
   // Delete notification mutation
   const deleteNotificationMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await getSupabaseClient()
         .from('notifications')
         .delete()
         .eq('id', id);
@@ -105,7 +105,7 @@ const AdminNotifications: React.FC = () => {
   // Mark all as read mutation
   const markAllAsReadMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
+      const { error } = await getSupabaseClient()
         .from('notifications')
         .update({ is_read: true })
         .eq('is_read', false);

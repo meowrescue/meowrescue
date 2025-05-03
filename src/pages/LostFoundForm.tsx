@@ -68,7 +68,7 @@ const LostFoundForm = () => {
 
   const fetchPostData = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from("lost_found_posts")
         .select("*")
         .eq("id", id)
@@ -240,7 +240,7 @@ const LostFoundForm = () => {
         }
 
         // Update post
-        const { error } = await supabase
+        const { error } = await getSupabaseClient()
           .from("lost_found_posts")
           .update({
             title: formData.title,
@@ -265,7 +265,7 @@ const LostFoundForm = () => {
         });
       } else {
         // Create new post
-        const { data, error } = await supabase
+        const { data, error } = await getSupabaseClient()
           .from("lost_found_posts")
           .insert({
             profile_id: user.id,

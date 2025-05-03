@@ -57,8 +57,8 @@ export const BusinessHoursProvider: React.FC<BusinessHoursProviderProps> = ({ ch
   // Fetch business hours settings from Supabase
   const fetchBusinessHours = async () => {
     try {
-      const supabase = getSupabaseClient();
-      const { data, error } = await supabase
+      const getSupabaseClient() = getSupabaseClient();
+      const { data, error } = await getSupabaseClient()
         .from('content_blocks')
         .select('content')
         .eq('block_identifier', 'business_hours_settings')
@@ -98,9 +98,9 @@ export const BusinessHoursProvider: React.FC<BusinessHoursProviderProps> = ({ ch
   // Update business hours settings in the database
   const updateBusinessHours = async (settings: BusinessHoursSettings) => {
     try {
-      const supabase = getSupabaseClient();
+      const getSupabaseClient() = getSupabaseClient();
       // First check if the table exists to prevent errors
-      const { count, error: checkError } = await supabase
+      const { count, error: checkError } = await getSupabaseClient()
         .from('content_blocks')
         .select('*', { count: 'exact', head: true });
       
@@ -111,7 +111,7 @@ export const BusinessHoursProvider: React.FC<BusinessHoursProviderProps> = ({ ch
         return;
       }
       
-      const { error } = await supabase
+      const { error } = await getSupabaseClient()
         .from('content_blocks')
         .upsert({
           block_identifier: 'business_hours_settings',
@@ -161,8 +161,8 @@ export const BusinessHoursProvider: React.FC<BusinessHoursProviderProps> = ({ ch
 
     const checkIfAdmin = async () => {
       try {
-        const supabase = getSupabaseClient();
-        const { data, error } = await supabase
+        const getSupabaseClient() = getSupabaseClient();
+        const { data, error } = await getSupabaseClient()
           .from('profiles')
           .select('role')
           .eq('id', user.id)

@@ -73,7 +73,7 @@ const AdminOrders = () => {
   const { data: orders, isLoading } = useQuery({
     queryKey: ['foster-orders'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('supply_orders')
         .select(`
           *,
@@ -121,7 +121,7 @@ const AdminOrders = () => {
         updateData.notes = notes;
       }
       
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('supply_orders')
         .update(updateData)
         .eq('id', orderId)

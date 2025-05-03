@@ -6,7 +6,7 @@ import { format } from 'date-fns';
  */
 export const getDonationsSum = async ({ startDate, endDate }: { startDate?: Date, endDate?: Date } = {}) => {
   try {
-    const supabase = getSupabaseClient();
+    const getSupabaseClient() = getSupabaseClient();
     // Default: YTD
     const now = new Date();
     const jan1 = new Date(now.getFullYear(), 0, 1);
@@ -15,7 +15,7 @@ export const getDonationsSum = async ({ startDate, endDate }: { startDate?: Date
     console.log('[Donations] Querying donations from', start.toISOString(), 'to', end.toISOString());
     
     // First try with status filter
-    const { data: filteredData, error: filteredError } = await supabase
+    const { data: filteredData, error: filteredError } = await getSupabaseClient()
       .from('donations')
       .select('amount')
       .eq('status', 'completed')
@@ -25,7 +25,7 @@ export const getDonationsSum = async ({ startDate, endDate }: { startDate?: Date
     if (filteredError) {
       console.log('[Donations] Status filter error:', filteredError);
       // If status filter fails, try without it
-      const { data: allData, error: allError } = await supabase
+      const { data: allData, error: allError } = await getSupabaseClient()
         .from('donations')
         .select('amount')
         .gte('donation_date', start.toISOString())
@@ -55,7 +55,7 @@ export const getDonationsSum = async ({ startDate, endDate }: { startDate?: Date
 export const getMonthlyDonations = async () => {
   try {
     console.log('Fetching monthly donations...');
-    const supabase = getSupabaseClient();
+    const getSupabaseClient() = getSupabaseClient();
     // Get the first and last day of the month for the full month range
     const now = new Date();
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -140,7 +140,7 @@ export const getMonthlyDonations = async () => {
  */
 export const getPreviousMonthDonations = async () => {
   try {
-    const supabase = getSupabaseClient();
+    const getSupabaseClient() = getSupabaseClient();
     // Get the first day of the previous month
     const now = new Date();
     const firstDayOfPreviousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
@@ -208,7 +208,7 @@ export const getPreviousMonthDonations = async () => {
 export const getTotalDonations = async () => {
   try {
     console.log('Fetching total donations...');
-    const supabase = getSupabaseClient();
+    const getSupabaseClient() = getSupabaseClient();
     // Get the first day of the current year
     const now = new Date();
     const firstDayOfYear = new Date(now.getFullYear(), 0, 1);
@@ -271,8 +271,8 @@ export const getTotalDonations = async () => {
 // TEMP: Debug function to log latest 5 donations (for backend troubleshooting only)
 export const debugLogLatestDonations = async () => {
   try {
-    const supabase = getSupabaseClient();
-    const { data, error } = await supabase
+    const getSupabaseClient() = getSupabaseClient();
+    const { data, error } = await getSupabaseClient()
       .from('donations')
       .select('id, amount, donation_date, status')
       .order('donation_date', { ascending: false })

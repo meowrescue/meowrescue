@@ -23,7 +23,7 @@ const CatDetail = () => {
 
   useEffect(() => {
     if (!catId) return;
-    const subscription = supabase
+    const subscription = getSupabaseClient()
       .channel(`cat-${catId}-updates`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'cats', filter: `id=eq.${catId}` }, (payload) => {
         console.log('Cat update received:', payload);

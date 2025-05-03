@@ -46,7 +46,7 @@ const AdminCats: React.FC = () => {
   const { data: cats, isLoading, error, refetch } = useQuery({
     queryKey: ['cats'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('cats')
         .select('*')
         .order('name', { ascending: true });
@@ -76,7 +76,7 @@ const AdminCats: React.FC = () => {
     if (!window.confirm("Are you sure you want to delete this cat?")) return;
     
     try {
-      const { error } = await supabase
+      const { error } = await getSupabaseClient()
         .from('cats')
         .delete()
         .eq('id', id);

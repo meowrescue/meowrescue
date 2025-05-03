@@ -46,7 +46,7 @@ const AdminLostFound = () => {
     queryFn: async () => {
       try {
         // First fetch the posts
-        const { data: postsData, error: postsError } = await supabase
+        const { data: postsData, error: postsError } = await getSupabaseClient()
           .from('lost_found_posts')
           .select('*')
           .order('created_at', { ascending: false });
@@ -63,7 +63,7 @@ const AdminLostFound = () => {
         let profilesMap: Record<string, any> = {};
         
         if (profileIds.length > 0) {
-          const { data: profilesData, error: profilesError } = await supabase
+          const { data: profilesData, error: profilesError } = await getSupabaseClient()
             .from('profiles')
             .select('id, first_name, last_name, email')
             .in('id', profileIds);
@@ -96,7 +96,7 @@ const AdminLostFound = () => {
   // Archive post mutation
   const archivePost = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await getSupabaseClient()
         .from('lost_found_posts')
         .update({ status: 'archived' })
         .eq('id', id);
@@ -130,7 +130,7 @@ const AdminLostFound = () => {
   const restorePost = useMutation({
     mutationFn: async (id: string) => {
       // First get the post to determine the original status
-      const { data, error: fetchError } = await supabase
+      const { data, error: fetchError } = await getSupabaseClient()
         .from('lost_found_posts')
         .select('*')
         .eq('id', id)
@@ -142,7 +142,7 @@ const AdminLostFound = () => {
       const originalStatus = 'lost';
       
       // Update the post
-      const { error } = await supabase
+      const { error } = await getSupabaseClient()
         .from('lost_found_posts')
         .update({ status: originalStatus })
         .eq('id', id);
@@ -177,7 +177,7 @@ const AdminLostFound = () => {
   // Delete post mutation
   const deletePost = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await getSupabaseClient()
         .from('lost_found_posts')
         .delete()
         .eq('id', id);

@@ -31,7 +31,7 @@ const AdminAnalytics: React.FC = () => {
       try {
         // In a real implementation, you would have a proper analytics table
         // For now, we'll use a placeholder with count from the profiles table as an estimate
-        const { count, error } = await supabase
+        const { count, error } = await getSupabaseClient()
           .from('profiles')
           .select('*', { count: 'exact', head: true });
           
@@ -62,19 +62,19 @@ const AdminAnalytics: React.FC = () => {
       // For now, we'll return a simplified placeholder based on database content
       
       // Get counts from various tables to estimate popularity
-      const { count: catsCount } = await supabase
+      const { count: catsCount } = await getSupabaseClient()
         .from('cats')
         .select('*', { count: 'exact', head: true });
       
-      const { count: lostFoundCount } = await supabase
+      const { count: lostFoundCount } = await getSupabaseClient()
         .from('lost_found_posts')
         .select('*', { count: 'exact', head: true });
       
-      const { count: eventsCount } = await supabase
+      const { count: eventsCount } = await getSupabaseClient()
         .from('events')
         .select('*', { count: 'exact', head: true });
         
-      const { count: donationsCount } = await supabase
+      const { count: donationsCount } = await getSupabaseClient()
         .from('donations')
         .select('*', { count: 'exact', head: true });
         

@@ -50,7 +50,7 @@ const AdminMessages = () => {
   const { data: messages, isLoading } = useQuery({
     queryKey: ['contact-messages'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('contact_messages')
         .select('*')
         .order('received_at', { ascending: false });

@@ -162,8 +162,8 @@ const AdoptionForm: React.FC = () => {
     setIsSubmitting(true);
     try {
       // Submit to Supabase
-      const supabase = getSupabaseClient();
-      const { error } = await supabase.from('applications').insert({
+      const getSupabaseClient() = getSupabaseClient();
+      const { error } = await getSupabaseClient().from('applications').insert({
         applicant_id: user?.id,
         application_type: 'adoption',
         status: 'pending',

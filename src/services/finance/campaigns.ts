@@ -6,8 +6,8 @@ import { FundraisingCampaign } from '@/types/finance';
  */
 export const getCurrentCampaigns = async (): Promise<FundraisingCampaign[]> => {
   try {
-    const supabase = getSupabaseClient();
-    const { data, error } = await supabase
+    const getSupabaseClient() = getSupabaseClient();
+    const { data, error } = await getSupabaseClient()
       .from('fundraising_campaigns')
       .select('*')
       .eq('is_active', true)

@@ -59,7 +59,7 @@ const AdminUsers = () => {
   const { data: users, isLoading } = useQuery({
     queryKey: ['admin-users'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
@@ -87,7 +87,7 @@ const AdminUsers = () => {
       if (authError) throw authError;
       
       // Set role in profile (the profile should be created automatically via trigger)
-      const { error: profileError } = await supabase
+      const { error: profileError } = await getSupabaseClient()
         .from('profiles')
         .update({ role: userData.role })
         .eq('id', authData.user!.id);
@@ -117,7 +117,7 @@ const AdminUsers = () => {
   // Update user role mutation
   const updateRoleMutation = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: UserRole }) => {
-      const { error } = await supabase
+      const { error } = await getSupabaseClient()
         .from('profiles')
         .update({ role })
         .eq('id', userId);
@@ -146,7 +146,7 @@ const AdminUsers = () => {
   // Update user status mutation
   const updateStatusMutation = useMutation({
     mutationFn: async ({ userId, isActive }: { userId: string; isActive: boolean }) => {
-      const { error } = await supabase
+      const { error } = await getSupabaseClient()
         .from('profiles')
         .update({ is_active: isActive })
         .eq('id', userId);

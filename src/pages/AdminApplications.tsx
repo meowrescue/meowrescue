@@ -28,7 +28,7 @@ const AdminApplications = () => {
       
       try {
         // First try to query the adoption_applications table
-        const { data: adoptionData, error: adoptionError } = await supabase
+        const { data: adoptionData, error: adoptionError } = await getSupabaseClient()
           .from('adoption_applications')
           .select(`
             *,
@@ -76,7 +76,7 @@ const AdminApplications = () => {
         }
         
         // Also query the foster applications
-        const { data: fosterData, error: fosterError } = await supabase
+        const { data: fosterData, error: fosterError } = await getSupabaseClient()
           .from('applications')
           .select(`
             *,
@@ -102,7 +102,7 @@ const AdminApplications = () => {
         }
         
         // Query volunteer applications
-        const { data: volunteerData, error: volunteerError } = await supabase
+        const { data: volunteerData, error: volunteerError } = await getSupabaseClient()
           .from('applications')
           .select(`
             *,
@@ -128,7 +128,7 @@ const AdminApplications = () => {
         }
         
         // Finally, check any other application types in the applications table
-        const { data: otherApps, error: otherError } = await supabase
+        const { data: otherApps, error: otherError } = await getSupabaseClient()
           .from('applications')
           .select(`
             *,

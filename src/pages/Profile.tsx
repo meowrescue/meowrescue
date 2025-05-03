@@ -53,7 +53,7 @@ const Profile: React.FC = () => {
     queryKey: ['profile', user?.id],
     queryFn: async () => {
       if (!user) return null;
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('profiles')
         .select('*')
         .eq('id', user.id)
@@ -73,7 +73,7 @@ const Profile: React.FC = () => {
     queryKey: ['lostFoundPosts', user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('lost_found_posts')
         .select('*')
         .eq('profile_id', user.id);
@@ -92,7 +92,7 @@ const Profile: React.FC = () => {
     queryKey: ['blogPosts', user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('blog_posts')
         .select('*')
         .eq('author_profile_id', user.id);
@@ -239,7 +239,7 @@ const Profile: React.FC = () => {
       if (!publicUrlData.publicUrl) throw new Error('Could not get public URL for uploaded image');
       
       // Update the profile with the new avatar URL
-      const { error: updateError } = await supabase
+      const { error: updateError } = await getSupabaseClient()
         .from('profiles')
         .update({ avatar_url: publicUrlData.publicUrl })
         .eq('id', user.id);

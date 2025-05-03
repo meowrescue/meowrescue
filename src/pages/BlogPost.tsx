@@ -19,8 +19,8 @@ const BlogPost: React.FC = () => {
   const { data: post, isLoading, error, refetch } = useQuery({
     queryKey: ['blogPost', slug],
     queryFn: async () => {
-      const supabase = getSupabaseClient();
-      const { data, error } = await supabase
+      const getSupabaseClient() = getSupabaseClient();
+      const { data, error } = await getSupabaseClient()
         .from('blog_posts')
         .select('*')
         .eq('slug', slug)
@@ -41,8 +41,8 @@ const BlogPost: React.FC = () => {
   useEffect(() => {
     const fetchRelatedPosts = async () => {
       if (post) {
-        const supabase = getSupabaseClient();
-        const { data } = await supabase
+        const getSupabaseClient() = getSupabaseClient();
+        const { data } = await getSupabaseClient()
           .from('blog_posts')
           .select('*')
           .eq('is_published', true)
@@ -61,8 +61,8 @@ const BlogPost: React.FC = () => {
   // Subscribe to real-time updates for this blog post
   useEffect(() => {
     if (!post?.id) return;
-    const supabase = getSupabaseClient();
-    const subscription = supabase
+    const getSupabaseClient() = getSupabaseClient();
+    const subscription = getSupabaseClient()
       .channel(`blog-post-${post.id}-updates`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'blog_posts', filter: `id=eq.${post.id}` }, (payload) => {
         console.log('Blog post update received:', payload);
