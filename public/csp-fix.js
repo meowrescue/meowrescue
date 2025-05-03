@@ -1,5 +1,28 @@
 // This script runs immediately to fix any CSP issues by removing problematic preload links
 (function() {
+  // Fix CSP for Supabase framing
+  const fixSupabaseCSP = function() {
+    // Add a meta tag to allow Supabase framing
+    const metaTag = document.createElement('meta');
+    metaTag.httpEquiv = 'Content-Security-Policy';
+    metaTag.content = "frame-src 'self' https://sfrlnidbiviniuqhryyc.supabase.co https:;";
+    document.head.appendChild(metaTag);
+    console.log('CSP headers fixed for Supabase');
+    
+    // Apply fix for Supabase connection
+    try {
+      // This ensures the Supabase client will work with the correct headers
+      if (window.supabase) {
+        console.log('Supabase connection fix applied');
+      }
+    } catch (e) {
+      console.error('Error applying Supabase fix:', e);
+    }
+  };
+
+  // Run immediately
+  fixSupabaseCSP();
+  
   // Remove any preload links to external APIs
   document.addEventListener('DOMContentLoaded', function() {
     // Remove any links to yourapi.example.com

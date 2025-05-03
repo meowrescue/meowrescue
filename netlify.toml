@@ -59,7 +59,7 @@
 [[headers]]
   for = "/assets/*"
   [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
+    Cache-Control = "public, max-age=0, must-revalidate"
 
 # Netlify secrets scanning allowlist for public Supabase keys
 [secrets_scan]
