@@ -2,10 +2,18 @@
 (function() {
   // Fix CSP for Supabase framing
   const fixSupabaseCSP = function() {
-    // Add a meta tag to allow Supabase framing
+    // Add a meta tag to allow Supabase framing and resources
     const metaTag = document.createElement('meta');
     metaTag.httpEquiv = 'Content-Security-Policy';
-    metaTag.content = "frame-src 'self' https://sfrlnidbiviniuqhryyc.supabase.co https:;";
+    // Comprehensive CSP that allows Supabase resources
+    metaTag.content = "default-src 'self'; " +
+                      "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+                      "style-src 'self' 'unsafe-inline'; " +
+                      "img-src 'self' https://sfrlnidbiviniuqhryyc.supabase.co https://images.unsplash.com data:; " +
+                      "font-src 'self'; " +
+                      "connect-src 'self' https://sfrlnidbiviniuqhryyc.supabase.co; " +
+                      "frame-src 'self' https://sfrlnidbiviniuqhryyc.supabase.co; " +
+                      "object-src 'none';";
     document.head.appendChild(metaTag);
     console.log('CSP headers fixed for Supabase');
     
