@@ -1,6 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 import { Cat, MedicalRecord } from '@/types/cat';
 import { usePageData } from '@/contexts/PageDataContext';
 

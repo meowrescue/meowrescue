@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 import { TeamMember } from '@/types/team';
 import Layout from '@/components/Layout';
 import SEO from '@/components/SEO';

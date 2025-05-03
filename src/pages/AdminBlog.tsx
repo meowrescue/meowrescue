@@ -15,7 +15,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 import { useToast } from '@/hooks/use-toast';
 import { PenSquare, Trash2, Plus, Search, ExternalLink, Eye, EyeOff, FileText } from 'lucide-react';
 import SEO from '@/components/SEO';

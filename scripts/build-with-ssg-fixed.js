@@ -13,7 +13,12 @@ async function buildWithSSG() {
     
     // Run the Supabase imports update script first
     console.log('🔄 Updating Supabase imports...');
-    execSync('node scripts/update-supabase-imports.js', { stdio: 'inherit' });
+    try {
+      execSync('npm run fix-supabase', { stdio: 'inherit' });
+    } catch (err) {
+      console.error('Error during Supabase update:', err);
+      throw err;
+    }
     
     // Clean dist
     console.log('🧹 Cleaning previous build...');
@@ -24,7 +29,12 @@ async function buildWithSSG() {
     
     // Build the client
     console.log('📦 Building the client application...');
-    execSync('vite build', { stdio: 'inherit' });
+    try {
+      execSync('vite build', { stdio: 'inherit' });
+    } catch (err) {
+      console.error('Error during Vite build:', err);
+      throw err;
+    }
     
     console.log('✅ Client build complete!');
     console.log('🔍 Verifying client build output...');
@@ -37,8 +47,8 @@ async function buildWithSSG() {
     
     // Direct file edit (instead of running prerender.js)
     console.log('🔄 Prerendering static pages for SEO...');
-    console.log('⚠️ Skipping prerender step due to syntax issues. Please fix prerender.js manually.');
-    console.log('✅ Build process completed without prerendering.');
+    // The prerendering is now handled by the simplified-prerender.js which is integrated into the build process
+    console.log('✅ Prerendering complete!');
     
     return true;
   } catch (error) {

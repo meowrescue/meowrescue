@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CalendarIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';

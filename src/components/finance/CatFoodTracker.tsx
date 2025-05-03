@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { Package, AlertCircle } from 'lucide-react';
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 import { CatFood } from '@/types/finance';
 
 interface CatFoodTrackerProps {
@@ -20,7 +20,7 @@ const CatFoodTracker: React.FC<CatFoodTrackerProps> = ({ isAdmin = false }) => {
   const { data: catFood, isLoading, error } = useQuery({
     queryKey: ['cat-food-supplies'],
     queryFn: async () => {
-      const getSupabaseClient() = getSupabaseClient();
+      
       const { data, error } = await getSupabaseClient()
         .from('supplies')
         .select('*')

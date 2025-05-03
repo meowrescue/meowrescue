@@ -46,11 +46,7 @@ export const useFinancialStats = () => {
     refetchOnWindowFocus: true
   };
 
-  // Get current month's first day
-  const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-  // YTD queries
+  // Unified YTD queries
   const {
     data: ytdDonations = 0,
     isLoading: ytdDonationsLoading
@@ -66,25 +62,6 @@ export const useFinancialStats = () => {
   } = useQuery({
     queryKey: ['ytd-expenses'],
     queryFn: () => getExpensesSum(),
-    ...commonConfig
-  });
-
-  // Monthly queries (current month)
-  const {
-    data: monthlyDonations = 0,
-    isLoading: monthlyDonationsLoading
-  } = useQuery({
-    queryKey: ['monthly-donations'],
-    queryFn: () => getDonationsSum({ startDate: startOfMonth, endDate: now }),
-    ...commonConfig
-  });
-
-  const {
-    data: monthlyExpenses = 0,
-    isLoading: monthlyExpensesLoading
-  } = useQuery({
-    queryKey: ['monthly-expenses'],
-    queryFn: () => getExpensesSum({ startDate: startOfMonth, endDate: now }),
     ...commonConfig
   });
 
@@ -197,15 +174,15 @@ export const useFinancialStats = () => {
       totalIncome: ytdDonations,
       totalExpenses: ytdExpenses,
       totalBudget: totalBudget,
-      monthlyIncome: monthlyDonations,
-      monthlyExpenses: monthlyExpenses,
+      monthlyIncome: ytdDonations,
+      monthlyExpenses: ytdExpenses,
       previousMonthIncome: previousMonthDonations,
       previousMonthExpenses: previousMonthExpenses,
       budgetCategories: budgetCategories || [],
       campaigns: campaigns || [],
       isLoading: {
-        monthlyIncome: monthlyDonationsLoading,
-        monthlyExpenses: monthlyExpensesLoading,
+        monthlyIncome: ytdDonationsLoading,
+        monthlyExpenses: ytdExpensesLoading,
         previousMonthIncome: previousMonthDonationsLoading,
         previousMonthExpenses: previousMonthExpensesLoading,
         totalBudget: totalBudgetLoading,

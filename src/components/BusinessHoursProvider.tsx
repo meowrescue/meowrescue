@@ -1,6 +1,6 @@
 import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 
 interface BusinessHours {
   day: number; // 0 = Sunday, 1 = Monday, etc.
@@ -57,7 +57,7 @@ export const BusinessHoursProvider: React.FC<BusinessHoursProviderProps> = ({ ch
   // Fetch business hours settings from Supabase
   const fetchBusinessHours = async () => {
     try {
-      const getSupabaseClient() = getSupabaseClient();
+      
       const { data, error } = await getSupabaseClient()
         .from('content_blocks')
         .select('content')
@@ -98,7 +98,7 @@ export const BusinessHoursProvider: React.FC<BusinessHoursProviderProps> = ({ ch
   // Update business hours settings in the database
   const updateBusinessHours = async (settings: BusinessHoursSettings) => {
     try {
-      const getSupabaseClient() = getSupabaseClient();
+      
       // First check if the table exists to prevent errors
       const { count, error: checkError } = await getSupabaseClient()
         .from('content_blocks')
@@ -161,7 +161,7 @@ export const BusinessHoursProvider: React.FC<BusinessHoursProviderProps> = ({ ch
 
     const checkIfAdmin = async () => {
       try {
-        const getSupabaseClient() = getSupabaseClient();
+        
         const { data, error } = await getSupabaseClient()
           .from('profiles')
           .select('role')

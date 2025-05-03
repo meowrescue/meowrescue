@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Calendar, FileText, DollarSign, Info } from 'lucide-react';
 import { format } from 'date-fns';
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 import { restrictToTwoDecimals, formatCurrency, enforceCurrencyInput } from '@/lib/utils';
 
 // Top 25 most common income sources for cat rescues
@@ -80,7 +80,7 @@ const IncomeEntry: React.FC = () => {
     try {
       // Insert the income as a donation
       const parsedAmount = parseFloat(restrictToTwoDecimals(incomeData.amount));
-      const getSupabaseClient() = getSupabaseClient();
+      
       const { data, error } = await getSupabaseClient().from('donations').insert({
         amount: Number(parsedAmount.toFixed(2)),
         donation_date: new Date(incomeData.income_date).toISOString(),

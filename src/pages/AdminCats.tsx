@@ -9,7 +9,7 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2, Plus, Filter } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 import SEO from '@/components/SEO';
 import { useAuth } from '@/contexts/AuthContext';
 import { 

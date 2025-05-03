@@ -5,8 +5,8 @@ import Layout from "../components/Layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, AlertCircle, RefreshCw } from "lucide-react";
-import getSupabaseClient from '@/integrations/supabase/client';
-import { LostFoundPost } from "@/types/supabase";
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { LostFoundPost } from "@/types/getSupabaseClient()";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import SEO from "@/components/SEO";
@@ -25,7 +25,7 @@ const LostFoundDetail = () => {
       console.log(`Fetching lost & found post with ID: ${postId}`);
       
       try {
-        const getSupabaseClient() = getSupabaseClient();
+        
         const { data, error } = await getSupabaseClient()
           .from('lost_found_posts')
           .select('*')
@@ -64,7 +64,7 @@ const LostFoundDetail = () => {
   // Subscribe to real-time updates for this lost and found post
   useEffect(() => {
     if (!postId) return;
-    const getSupabaseClient() = getSupabaseClient();
+    
     const subscription = getSupabaseClient()
       .channel(`lost-found-${postId}-updates`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'lost_found_posts', filter: `id=eq.${postId}` }, (payload) => {

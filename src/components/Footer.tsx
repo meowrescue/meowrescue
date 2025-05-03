@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Cat, Heart, Mail, Phone, Facebook, Instagram, Twitter } from 'lucide-react';
 import { scrollToTop } from '@/utils/scrollUtils';
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 import { Button } from '@/components/ui/button';
 
 const Footer: React.FC = () => {

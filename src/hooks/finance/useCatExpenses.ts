@@ -1,6 +1,6 @@
 
 import { useQuery } from "@tanstack/react-query";
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 
 export interface CatExpenseGroup {
   catId: string;

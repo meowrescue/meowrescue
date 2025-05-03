@@ -1,5 +1,5 @@
 
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 
 /**
  * Logs an activity to the activity_logs table

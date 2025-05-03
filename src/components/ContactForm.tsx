@@ -15,7 +15,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 
 const contactFormSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -47,7 +47,7 @@ export default function ContactForm() {
       console.log("Submitting contact form with values:", values);
       
       // Insert the contact message into the database - using the correct enum case (New)
-      const getSupabaseClient() = getSupabaseClient();
+      
       const { data, error } = await getSupabaseClient()
         .from('contact_messages')
         .insert([{

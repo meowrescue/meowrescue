@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 import SEO from '@/components/SEO';
 import PageHeader from '@/components/ui/PageHeader';
 import { Calendar, ChevronRight, Clock, Search } from 'lucide-react';

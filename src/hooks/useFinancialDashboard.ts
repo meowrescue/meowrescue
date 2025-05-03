@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 
 export interface FinancialStats {
   totalDonations: number;
@@ -41,7 +41,7 @@ export const useFinancialDashboard = () => {
 
   // Function to fetch financial data
   const fetchFinancialStats = async () => {
-    const getSupabaseClient() = getSupabaseClient();
+    
     
     // Fetch total donations
     const { data: totalDonationsData } = await getSupabaseClient()

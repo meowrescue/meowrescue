@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { Cat, Heart, Home } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import getSupabaseClient, { checkSupabaseConnection } from '@/integrations/supabase/client';
+import getSupabaseClient, { checkSupabaseConnection } from '@/integrations/getSupabaseClient()/client';
 import CountUp from './CountUp';
 import { useToast } from '@/hooks/use-toast';
 
@@ -11,7 +11,7 @@ const StatsSection: React.FC = () => {
   
   // First check if Supabase connection is working
   const { data: connectionStatus, isLoading: connectionChecking } = useQuery({
-    queryKey: ['supabase-connection-check'],
+    queryKey: ['getSupabaseClient()-connection-check'],
     queryFn: async () => {
       console.log('Checking Supabase connection from StatsSection...');
       return await checkSupabaseConnection();
@@ -42,7 +42,7 @@ const StatsSection: React.FC = () => {
           throw new Error('Supabase connection is not available');
         }
         
-        const getSupabaseClient() = getSupabaseClient();
+        
         const { count, error } = await getSupabaseClient()
           .from('cats')
           .select('*', { count: 'exact', head: true });
@@ -74,7 +74,7 @@ const StatsSection: React.FC = () => {
           throw new Error('Supabase connection is not available');
         }
         
-        const getSupabaseClient() = getSupabaseClient();
+        
         const { count, error } = await getSupabaseClient()
           .from('cats')
           .select('*', { count: 'exact', head: true });
@@ -106,7 +106,7 @@ const StatsSection: React.FC = () => {
           throw new Error('Supabase connection is not available');
         }
         
-        const getSupabaseClient() = getSupabaseClient();
+        
         const { count, error } = await getSupabaseClient()
           .from('cats')
           .select('*', { count: 'exact', head: true })

@@ -1,5 +1,5 @@
 
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 import { FundraisingCampaign } from '@/types/finance';
 
 /**

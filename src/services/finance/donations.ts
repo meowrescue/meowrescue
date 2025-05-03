@@ -1,4 +1,4 @@
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 import { format } from 'date-fns';
 
 /**
@@ -6,7 +6,7 @@ import { format } from 'date-fns';
  */
 export const getDonationsSum = async ({ startDate, endDate }: { startDate?: Date, endDate?: Date } = {}) => {
   try {
-    const getSupabaseClient() = getSupabaseClient();
+    
     // Default: YTD
     const now = new Date();
     const jan1 = new Date(now.getFullYear(), 0, 1);
@@ -55,7 +55,7 @@ export const getDonationsSum = async ({ startDate, endDate }: { startDate?: Date
 export const getMonthlyDonations = async () => {
   try {
     console.log('Fetching monthly donations...');
-    const getSupabaseClient() = getSupabaseClient();
+    
     // Get the first and last day of the month for the full month range
     const now = new Date();
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -140,7 +140,7 @@ export const getMonthlyDonations = async () => {
  */
 export const getPreviousMonthDonations = async () => {
   try {
-    const getSupabaseClient() = getSupabaseClient();
+    
     // Get the first day of the previous month
     const now = new Date();
     const firstDayOfPreviousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
@@ -208,7 +208,7 @@ export const getPreviousMonthDonations = async () => {
 export const getTotalDonations = async () => {
   try {
     console.log('Fetching total donations...');
-    const getSupabaseClient() = getSupabaseClient();
+    
     // Get the first day of the current year
     const now = new Date();
     const firstDayOfYear = new Date(now.getFullYear(), 0, 1);
@@ -271,7 +271,7 @@ export const getTotalDonations = async () => {
 // TEMP: Debug function to log latest 5 donations (for backend troubleshooting only)
 export const debugLogLatestDonations = async () => {
   try {
-    const getSupabaseClient() = getSupabaseClient();
+    
     const { data, error } = await getSupabaseClient()
       .from('donations')
       .select('id, amount, donation_date, status')

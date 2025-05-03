@@ -17,7 +17,7 @@ import {
 } from "recharts";
 import { formatCurrency } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 
 const config = {
   donations: { color: "#4ade80" }, // Green
@@ -57,7 +57,7 @@ const RevenueAnalytics: React.FC = () => {
       const startOfYear = new Date(currentYear, 0, 1).toISOString();
       const endOfYear = new Date(currentYear, 11, 31).toISOString();
       
-      const getSupabaseClient() = getSupabaseClient();
+      
       const { data: donationsData, error: donationsError } = await getSupabaseClient()
         .from('donations')
         .select('amount, donation_date')

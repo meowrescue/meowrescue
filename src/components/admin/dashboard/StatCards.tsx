@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Cat, Heart, FileText, MessageSquare } from 'lucide-react';
 

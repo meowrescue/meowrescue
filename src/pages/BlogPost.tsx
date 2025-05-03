@@ -5,7 +5,7 @@ import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 import SEO from '@/components/SEO';
 import { Calendar, ArrowLeft, Share2, Clock, ChevronLeft, ChevronRight, Facebook, Twitter, Linkedin, Mail } from 'lucide-react';
 import NotFound from './NotFound';
@@ -19,7 +19,7 @@ const BlogPost: React.FC = () => {
   const { data: post, isLoading, error, refetch } = useQuery({
     queryKey: ['blogPost', slug],
     queryFn: async () => {
-      const getSupabaseClient() = getSupabaseClient();
+      
       const { data, error } = await getSupabaseClient()
         .from('blog_posts')
         .select('*')
@@ -41,7 +41,7 @@ const BlogPost: React.FC = () => {
   useEffect(() => {
     const fetchRelatedPosts = async () => {
       if (post) {
-        const getSupabaseClient() = getSupabaseClient();
+        
         const { data } = await getSupabaseClient()
           .from('blog_posts')
           .select('*')
@@ -61,7 +61,7 @@ const BlogPost: React.FC = () => {
   // Subscribe to real-time updates for this blog post
   useEffect(() => {
     if (!post?.id) return;
-    const getSupabaseClient() = getSupabaseClient();
+    
     const subscription = getSupabaseClient()
       .channel(`blog-post-${post.id}-updates`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'blog_posts', filter: `id=eq.${post.id}` }, (payload) => {

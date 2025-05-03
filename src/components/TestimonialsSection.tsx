@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 import SectionHeading from './ui/SectionHeading';
 import SuccessStoryCard from './SuccessStoryCard';
 
@@ -9,7 +9,7 @@ const TestimonialsSection: React.FC = () => {
   const { data: testimonials, isLoading } = useQuery({
     queryKey: ['homepage-testimonials'],
     queryFn: async () => {
-      const getSupabaseClient() = getSupabaseClient();
+      
       const { data, error } = await getSupabaseClient()
         .from('success_stories')
         .select('*, cats(name)')

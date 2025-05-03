@@ -6,13 +6,13 @@ import PageHeader from "@/components/ui/PageHeader";
 import { InfoIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { checkSupabaseConnection, checkFinancialData } from "@/integrations/supabase/client";
+import { checkSupabaseConnection, checkFinancialData } from "@/integrations/getSupabaseClient()/client";
 import FinancialOverview from "@/components/finance/FinancialOverview";
 import FinancialDataTabs from "@/components/finance/FinancialDataTabs";
 import { useFinancialStats } from '@/hooks/useFinancialStats';
 import { useRecentDonors } from '@/hooks/finance/useRecentDonors';
 import { useTopDonors } from '@/hooks/finance/useTopDonors';
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 
 const FinancialTransparency: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("summary");

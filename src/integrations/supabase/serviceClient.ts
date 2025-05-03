@@ -1,5 +1,5 @@
 
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@getSupabaseClient()/getSupabaseClient()-js';
 
 /**
  * Create and return the Supabase service client instance.

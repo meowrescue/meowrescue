@@ -10,7 +10,7 @@ import CatPhotosSection from '@/components/cat/CatDetails/CatPhotosSection';
 import CatInfoSection from '@/components/cat/CatDetails/CatInfoSection';
 import AdoptionProcessSection from '@/components/cat/CatDetails/AdoptionProcessSection';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 
 const CatDetail = () => {
   const { id: catId } = useParams<{ id: string }>();

@@ -1,4 +1,4 @@
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 
 export const getTotalBudget = async (): Promise<number> => {
   try {

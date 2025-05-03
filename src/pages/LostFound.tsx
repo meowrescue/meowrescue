@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import Layout from "../components/Layout";
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { LostFoundPost } from "@/types/supabase";
+import { LostFoundPost } from "@/types/getSupabaseClient()";
 import SEO from "@/components/SEO";
 import LostFoundFilters from "@/components/LostFound/LostFoundFilters";
 import LostFoundSearch from "@/components/LostFound/LostFoundSearch";

@@ -5,7 +5,7 @@ import AdminLayout from '@/pages/Admin';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Edit, FileText, Plus } from 'lucide-react';
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 import SEO from '@/components/SEO';
 
 interface ContentBlock {

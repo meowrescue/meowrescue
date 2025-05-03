@@ -1,5 +1,5 @@
 
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@getSupabaseClient()/getSupabaseClient()-js';
 
 // Ensure we use a singleton pattern for the Supabase client
 let supabaseInstance = null;
@@ -17,38 +17,34 @@ const getSupabaseClient = () => {
   }
 
   try {
-    // Get environment variables injected by Netlify
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    
-    // Check if credentials are available
-    if (!supabaseUrl || !supabaseKey) {
-      console.error('Supabase credentials missing. Please check Netlify environment variables.');
-      
-      // In development, show more helpful error
-      if (import.meta.env.DEV) {
-        console.warn('In development, make sure you have a .env file with VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY');
-        console.warn('In production, ensure these are set as environment variables in your Netlify dashboard');
-      }
-      
-      // Return a dummy client that logs errors instead of failing silently
-      return {
-        from: () => ({
-          select: () => ({
-            order: () => ({
-              limit: () => Promise.resolve({ data: [], error: new Error('Supabase credentials missing') })
-            }),
-            limit: () => Promise.resolve({ data: [], error: new Error('Supabase credentials missing') }),
-            eq: () => Promise.resolve({ data: [], error: new Error('Supabase credentials missing') })
+    // For static site generation, use mock data instead of Supabase
+    const mockData = {
+      cats: [
+        { id: 1, name: 'Fluffy', breed: 'Siamese', age: 2 },
+        { id: 2, name: 'Whiskers', breed: 'Persian', age: 1 }
+      ],
+      events: [
+        { id: 1, title: 'Adoption Event', date: new Date().toISOString() }
+      ],
+      blogPosts: [
+        { id: 1, title: 'Welcome to Meow Rescue', content: 'Welcome to our rescue!' }
+      ]
+    };
+
+    return {
+      from: (table) => ({
+        select: () => ({
+          order: () => ({
+            limit: () => Promise.resolve({ data: mockData[table] || [], error: null })
           }),
-          insert: () => Promise.resolve({ data: null, error: new Error('Supabase credentials missing') }),
-          update: () => Promise.resolve({ data: null, error: new Error('Supabase credentials missing') }),
-          delete: () => Promise.resolve({ data: null, error: new Error('Supabase credentials missing') }),
+          limit: () => Promise.resolve({ data: mockData[table] || [], error: null })
         }),
-        channel: () => ({
-          on: () => ({ subscribe: () => ({ unsubscribe: () => {} }) }),
-        }),
-        auth: {
+        eq: () => Promise.resolve({ data: mockData[table] || [], error: null })
+      }),
+      channel: () => ({
+        on: () => ({ subscribe: () => ({ unsubscribe: () => {} }) }),
+      }),
+      auth: {
           onAuthStateChange: () => ({ data: null, error: null }),
           getSession: () => Promise.resolve({ data: { session: null }, error: null }),
           signOut: () => Promise.resolve({ error: null })

@@ -3,7 +3,7 @@ import Layout from '../components/Layout';
 import { Event } from '../types/events';
 import EventCard from '../components/EventCard';
 import { useScrollToElement } from '@/hooks/use-scroll';
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 import { Loader2 } from 'lucide-react';
 import PageHeader from '@/components/ui/PageHeader';
 import { Link } from 'react-router-dom';

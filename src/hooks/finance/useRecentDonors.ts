@@ -1,5 +1,5 @@
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 
 export interface Donor {
   name: string;
@@ -21,7 +21,7 @@ export const useRecentDonors = (options?: UseRecentDonorsOptions) => {
     queryFn: async () => {
       try {
         console.log("Fetching recent donors...");
-        const getSupabaseClient() = getSupabaseClient();
+        
         
         // Use the get_recent_donors RPC function
         const { data, error } = await getSupabaseClient()

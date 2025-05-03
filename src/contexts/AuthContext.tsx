@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { Session, User } from '@supabase/supabase-js';
+import { Session, User } from '@getSupabaseClient()/getSupabaseClient()-js';
 import { logAuth } from '@/utils/logActivity';
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 import { User as ExtendedUser } from '@/types/users';
 
 interface AuthContextType {

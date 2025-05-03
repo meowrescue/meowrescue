@@ -7,7 +7,7 @@ import getSupabaseClient from './client';
  */
 export const checkSupabaseSchema = async () => {
   console.log('=== CHECKING SUPABASE SCHEMA ===');
-  const getSupabaseClient() = getSupabaseClient();
+  
   
   // 1. Check connection
   try {
@@ -203,7 +203,7 @@ export const checkSupabaseSchema = async () => {
  * Usage: window.checkMay2025FinancialData()
  */
 export const checkMay2025FinancialData = async () => {
-  const getSupabaseClient() = getSupabaseClient();
+  
   const start = '2025-05-01T00:00:00Z';
   const end = '2025-05-31T23:59:59Z';
 

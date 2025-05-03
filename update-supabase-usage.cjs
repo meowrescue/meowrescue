@@ -28,11 +28,14 @@ async function updateFile(filePath) {
     // Replace import statements
     let newContent = content;
     
-    // Replace incorrect syntax with proper function calls
-    newContent = newContent.replace(
-      /const\s+getSupabaseClient\(\)\s*=\s*getSupabaseClient\(\);/g, 
-      ''
-    );
+    // Replace incorrect syntax
+    const standalonePattern = /(?<![a-zA-Z0-9_])supabase(?![a-zA-Z0-9_\.])/g;
+    if (standalonePattern.test(newContent)) {
+      newContent = newContent.replace(
+        standalonePattern,
+        `getSupabaseClient()`
+      );
+    }
     
     // Replace direct imports
     newContent = newContent.replace(
@@ -48,7 +51,7 @@ async function updateFile(filePath) {
     
     // Replace direct usage of supabase with getSupabaseClient()
     newContent = newContent.replace(
-      /(?<![a-zA-Z0-9_])supabase(?=\.[a-zA-Z])/g,
+      /(?<![a-zA-Z0-9_])supabase(?=\.|$|\s|\)|\(|\[|\]|;|,)/g,
       `getSupabaseClient()`
     );
     

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { EyeIcon, ArchiveIcon, RotateCcw, Trash2 } from "lucide-react";
-import { LostFoundPost } from "@/types/supabase";
+import { LostFoundPost } from "@/types/getSupabaseClient()";
 
 interface PostsTableProps {
   posts: LostFoundPost[];

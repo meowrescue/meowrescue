@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 import { Button } from '@/components/ui/button';
 import { Upload, Image as ImageIcon, X, ZoomIn } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';

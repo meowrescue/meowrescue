@@ -21,7 +21,7 @@ import { DatePicker } from "@/components/ui/date-picker"
 import { Textarea } from "@/components/ui/textarea";
 import { Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 
 interface MedicalRecord {
   id: string;

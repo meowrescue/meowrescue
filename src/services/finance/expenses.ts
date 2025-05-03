@@ -1,4 +1,4 @@
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 import { startOfMonth, endOfMonth, addMonths, format } from 'date-fns';
 
 /**
@@ -6,7 +6,7 @@ import { startOfMonth, endOfMonth, addMonths, format } from 'date-fns';
  */
 export const getExpensesSum = async ({ startDate, endDate }: { startDate?: Date, endDate?: Date } = {}) => {
   try {
-    const getSupabaseClient() = getSupabaseClient();
+    
     // Default: YTD
     const now = new Date();
     const jan1 = new Date(now.getFullYear(), 0, 1);
@@ -35,7 +35,7 @@ export const getExpensesSum = async ({ startDate, endDate }: { startDate?: Date,
 export const getMonthlyExpenses = async (): Promise<number> => {
   try {
     console.log('Fetching monthly expenses...');
-    const getSupabaseClient() = getSupabaseClient();
+    
     // Get the first and last day of the month for the full month range
     const now = new Date();
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -107,7 +107,7 @@ export const getMonthlyExpenses = async (): Promise<number> => {
 
 export const getPreviousMonthExpenses = async (): Promise<number> => {
   try {
-    const getSupabaseClient() = getSupabaseClient();
+    
     const firstDayOfPrevMonth = startOfMonth(addMonths(new Date(), -1));
     const lastDayOfPrevMonth = endOfMonth(addMonths(new Date(), -1));
     
@@ -168,7 +168,7 @@ export const getPreviousMonthExpenses = async (): Promise<number> => {
 // TEMP: Debug function to log latest 5 expenses (for backend troubleshooting only)
 export const debugLogLatestExpenses = async () => {
   try {
-    const getSupabaseClient() = getSupabaseClient();
+    
     const { data, error } = await getSupabaseClient()
       .from('expenses')
       .select('id, amount, expense_date')

@@ -5,14 +5,14 @@ import SectionHeading from './ui/SectionHeading';
 import CatCard from './CatCard';
 import { Button } from "@/components/ui/button";
 import { useQuery } from '@tanstack/react-query';
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 
 const FeaturedCatsSection: React.FC = () => {
   // Fetch available cats from the database
   const { data: featuredCats = [], isLoading, isError } = useQuery({
     queryKey: ['featured-cats'],
     queryFn: async () => {
-      const getSupabaseClient() = getSupabaseClient();
+      
       const { data, error } = await getSupabaseClient()
         .from('cats')
         .select('*')

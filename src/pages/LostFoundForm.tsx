@@ -8,10 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 import { useToast } from "@/hooks/use-toast";
 import { ChevronLeft, Upload, X, Loader2 } from "lucide-react";
-import { LostFoundPost } from "@/types/supabase";
+import { LostFoundPost } from "@/types/getSupabaseClient()";
 
 type FormData = {
   title: string;

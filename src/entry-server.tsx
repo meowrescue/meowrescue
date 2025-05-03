@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import App from './App';
-import { getSupabaseClient() } from './integrations/supabase/client';
+import { getSupabaseClient() } from './integrations/getSupabaseClient()/client';
 import { PageDataProvider } from './contexts/PageDataContext';
 import { generateHtmlTemplate } from './templates/htmlTemplate';
 

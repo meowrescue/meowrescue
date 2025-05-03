@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import getSupabaseClient from '@/integrations/supabase/client';
+import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -114,7 +114,7 @@ const VolunteerForm: React.FC = () => {
     setIsSubmitting(true);
     try {
       // Submit to Supabase
-      const getSupabaseClient() = getSupabaseClient();
+      
       const { error } = await getSupabaseClient().from('applications').insert({
         applicant_id: user?.id,
         application_type: 'volunteer',
