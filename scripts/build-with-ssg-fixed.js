@@ -11,6 +11,10 @@ async function buildWithSSG() {
   try {
     console.log('🚀 Starting build process with SSG...');
     
+    // Run the Supabase imports update script first
+    console.log('🔄 Updating Supabase imports...');
+    execSync('node scripts/update-supabase-imports.js', { stdio: 'inherit' });
+    
     // Clean dist
     console.log('🧹 Cleaning previous build...');
     if (existsSync('dist')) {

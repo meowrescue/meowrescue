@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -79,14 +80,15 @@ const IncomeEntry: React.FC = () => {
     try {
       // Insert the income as a donation
       const parsedAmount = parseFloat(restrictToTwoDecimals(incomeData.amount));
-      const { data, error } = await getSupabaseClient().from('donations').insert({
+      const supabase = getSupabaseClient();
+      const { data, error } = await supabase.from('donations').insert({
         amount: Number(parsedAmount.toFixed(2)),
         donation_date: new Date(incomeData.income_date).toISOString(),
         notes: incomeData.description + (incomeData.notes ? '\n\n' + incomeData.notes : ''),
         income_type: incomeData.income_type,
         status: 'completed',
         is_recurring: false,
-        donor_profile_id: getSupabaseClient().auth.getUser() ? (await getSupabaseClient().auth.getUser()).data.user?.id : null
+        donor_profile_id: (await supabase.auth.getUser()).data.user?.id || null
       });
 
       if (error) throw error;

@@ -57,6 +57,7 @@ const RevenueAnalytics: React.FC = () => {
       const startOfYear = new Date(currentYear, 0, 1).toISOString();
       const endOfYear = new Date(currentYear, 11, 31).toISOString();
       
+      const supabase = getSupabaseClient();
       const { data: donationsData, error: donationsError } = await supabase
         .from('donations')
         .select('amount, donation_date')
@@ -81,7 +82,8 @@ const RevenueAnalytics: React.FC = () => {
       }
       
       // Fetch all expenses for the current year
-      const { data: expensesData, error: expensesError } = await supabase
+      const supabase2 = getSupabaseClient();
+      const { data: expensesData, error: expensesError } = await supabase2
         .from('expenses')
         .select('amount, expense_date')
         .gte('expense_date', startOfYear)

@@ -60,7 +60,11 @@ const updateFile = async (filePath) => {
 
 // Main execution
 const main = async () => {
-  const srcDir = path.join(__dirname, 'src');
+  // Find the project root (where src directory is located)
+  const projectRoot = path.resolve(__dirname, '..');
+  const srcDir = path.join(projectRoot, 'src');
+  
+  console.log(`Searching for files in: ${srcDir}`);
   
   // Process all files in src directory
   const promises = [];
