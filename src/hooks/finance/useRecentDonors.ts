@@ -108,20 +108,34 @@ const processRecentDonors = (data: any[]): Donor[] => {
   
   // Format the data and ensure consistency between is_anonymous and isAnonymous properties
   return sortedData.map(donor => {
-    // Parse the date from MM-DD-YYYY or ISO to M/D/YYYY H:mm if possible
+    // Format the date as MM/DD/YYYY
     let formattedDate = donor.date;
-    // Try to parse full datetime for display
-    const tryDate = new Date(donor.date);
-    if (!isNaN(tryDate.getTime())) {
-      formattedDate = `${tryDate.getMonth() + 1}/${tryDate.getDate()}/${tryDate.getFullYear()}${tryDate.getHours() || tryDate.getMinutes() ? ` ${tryDate.getHours()}:${String(tryDate.getMinutes()).padStart(2, '0')}` : ''}`;
-    } else {
-      const dateParts = donor.date.split('-');
-      if (dateParts.length === 3) {
-        const month = parseInt(dateParts[0]);
-        const day = parseInt(dateParts[1]);
-        const year = parseInt(dateParts[2]);
+    
+    try {
+      // Try to parse the date
+      const tryDate = new Date(donor.date);
+      
+      if (!isNaN(tryDate.getTime())) {
+        // Format as MM/DD/YYYY
+        const month = String(tryDate.getMonth() + 1).padStart(2, '0');
+        const day = String(tryDate.getDate()).padStart(2, '0');
+        const year = tryDate.getFullYear();
+        
         formattedDate = `${month}/${day}/${year}`;
+      } else {
+        // Try to handle MM-DD-YYYY format
+        const dateParts = donor.date.split('-');
+        if (dateParts.length === 3) {
+          const month = String(parseInt(dateParts[0])).padStart(2, '0');
+          const day = String(parseInt(dateParts[1])).padStart(2, '0');
+          const year = dateParts[2];
+          
+          formattedDate = `${month}/${day}/${year}`;
+        }
       }
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      // Keep original date if parsing fails
     }
     
     return {

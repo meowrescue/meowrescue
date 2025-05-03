@@ -5,14 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/build-with-ssg.js",
-    "build:simple": "tsc && node scripts/simple-build.cjs",
+    "build": "node scripts/build-with-ssg.js && npm run fix-csp",
+    "build:simple": "tsc && node scripts/simple-build.cjs && npm run fix-csp",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "generate-sitemap": "node scripts/generate-sitemap.js",
     "typecheck": "tsc --noEmit",
-    "build:dev": "vite build --mode development",
-    "test:seo": "node scripts/test-build.js"
+    "build:dev": "vite build --mode development && npm run fix-csp",
+    "test:seo": "node scripts/test-build.js",
+    "fix-csp": "node fix-csp-headers-build.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

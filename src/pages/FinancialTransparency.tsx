@@ -11,6 +11,7 @@ import FinancialDataTabs from "@/components/finance/FinancialDataTabs";
 import { useFinancialStats } from '@/hooks/useFinancialStats';
 import { useRecentDonors } from '@/hooks/finance/useRecentDonors';
 import { useTopDonors } from '@/hooks/finance/useTopDonors';
+import { useExpenses } from '@/hooks/finance/useExpenses';
 import getSupabaseClient from '@/integrations/supabase/client';
 
 const FinancialTransparency: React.FC = () => {
@@ -24,6 +25,9 @@ const FinancialTransparency: React.FC = () => {
   // Fetch paginated all-time donors
   const { data: recentDonors = [], isLoading: donorsLoading } = useRecentDonors({ limit: donorLimit });
   const { data: topDonors = [], isLoading: topDonorsLoading } = useTopDonors({ limit: donorLimit });
+  
+  // Fetch individual expense records
+  const { data: expenseRecords = [], isLoading: expensesLoading } = useExpenses();
 
   // Handler for loading more donors
   const handleLoadMoreDonors = () => setDonorLimit((prev) => prev + 10);
@@ -165,13 +169,13 @@ const FinancialTransparency: React.FC = () => {
             campaigns={financialStats.campaigns || []}
             recentDonors={recentDonors}
             topDonors={topDonors}
-            expenses={financialStats.totalExpenses ? [{ amount: financialStats.totalExpenses }] : []}
+            expenses={expenseRecords}
             isLoading={{
               budgetCategories: financialStats.isLoading.budgetCategories,
               campaigns: financialStats.isLoading.campaigns,
               donorsLoading,
               topDonorsLoading,
-              expensesLoading: financialStats.isLoading.totalExpenses
+              expensesLoading
             }}
             onDonate={handleDonate}
           />

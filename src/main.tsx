@@ -13,6 +13,10 @@ import '@fontsource/playfair-display/600.css'
 import '@fontsource/playfair-display/700.css'
 import { checkSupabaseSchema } from './integrations/supabase/diagnostics'
 import { ensureGlobalSupabase } from './utils/supabaseHelper'
+import { initSupabaseFixes } from './utils/supabaseFixClient'
+
+// Initialize Supabase fixes before any components try to use it
+initSupabaseFixes();
 
 // Initialize global Supabase instance before any components try to use it
 ensureGlobalSupabase();

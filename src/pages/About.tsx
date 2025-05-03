@@ -13,7 +13,7 @@ const About = () => {
   const { data: teamMembers = [], isLoading } = useQuery({
     queryKey: ['team-members'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('profiles')
         .select('id, first_name, last_name, avatar_url, role, role_title, bio, show_in_team, created_at')
         .eq('show_in_team', true)
@@ -68,34 +68,41 @@ const About = () => {
       />
       
       <div className="container mx-auto py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start mb-16">
-          <div>
-            <img
-              src="https://images.unsplash.com/photo-1595433707802-6b2626ef1c91"
-              alt="Founder with rescued cat"
-              className="rounded-lg shadow-xl w-full h-auto object-cover"
-              width="600"
-              height="400"
-              loading="eager"
-            />
-          </div>
+        <section className="mb-16">
+          <SectionHeading 
+            title="Our Founder's Story" 
+            subtitle="The journey that led to Meow Rescue" 
+            centered={false}
+          />
           
-          <div>
-            <h2 className="text-2xl font-bold text-meow-primary mb-4">Our Founder's Story</h2>
-            <p className="text-gray-700 mb-4">
-              Patrick has had a deep connection with animals since childhood, often feeling a special ability to understand them when others couldn't. After years in IT, he decided to follow his true passion for animal welfare—realizing this brings genuine happiness and allows him to use his unique gift.
-            </p>
-            <p className="text-gray-700 mb-4">
-              His long-term dream is to open a dedicated animal sanctuary for all kinds of animals in need. While skilled in IT, Patrick acknowledges the learning curve in running a rescue operation but is committed to his dream despite the challenges.
-            </p>
-            <p className="text-gray-700 mb-4">
-              The catalyst for Meow Rescue came when Patrick moved to Pasco County (near Moon Lake) about three years ago and observed a significant stray cat population. Cats in distress—injured, starving—began appearing at his home, seemingly sensing it was a safe place.
-            </p>
-            <p className="text-gray-700">
-              What started as personally funding vet care and feeding for these animals has now formalized into "Meow Rescue," as Patrick seeks community support to continue and expand this vital work.
-            </p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start mt-8">
+            <div>
+              <img
+                src="https://images.unsplash.com/photo-1595433707802-6b2626ef1c91"
+                alt="Founder with rescued cat"
+                className="rounded-lg shadow-xl w-full h-auto object-cover"
+                width="600"
+                height="400"
+                loading="eager"
+              />
+            </div>
+            
+            <div className="text-lg text-gray-700 leading-relaxed">
+              <p className="mb-4">
+                Patrick has had a deep connection with animals since childhood, often feeling a special ability to understand them when others couldn't. After years in IT, he decided to follow his true passion for animal welfare—realizing this brings genuine happiness and allows him to use his unique gift.
+              </p>
+              <p className="mb-4">
+                His long-term dream is to open a dedicated animal sanctuary for all kinds of animals in need. While skilled in IT, Patrick acknowledges the learning curve in running a rescue operation but is committed to his dream despite the challenges.
+              </p>
+              <p className="mb-4">
+                The catalyst for Meow Rescue came when Patrick moved to Pasco County (near Moon Lake) about three years ago and observed a significant stray cat population. Cats in distress—injured, starving—began appearing at his home, seemingly sensing it was a safe place.
+              </p>
+              <p>
+                What started as personally funding vet care and feeding for these animals has now formalized into "Meow Rescue," as Patrick seeks community support to continue and expand this vital work.
+              </p>
+            </div>
           </div>
-        </div>
+        </section>
         
         <hr className="section-divider mb-16" />
         
