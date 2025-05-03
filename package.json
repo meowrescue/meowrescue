@@ -100,7 +100,10 @@
     "vite": "^5.1.6",
     "vite-plugin-prerender": "^1.0.8"
   },
-  "scripts": {
-    "update-supabase": "chmod +x ./update-supabase-imports.sh && ./update-supabase-imports.sh"
-  }
+"scripts": {
+  "dev": "vite",
+  "build": "vite build",
+  "build:dev": "vite build --mode development",
+  "preview": "vite preview",
+  "update-supabase": "chmod +x ./update-supabase-imports.sh && ./update-supabase-imports.sh"
 }
