@@ -1,3 +1,4 @@
+
 import getSupabaseClient from '@/integrations/supabase/client';
 
 /**
@@ -14,8 +15,6 @@ export const logActivity = async (
   metadata?: Record<string, any>
 ): Promise<string | null> => {
   try {
-    const getSupabaseClient() = getSupabaseClient();
-    
     // Call the RPC function to log activity
     const { data, error } = await getSupabaseClient().rpc('log_activity', {
       p_activity_type: activityType,
@@ -40,7 +39,6 @@ export const logActivity = async (
  */
 export const logAuth = {
   login: async (userId: string, email: string) => {
-    const getSupabaseClient() = getSupabaseClient();
     return getSupabaseClient().rpc('log_activity', {
       p_activity_type: 'login',
       p_description: `User logged in: ${email}`,
@@ -55,7 +53,6 @@ export const logAuth = {
   },
   
   logout: async (userId: string, email: string) => {
-    const getSupabaseClient() = getSupabaseClient();
     return getSupabaseClient().rpc('log_activity', {
       p_activity_type: 'logout',
       p_description: `User logged out: ${email}`,
@@ -70,7 +67,6 @@ export const logAuth = {
   },
   
   register: async (userId: string, email: string) => {
-    const getSupabaseClient() = getSupabaseClient();
     return getSupabaseClient().rpc('log_activity', {
       p_activity_type: 'create',
       p_description: `New user registered: ${email}`,
@@ -90,7 +86,6 @@ export const logAuth = {
  */
 export const logData = {
   create: async (entity: string, id: string, name: string) => {
-    const getSupabaseClient() = getSupabaseClient();
     return getSupabaseClient().rpc('log_activity', {
       p_activity_type: 'create',
       p_description: `Created ${entity}: ${name}`,
@@ -105,7 +100,6 @@ export const logData = {
   },
   
   update: async (entity: string, id: string, name: string) => {
-    const getSupabaseClient() = getSupabaseClient();
     return getSupabaseClient().rpc('log_activity', {
       p_activity_type: 'update',
       p_description: `Updated ${entity}: ${name}`,
@@ -120,7 +114,6 @@ export const logData = {
   },
   
   delete: async (entity: string, id: string, name: string) => {
-    const getSupabaseClient() = getSupabaseClient();
     return getSupabaseClient().rpc('log_activity', {
       p_activity_type: 'delete',
       p_description: `Deleted ${entity}: ${name}`,

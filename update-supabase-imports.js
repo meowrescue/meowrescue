@@ -32,6 +32,14 @@ const updateFile = async (filePath) => {
     let newContent = content;
     let modified = false;
     
+    // Replace incorrect syntax with proper function calls
+    const incorrectSyntaxPattern = /const\s+getSupabaseClient\(\)\s*=\s*getSupabaseClient\(\);/g;
+    if (incorrectSyntaxPattern.test(newContent)) {
+      newContent = newContent.replace(incorrectSyntaxPattern, '');
+      modified = true;
+      console.log(`Fixed incorrect function declaration in: ${filePath}`);
+    }
+    
     // Replace direct imports
     const importPattern = /import\s+{\s*supabase\s*}\s+from\s+['"]@\/integrations\/supabase\/client['"];?/g;
     if (importPattern.test(newContent)) {

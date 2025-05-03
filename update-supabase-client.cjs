@@ -28,6 +28,12 @@ async function updateFile(filePath) {
     // Replace import statements
     let newContent = content;
     
+    // Replace incorrect syntax with proper function calls
+    newContent = newContent.replace(
+      /const\s+getSupabaseClient\(\)\s*=\s*getSupabaseClient\(\);/g, 
+      ''
+    );
+    
     // Replace direct imports
     newContent = newContent.replace(
       /import\s+{\s*supabase\s*}\s+from\s+['"]@\/integrations\/supabase\/client['"];?/g, 
