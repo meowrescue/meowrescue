@@ -36,53 +36,70 @@ async function fixCspHeaders(filePath) {
     // Read the file content
     let content = fs.readFileSync(filePath, 'utf8');
     
-    // Fix img-src CSP directive - make sure to include all needed image sources
-    content = content.replace(
-      /img-src\s+'self'\s+data:[^;]*/g,
-      `img-src 'self' data: blob: https://meowrescue.windsurf.build https://${supabaseDomain} https://images.unsplash.com`
-    );
+    // Define the correct CSP directives
+    const correctImgSrc = `img-src 'self' data: blob: https://meowrescue.windsurf.build https://${supabaseDomain} https://images.unsplash.com`;
+    const correctConnectSrc = `connect-src 'self' https://${supabaseDomain} wss://${supabaseDomain} https:`;
+    const correctScriptSrc = `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://${supabaseDomain}`;
     
-    // Also fix any CSP directives with getSupabaseClient().co
-    content = content.replace(
-      /img-src[^;]*getSupabaseClient\(\)\.co[^;]*/g,
-      `img-src 'self' data: blob: https://meowrescue.windsurf.build https://${supabaseDomain} https://images.unsplash.com`
-    );
+    // Find and replace all CSP directives in the content
+    // First, try to find the entire CSP header
+    const cspHeaderRegex = /Content-Security-Policy[^;]*;/g;
+    if (cspHeaderRegex.test(content)) {
+      // Extract the CSP header
+      content = content.replace(cspHeaderRegex, (match) => {
+        // Replace img-src directive
+        let newMatch = match.replace(/img-src[^;]*;/g, `${correctImgSrc};`);
+        // Replace connect-src directive
+        newMatch = newMatch.replace(/connect-src[^;]*;/g, `${correctConnectSrc};`);
+        // Replace script-src directive
+        newMatch = newMatch.replace(/script-src[^;]*;/g, `${correctScriptSrc};`);
+        return newMatch;
+      });
+    }
     
-    // Fix connect-src CSP directive - ensure proper WebSocket connections
-    content = content.replace(
-      /connect-src\s+'self'[^;]*/g,
-      `connect-src 'self' https://${supabaseDomain} wss://${supabaseDomain} https:`
-    );
+    // Fix individual CSP directives
+    // Fix img-src CSP directive - handle all variations
+    content = content.replace(/img-src[^;]*;/g, `${correctImgSrc};`);
     
-    // Also fix any connect-src with getSupabaseClient().co
-    content = content.replace(
-      /connect-src[^;]*getSupabaseClient\(\)\.co[^;]*/g,
-      `connect-src 'self' https://${supabaseDomain} wss://${supabaseDomain} https:`
-    );
+    // Fix connect-src CSP directive - handle all variations
+    content = content.replace(/connect-src[^;]*;/g, `${correctConnectSrc};`);
     
-    // Fix script-src CSP directive
-    content = content.replace(
-      /script-src\s+'self'\s+'unsafe-inline'\s+'unsafe-eval'[^;]*/g,
-      `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://${supabaseDomain}`
-    );
+    // Fix script-src CSP directive - handle all variations
+    content = content.replace(/script-src[^;]*;/g, `${correctScriptSrc};`);
     
     // Fix any meta tags with CSP
     const metaTagRegex = /<meta\s+http-equiv="Content-Security-Policy"\s+content="([^"]+)"/g;
     content = content.replace(metaTagRegex, (match, cspContent) => {
-      // Fix img-src in meta tag
-      cspContent = cspContent.replace(
-        /img-src\s+'self'\s+data:[^;]*/g,
-        `img-src 'self' data: blob: https://meowrescue.windsurf.build https://${supabaseDomain} https://images.unsplash.com`
-      );
+      // Replace img-src directive in meta tag
+      let newCspContent = cspContent.replace(/img-src[^;]*;/g, `${correctImgSrc};`);
+      // Replace connect-src directive in meta tag
+      newCspContent = newCspContent.replace(/connect-src[^;]*;/g, `${correctConnectSrc};`);
+      // Replace script-src directive in meta tag
+      newCspContent = newCspContent.replace(/script-src[^;]*;/g, `${correctScriptSrc};`);
       
-      // Fix connect-src in meta tag
-      cspContent = cspContent.replace(
-        /connect-src\s+'self'[^;]*/g,
-        `connect-src 'self' https://${supabaseDomain} wss://${supabaseDomain} https:`
-      );
-      
-      return `<meta http-equiv="Content-Security-Policy" content="${cspContent}"`;
+      return `<meta http-equiv="Content-Security-Policy" content="${newCspContent}"`;
     });
+    
+    // Fix inline style CSP directives
+    const styleTagRegex = /<style[^>]*>([^<]+)<\/style>/g;
+    content = content.replace(styleTagRegex, (match, styleContent) => {
+      // Check if the style contains CSP directives
+      if (styleContent.includes('Content-Security-Policy')) {
+        // Replace img-src directive in style
+        let newStyleContent = styleContent.replace(/img-src[^;]*;/g, `${correctImgSrc};`);
+        // Replace connect-src directive in style
+        newStyleContent = newStyleContent.replace(/connect-src[^;]*;/g, `${correctConnectSrc};`);
+        // Replace script-src directive in style
+        newStyleContent = newStyleContent.replace(/script-src[^;]*;/g, `${correctScriptSrc};`);
+        
+        return `<style>${newStyleContent}</style>`;
+      }
+      return match;
+    });
+    
+    // Fix any remaining instances of getSupabaseClient().co
+    content = content.replace(/https:\/\/[^\/]*getSupabaseClient\(\)\.co/g, `https://${supabaseDomain}`);
+    content = content.replace(/wss:\/\/[^\/]*getSupabaseClient\(\)\.co/g, `wss://${supabaseDomain}`);
     
     // Write the updated content back to the file
     fs.writeFileSync(filePath, content, 'utf8');

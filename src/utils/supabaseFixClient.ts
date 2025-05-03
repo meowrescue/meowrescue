@@ -75,27 +75,95 @@ export function fixSupabaseCSP() {
     // Extract the domain from the URL
     const supabaseDomain = new URL(supabaseUrl).hostname;
     
-    // Find all meta tags with Content-Security-Policy
+    // Define the correct CSP directives
+    const correctImgSrc = `img-src 'self' data: blob: https://meowrescue.windsurf.build https://${supabaseDomain} https://images.unsplash.com`;
+    const correctConnectSrc = `connect-src 'self' https://${supabaseDomain} wss://${supabaseDomain} https:`;
+    const correctScriptSrc = `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://${supabaseDomain}`;
+    
+    // Fix any meta tags with CSP
     const cspTags = document.querySelectorAll('meta[http-equiv="Content-Security-Policy"]');
     
     cspTags.forEach(tag => {
       let content = tag.getAttribute('content') || '';
       
-      // Fix img-src directive
-      content = content.replace(
-        /img-src\s+'self'\s+data:[^;]*(getSupabaseClient\(\)\.co|supabase\.co)[^;]*/g,
-        `img-src 'self' data: blob: https://meowrescue.windsurf.build https://${supabaseDomain} https://images.unsplash.com`
-      );
+      // Replace img-src directive
+      content = content.replace(/img-src[^;]*;/g, `${correctImgSrc};`);
       
-      // Fix connect-src directive
-      content = content.replace(
-        /connect-src\s+'self'[^;]*(getSupabaseClient\(\)\.co|supabase\.co)[^;]*/g,
-        `connect-src 'self' https://${supabaseDomain} wss://${supabaseDomain} https:`
-      );
+      // Replace connect-src directive
+      content = content.replace(/connect-src[^;]*;/g, `${correctConnectSrc};`);
+      
+      // Replace script-src directive
+      content = content.replace(/script-src[^;]*;/g, `${correctScriptSrc};`);
+      
+      // Fix any remaining instances of getSupabaseClient().co
+      content = content.replace(/https:\/\/[^\/]*getSupabaseClient\(\)\.co/g, `https://${supabaseDomain}`);
+      content = content.replace(/wss:\/\/[^\/]*getSupabaseClient\(\)\.co/g, `wss://${supabaseDomain}`);
       
       // Update the tag
       tag.setAttribute('content', content);
     });
+    
+    // Also inject a CSP fix script that will run after any dynamic CSP changes
+    const cspFixScript = document.createElement('script');
+    cspFixScript.id = 'csp-fix-script';
+    cspFixScript.type = 'text/javascript';
+    cspFixScript.textContent = `
+      (function() {
+        // Fix CSP issues that might be injected dynamically
+        function fixDynamicCSP() {
+          // Get the Supabase domain
+          const supabaseDomain = "${supabaseDomain}";
+          
+          // Define correct CSP directives
+          const correctImgSrc = "img-src 'self' data: blob: https://meowrescue.windsurf.build https://" + supabaseDomain + " https://images.unsplash.com";
+          const correctConnectSrc = "connect-src 'self' https://" + supabaseDomain + " wss://" + supabaseDomain + " https:";
+          
+          // Find any dynamically added CSP meta tags
+          const cspTags = document.querySelectorAll('meta[http-equiv="Content-Security-Policy"]');
+          
+          cspTags.forEach(tag => {
+            let content = tag.getAttribute('content') || '';
+            
+            // Fix img-src
+            if (content.includes('img-src')) {
+              content = content.replace(/img-src[^;]*;/g, correctImgSrc + ";");
+            }
+            
+            // Fix connect-src
+            if (content.includes('connect-src')) {
+              content = content.replace(/connect-src[^;]*;/g, correctConnectSrc + ";");
+            }
+            
+            // Fix any remaining instances of getSupabaseClient().co
+            content = content.replace(/https:\/\/[^\/]*getSupabaseClient\(\)\.co/g, "https://" + supabaseDomain);
+            content = content.replace(/wss:\/\/[^\/]*getSupabaseClient\(\)\.co/g, "wss://" + supabaseDomain);
+            
+            // Update the tag
+            tag.setAttribute('content', content);
+          });
+        }
+        
+        // Run immediately
+        fixDynamicCSP();
+        
+        // Also run on DOM changes to catch dynamically added CSP tags
+        const observer = new MutationObserver(function(mutations) {
+          fixDynamicCSP();
+        });
+        
+        observer.observe(document.documentElement, {
+          childList: true,
+          subtree: true
+        });
+        
+        console.log("CSP fix script completed");
+      })();
+    `;
+    
+    // Add the script to the document
+    if (!document.getElementById('csp-fix-script')) {
+      document.head.appendChild(cspFixScript);
+    }
     
     console.log('CSP headers fixed for Supabase');
   } catch (error) {
