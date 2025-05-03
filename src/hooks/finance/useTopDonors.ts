@@ -1,4 +1,3 @@
-
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
 import getSupabaseClient from '@/integrations/supabase/client';
 
@@ -16,6 +15,7 @@ interface UseTopDonorsOptions extends Omit<UseQueryOptions<TopDonor[], Error>, '
 
 export const useTopDonors = (options?: UseTopDonorsOptions) => {
   const limit = options?.limit || 10;
+  const supabase = getSupabaseClient();
   
   return useQuery<TopDonor[], Error>({
     queryKey: ['top-donors', limit],
