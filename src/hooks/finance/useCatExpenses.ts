@@ -18,7 +18,6 @@ export const useCatExpenses = () => {
   return useQuery<CatExpenseGroup[]>({
     queryKey: ["catExpenses"],
     queryFn: async () => {
-      const getSupabaseClient() = getSupabaseClient();
       // Query the expenses table with cat relationships
       const { data: expenses, error } = await getSupabaseClient()
         .from("expenses")

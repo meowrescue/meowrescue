@@ -14,7 +14,7 @@ const About = () => {
   const { data: teamMembers = [], isLoading } = useQuery({
     queryKey: ['team-members'],
     queryFn: async () => {
-      const getSupabaseClient() = getSupabaseClient();
+      // No need to reassign getSupabaseClient, just use it directly
       const { data, error } = await getSupabaseClient()
         .from('profiles')
         .select('id, first_name, last_name, avatar_url, role, role_title, bio, show_in_team, created_at')

@@ -98,7 +98,6 @@ export const checkSupabaseConnection = async () => {
   try {
     console.log('Checking Supabase connection...');
     // Simple query to test connection
-    const getSupabaseClient() = getSupabaseClient();
     const { data, error } = await getSupabaseClient().from('donations').select('id').limit(1);
     
     if (error) {
@@ -124,7 +123,6 @@ export const checkFinancialData = async () => {
     console.log('Checking financial data availability...');
     
     // Check donations
-    const getSupabaseClient() = getSupabaseClient();
     const { data: donations, error: donationsError } = await getSupabaseClient()
       .from('donations')
       .select('id, amount, donation_date')
@@ -174,10 +172,6 @@ export const checkFinancialData = async () => {
     };
   }
 };
-
-// Create a lazy-initialized getSupabaseClient() instance for backward compatibility
-// This maintains compatibility with existing code that imports { getSupabaseClient() }
-export const getSupabaseClient() = getSupabaseClient();
 
 // Default export for new code to use the getter function
 export default getSupabaseClient;

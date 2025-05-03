@@ -12,7 +12,6 @@ export const useCats = () => {
   const { data: cats } = useQuery({
     queryKey: ['cats-for-stories'],
     queryFn: async () => {
-      const getSupabaseClient() = getSupabaseClient();
       const { data, error } = await getSupabaseClient()
         .from('cats')
         .select('id, name, status');
