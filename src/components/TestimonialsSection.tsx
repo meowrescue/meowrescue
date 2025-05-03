@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import getSupabaseClient from '@/integrations/supabase/client';
@@ -8,6 +9,7 @@ const TestimonialsSection: React.FC = () => {
   const { data: testimonials, isLoading } = useQuery({
     queryKey: ['homepage-testimonials'],
     queryFn: async () => {
+      const supabase = getSupabaseClient();
       const { data, error } = await supabase
         .from('success_stories')
         .select('*, cats(name)')

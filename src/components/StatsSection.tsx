@@ -42,6 +42,7 @@ const StatsSection: React.FC = () => {
           throw new Error('Supabase connection is not available');
         }
         
+        const supabase = getSupabaseClient();
         const { count, error } = await supabase
           .from('cats')
           .select('*', { count: 'exact', head: true });
@@ -73,6 +74,7 @@ const StatsSection: React.FC = () => {
           throw new Error('Supabase connection is not available');
         }
         
+        const supabase = getSupabaseClient();
         const { count, error } = await supabase
           .from('cats')
           .select('*', { count: 'exact', head: true });
@@ -104,6 +106,7 @@ const StatsSection: React.FC = () => {
           throw new Error('Supabase connection is not available');
         }
         
+        const supabase = getSupabaseClient();
         const { count, error } = await supabase
           .from('cats')
           .select('*', { count: 'exact', head: true })

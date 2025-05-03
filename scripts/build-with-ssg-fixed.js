@@ -1,3 +1,4 @@
+
 /**
  * Enhanced build process script that runs the client build and then runs the prerender script
  */

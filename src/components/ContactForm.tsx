@@ -47,6 +47,7 @@ export default function ContactForm() {
       console.log("Submitting contact form with values:", values);
       
       // Insert the contact message into the database - using the correct enum case (New)
+      const supabase = getSupabaseClient();
       const { data, error } = await supabase
         .from('contact_messages')
         .insert([{

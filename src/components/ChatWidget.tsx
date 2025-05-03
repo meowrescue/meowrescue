@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { MessageSquareText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,8 @@ const ChatWidget: React.FC = () => {
       try {
         // Check for existing chat session in local storage
         const storedSessionId = localStorage.getItem('chatSessionId');
+        const supabase = getSupabaseClient();
+        
         if (storedSessionId) {
           setChatSessionId(storedSessionId);
           // Fetch existing messages
@@ -63,6 +66,7 @@ const ChatWidget: React.FC = () => {
   useEffect(() => {
     if (!chatSessionId) return;
     
+    const supabase = getSupabaseClient();
     const subscription = supabase
       .channel(`chat-session-${chatSessionId}-updates`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_messages', filter: `chat_session_id=eq.${chatSessionId}` }, (payload) => {
@@ -84,6 +88,7 @@ const ChatWidget: React.FC = () => {
     if (!newMessage.trim() || !chatSessionId) return;
     
     try {
+      const supabase = getSupabaseClient();
       const { data, error } = await supabase
         .from('chat_messages')
         .insert([{
