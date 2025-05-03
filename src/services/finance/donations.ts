@@ -1,12 +1,13 @@
 import getSupabaseClient from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 
+const supabase = getSupabaseClient();
+
 /**
  * Unified function to fetch sum of donations for a given date range (YTD by default)
  */
 export const getDonationsSum = async ({ startDate, endDate }: { startDate?: Date, endDate?: Date } = {}) => {
   try {
-    const supabase = getSupabaseClient();
     // Default: YTD
     const now = new Date();
     const jan1 = new Date(now.getFullYear(), 0, 1);
@@ -71,14 +72,13 @@ export const getDonationsSum = async ({ startDate, endDate }: { startDate?: Date
 export const getMonthlyDonations = async () => {
   try {
     console.log('Fetching monthly donations...');
-    const supabase = getSupabaseClient();
     // Get the first and last day of the month for the full month range
     const now = new Date();
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const firstDayOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
     console.debug('[Donations] Querying monthly donations from', firstDayOfMonth.toISOString(), 'to', firstDayOfNextMonth.toISOString());
 
-    const { data, error } = await getSupabaseClient()
+    const { data, error } = await supabase
       .from('donations')
       .select('amount')
       .eq('status', 'completed')
@@ -96,27 +96,20 @@ export const getMonthlyDonations = async () => {
     if (!data || data.length === 0) {
       console.log('No completed donations found. Checking if any donations exist without status filter...');
       
-      const { data: allData, error: allError } = await getSupabaseClient()
+      const { data: allData, error: allError } = await supabase
         .from('donations')
-        .select('amount, status, donation_date')
+        .select('amount, donation_date, status')
         .gte('donation_date', firstDayOfMonth.toISOString())
-        .lt('donation_date', firstDayOfNextMonth.toISOString())
-        .limit(10);
+        .lt('donation_date', firstDayOfNextMonth.toISOString());
         
       if (allError) {
-        console.error('Error fetching all monthly donations:', allError);
+        console.error('Error fetching all donations (no status filter):', allError);
       } else {
-        console.log('All monthly donations (any status):', allData);
-        if (allData && allData.length > 0) {
-          console.log('Found donations without status filter. Available statuses:', 
-            [...new Set(allData.map(d => d.status))]);
-        } else {
-          console.log('No donations at all for this month');
-        }
+        console.log('All donations for current month (no status filter):', allData);
       }
       
-      // Similar approach to budget_categories, try with a direct query
-      const { data: directData, error: directError } = await getSupabaseClient()
+      // Try direct sum query as a fallback
+      const { data: directData, error: directError } = await supabase
         .from('donations')
         .select('sum(amount)')
         .eq('status', 'completed')
@@ -125,11 +118,11 @@ export const getMonthlyDonations = async () => {
         .single();
       
       if (directError) {
-        console.error('Error with direct sum query:', directError);
+        console.error('Error with direct sum query for current month:', directError);
       } else {
-        console.log('Direct sum query result:', directData);
+        console.log('Direct sum query result for current month:', directData);
         if (directData && directData.sum !== null) {
-          console.log('Using direct sum:', directData.sum);
+          console.log('Using direct sum for current month:', directData.sum);
           return directData.sum;
         }
       }
@@ -143,7 +136,6 @@ export const getMonthlyDonations = async () => {
       return sum + (isNaN(amount) ? 0 : amount);
     }, 0);
     
-    console.log('Total monthly donations:', total);
     return total;
   } catch (err) {
     console.error('Failed to fetch monthly donations:', err);
@@ -156,17 +148,16 @@ export const getMonthlyDonations = async () => {
  */
 export const getPreviousMonthDonations = async () => {
   try {
-    const supabase = getSupabaseClient();
-    // Get the first day of the previous month
-    const now = new Date();
-    const firstDayOfPreviousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const firstDayOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    
     console.log('Fetching previous month donations...');
+    // Get the first day of the current month and previous month
+    const now = new Date();
+    const firstDayOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const firstDayOfPreviousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    
     console.log('Date range:', format(firstDayOfPreviousMonth, 'yyyy-MM-dd'), 'to', format(firstDayOfCurrentMonth, 'yyyy-MM-dd'));
     
     // First try with status=completed filter
-    const { data, error } = await getSupabaseClient()
+    const { data, error } = await supabase
       .from('donations')
       .select('amount')
       .eq('status', 'completed')
@@ -184,7 +175,7 @@ export const getPreviousMonthDonations = async () => {
     if (!data || data.length === 0) {
       console.log('No completed donations found for previous month. Trying direct sum query...');
       
-      const { data: directData, error: directError } = await getSupabaseClient()
+      const { data: directData, error: directError } = await supabase
         .from('donations')
         .select('sum(amount)')
         .eq('status', 'completed')
@@ -224,7 +215,6 @@ export const getPreviousMonthDonations = async () => {
 export const getTotalDonations = async () => {
   try {
     console.log('Fetching total donations...');
-    const supabase = getSupabaseClient();
     // Get the first day of the current year
     const now = new Date();
     const firstDayOfYear = new Date(now.getFullYear(), 0, 1);
@@ -232,7 +222,7 @@ export const getTotalDonations = async () => {
     console.log('Date range:', format(firstDayOfYear, 'yyyy-MM-dd'), 'to', format(now, 'yyyy-MM-dd'));
     
     // First try with status=completed filter
-    const { data, error } = await getSupabaseClient()
+    const { data, error } = await supabase
       .from('donations')
       .select('amount')
       .eq('status', 'completed')
@@ -250,7 +240,7 @@ export const getTotalDonations = async () => {
     if (!data || data.length === 0) {
       console.log('No completed donations found for year. Trying direct sum query...');
       
-      const { data: directData, error: directError } = await getSupabaseClient()
+      const { data: directData, error: directError } = await supabase
         .from('donations')
         .select('sum(amount)')
         .eq('status', 'completed')
@@ -287,7 +277,6 @@ export const getTotalDonations = async () => {
 // TEMP: Debug function to log latest 5 donations (for backend troubleshooting only)
 export const debugLogLatestDonations = async () => {
   try {
-    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('donations')
       .select('id, amount, donation_date, status')

@@ -8,22 +8,7 @@ export default defineConfig(({ mode, command }) => ({
     port: 3000,
     host: "::",
     headers: {
-      'Content-Security-Policy': `
-        default-src 'self';
-        script-src 'self' 'unsafe-inline' 'unsafe-eval';
-        style-src 'self' 'unsafe-inline';
-        img-src 'self' data: blob: https:;
-        frame-src 'self' https:;
-        connect-src 'self' https:;
-        font-src 'self' https: data:;
-        media-src 'self' https: data:;
-        object-src 'none';
-        base-uri 'self';
-        form-action 'self';
-        frame-ancestors 'self';
-        manifest-src 'self';
-        worker-src 'self' blob:;
-      `
+      'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src 'self' https:; connect-src 'self' https:; font-src 'self' https: data:; media-src 'self' https: data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; manifest-src 'self'; worker-src 'self' blob:;"
     }
   },
   plugins: [

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import getSupabaseClient from '@/integrations/supabase/client';
@@ -10,6 +9,7 @@ const EventsOverview = () => {
   const { data: upcomingEvents } = useQuery({
     queryKey: ['upcoming-events'],
     queryFn: async () => {
+      const supabase = getSupabaseClient();
       const { count, error } = await supabase
         .from('events')
         .select('*', { count: 'exact', head: true })
