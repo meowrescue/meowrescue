@@ -20,6 +20,7 @@ const CatFoodTracker: React.FC<CatFoodTrackerProps> = ({ isAdmin = false }) => {
   const { data: catFood, isLoading, error } = useQuery({
     queryKey: ['cat-food-supplies'],
     queryFn: async () => {
+      const supabase = getSupabaseClient();
       const { data, error } = await supabase
         .from('supplies')
         .select('*')

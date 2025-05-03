@@ -12,6 +12,7 @@ const FeaturedCatsSection: React.FC = () => {
   const { data: featuredCats = [], isLoading, isError } = useQuery({
     queryKey: ['featured-cats'],
     queryFn: async () => {
+      const supabase = getSupabaseClient();
       const { data, error } = await supabase
         .from('cats')
         .select('*')
