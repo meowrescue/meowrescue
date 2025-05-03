@@ -117,18 +117,20 @@ const processRecentDonors = (data: any[]): Donor[] => {
   
   // Format the data and ensure consistency between is_anonymous and isAnonymous properties
   return sortedData.map(donor => {
-    // Parse the date from MM-DD-YYYY or ISO to M/D/YYYY format (without time)
+    // Parse the date from MM-DD-YYYY or ISO to MM/DD/YYYY format (without time)
     let formattedDate = donor.date;
     // Try to parse full datetime for display
     const tryDate = new Date(donor.date);
     if (!isNaN(tryDate.getTime())) {
-      // Format as M/D/YYYY without time for display
-      formattedDate = `${tryDate.getMonth() + 1}/${tryDate.getDate()}/${tryDate.getFullYear()}`;
+      // Format as MM/DD/YYYY without time for display
+      const month = String(tryDate.getMonth() + 1).padStart(2, '0');
+      const day = String(tryDate.getDate()).padStart(2, '0');
+      formattedDate = `${month}/${day}/${tryDate.getFullYear()}`;
     } else {
       const dateParts = donor.date.split('-');
       if (dateParts.length === 3) {
-        const month = parseInt(dateParts[0]);
-        const day = parseInt(dateParts[1]);
+        const month = String(parseInt(dateParts[0])).padStart(2, '0');
+        const day = String(parseInt(dateParts[1])).padStart(2, '0');
         const year = parseInt(dateParts[2]);
         formattedDate = `${month}/${day}/${year}`;
       }

@@ -11,6 +11,7 @@ import {
   getCurrentCampaigns
 } from '@/services/finance';
 import { FundraisingCampaign } from '@/types/finance';
+import getSupabaseClient from '@/integrations/supabase/client';
 
 interface FinancialStats {
   totalIncome: number;
@@ -171,8 +172,45 @@ export const useFinancialStats = () => {
     data: expenses = [], 
     isLoading: expensesLoading 
   } = useQuery({
-    queryKey: ['expenses'],
-    queryFn: () => getExpensesSum(),
+    queryKey: ['expenses-list'],
+    queryFn: async () => {
+      try {
+        console.log("Fetching expenses list...");
+        const supabase = getSupabaseClient();
+        
+        const { data, error } = await supabase
+          .from('expenses')
+          .select('*, cats(name)')
+          .order('expense_date', { ascending: false })
+          .limit(50);
+          
+        if (error) {
+          console.error("Error fetching expenses list:", error);
+          return [];
+        }
+        
+        if (!data || data.length === 0) {
+          console.log("No expenses found in list query");
+          return [];
+        }
+        
+        console.log(`Found ${data.length} expenses in list query`);
+        
+        // Transform the data to include formatted dates
+        return data.map(expense => ({
+          ...expense,
+          date: new Date(expense.expense_date).toLocaleDateString('en-US', {
+            month: '2-digit',
+            day: '2-digit',
+            year: 'numeric'
+          }),
+          cat_name: expense.cats?.name,
+        }));
+      } catch (error) {
+        console.error("Error fetching expenses list:", error);
+        return [];
+      }
+    },
     ...commonConfig
   });
 
@@ -188,7 +226,7 @@ export const useFinancialStats = () => {
       queryClient.refetchQueries({ queryKey: ['budget-categories-base'] }),
       queryClient.refetchQueries({ queryKey: ['total-donations'] }),
       queryClient.refetchQueries({ queryKey: ['current-campaigns'] }),
-      queryClient.refetchQueries({ queryKey: ['expenses'] })
+      queryClient.refetchQueries({ queryKey: ['expenses-list'] })
     ]);
     console.log("All financial stats refetched");
   };
