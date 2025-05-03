@@ -379,5 +379,6 @@
   "src/utils/lostFoundUtils.ts": [],
   "src/utils/scrollUtils.ts": [],
   "src/utils/seo.ts": [],
-  "src/utils/stringUtils.ts": []
+  "src/utils/stringUtils.ts": [],
+  "src/utils/supabaseHelper.ts": []
 }

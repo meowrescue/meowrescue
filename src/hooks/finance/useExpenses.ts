@@ -1,4 +1,3 @@
-
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
 import getSupabaseClient from '@/integrations/supabase/client';
 
@@ -27,7 +26,7 @@ export const useExpenses = (options?: UseExpensesOptions) => {
     queryKey: ['expenses'],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase
+        const { data, error } = await getSupabaseClient()
           .from('expenses')
           .select('*, cats(name)')
           .order('expense_date', { ascending: false });

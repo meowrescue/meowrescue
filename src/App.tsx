@@ -6,6 +6,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { ensureGlobalSupabase } from "./utils/supabaseHelper";
 
 import HomePage from "./pages/HomePage";
 import About from "./pages/About";
@@ -62,6 +63,8 @@ import AdminFundraisingCampaigns from "./pages/AdminFundraisingCampaigns";
 import AdminBudget from "./pages/AdminBudget";
 
 const queryClient = new QueryClient();
+
+ensureGlobalSupabase();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

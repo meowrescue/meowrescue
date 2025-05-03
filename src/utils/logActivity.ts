@@ -17,7 +17,7 @@ export const logActivity = async (
     const supabase = getSupabaseClient();
     
     // Call the RPC function to log activity
-    const { data, error } = await supabase.rpc('log_activity', {
+    const { data, error } = await getSupabaseClient().rpc('log_activity', {
       p_activity_type: activityType,
       p_description: description,
       p_metadata: metadata ? JSON.stringify(metadata) : null
@@ -41,7 +41,7 @@ export const logActivity = async (
 export const logAuth = {
   login: async (userId: string, email: string) => {
     const supabase = getSupabaseClient();
-    return supabase.rpc('log_activity', {
+    return getSupabaseClient().rpc('log_activity', {
       p_activity_type: 'login',
       p_description: `User logged in: ${email}`,
       p_metadata: JSON.stringify({ user_id: userId, email })
@@ -56,7 +56,7 @@ export const logAuth = {
   
   logout: async (userId: string, email: string) => {
     const supabase = getSupabaseClient();
-    return supabase.rpc('log_activity', {
+    return getSupabaseClient().rpc('log_activity', {
       p_activity_type: 'logout',
       p_description: `User logged out: ${email}`,
       p_metadata: JSON.stringify({ user_id: userId, email })
@@ -71,7 +71,7 @@ export const logAuth = {
   
   register: async (userId: string, email: string) => {
     const supabase = getSupabaseClient();
-    return supabase.rpc('log_activity', {
+    return getSupabaseClient().rpc('log_activity', {
       p_activity_type: 'create',
       p_description: `New user registered: ${email}`,
       p_metadata: JSON.stringify({ user_id: userId, email })
@@ -91,7 +91,7 @@ export const logAuth = {
 export const logData = {
   create: async (entity: string, id: string, name: string) => {
     const supabase = getSupabaseClient();
-    return supabase.rpc('log_activity', {
+    return getSupabaseClient().rpc('log_activity', {
       p_activity_type: 'create',
       p_description: `Created ${entity}: ${name}`,
       p_metadata: JSON.stringify({ entity, id, name })
@@ -106,7 +106,7 @@ export const logData = {
   
   update: async (entity: string, id: string, name: string) => {
     const supabase = getSupabaseClient();
-    return supabase.rpc('log_activity', {
+    return getSupabaseClient().rpc('log_activity', {
       p_activity_type: 'update',
       p_description: `Updated ${entity}: ${name}`,
       p_metadata: JSON.stringify({ entity, id, name })
@@ -121,7 +121,7 @@ export const logData = {
   
   delete: async (entity: string, id: string, name: string) => {
     const supabase = getSupabaseClient();
-    return supabase.rpc('log_activity', {
+    return getSupabaseClient().rpc('log_activity', {
       p_activity_type: 'delete',
       p_description: `Deleted ${entity}: ${name}`,
       p_metadata: JSON.stringify({ entity, id, name })

@@ -131,11 +131,32 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/terms-of-service" />
   </url>
   <url>
+    <loc>https://meowrescue.org/blog/exciting-news-were-officially-starting-meow-rescue</loc>
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/blog/exciting-news-were-officially-starting-meow-rescue" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/blog/exciting-news-were-officially-starting-meow-rescue" />
+  </url>
+  <url>
     <loc>https://meowrescue.org/blog/index</loc>
     <lastmod>2025-05-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/blog/index" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/blog/index" />
+  </url>
+  <url>
+    <loc>https://meowrescue.org/blog/will-this-be-picked-up-by-the-prerender-script</loc>
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/blog/will-this-be-picked-up-by-the-prerender-script" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/blog/will-this-be-picked-up-by-the-prerender-script" />
+  </url>
+  <url>
+    <loc>https://meowrescue.org/cats/f3bebe8a-92b6-4bd0-ad93-3064634b1ef4</loc>
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/cats/f3bebe8a-92b6-4bd0-ad93-3064634b1ef4" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/cats/f3bebe8a-92b6-4bd0-ad93-3064634b1ef4" />
   </url>
   <url>
     <loc>https://meowrescue.org/cats/index</loc>
@@ -152,11 +173,25 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/events/index" />
   </url>
   <url>
+    <loc>https://meowrescue.org/lost-found/9c560b45-b1a5-4011-a1de-f11f0c6739d3</loc>
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/lost-found/9c560b45-b1a5-4011-a1de-f11f0c6739d3" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/lost-found/9c560b45-b1a5-4011-a1de-f11f0c6739d3" />
+  </url>
+  <url>
     <loc>https://meowrescue.org/lost-found/index</loc>
     <lastmod>2025-05-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/lost-found/index" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/lost-found/index" />
+  </url>
+  <url>
+    <loc>https://meowrescue.org/success-stories/e21cc10b-dfdc-49b2-8de5-e8aac2c083af</loc>
+    <lastmod>2025-05-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>  <xhtml:link rel="alternate" hreflang="en" href="https://meowrescue.org/success-stories/e21cc10b-dfdc-49b2-8de5-e8aac2c083af" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://meowrescue.org/success-stories/e21cc10b-dfdc-49b2-8de5-e8aac2c083af" />
   </url>
   <url>
     <loc>https://meowrescue.org/success-stories/index</loc>

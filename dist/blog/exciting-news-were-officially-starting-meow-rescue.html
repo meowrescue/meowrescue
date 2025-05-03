@@ -201,87 +201,46 @@
         });
       })();
     </script>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.gpteng.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://meowrescue.windsurf.build https://sfrlnidbiviniuqhryyc.supabase.co https://images.unsplash.com; connect-src 'self' https://sfrlnidbiviniuqhryyc.supabase.co wss://sfrlnidbiviniuqhryyc.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.gpteng.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://meowrescue.windsurf.build https://sfrlnidbiviniuqhryyc.supabase.co; connect-src 'self' https://sfrlnidbiviniuqhryyc.supabase.co wss://sfrlnidbiviniuqhryyc.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
     <script type="module" crossorigin src="/assets/main.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index.css">
-  
-        <script>
-          // Early navigation initialization to handle direct access to subpages
-          (function() {
-            // Make sure links work without JavaScript
-            document.addEventListener('click', function(e) {
-              const target = e.target.closest('a');
-              if (target && 
-                  target.href && 
-                  target.href.startsWith(window.location.origin) && 
-                  !target.getAttribute('target') && 
-                  !target.hasAttribute('download') &&
-                  !target.hasAttribute('data-no-intercept')) {
-                
-                e.preventDefault();
-                window.history.pushState({}, '', target.href);
-                
-                // Trigger a navigation event that React Router can listen to
-                window.dispatchEvent(new PopStateEvent('popstate'));
-              }
-            });
-            
-            // Handle direct navigation to subpages
-            window.addEventListener('load', function() {
-              // Force React Router to recognize the current URL
-              setTimeout(function() {
-                window.dispatchEvent(new PopStateEvent('popstate'));
-              }, 0);
-            });
-          })();
-        </script>
-</head>
+  </head>
   <body class="no-js">
     
-            <div id="root"></div>
-            <div class="fallback-content">
-              <h1>Success Stories - Meow Rescue</h1>
-              <p>Learn about success-stories at Meow Rescue, a home-based cat rescue in Pasco County, Florida.</p>
-              
-      <div class="success-stories-listing">
-        <h2>Adoption Success Stories</h2>
-        <p>Read heartwarming stories of cats we've successfully placed in loving forever homes.</p>
-        
-        <div class="stories-grid">
-          
-            <div class="story-card">
-              <h3>Title</h3>
-              
-              <div class="story-info">
-                <p><strong>Date:</strong> 4/18/2025</p>
-                
-                <a href="/success-stories/e21cc10b-dfdc-49b2-8de5-e8aac2c083af" class="view-details">Read Full Story</a>
+              <div id="root"></div>
+              <div class="fallback-content">
+                <h1>Exciting News: We're Officially Starting Meow Rescue!</h1>
+                <div class="post-details">
+                  
+                  <div class="post-info">
+                    <p><strong>Date:</strong> Recently</p>
+                    
+                    <div class="post-content">
+                      <p>Hey there, cat lovers!</p>
+<br>
+
+<p>We have some huge news to share — <strong>Meow Rescue is officially in the process of becoming a registered nonprofit!</strong> Our paperwork is filed, our mission is clear, and we're excited to start this incredible journey of saving and rehoming cats in our community.</p>
+<br>
+
+<p>Our goal is simple: <strong>rescue, care for, and find loving homes</strong> for every cat and kitten we can reach. We believe every paw deserves a second chance, and we're building Meow Rescue from the ground up to make that happen.</p>
+<br>
+
+<p>Right now, we’re working hard behind the scenes — setting up our nonprofit status, creating foster and adoption programs, and getting everything ready to start helping cats very soon.</p>
+<br>
+
+<p>Stay tuned for updates as we grow! We’ll be sharing news about volunteer opportunities, foster programs, events, and of course — adorable adoptable cats.</p>
+<br>
+
+<p>Thank you for believing in us from the very beginning. We can’t wait to make a difference together!</p>
+<br>
+
+<p><strong>The Meow Rescue Team</strong></p>
+                    </div>
+                    <a href="/blog" class="back-link">Back to Blog</a>
+                  </div>
+                </div>
               </div>
-            </div>
-          
-        </div>
-      </div>
-    
-              <nav class="fallback-nav">
-                <ul>
-                  <li><a href="/">Home</a></li>
-                <li><a href="/">Home</a></li>
-                <li><a href="/about">About Us</a></li>
-                <li><a href="/cats">Adopt a Cat</a></li>
-                <li><a href="/donate">Donate</a></li>
-                <li><a href="/volunteer">Volunteer</a></li>
-                <li><a href="/foster">Foster</a></li>
-                <li><a href="/events">Events</a></li>
-                <li><a href="/blog">Blog</a></li>
-                <li><a href="/success-stories">Success Stories</a></li>
-                <li><a href="/resources">Resources</a></li>
-                <li><a href="/lost-found">Lost & Found</a></li>
-                <li><a href="/contact">Contact Us</a></li>
-                <li><a href="/financial-transparency">Financial Transparency</a></li>
-                </ul>
-              </nav>
-            </div>
-          
+            
     
     <!-- Fallback content for SEO and non-JS users -->
     <div class="fallback-content">

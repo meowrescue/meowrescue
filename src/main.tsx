@@ -12,6 +12,10 @@ import '@fontsource/playfair-display/400.css'
 import '@fontsource/playfair-display/600.css'
 import '@fontsource/playfair-display/700.css'
 import { checkSupabaseSchema } from './integrations/supabase/diagnostics'
+import { ensureGlobalSupabase } from './utils/supabaseHelper'
+
+// Initialize global Supabase instance before any components try to use it
+ensureGlobalSupabase();
 
 // Error Boundary Component to catch initialization errors
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: Error | null}> {

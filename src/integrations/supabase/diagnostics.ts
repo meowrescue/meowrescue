@@ -1,3 +1,4 @@
+import getSupabaseClient from '@/integrations/supabase/client';
 import getSupabaseClient from './client';
 
 /**

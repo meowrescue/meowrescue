@@ -1,3 +1,4 @@
+import getSupabaseClient from '@/integrations/supabase/client';
 
 import React, { useEffect } from 'react';
 import { Cat, Heart, Home } from 'lucide-react';

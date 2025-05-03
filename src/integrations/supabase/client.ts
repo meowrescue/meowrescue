@@ -1,3 +1,4 @@
+import getSupabaseClient from '@/integrations/supabase/client';
 import { createClient } from '@supabase/supabase-js';
 
 // Ensure we use a singleton pattern for the Supabase client
@@ -98,7 +99,7 @@ export const checkSupabaseConnection = async () => {
     console.log('Checking Supabase connection...');
     // Simple query to test connection
     const supabase = await getSupabaseClient();
-    const { data, error } = await supabase.from('donations').select('id').limit(1);
+    const { data, error } = await getSupabaseClient().from('donations').select('id').limit(1);
     
     if (error) {
       console.error('Supabase connection error:', error.message);
