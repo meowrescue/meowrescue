@@ -69,7 +69,20 @@ const NavbarUserMenu: React.FC<NavbarUserMenuProps> = ({
             Profile
           </a>
         </DropdownMenuItem>
-
+        <DropdownMenuItem asChild>
+          <a 
+            href="/settings" 
+            className="w-full cursor-pointer"
+            onClick={e => {
+              if (navigate) {
+                e.preventDefault();
+                navigate('/settings');
+              }
+            }}
+          >
+            Settings
+          </a>
+        </DropdownMenuItem>
         {(user.role === "admin" || user.email?.endsWith("@meowrescue.org")) && (
           <DropdownMenuItem asChild>
             <a 

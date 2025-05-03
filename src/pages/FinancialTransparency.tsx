@@ -16,7 +16,6 @@ import getSupabaseClient from '@/integrations/supabase/client';
 const FinancialTransparency: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("summary");
   const [donorLimit, setDonorLimit] = useState<number>(10); // for pagination
-  const [topDonorLimit, setTopDonorLimit] = useState<number>(10); // top donors
   const navigate = useNavigate();
   // Use YTD stats only for transparency page
   const { financialStats } = useFinancialStats();
@@ -24,15 +23,10 @@ const FinancialTransparency: React.FC = () => {
 
   // Fetch paginated all-time donors
   const { data: recentDonors = [], isLoading: donorsLoading } = useRecentDonors({ limit: donorLimit });
-  const { data: topDonors = [], isLoading: topDonorsLoading } = useTopDonors({ limit: topDonorLimit });
-
-  // Determine if there are more donors to load
-  const hasMoreRecentDonors = recentDonors.length === donorLimit;
-  const hasMoreTopDonors = topDonors.length === topDonorLimit;
+  const { data: topDonors = [], isLoading: topDonorsLoading } = useTopDonors({ limit: donorLimit });
 
   // Handler for loading more donors
-  const handleLoadMoreRecentDonors = () => setDonorLimit((prev) => prev + 10);
-  const handleLoadMoreTopDonors = () => setTopDonorLimit((prev) => prev + 10);
+  const handleLoadMoreDonors = () => setDonorLimit((prev) => prev + 10);
 
   // Mark when client-side hydration is complete
   useEffect(() => {
@@ -171,19 +165,15 @@ const FinancialTransparency: React.FC = () => {
             campaigns={financialStats.campaigns || []}
             recentDonors={recentDonors}
             topDonors={topDonors}
-            expenses={financialStats.expenses || []}
+            expenses={financialStats.totalExpenses ? [{ amount: financialStats.totalExpenses }] : []}
             isLoading={{
               budgetCategories: financialStats.isLoading.budgetCategories,
               campaigns: financialStats.isLoading.campaigns,
               donorsLoading,
               topDonorsLoading,
-              expensesLoading: financialStats.isLoading.expenses
+              expensesLoading: financialStats.isLoading.totalExpenses
             }}
             onDonate={handleDonate}
-            onLoadMoreRecentDonors={handleLoadMoreRecentDonors}
-            onLoadMoreTopDonors={handleLoadMoreTopDonors}
-            hasMoreRecentDonors={hasMoreRecentDonors}
-            hasMoreTopDonors={hasMoreTopDonors}
           />
           
           <div className="mt-8 border-t border-gray-200 pt-4 text-center text-sm text-gray-500 w-full">

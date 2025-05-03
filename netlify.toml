@@ -1,41 +1,12 @@
 [build]
   publish = "dist"
-  command = "node scripts/netlify-build.js"
+  command = "node scripts/build-with-ssg.js"
 
-  # Environment configuration
-  [build.environment]
-    NODE_VERSION = "18.18.0"
-    NPM_VERSION = "9.8.1"
-    # These must be set in Netlify dashboard
-    VITE_SUPABASE_URL = ""
-    VITE_SUPABASE_ANON_KEY = ""
-    # Disable unused languages to speed up build
-    RUBY_VERSION = ""
-    PYTHON_VERSION = ""
-    PHP_VERSION = ""
-    GO_VERSION = ""
-    # Do NOT set public Supabase keys directly here for secrets scan compliance
-    # VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY must be set ONLY in the Netlify dashboard for production
-
-  # Cache configuration
-  [build.cache]
-    restore = true
-    save = true
-    
-    # Only cache these specific directories
-    directories = [
-      "node_modules",
-      ".vite",
-      ".cache"
-    ]
-    
-    # Clear cache when these files change
-    files = [
-      "package.json",
-      "package-lock.json",
-      "tsconfig.json",
-      "vite.config.ts"
-    ]
+[build.environment]
+  NODE_VERSION = "18.18.0"
+  NPM_VERSION = "9.8.1"
+  # Do NOT set public Supabase keys directly here for secrets scan compliance
+  # VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY must be set ONLY in the Netlify dashboard for production
 
 # Execute pre-rendering during build
 [build.processing]
@@ -45,23 +16,9 @@
   pretty_urls = true
 
 # Single simple redirect rule for SPA
-# Handle SPA navigation with more specific rules
 [[redirects]]
   from = "/*"
   to = "/index.html"
-  status = 200
-  force = true
-  query = true
-
-# Handle specific static files
-[[redirects]]
-  from = "/robots.txt"
-  to = "/robots.txt"
-  status = 200
-
-[[redirects]]
-  from = "/sitemap.xml"
-  to = "/sitemap.xml"
   status = 200
 
 [[headers]]

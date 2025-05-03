@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
@@ -55,7 +56,6 @@ const AdminEvents: React.FC = () => {
     queryFn: async () => {
       try {
         console.log("Fetching events");
-        const supabase = getSupabaseClient();
         const { data, error } = await supabase
           .from('events')
           .select('*')
@@ -88,7 +88,6 @@ const AdminEvents: React.FC = () => {
         console.log("Creating/updating event:", event);
         
         const isNewEvent = !event.id;
-        const supabase = getSupabaseClient();
         
         const { data, error } = await supabase
           .from('events')
@@ -129,10 +128,10 @@ const AdminEvents: React.FC = () => {
       console.error("Error in create/update event mutation:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to save event",
+        description: error.message,
         variant: "destructive",
       });
-    }
+    },
   });
 
   // Delete event mutation
@@ -140,8 +139,6 @@ const AdminEvents: React.FC = () => {
     mutationFn: async (id: string) => {
       try {
         console.log("Deleting event:", id);
-        const supabase = getSupabaseClient();
-        
         const { error } = await supabase
           .from('events')
           .delete()
@@ -153,7 +150,6 @@ const AdminEvents: React.FC = () => {
         }
         
         console.log("Event deleted successfully");
-        return id;
       } catch (err: any) {
         console.error("Error in delete event mutation:", err);
         throw err;
@@ -171,10 +167,10 @@ const AdminEvents: React.FC = () => {
       console.error("Error in delete event mutation:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to delete event",
+        description: error.message,
         variant: "destructive",
       });
-    }
+    },
   });
 
   // Handle opening the modal in create mode
@@ -213,26 +209,28 @@ const AdminEvents: React.FC = () => {
   };
 
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formState.title || !formState.description || !formState.location) {
+    if (!formState.title.trim() || !formState.description.trim() || !formState.location.trim() || !formState.date || !formState.image_url.trim()) {
       toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields",
+        title: "Missing Information",
+        description: "Please fill out all fields.",
         variant: "destructive",
       });
       return;
     }
     
-    createOrUpdateEvent.mutate({
+    const eventToSubmit = {
       id: formState.id,
       title: formState.title,
       description: formState.description,
       date: formState.date.toISOString(),
       location: formState.location,
       image_url: formState.image_url,
-    });
+    };
+    
+    createOrUpdateEvent.mutate(eventToSubmit);
   };
 
   // Handle deleting an event
@@ -244,162 +242,119 @@ const AdminEvents: React.FC = () => {
 
   // Upload event image
   const uploadEventImage = async (file: File) => {
-    try {
-      setIsUploading(true);
-      
-      // Generate a unique file name
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
-      const filePath = `event-images/${fileName}`;
-      
-      const supabase = getSupabaseClient();
-      
-      // Upload the file
-      const { data, error } = await supabase
-        .storage
-        .from('public')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-      
-      if (error) {
-        throw error;
-      }
-      
-      // Get the public URL
-      const { data: urlData } = supabase
-        .storage
-        .from('public')
-        .getPublicUrl(filePath);
-      
-      // Update form state with the image URL
-      setFormState({
-        ...formState,
-        image_url: urlData.publicUrl
+  setIsUploading(true);
+  const uniqueFileName = `event-${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
+  
+  try {
+    // Upload the file to Supabase storage
+    const { data, error } = await getSupabaseClient().storage
+      .from('event-images')
+      .upload(uniqueFileName, file, {
+        cacheControl: '3600',
+        contentType: file.type
       });
-      
-      toast({
-        title: "Image Uploaded",
-        description: "Image has been uploaded successfully."
-      });
-    } catch (error: any) {
-      console.error("Error uploading image:", error);
-      toast({
-        title: "Upload Error",
-        description: error.message || "Failed to upload image",
-        variant: "destructive"
-      });
-    } finally {
-      setIsUploading(false);
-    }
-  };
+    
+    if (error) throw error;
+    
+    const publicUrl = getSupabaseClient().storage.from('event-images').getPublicUrl(data.path).data.publicUrl;
+    setFormState(prev => ({ ...prev, image_url: publicUrl }));
+    toast({
+      title: "Image Uploaded",
+      description: "Event image has been uploaded successfully."
+    });
+  } catch (error: any) {
+    console.error("Error uploading image:", error);
+    toast({
+      title: "Upload Failed",
+      description: error.message || "Failed to upload image",
+      variant: "destructive"
+    });
+  } finally {
+    setIsUploading(false);
+  }
+};
 
   return (
-    <AdminLayout title="Events Management">
-      <SEO 
-        title="Events Management | Admin Dashboard" 
-        description="Manage events for Meow Rescue."
-        noindex={true}
-      />
+    <AdminLayout title="Events">
+      <SEO title="Events | Meow Rescue Admin" />
       
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-meow-primary mb-2">Events Management</h1>
-            <p className="text-gray-600">Create and manage upcoming events</p>
-          </div>
-          
-          <div className="mt-4 md:mt-0">
-            <Button 
-              onClick={openCreateModal}
-              className="flex items-center"
-            >
-              <Plus className="mr-2 h-5 w-5" />
-              Add New Event
-            </Button>
-          </div>
+      <div className="container mx-auto py-10">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold text-meow-primary">Events</h1>
+          <Button onClick={openCreateModal}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Event
+          </Button>
         </div>
         
-        {eventsLoading ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
-          </div>
-        ) : events && events.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {events.map((event) => (
-              <Card key={event.id} className="overflow-hidden">
-                {event.image_url && (
-                  <div className="h-48 overflow-hidden">
-                    <img 
-                      src={event.image_url} 
-                      alt={event.title} 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-                <CardHeader>
-                  <CardTitle className="flex justify-between items-start">
-                    <div className="truncate">{event.title}</div>
-                    <div className="flex space-x-1">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => openEditModal(event)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => handleDelete(event.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="mb-4">
-                    <p className="text-sm font-medium text-gray-500">Date</p>
-                    <p>{new Date(event.date).toLocaleDateString()}</p>
-                  </div>
-                  <div className="mb-4">
-                    <p className="text-sm font-medium text-gray-500">Location</p>
-                    <p>{event.location}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Description</p>
-                    <ScrollArea className="h-24 mt-1">
-                      <p className="text-sm">{event.description}</p>
-                    </ScrollArea>
-                  </div>
-                  <div className="mt-4">
-                    <Link to={`/events/${event.id}`}>
-                      <Button variant="outline" size="sm" className="w-full">
-                        View Event Page
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-lg text-gray-500 mb-4">No events found</p>
-            <Button onClick={openCreateModal}>Create Your First Event</Button>
-          </div>
-        )}
-        
-        {/* Create/Edit Event Modal */}
-        {isModalOpen && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto">
-              <CardHeader>
-                <CardTitle>{isEditMode ? 'Edit Event' : 'Create New Event'}</CardTitle>
+        <div className="grid grid-cols-1 gap-6">
+          {/* Events List */}
+          <div>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg font-semibold">Upcoming Events</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-0">
+                <ScrollArea className="h-[calc(100vh-20rem)]">
+                  {eventsLoading ? (
+                    <div className="flex justify-center py-6">
+                      <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-meow-primary"></div>
+                    </div>
+                  ) : events && events.length > 0 ? (
+                    <div className="divide-y divide-gray-200">
+                      {events.map((event) => (
+                        <div
+                          key={event.id}
+                          className="p-4 hover:bg-gray-50 flex items-center justify-between"
+                        >
+                          <div>
+                            <p className="font-medium">{event.title}</p>
+                            <p className="text-sm text-gray-500">
+                              {new Date(event.date).toLocaleDateString()} - {event.location}
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="icon" 
+                              onClick={() => openEditModal(event)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="destructive" 
+                              size="icon" 
+                              onClick={() => handleDelete(event.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-6 text-center text-gray-500">
+                      <p>No events found</p>
+                    </div>
+                  )}
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+      
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 overflow-auto bg-black/50">
+          <div className="relative w-auto mx-auto max-w-2xl my-20">
+            <Card className="bg-white rounded-lg shadow-xl">
+              <CardHeader className="border-b">
+                <CardTitle className="text-xl font-bold">
+                  {isEditMode ? 'Edit Event' : 'Add Event'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
                     <Label htmlFor="title">Title</Label>
@@ -501,8 +456,8 @@ const AdminEvents: React.FC = () => {
               </CardContent>
             </Card>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </AdminLayout>
   );
 };

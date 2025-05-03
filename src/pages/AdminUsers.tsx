@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import getSupabaseClient from '@/integrations/supabase/client';
@@ -58,7 +59,6 @@ const AdminUsers = () => {
   const { data: users, isLoading } = useQuery({
     queryKey: ['admin-users'],
     queryFn: async () => {
-      const supabase = await getSupabaseClient();
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -73,8 +73,7 @@ const AdminUsers = () => {
   const addUserMutation = useMutation({
     mutationFn: async (userData: typeof newUser) => {
       // Create auth user first
-      const supabase = await getSupabaseClient();
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const { data: authData, error: authError } = await getSupabaseClient().auth.signUp({
         email: userData.email,
         password: userData.password,
         options: {
@@ -118,7 +117,6 @@ const AdminUsers = () => {
   // Update user role mutation
   const updateRoleMutation = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: UserRole }) => {
-      const supabase = await getSupabaseClient();
       const { error } = await supabase
         .from('profiles')
         .update({ role })
@@ -133,20 +131,21 @@ const AdminUsers = () => {
         description: `User role has been updated to ${data.role}.`
       });
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      return Promise.resolve();
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to update user role",
+        description: error.message || "Failed to update role",
         variant: "destructive"
       });
+      return Promise.reject(error);
     }
   });
 
   // Update user status mutation
   const updateStatusMutation = useMutation({
     mutationFn: async ({ userId, isActive }: { userId: string; isActive: boolean }) => {
-      const supabase = await getSupabaseClient();
       const { error } = await supabase
         .from('profiles')
         .update({ is_active: isActive })
@@ -161,36 +160,43 @@ const AdminUsers = () => {
         description: `User has been ${data.isActive ? 'activated' : 'deactivated'}.`
       });
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      return Promise.resolve();
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to update user status",
+        description: error.message || "Failed to update status",
         variant: "destructive"
       });
+      return Promise.reject(error);
     }
   });
 
-  // Filter users based on search query and filters
+  // Filter users based on search, role, and status
   const filteredUsers = users?.filter(user => {
-    // Search filter
-    const matchesSearch = searchQuery === '' || 
+    const matchesSearch = 
+      searchQuery === '' || 
       user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (user.first_name && user.first_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (user.last_name && user.last_name.toLowerCase().includes(searchQuery.toLowerCase()));
     
-    // Role filter
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
     
-    // Status filter
-    const matchesStatus = statusFilter === 'all' || 
-      (statusFilter === 'active' && user.is_active) ||
+    const matchesStatus = 
+      statusFilter === 'all' || 
+      (statusFilter === 'active' && user.is_active) || 
       (statusFilter === 'inactive' && !user.is_active);
     
     return matchesSearch && matchesRole && matchesStatus;
   });
 
-  // Reset the new user form
+  const roleCountByType = users?.reduce<Record<string, number>>((acc, user) => {
+    const role = user.role;
+    if (!acc[role]) acc[role] = 0;
+    acc[role]++;
+    return acc;
+  }, {});
+
   const resetNewUserForm = () => {
     setNewUser({
       email: '',
@@ -207,94 +213,84 @@ const AdminUsers = () => {
   };
 
   // Handle role change
-  const handleRoleChange = async (userId: string, newRole: string): Promise<void> => {
-    if (!['admin', 'volunteer', 'foster', 'user'].includes(newRole)) {
+  const handleRoleChange = (userId: string, newRole: string): Promise<void> => {
+    // Ensure newRole is a valid UserRole before passing to mutation
+    if (['admin', 'volunteer', 'foster', 'user'].includes(newRole)) {
+      return updateRoleMutation.mutateAsync({ 
+        userId, 
+        role: newRole as UserRole 
+      }).then(() => {
+        // Return void to match the Promise<void> return type
+        return;
+      });
+    } else {
       toast({
         title: "Invalid Role",
-        description: "The selected role is not valid.",
+        description: `The role "${newRole}" is not valid.`,
         variant: "destructive"
       });
-      return;
+      return Promise.reject(new Error(`Invalid role: ${newRole}`));
     }
-    
-    updateRoleMutation.mutate({ 
-      userId, 
-      role: newRole as UserRole 
-    });
   };
 
   // Handle status change
-  const handleStatusChange = async (userId: string, isActive: boolean): Promise<void> => {
-    updateStatusMutation.mutate({ userId, isActive });
+  const handleStatusChange = (userId: string, isActive: boolean): Promise<void> => {
+    return updateStatusMutation.mutateAsync({ userId, isActive }).then(() => {
+      // Return void to match the Promise<void> return type
+      return;
+    });
   };
 
   return (
     <AdminLayout title="User Management">
-      <SEO 
-        title="User Management | Admin Dashboard" 
-        description="Manage users, roles, and permissions for Meow Rescue."
-        noindex={true}
-      />
+      <SEO title="User Management | Meow Rescue Admin" />
       
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-meow-primary mb-2">User Management</h1>
-            <p className="text-gray-600">Manage users, roles, and permissions</p>
-          </div>
+      <div className="container mx-auto py-10">
+        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+          <h1 className="text-3xl font-bold text-meow-primary">User Management</h1>
           
-          <div className="mt-4 md:mt-0">
-            <Button 
-              onClick={() => setShowAddUserDialog(true)}
-              className="flex items-center"
+          <div className="flex gap-4">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setShowFilters(!showFilters)}
+              className={showFilters ? 'bg-gray-100' : ''}
             >
-              <UserPlus className="mr-2 h-5 w-5" />
+              <Filter className="h-4 w-4" />
+            </Button>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Search users..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 md:w-80"
+              />
+            </div>
+            <Button onClick={() => setShowAddUserDialog(true)}>
+              <UserPlus className="mr-2 h-4 w-4" />
               Add User
             </Button>
           </div>
         </div>
         
-        <Card className="mb-6">
-          <CardHeader className="pb-3">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <CardTitle className="text-xl flex items-center">
-                <Users className="mr-2 h-5 w-5" />
-                Users
-              </CardTitle>
-              
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                  <Input
-                    placeholder="Search users..."
-                    className="pl-10 w-full sm:w-64"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
-                
-                <Button 
-                  variant="outline" 
-                  className="flex items-center"
-                  onClick={() => setShowFilters(!showFilters)}
-                >
-                  <Filter className="mr-2 h-4 w-4" />
-                  Filters
-                </Button>
-              </div>
-            </div>
-            
-            {showFilters && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                <div>
-                  <Label htmlFor="role-filter" className="mb-2 block">Role</Label>
-                  <Select value={roleFilter} onValueChange={setRoleFilter}>
-                    <SelectTrigger id="role-filter">
-                      <SelectValue placeholder="Filter by role" />
+        {showFilters && (
+          <Card className="mb-6">
+            <CardContent className="pt-6">
+              <div className="flex flex-wrap gap-4">
+                <div className="w-full md:w-auto">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                  <Select 
+                    value={roleFilter} 
+                    onValueChange={setRoleFilter}
+                  >
+                    <SelectTrigger className="w-full md:w-40">
+                      <SelectValue placeholder="All Roles" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Roles</SelectItem>
                       <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="staff">Staff</SelectItem>
                       <SelectItem value="volunteer">Volunteer</SelectItem>
                       <SelectItem value="foster">Foster</SelectItem>
                       <SelectItem value="user">User</SelectItem>
@@ -302,23 +298,96 @@ const AdminUsers = () => {
                   </Select>
                 </div>
                 
-                <div>
-                  <Label htmlFor="status-filter" className="mb-2 block">Status</Label>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger id="status-filter">
-                      <SelectValue placeholder="Filter by status" />
+                <div className="w-full md:w-auto">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                  <Select 
+                    value={statusFilter} 
+                    onValueChange={setStatusFilter}
+                  >
+                    <SelectTrigger className="w-full md:w-40">
+                      <SelectValue placeholder="All Status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Statuses</SelectItem>
+                      <SelectItem value="all">All Status</SelectItem>
                       <SelectItem value="active">Active</SelectItem>
                       <SelectItem value="inactive">Inactive</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-            )}
-          </CardHeader>
+            </CardContent>
+          </Card>
+        )}
+        
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <div className="p-3 rounded-full bg-blue-100 text-blue-600">
+                  <Users className="h-6 w-6" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500">Total Users</p>
+                  <p className="text-xl font-semibold">{users?.length || 0}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
           
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <div className="p-3 rounded-full bg-purple-100 text-purple-600">
+                  <ShieldCheck className="h-6 w-6" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500">Admins</p>
+                  <p className="text-xl font-semibold">{roleCountByType?.admin || 0}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <div className="p-3 rounded-full bg-green-100 text-green-600">
+                  <CheckCircle className="h-6 w-6" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500">Active</p>
+                  <p className="text-xl font-semibold">
+                    {users?.filter(user => user.is_active).length || 0}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <div className="p-3 rounded-full bg-red-100 text-red-600">
+                  <UserX className="h-6 w-6" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500">Inactive</p>
+                  <p className="text-xl font-semibold">
+                    {users?.filter(user => !user.is_active).length || 0}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Users className="mr-2 h-5 w-5" />
+              User List
+            </CardTitle>
+          </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="flex justify-center py-8">
@@ -330,14 +399,15 @@ const AdminUsers = () => {
                   <UserCard 
                     key={user.id}
                     user={user as unknown as UserType}
-                    onRoleChange={handleRoleChange}
-                    onStatusChange={handleStatusChange}
+                    onRoleChange={(role) => handleRoleChange(user.id, role)}
+                    onStatusChange={(isActive) => handleStatusChange(user.id, isActive)}
                     refetchUsers={() => queryClient.invalidateQueries({ queryKey: ['admin-users'] })}
                   />
                 ))}
               </div>
             ) : (
               <div className="text-center py-8">
+                <Users className="h-12 w-12 mx-auto text-gray-400 mb-3" />
                 <p className="text-gray-500">No users found matching your filters.</p>
               </div>
             )}

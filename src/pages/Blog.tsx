@@ -25,7 +25,6 @@ const Blog: React.FC = () => {
     queryKey: ['blogPosts'],
     queryFn: async () => {
       try {
-        const supabase = getSupabaseClient();
         const { data, error } = await supabase
           .from('blog_posts')
           .select('*')
@@ -45,7 +44,6 @@ const Blog: React.FC = () => {
   });
 
   useEffect(() => {
-    const supabase = getSupabaseClient();
     const subscription = supabase
       .channel('blog-posts-updates')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'blog_posts' }, (payload) => {
@@ -124,126 +122,85 @@ const Blog: React.FC = () => {
       <div className="bg-white py-16">
         <div className="container mx-auto px-4">
           {/* Search Bar */}
-          <div className="max-w-md mx-auto mb-12">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                type="search"
-                id="blog-search"
-                className="block w-full p-4 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-white focus:ring-meow-primary focus:border-meow-primary"
-                placeholder="Search blog posts..."
-                required
+          <div className="max-w-xl mx-auto mb-12 relative">
+            <div className="relative flex items-center">
+              <Search className="absolute left-4 h-5 w-5 text-gray-400" />
+              <input 
+                type="text" 
+                placeholder="Search articles..." 
+                className="w-full pl-12 pr-4 py-3 rounded-full border border-gray-200 focus:border-meow-primary focus:ring focus:ring-meow-primary/20 transition-all shadow-sm"
               />
-              <button
-                type="submit"
-                className="text-white absolute right-2.5 bottom-2.5 bg-meow-primary hover:bg-meow-primary/90 focus:ring-4 focus:outline-none focus:ring-meow-primary/50 font-medium rounded-lg text-sm px-4 py-2"
-              >
-                Search
-              </button>
             </div>
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[...Array(6)].map((_, i) => (
-                <Card key={i} className="h-full flex flex-col overflow-hidden bg-white border border-gray-100 rounded-xl shadow-sm">
-                  <div className="relative">
-                    <AspectRatio ratio={16/9}>
-                      <div className="w-full h-full bg-gray-200 animate-pulse"></div>
-                    </AspectRatio>
-                  </div>
-                  <CardHeader className="p-6 pb-3">
-                    <div className="h-6 bg-gray-200 animate-pulse rounded mb-2"></div>
-                    <div className="h-4 bg-gray-100 animate-pulse rounded"></div>
-                  </CardHeader>
-                  <CardContent className="px-6 py-2 flex-grow">
-                    <div className="h-4 bg-gray-100 animate-pulse rounded mb-2"></div>
-                    <div className="h-4 bg-gray-100 animate-pulse rounded mb-2"></div>
-                    <div className="h-4 bg-gray-100 animate-pulse rounded"></div>
-                  </CardContent>
-                  <CardFooter className="p-6 pt-3">
-                    <div className="h-4 bg-gray-100 animate-pulse rounded w-1/3"></div>
-                  </CardFooter>
-                </Card>
-              ))}
+            <div className="flex justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary"></div>
             </div>
           ) : isError ? (
-            <div className="text-center py-16 bg-red-50 rounded-2xl">
-              <div className="max-w-md mx-auto">
-                <h3 className="text-2xl font-semibold text-red-800 mb-4">Something went wrong</h3>
-                <p className="text-red-600 mb-8">We couldn't load the blog posts. Please try again later.</p>
-                <Button onClick={() => refetchBlogPosts()} className="bg-meow-primary hover:bg-meow-primary/90">
-                  Try Again
-                </Button>
-              </div>
+            <div className="text-center py-12">
+              <p className="text-lg text-red-500 mb-4">We encountered an error loading the blog posts.</p>
+              <Button variant="outline" onClick={() => window.location.reload()}>Try Again</Button>
             </div>
           ) : posts && posts.length > 0 ? (
             <div>
-              {/* Featured Post */}
+              {/* Featured Post - Only show if there is an explicitly featured post */}
               {featuredPost && (
-                <div className="mb-16">
-                  <SectionHeading>Featured Story</SectionHeading>
-                  <Card 
-                    className="overflow-hidden bg-white border border-gray-100 rounded-xl shadow-md transition-all hover:shadow-lg cursor-pointer"
+                <div className="mb-20">
+                  <div className="mb-6">
+                    <h2 className="text-2xl font-bold text-gray-900">Featured Story</h2>
+                    <div className="h-1 bg-meow-secondary w-20 mt-3"></div>
+                  </div>
+                  <div 
+                    className="grid md:grid-cols-2 gap-8 bg-gray-50 rounded-2xl overflow-hidden shadow-md transition-transform hover:shadow-lg cursor-pointer"
                     onClick={() => handleCardClick(featuredPost.slug)}
                   >
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="relative">
-                        <AspectRatio ratio={16/9} className="h-full">
-                          {featuredPost.featured_image_url ? (
-                            <img 
-                              src={featuredPost.featured_image_url}
-                              alt={featuredPost.title}
-                              className="w-full h-full object-cover"
-                              loading="eager"
-                              decoding="async"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-meow-primary/10 flex items-center justify-center">
-                              <span className="text-meow-primary">Meow Rescue</span>
-                            </div>
-                          )}
-                        </AspectRatio>
-                      </div>
-                      <div className="flex flex-col justify-center p-6">
-                        <CardTitle className="text-2xl md:text-3xl text-gray-900 mb-4 line-clamp-2">
-                          {featuredPost.title}
-                        </CardTitle>
-                        <CardDescription className="flex items-center text-sm mb-4">
-                          <Calendar className="h-4 w-4 mr-2" />
-                          <time dateTime={featuredPost.published_at}>
-                            {new Date(featuredPost.published_at).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            })}
-                          </time>
-                          <span className="mx-2">•</span>
-                          <Clock className="h-4 w-4 mr-2" />
-                          <span>{calculateReadingTime(featuredPost.content)} min read</span>
-                        </CardDescription>
-                        <p className="text-gray-600 mb-6 line-clamp-3">
-                          {featuredPost.content.replace(/<[^>]*>/g, '').substring(0, 200)}...
-                        </p>
-                        <Button 
-                          variant="default" 
-                          className="w-fit group bg-meow-primary hover:bg-meow-primary/90"
-                        >
-                          Read Full Story
-                          <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                        </Button>
-                      </div>
+                    <div className="relative h-64 md:h-full">
+                      {featuredPost.featured_image_url ? (
+                        <img 
+                          src={featuredPost.featured_image_url} 
+                          alt={featuredPost.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-meow-primary/20 flex items-center justify-center">
+                          <span className="text-meow-primary font-semibold">Meow Rescue</span>
+                        </div>
+                      )}
                     </div>
-                  </Card>
+                    <div className="p-8 flex flex-col">
+                      <div className="flex items-center text-sm text-gray-500 mb-3">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        <time dateTime={featuredPost.published_at}>
+                          {new Date(featuredPost.published_at).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </time>
+                        <span className="mx-2">•</span>
+                        <Clock className="h-4 w-4 mr-2" />
+                        <span>{calculateReadingTime(featuredPost.content)} min read</span>
+                      </div>
+                      <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 hover:text-meow-primary transition-colors">
+                        {featuredPost.title}
+                      </h3>
+                      <p className="text-gray-600 mb-6 flex-grow">
+                        {featuredPost.content.replace(/<[^>]*>/g, '').substring(0, 200)}...
+                      </p>
+                      <Button className="self-start group bg-meow-primary hover:bg-meow-primary/90 flex items-center">
+                        Read Full Story
+                        <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               )}
 
               {/* Regular Posts */}
-              <div className="mb-8">
+              <div>
                 <div className="mb-8">
-                  <SectionHeading>Latest Stories</SectionHeading>
+                  <h2 className="text-2xl font-bold text-gray-900">{featuredPost ? 'All Stories' : 'Stories'}</h2>
                   <div className="h-1 bg-meow-secondary w-20 mt-3"></div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

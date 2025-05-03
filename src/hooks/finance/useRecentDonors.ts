@@ -103,34 +103,22 @@ const processRecentDonors = (data: any[]): Donor[] => {
       }
       return 0;
     };
-    
-    const dateA = parseDateTime(a.date);
-    const dateB = parseDateTime(b.date);
-    
-    // Ensure we're sorting by most recent first
-    return dateB - dateA;
+    return parseDateTime(b.date) - parseDateTime(a.date);
   });
-  
-  console.log("Sorted donors by date (most recent first):", 
-    sortedData.map(d => ({ name: d.name, date: d.date }))
-  );
   
   // Format the data and ensure consistency between is_anonymous and isAnonymous properties
   return sortedData.map(donor => {
-    // Parse the date from MM-DD-YYYY or ISO to MM/DD/YYYY format (without time)
+    // Parse the date from MM-DD-YYYY or ISO to M/D/YYYY H:mm if possible
     let formattedDate = donor.date;
     // Try to parse full datetime for display
     const tryDate = new Date(donor.date);
     if (!isNaN(tryDate.getTime())) {
-      // Format as MM/DD/YYYY without time for display
-      const month = String(tryDate.getMonth() + 1).padStart(2, '0');
-      const day = String(tryDate.getDate()).padStart(2, '0');
-      formattedDate = `${month}/${day}/${tryDate.getFullYear()}`;
+      formattedDate = `${tryDate.getMonth() + 1}/${tryDate.getDate()}/${tryDate.getFullYear()}${tryDate.getHours() || tryDate.getMinutes() ? ` ${tryDate.getHours()}:${String(tryDate.getMinutes()).padStart(2, '0')}` : ''}`;
     } else {
       const dateParts = donor.date.split('-');
       if (dateParts.length === 3) {
-        const month = String(parseInt(dateParts[0])).padStart(2, '0');
-        const day = String(parseInt(dateParts[1])).padStart(2, '0');
+        const month = parseInt(dateParts[0]);
+        const day = parseInt(dateParts[1]);
         const year = parseInt(dateParts[2]);
         formattedDate = `${month}/${day}/${year}`;
       }

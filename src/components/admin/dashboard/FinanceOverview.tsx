@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,11 +7,11 @@ import { calculatePercentageChange } from '@/utils/financeUtils';
 import FinanceStatCard from './finance/FinanceStatCard';
 
 const FinanceOverview = () => {
-  const { financialStats } = useFinancialStats();
-
-  const monthlyDonations = financialStats?.monthlyIncome || 0;
-  const monthlyExpenses = financialStats?.monthlyExpenses || 0;
-  const previousMonthDonations = financialStats?.previousMonthIncome || 0;
+  const { 
+    monthlyDonations, 
+    monthlyExpenses, 
+    previousMonthDonations 
+  } = useFinancialStats();
 
   const donationsPercentChange = 
     previousMonthDonations !== undefined && monthlyDonations !== undefined
@@ -32,21 +33,21 @@ const FinanceOverview = () => {
         <div className="flex flex-col sm:flex-row gap-4 justify-between">
           <FinanceStatCard
             title="Monthly Donations"
-            amount={monthlyDonations}
+            amount={monthlyDonations || 0}
             percentageChange={donationsPercentChange}
             bgColor="bg-green-50"
             textColor="text-green-600"
           />
           <FinanceStatCard
             title="Monthly Income"
-            amount={monthlyDonations}
+            amount={monthlyDonations || 0}
             percentageChange={donationsPercentChange}
             bgColor="bg-blue-50"
             textColor="text-blue-600"
           />
           <FinanceStatCard
             title="Expenses"
-            amount={monthlyExpenses}
+            amount={monthlyExpenses || 0}
             percentageChange={2.7}
             bgColor="bg-amber-50"
             textColor="text-amber-600"
@@ -58,3 +59,4 @@ const FinanceOverview = () => {
 };
 
 export default FinanceOverview;
+

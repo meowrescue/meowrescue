@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import getSupabaseClient from '@/integrations/supabase/client';
@@ -23,7 +24,6 @@ const ActivityFeed = () => {
   const { data: recentActivity, isLoading, error } = useQuery({
     queryKey: ['recent-activity'],
     queryFn: async () => {
-      const supabase = getSupabaseClient();
       const { data, error } = await supabase
         .from('activity_logs')
         .select(`

@@ -16,11 +16,8 @@ const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const location = useLocation();
-  const navigate = typeof window !== 'undefined' ? useNavigate() : null;
   const isMobile = useIsMobile();
   const { user, signOut } = useAuth();
-  const [isMouseInDropdown, setIsMouseInDropdown] = useState(false);
-  const [dropdownTimeout, setDropdownTimeout] = useState<NodeJS.Timeout | null>(null);
 
   // Debug logging for navigation state
   useEffect(() => {
@@ -71,66 +68,27 @@ const Navbar: React.FC = () => {
     setOpenDropdown(openDropdown === dropdown ? null : dropdown);
   };
 
-  // Function to handle dropdown item click
-  const handleDropdownItemClick = (path: string) => {
-    if (navigate) {
-      // Replace state to prevent multiple back button issues
-      navigate(path, { replace: true });
-      // Close dropdown after navigation
-      setTimeout(() => setOpenDropdown(null), 50);
-    }
-  };
-
-  const handleLinkClick = (path: string) => {
-    if (navigate) {
-      // Replace state to prevent multiple back button issues
-      navigate(path, { replace: true });
-      // Close dropdown after navigation
-      setTimeout(() => setOpenDropdown(null), 50);
-    }
-  };
-
   // Add a click outside handler to close the menu when clicked outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (isMenuOpen && !event.target) {
+      // Close dropdown when clicked outside
+      if (openDropdown && !(event.target as Element).closest('.dropdown-menu-container')) {
+        setOpenDropdown(null);
+      }
+      
+      // Close mobile menu when clicked outside
+      if (isMenuOpen && 
+          !(event.target as Element).closest('.mobile-menu-container') && 
+          !(event.target as Element).closest('button[aria-label="Toggle mobile menu"]')) {
         closeMenu();
       }
     };
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isMenuOpen]);
-
-  // Add a click outside handler to close dropdowns
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (openDropdown && !event.target) {
-        setOpenDropdown(null);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [openDropdown]);
-
-  // Add hover timeout logic for dropdowns
-  const handleMouseEnterDropdown = () => {
-    setIsMouseInDropdown(true);
-    if (dropdownTimeout) clearTimeout(dropdownTimeout);
-  };
-
-  const handleMouseLeaveDropdown = () => {
-    setIsMouseInDropdown(false);
-    // Only close after a short delay to allow mouse movement
-    dropdownTimeout = setTimeout(() => {
-      if (!isMouseInDropdown) {
-        setOpenDropdown(null);
-      }
-    }, 300); // 300ms delay before closing
-  };
+  }, [isMenuOpen, openDropdown]);
 
   return (
     <div className={`w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white shadow-md' : 'bg-white/90'}`}>

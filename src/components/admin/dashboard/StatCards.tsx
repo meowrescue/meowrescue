@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import getSupabaseClient from '@/integrations/supabase/client';
@@ -8,7 +9,6 @@ const StatCards = () => {
   const { data: catsCount } = useQuery({
     queryKey: ['cats-count'],
     queryFn: async () => {
-      const supabase = getSupabaseClient();
       const { count, error } = await supabase
         .from('cats')
         .select('*', { count: 'exact', head: true });
@@ -21,7 +21,6 @@ const StatCards = () => {
   const { data: adoptionsCount } = useQuery({
     queryKey: ['adoptions-count'],
     queryFn: async () => {
-      const supabase = getSupabaseClient();
       const { count, error } = await supabase
         .from('applications')
         .select('*', { count: 'exact', head: true })
@@ -35,7 +34,6 @@ const StatCards = () => {
   const { data: pendingApplications } = useQuery({
     queryKey: ['pending-applications'],
     queryFn: async () => {
-      const supabase = getSupabaseClient();
       const { count, error } = await supabase
         .from('applications')
         .select('*', { count: 'exact', head: true })
@@ -49,7 +47,6 @@ const StatCards = () => {
   const { data: unreadMessages } = useQuery({
     queryKey: ['unread-messages'],
     queryFn: async () => {
-      const supabase = getSupabaseClient();
       const { count, error } = await supabase
         .from('contact_messages')
         .select('*', { count: 'exact', head: true })
