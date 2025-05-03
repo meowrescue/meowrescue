@@ -13,11 +13,12 @@ import '@fontsource/playfair-display/600.css'
 import '@fontsource/playfair-display/700.css'
 import { checkSupabaseSchema } from './integrations/supabase/diagnostics'
 import { ensureBackwardCompatibility } from './utils/supabaseClient'
-import { initErrorLogging } from './services/errorLogging'
-import { initDatabaseMonitoring } from './services/databaseMonitoring'
-import auditLogging from './services/auditLogging'
+// Import the initialized errorLogging service
 import { initializeGlobalErrorHandling } from './services/errorLogging'
+// Import the database monitor
 import { initDatabaseMonitor } from './services/databaseMonitor'
+// Import audit logging
+import auditLogging from './services/auditLogging'
 
 // Initialize Supabase backward compatibility for legacy code
 ensureBackwardCompatibility();
@@ -34,9 +35,7 @@ initDatabaseMonitor({
   }
 });
 
-// Initialize security services
-initErrorLogging()
-initDatabaseMonitoring()
+// Initialize audit logging
 auditLogging.ensureAuditLogsTable()
 
 // Error Boundary Component to catch initialization errors

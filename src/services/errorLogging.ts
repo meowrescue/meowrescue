@@ -181,11 +181,15 @@ export function initializeGlobalErrorHandling(): void {
   }
 }
 
+// Add alias for initErrorLogging to fix the build error
+export const initErrorLogging = initializeGlobalErrorHandling;
+
 export default {
   logError,
   createErrorBoundaryHandler,
   handleAsyncError,
   initializeGlobalErrorHandling,
+  initErrorLogging, // Also add to default export
   logSecurityEvent,
   logSecurityIssue,
   ErrorSeverity
