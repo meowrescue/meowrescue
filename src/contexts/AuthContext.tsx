@@ -53,8 +53,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   .eq('id', newSession.user.id)
                   .single();
                 
-                if (profileError && profileError.code !== 'PGRST116') { // PGRST116 is "No rows returned"
-                  console.error('Auth change: error fetching profile:', profileError);
+                if (profileError) {
+                  // Improved error logging with more detailed information
+                  if (profileError.code === 'PGRST116') { // "No rows returned"
+                    console.log('Auth change: No profile found for this user - may need to create one');
+                  } else {
+                    console.error('Auth change: error fetching profile:', profileError);
+                    console.error('Error details:', {
+                      code: profileError.code,
+                      message: profileError.message,
+                      details: profileError.details,
+                      hint: profileError.hint
+                    });
+                  }
                 }
                 
                 // Merge auth user with profile data
@@ -124,8 +135,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               .eq('id', session.user.id)
               .single();
             
-            if (profileError && profileError.code !== 'PGRST116') {
-              console.error('Error fetching profile:', profileError);
+            if (profileError) {
+              if (profileError.code === 'PGRST116') {
+                console.log('No profile found for this user - may need to create one');
+              } else {
+                console.error('Error fetching profile:', profileError);
+                console.error('Error details:', {
+                  code: profileError.code, 
+                  message: profileError.message,
+                  details: profileError.details,
+                  hint: profileError.hint
+                });
+              }
             }
             
             // Merge auth user with profile data
@@ -176,6 +197,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (error) {
         console.error('Sign in error:', error);
+        
+        // Enhanced error reporting with more details
+        if (error.message.includes('Database error')) {
+          console.error('This appears to be a database permission issue that needs fixing on the Supabase side');
+          console.error('Please run the emergency_auth_fix.sql script in the Supabase SQL editor');
+        }
+        
         setError(error.message);
         return { success: false, error: error.message };
       }
@@ -212,6 +240,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) {
+        // Enhanced error reporting
+        console.error('Sign up error:', error);
+        if (error.message.includes('Database error')) {
+          console.error('This appears to be a database permission issue that needs fixing on the Supabase side');
+          console.error('Please run the emergency_auth_fix.sql script in the Supabase SQL editor');
+        }
+        
         setError(error.message);
         return { success: false, error: error.message };
       }
@@ -222,6 +257,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return { success: true };
     } catch (err: any) {
+      console.error('Exception during sign up:', err);
       setError(err.message || 'An error occurred during sign up');
       return { success: false, error: err.message || 'An error occurred during sign up' };
     } finally {
@@ -279,6 +315,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signOut,
     resetPassword,
   };
+
+  // Add debugging info to the console in development
+  if (import.meta.env.DEV) {
+    console.log('Login page - Auth state:', {
+      user: user ? user.id : 'No user',
+      session: session ? 'Session exists' : 'No session',
+      isLoading: loading,
+      authLoading: loading,
+      authError: error
+    });
+    
+    if (error) {
+      console.log('Auth context error:', error);
+    }
+  }
 
   return (
     <AuthContext.Provider value={value}>

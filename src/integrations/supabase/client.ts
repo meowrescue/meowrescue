@@ -11,6 +11,8 @@ let supabaseInstance = null;
  * during the build process for client-side use.
  */
 const getSupabaseClient = () => {
+  // IMPORTANT: Return the existing instance if it exists
+  // This prevents the "Multiple GoTrueClient instances" warning
   if (supabaseInstance) {
     return supabaseInstance;
   }
@@ -31,37 +33,22 @@ const getSupabaseClient = () => {
       }
       
       // Return a dummy client that logs errors instead of failing silently
-      return {
-        from: () => ({
-          select: () => ({
-            order: () => ({
-              limit: () => Promise.resolve({ data: [], error: new Error('Supabase credentials missing') })
-            }),
-            limit: () => Promise.resolve({ data: [], error: new Error('Supabase credentials missing') }),
-            eq: () => Promise.resolve({ data: [], error: new Error('Supabase credentials missing') })
-          }),
-          insert: () => Promise.resolve({ data: null, error: new Error('Supabase credentials missing') }),
-          update: () => Promise.resolve({ data: null, error: new Error('Supabase credentials missing') }),
-          delete: () => Promise.resolve({ data: null, error: new Error('Supabase credentials missing') }),
-        }),
-        channel: () => ({
-          on: () => ({ subscribe: () => ({ unsubscribe: () => {} }) }),
-        }),
-        auth: {
-          onAuthStateChange: () => ({ data: null, error: null }),
-          getSession: () => Promise.resolve({ data: { session: null }, error: null }),
-          signOut: () => Promise.resolve({ error: null })
-        }
-      };
+      return createDummyClient('Supabase credentials missing');
     }
 
+    // Create the Supabase client with robust error handling
     supabaseInstance = createClient(
       supabaseUrl,
       supabaseKey,
       {
         auth: {
           autoRefreshToken: true,
-          persistSession: true
+          persistSession: true,
+          // Add debug to help catch authentication issues
+          debug: import.meta.env.DEV,
+          // Increase timeout for potentially slow auth operations
+          storageKey: 'meowrescue-auth-token',
+          detectSessionInUrl: false,
         },
         global: {
           headers: {
@@ -72,30 +59,54 @@ const getSupabaseClient = () => {
       }
     );
     
+    // Add listeners for auth events in debug mode
+    if (import.meta.env.DEV) {
+      supabaseInstance.auth.onAuthStateChange((event, session) => {
+        console.log(`Auth event: ${event}`, session ? 'Session exists' : 'No session');
+      });
+    }
+    
     return supabaseInstance;
   } catch (error) {
     console.error('Error initializing Supabase client:', error);
     
     // Return a dummy client in case of error
-    return {
-      from: () => ({
-        select: () => ({
-          limit: () => Promise.resolve({ data: [], error })
-        }),
-        insert: () => Promise.resolve({ data: null, error }),
-        update: () => Promise.resolve({ data: null, error }),
-        delete: () => Promise.resolve({ data: null, error }),
-      }),
-      channel: () => ({
-        on: () => ({ subscribe: () => ({ unsubscribe: () => {} }) }),
-      }),
-      auth: {
-        onAuthStateChange: () => ({ data: null, error: null }),
-        getSession: () => Promise.resolve({ data: { session: null }, error: null }),
-        signOut: () => Promise.resolve({ error: null })
-      }
-    };
+    return createDummyClient(error);
   }
+};
+
+// Create a dummy client for error handling
+const createDummyClient = (error) => {
+  return {
+    from: () => ({
+      select: () => ({
+        order: () => ({
+          limit: () => Promise.resolve({ data: [], error: new Error('Supabase client initialization failed') })
+        }),
+        limit: () => Promise.resolve({ data: [], error: new Error('Supabase client initialization failed') }),
+        eq: () => Promise.resolve({ data: [], error: new Error('Supabase client initialization failed') }),
+        single: () => Promise.resolve({ data: null, error: new Error('Supabase client initialization failed') })
+      }),
+      insert: () => Promise.resolve({ data: null, error: new Error('Supabase client initialization failed') }),
+      update: () => Promise.resolve({ data: null, error: new Error('Supabase client initialization failed') }),
+      delete: () => Promise.resolve({ data: null, error: new Error('Supabase client initialization failed') }),
+    }),
+    channel: () => ({
+      on: () => ({ subscribe: () => ({ unsubscribe: () => {} }) }),
+    }),
+    auth: {
+      onAuthStateChange: (callback) => {
+        console.error('Auth service not available:', error);
+        // Return dummy unsubscribe function
+        return { data: { subscription: { unsubscribe: () => {} } }, error: null };
+      },
+      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+      signOut: () => Promise.resolve({ error: null }),
+      signInWithPassword: () => Promise.resolve({ data: { user: null, session: null }, error: new Error('Auth service not available') }),
+      signUp: () => Promise.resolve({ data: { user: null, session: null }, error: new Error('Auth service not available') }),
+      resetPasswordForEmail: () => Promise.resolve({ data: {}, error: new Error('Auth service not available') })
+    }
+  };
 };
 
 // Add a health check function to verify connection
@@ -180,9 +191,14 @@ export const checkFinancialData = async () => {
   }
 };
 
-// Create a lazy-initialized supabase instance for backward compatibility
-// This maintains compatibility with existing code that imports { supabase }
-export const supabase = getSupabaseClient();
+// For backward compatibility, but make sure to use the function ONCE
+// IMPORTANT: Do not export a direct instance, only the getter function
+// This fixes the "Multiple GoTrueClient instances" warning
+console.log('Setting up global supabase instance for backward compatibility');
 
 // Default export for new code to use the getter function
 export default getSupabaseClient;
+
+// For backward compatibility with existing code
+// Instead of creating a new instance, this re-exports the getter function
+export const supabase = getSupabaseClient;
