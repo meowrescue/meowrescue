@@ -29,25 +29,17 @@ const updateFile = async (filePath) => {
     // Replace import statements
     let newContent = content;
     
-    // Replace direct imports
+    // Replace imports from '@supabase' with '@/integrations/supabase'
     newContent = newContent.replace(
-      /import\s+{\s*supabase\s*}\s+from\s+['"]@\/integrations\/supabase\/client['"];?/g, 
-      `import getSupabaseClient from '@/integrations/supabase/client';`
+      /import\s+{\s*(.+?)\s*}\s+from\s+['"]@supabase['"];?/g,
+      `import { $1 } from '@/integrations/supabase';`
     );
     
-    // Replace imports with other items
+    // Replace any remaining direct supabase references
     newContent = newContent.replace(
-      /import\s+{\s*supabase,\s*(.+?)\s*}\s+from\s+['"]@\/integrations\/supabase\/client['"];?/g, 
-      `import getSupabaseClient, { $1 } from '@/integrations/supabase/client';`
+      /getSupabaseClient\(\)/g,
+      'supabase'
     );
-    
-    // Replace direct usage of supabase with getSupabaseClient()
-    newContent = newContent.replace(
-      /(?<![a-zA-Z0-9_])supabase\./g,
-      `getSupabaseClient().`
-    );
-    
-    // Replace supabase when used alone (like in conditionals or assignments)
     newContent = newContent.replace(
       /(?<![a-zA-Z0-9_])supabase(?![a-zA-Z0-9_\.])/g,
       `getSupabaseClient()`

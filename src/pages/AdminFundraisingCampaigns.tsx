@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { PlusCircle, PencilIcon, Trash2Icon, BellOff, DollarSign } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
@@ -51,7 +51,7 @@ const AdminFundraisingCampaigns = () => {
   const fetchCampaigns = async () => {
     try {
       setLoading(true);
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('fundraising_campaigns')
         .select('*')
         .order('start_date', { ascending: false });
@@ -132,7 +132,7 @@ const AdminFundraisingCampaigns = () => {
       };
       
       if (isEditing && currentCampaign) {
-        const { error } = await getSupabaseClient()
+        const { error } = await supabase
           .from('fundraising_campaigns')
           .update(campaignData)
           .eq('id', currentCampaign.id);
@@ -144,7 +144,7 @@ const AdminFundraisingCampaigns = () => {
           description: 'Campaign updated successfully.',
         });
       } else {
-        const { error } = await getSupabaseClient()
+        const { error } = await supabase
           .from('fundraising_campaigns')
           .insert({
             ...campaignData,
@@ -173,7 +173,7 @@ const AdminFundraisingCampaigns = () => {
   
   const handleDeleteCampaign = async (id: string) => {
     try {
-      const { error } = await getSupabaseClient()
+      const { error } = await supabase
         .from('fundraising_campaigns')
         .delete()
         .eq('id', id);

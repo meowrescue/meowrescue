@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { LostFoundPost } from "@/types/getSupabaseClient()";
+import { LostFoundPost } from '@supabase/types';
 
 interface PostDetailsDialogProps {
   post: LostFoundPost;

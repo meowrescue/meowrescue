@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import AdminLayout from '@/pages/Admin';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -50,7 +50,7 @@ const AdminMessages = () => {
   const { data: messages, isLoading } = useQuery({
     queryKey: ['contact-messages'],
     queryFn: async () => {
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('contact_messages')
         .select('*')
         .order('received_at', { ascending: false });
@@ -63,7 +63,7 @@ const AdminMessages = () => {
   // Send reply mutation
   const sendReplyMutation = useMutation({
     mutationFn: async ({ messageId, reply }: { messageId: string; reply: string }) => {
-      const { data: authData } = await getSupabaseClient().auth.getSession();
+      const { data: authData } = await supabase.auth.getSession();
       if (!authData.session) throw new Error('Not authenticated');
       
       const response = await fetch(

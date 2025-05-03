@@ -1,6 +1,6 @@
 import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 
 interface BusinessHours {
   day: number; // 0 = Sunday, 1 = Monday, etc.
@@ -58,7 +58,7 @@ export const BusinessHoursProvider: React.FC<BusinessHoursProviderProps> = ({ ch
   const fetchBusinessHours = async () => {
     try {
       
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('content_blocks')
         .select('content')
         .eq('block_identifier', 'business_hours_settings')
@@ -100,7 +100,7 @@ export const BusinessHoursProvider: React.FC<BusinessHoursProviderProps> = ({ ch
     try {
       
       // First check if the table exists to prevent errors
-      const { count, error: checkError } = await getSupabaseClient()
+      const { count, error: checkError } = await supabase
         .from('content_blocks')
         .select('*', { count: 'exact', head: true });
       
@@ -111,7 +111,7 @@ export const BusinessHoursProvider: React.FC<BusinessHoursProviderProps> = ({ ch
         return;
       }
       
-      const { error } = await getSupabaseClient()
+      const { error } = await supabase
         .from('content_blocks')
         .upsert({
           block_identifier: 'business_hours_settings',
@@ -162,7 +162,7 @@ export const BusinessHoursProvider: React.FC<BusinessHoursProviderProps> = ({ ch
     const checkIfAdmin = async () => {
       try {
         
-        const { data, error } = await getSupabaseClient()
+        const { data, error } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', user.id)

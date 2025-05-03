@@ -6,13 +6,13 @@ import PageHeader from "@/components/ui/PageHeader";
 import { InfoIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { checkSupabaseConnection, checkFinancialData } from "@/integrations/getSupabaseClient()/client";
+import { checkSupabaseConnection, checkFinancialData } from '@/integrations/supabase';
 import FinancialOverview from "@/components/finance/FinancialOverview";
 import FinancialDataTabs from "@/components/finance/FinancialDataTabs";
 import { useFinancialStats } from '@/hooks/useFinancialStats';
 import { useRecentDonors } from '@/hooks/finance/useRecentDonors';
 import { useTopDonors } from '@/hooks/finance/useTopDonors';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 
 const FinancialTransparency: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("summary");
@@ -76,7 +76,7 @@ const FinancialTransparency: React.FC = () => {
     
     console.log('Setting up real-time subscription for financial data');
     
-    const subscription = getSupabaseClient()
+    const subscription = supabase
       .channel('financial-data-updates')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'donations' }, (payload) => {
         console.log('Donation update received:', payload);

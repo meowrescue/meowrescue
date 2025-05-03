@@ -1,10 +1,10 @@
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import { CatFoodAPI, CatFood, CatFeedingRecord, Cat } from '@/types/finance';
 
 export async function getCatFood(): Promise<CatFood[]> {
   try {
     
-    const { data, error } = await getSupabaseClient()
+    const { data, error } = await supabase
       .rpc('get_cat_food');
       
     if (error) {
@@ -28,7 +28,7 @@ export async function addCatFood(
 ): Promise<CatFood> {
   try {
     
-    const { data, error } = await getSupabaseClient()
+    const { data, error } = await supabase
       .rpc('add_cat_food', {
         p_brand: brand,
         p_type: type,
@@ -52,7 +52,7 @@ export async function addCatFood(
 export async function getCatFeedingRecords(): Promise<CatFeedingRecord[]> {
   try {
     
-    const { data, error } = await getSupabaseClient()
+    const { data, error } = await supabase
       .rpc('get_cat_feeding_records');
       
     if (error) {
@@ -74,7 +74,7 @@ export async function addCatFeedingRecord(
 ): Promise<CatFeedingRecord> {
   try {
     
-    const { data, error } = await getSupabaseClient()
+    const { data, error } = await supabase
       .rpc('add_cat_feeding_record', {
         p_cat_id: catId,
         p_cat_food_id: catFoodId,
@@ -96,7 +96,7 @@ export async function addCatFeedingRecord(
 export async function getCats(): Promise<Cat[]> {
   try {
     
-    const { data, error } = await getSupabaseClient()
+    const { data, error } = await supabase
       .from('cats')
       .select('id, name, status')
       .eq('status', 'Available');

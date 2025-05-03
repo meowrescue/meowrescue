@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Check, DollarSign, Search, Plus, User } from 'lucide-react';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -80,7 +80,7 @@ const DonationEntry: React.FC = () => {
     
     // Get current user
     const getCurrentUser = async () => {
-      const { data } = await getSupabaseClient().auth.getUser();
+      const { data } = await supabase.auth.getUser();
       if (data && data.user) {
         setCurrentUser(data.user);
       }
@@ -90,7 +90,7 @@ const DonationEntry: React.FC = () => {
     
     // Load campaigns
     const fetchCampaigns = async () => {
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('fundraising_campaigns')
         .select('id, name, assignedBudgetCategory')
         .eq('is_active', true);
@@ -103,7 +103,7 @@ const DonationEntry: React.FC = () => {
     // Load budget categories
     const fetchBudgetCategories = async () => {
       const currentYear = new Date().getFullYear();
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('budget_categories')
         .select('id, name')
         .eq('year', currentYear)
@@ -157,7 +157,7 @@ const DonationEntry: React.FC = () => {
   const searchProfiles = async () => {
     if (!searchQuery || searchQuery.length < 3) return;
     
-    const { data, error } = await getSupabaseClient()
+    const { data, error } = await supabase
       .from('profiles')
       .select('id, email, first_name, last_name')
       .or(`first_name.ilike.%${searchQuery}%,last_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`)
@@ -186,7 +186,7 @@ const DonationEntry: React.FC = () => {
         const lastName = nameParts.slice(1).join(' ');
         
         // Create profile record
-        const { data: profileData, error: profileError } = await getSupabaseClient()
+        const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .insert({
             email: data.donorEmail,
@@ -237,7 +237,7 @@ const DonationEntry: React.FC = () => {
       }
       
       // Create donation record
-      const { error } = await getSupabaseClient().from('donations').insert({
+      const { error } = await supabase.from('donations').insert({
         amount: amountNum,
         donor_name: data.donorType !== 'anonymous' ? data.donorName : null,
         donor_email: data.donorType !== 'anonymous' ? data.donorEmail : null,

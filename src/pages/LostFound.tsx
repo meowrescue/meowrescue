@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import Layout from "../components/Layout";
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { LostFoundPost } from "@/types/getSupabaseClient()";
+import { LostFoundPost } from '@supabase/types';
 import SEO from "@/components/SEO";
 import LostFoundFilters from "@/components/LostFound/LostFoundFilters";
 import LostFoundSearch from "@/components/LostFound/LostFoundSearch";
@@ -28,7 +28,7 @@ const LostFound = () => {
     setIsLoading(true);
     setError(null);
     try {
-      let query = getSupabaseClient()
+      let query = supabase
         .from("lost_found_posts")
         .select("*")
         .neq("status", "archived") // Exclude archived posts
@@ -64,7 +64,7 @@ const LostFound = () => {
     setIsLoading(true);
     setError(null);
     try {
-      let query = getSupabaseClient()
+      let query = supabase
         .from("lost_found_posts")
         .select("*")
         .neq("status", "archived") // Exclude archived posts
@@ -97,7 +97,7 @@ const LostFound = () => {
   };
 
   useEffect(() => {
-    const subscription = getSupabaseClient()
+    const subscription = supabase
       .channel('lost-found-updates')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'lost_found_posts' }, (payload) => {
         console.log('Lost and found update received:', payload);

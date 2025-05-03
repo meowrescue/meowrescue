@@ -1,6 +1,6 @@
 
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 
 export interface TopDonor {
   name: string;
@@ -22,7 +22,7 @@ export const useTopDonors = (options?: UseTopDonorsOptions) => {
     queryFn: async () => {
       try {
         console.log("Fetching top donors...");
-        const { data, error } = await getSupabaseClient()
+        const { data, error } = await supabase
           .rpc('get_top_donors', { limit_count: limit });
           
         if (error) {

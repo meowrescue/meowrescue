@@ -1,6 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 
 interface Cat {
   id: string;
@@ -12,7 +12,7 @@ export const useCats = () => {
   const { data: cats } = useQuery({
     queryKey: ['cats-for-stories'],
     queryFn: async () => {
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('cats')
         .select('id, name, status');
       

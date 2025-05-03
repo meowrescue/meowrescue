@@ -5,7 +5,7 @@ import AdminLayout from '@/pages/Admin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import SEO from '@/components/SEO';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -67,7 +67,7 @@ const AdminChat: React.FC = () => {
         console.log("Fetching chat sessions");
         
         // First get chat sessions
-        const { data: sessionsData, error: sessionsError } = await getSupabaseClient()
+        const { data: sessionsData, error: sessionsError } = await supabase
           .from('chat_sessions')
           .select('*')
           .eq('status', 'active')
@@ -87,7 +87,7 @@ const AdminChat: React.FC = () => {
           sessionsData.map(async (session) => {
             if (session.user_id) {
               try {
-                const { data: profileData, error: profileError } = await getSupabaseClient()
+                const { data: profileData, error: profileError } = await supabase
                   .from('profiles')
                   .select('id, first_name, last_name, email')
                   .eq('id', session.user_id)
@@ -141,7 +141,7 @@ const AdminChat: React.FC = () => {
       
       try {
         console.log("Fetching messages for chat:", selectedChatId);
-        const { data, error } = await getSupabaseClient()
+        const { data, error } = await supabase
           .from('chat_messages')
           .select('*')
           .eq('chat_session_id', selectedChatId)
@@ -164,7 +164,7 @@ const AdminChat: React.FC = () => {
         if (unreadMessages.length > 0) {
           console.log("Marking messages as read:", unreadMessages.length);
           const unreadIds = unreadMessages.map(msg => msg.id);
-          await getSupabaseClient()
+          await supabase
             .from('chat_messages')
             .update({ read_at: new Date().toISOString() })
             .in('id', unreadIds);
@@ -217,7 +217,7 @@ const AdminChat: React.FC = () => {
       
       try {
         console.log("Sending admin message to chat:", selectedChatId);
-        const adminId = (await getSupabaseClient().auth.getUser()).data.user?.id;
+        const adminId = (await supabase.auth.getUser()).data.user?.id;
         
         // Create message object
         const newMessageObj = {
@@ -238,7 +238,7 @@ const AdminChat: React.FC = () => {
           (oldData: ChatMessage[] | undefined) => oldData ? [...oldData, tempMessage] : [tempMessage]);
         
         // Then insert into database
-        const { error: messageError } = await getSupabaseClient()
+        const { error: messageError } = await supabase
           .from('chat_messages')
           .insert(newMessageObj);
         
@@ -248,7 +248,7 @@ const AdminChat: React.FC = () => {
         }
         
         // Update last message timestamp
-        const { error: sessionError } = await getSupabaseClient()
+        const { error: sessionError } = await supabase
           .from('chat_sessions')
           .update({
             last_message_at: new Date().toISOString(),
@@ -304,7 +304,7 @@ const AdminChat: React.FC = () => {
     mutationFn: async (chatId: string) => {
       try {
         console.log("Closing chat session:", chatId);
-        const { error } = await getSupabaseClient()
+        const { error } = await supabase
           .from('chat_sessions')
           .update({
             status: 'closed',

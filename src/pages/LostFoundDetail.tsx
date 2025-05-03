@@ -5,8 +5,8 @@ import Layout from "../components/Layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, AlertCircle, RefreshCw } from "lucide-react";
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
-import { LostFoundPost } from "@/types/getSupabaseClient()";
+import { supabase } from '@integrations/supabase';
+import { LostFoundPost } from '@supabase/types';
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import SEO from "@/components/SEO";
@@ -26,7 +26,7 @@ const LostFoundDetail = () => {
       
       try {
         
-        const { data, error } = await getSupabaseClient()
+        const { data, error } = await supabase
           .from('lost_found_posts')
           .select('*')
           .eq('id', postId)
@@ -37,7 +37,7 @@ const LostFoundDetail = () => {
         // Fetch author profile separately
         let authorProfile = null;
         if (data.profile_id) {
-          const { data: profileData, error: profileError } = await getSupabaseClient()
+          const { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select('first_name, last_name, email')
             .eq('id', data.profile_id)
@@ -65,7 +65,7 @@ const LostFoundDetail = () => {
   useEffect(() => {
     if (!postId) return;
     
-    const subscription = getSupabaseClient()
+    const subscription = supabase
       .channel(`lost-found-${postId}-updates`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'lost_found_posts', filter: `id=eq.${postId}` }, (payload) => {
         console.log('Lost and found update received:', payload);

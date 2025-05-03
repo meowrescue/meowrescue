@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import App from './App';
-import { getSupabaseClient() } from './integrations/getSupabaseClient()/client';
+import { supabase } from './integrations/supabase';
 import { PageDataProvider } from './contexts/PageDataContext';
 import { generateHtmlTemplate } from './templates/htmlTemplate';
 
@@ -48,7 +48,7 @@ async function fetchPageData(url: string): Promise<any> {
     if (catId) {
       try {
         // Fetch cat details
-        const { data: cat, error } = await getSupabaseClient()
+        const { data: cat, error } = await supabase
           .from('cats')
           .select('*')
           .eq('id', catId)
@@ -57,7 +57,7 @@ async function fetchPageData(url: string): Promise<any> {
         if (error) throw error;
         
         // Fetch medical records
-        const { data: medicalRecords, error: medRecordsError } = await getSupabaseClient()
+        const { data: medicalRecords, error: medRecordsError } = await supabase
           .from('cat_medical_records')
           .select('*')
           .eq('cat_id', catId)
@@ -79,7 +79,7 @@ async function fetchPageData(url: string): Promise<any> {
     const slug = pathname.split('/').pop();
     if (slug) {
       try {
-        const { data: post, error } = await getSupabaseClient()
+        const { data: post, error } = await supabase
           .from('blog_posts')
           .select('*')
           .eq('slug', slug)
@@ -89,7 +89,7 @@ async function fetchPageData(url: string): Promise<any> {
         if (error) throw error;
         
         // Fetch related posts
-        const { data: relatedPosts } = await getSupabaseClient()
+        const { data: relatedPosts } = await supabase
           .from('blog_posts')
           .select('*')
           .eq('is_published', true)
@@ -110,7 +110,7 @@ async function fetchPageData(url: string): Promise<any> {
     const eventId = pathname.split('/').pop();
     if (eventId) {
       try {
-        const { data: event, error } = await getSupabaseClient()
+        const { data: event, error } = await supabase
           .from('events')
           .select('*')
           .eq('id', eventId)
@@ -158,7 +158,7 @@ export async function render(url: string, context: any = {}): Promise<RenderResu
     await queryClient.prefetchQuery({
       queryKey: ['adoptable-cats'],
       queryFn: async () => {
-        const { data, error } = await getSupabaseClient()
+        const { data, error } = await supabase
           .from('cats')
           .select('*')
           .eq('status', 'Available')
@@ -171,7 +171,7 @@ export async function render(url: string, context: any = {}): Promise<RenderResu
     await queryClient.prefetchQuery({
       queryKey: ['blogPosts'],
       queryFn: async () => {
-        const { data, error } = await getSupabaseClient()
+        const { data, error } = await supabase
           .from('blog_posts')
           .select('*')
           .eq('is_published', true)
@@ -185,7 +185,7 @@ export async function render(url: string, context: any = {}): Promise<RenderResu
     await queryClient.prefetchQuery({
       queryKey: ['events'],
       queryFn: async () => {
-        const { data, error } = await getSupabaseClient()
+        const { data, error } = await supabase
           .from('events')
           .select('*')
           .order('date_start', { ascending: true });

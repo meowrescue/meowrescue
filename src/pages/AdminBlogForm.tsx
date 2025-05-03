@@ -21,7 +21,7 @@ import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { ArrowLeft, Image, Save, Search } from 'lucide-react';
 import { slugify } from '@/utils/stringUtils';
@@ -74,7 +74,7 @@ const AdminBlogForm: React.FC = () => {
       setIsLoading(true);
 
       try {
-        const { data, error } = await getSupabaseClient()
+        const { data, error } = await supabase
           .from('blog_posts')
           .select('*')
           .eq('id', id)
@@ -164,14 +164,14 @@ const AdminBlogForm: React.FC = () => {
         const fileName = `${Date.now()}.${fileExt}`;
         const filePath = `${fileName}`;
 
-        const { error: uploadError, data: uploadData } = await getSupabaseClient().storage
+        const { error: uploadError, data: uploadData } = await supabase.storage
           .from('blog-images')
           .upload(filePath, imageFile);
 
         if (uploadError) throw uploadError;
 
         // Get the public URL
-        const { data: urlData } = getSupabaseClient().storage
+        const { data: urlData } = supabase.storage
           .from('blog-images')
           .getPublicUrl(filePath);
 
@@ -187,7 +187,7 @@ const AdminBlogForm: React.FC = () => {
 
       // Before inserting/updating, unset any existing featured post if this one is being set as featured
       if (values.is_featured) {
-        await getSupabaseClient()
+        await supabase
           .from('blog_posts')
           .update({ is_featured: false })
           .eq('is_featured', true);
@@ -212,12 +212,12 @@ const AdminBlogForm: React.FC = () => {
       // Update or create post
       let result;
       if (isEditMode) {
-        result = await getSupabaseClient()
+        result = await supabase
           .from('blog_posts')
           .update(postData)
           .eq('id', id);
       } else {
-        result = await getSupabaseClient()
+        result = await supabase
           .from('blog_posts')
           .insert([{ ...postData, created_at: now }]);
       }

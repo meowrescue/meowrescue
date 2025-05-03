@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Cat, Heart, Mail, Phone, Facebook, Instagram, Twitter } from 'lucide-react';
 import { scrollToTop } from '@/utils/scrollUtils';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import { Button } from '@/components/ui/button';
 
 const Footer: React.FC = () => {
@@ -33,7 +33,7 @@ const Footer: React.FC = () => {
   useEffect(() => {
     const fetchLicenseInfo = async () => {
       try {
-        const supabaseClient = getSupabaseClient();
+        const supabaseClient = supabase;
         const { data, error } = await supabaseClient
           .from('business_licenses')
           .select('license_number, issue_date')

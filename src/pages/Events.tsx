@@ -3,7 +3,7 @@ import Layout from '../components/Layout';
 import { Event } from '../types/events';
 import EventCard from '../components/EventCard';
 import { useScrollToElement } from '@/hooks/use-scroll';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import { Loader2 } from 'lucide-react';
 import PageHeader from '@/components/ui/PageHeader';
 import { Link } from 'react-router-dom';
@@ -24,7 +24,7 @@ const Events: React.FC = () => {
   const fetchEvents = async () => {
     setLoading(true);
     try {
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('events')
         .select('*')
         .order('date_start', { ascending: true });
@@ -70,7 +70,7 @@ const Events: React.FC = () => {
   const refetchEvents = async () => {
     setLoading(true);
     try {
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('events')
         .select('*')
         .order('date_start', { ascending: true });
@@ -114,7 +114,7 @@ const Events: React.FC = () => {
   };
 
   useEffect(() => {
-    const subscription = getSupabaseClient()
+    const subscription = supabase
       .channel('events-updates')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, (payload) => {
         console.log('Event update received:', payload);

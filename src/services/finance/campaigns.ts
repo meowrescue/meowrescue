@@ -1,5 +1,5 @@
 
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import { FundraisingCampaign } from '@/types/finance';
 
 /**
@@ -7,7 +7,7 @@ import { FundraisingCampaign } from '@/types/finance';
  */
 export const getCurrentCampaigns = async (): Promise<FundraisingCampaign[]> => {
   try {
-    const { data, error } = await getSupabaseClient()
+    const { data, error } = await supabase
       .from('fundraising_campaigns')
       .select('*')
       .eq('is_active', true)

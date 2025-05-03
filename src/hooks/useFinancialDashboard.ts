@@ -1,182 +1,162 @@
 
-import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
-
-export interface FinancialStats {
-  totalDonations: number;
-  totalExpenses: number;
-  monthlyDonations: number;
-  monthlyExpenses: number;
-  previousMonthDonations: number;
-  previousMonthExpenses: number;
-  recentDonations: {
-    id: string;
-    amount: number;
-    donation_date: string;
-    donor_name?: string;
-  }[];
-}
+import { useFinancialStats } from '@/hooks/useFinancialStats';
+import { useRecentDonors } from '@/hooks/finance/useRecentDonors';
+import { useTopDonors } from '@/hooks/finance/useTopDonors';
+import { useExpenses } from '@/hooks/finance/useExpenses';
+import { useEffect } from 'react';
+import { checkSupabaseConnection, checkFinancialData } from '@/integrations/supabase/client';
 
 export const useFinancialDashboard = () => {
-  const [financialStats, setFinancialStats] = useState<FinancialStats>({
-    totalDonations: 0,
-    totalExpenses: 0,
-    monthlyDonations: 0,
-    monthlyExpenses: 0,
-    previousMonthDonations: 0,
-    previousMonthExpenses: 0,
-    recentDonations: [],
-  });
+  // First check the Supabase connection
+  useEffect(() => {
+    const verifyConnection = async () => {
+      const connectionStatus = await checkSupabaseConnection();
+      console.log('Supabase connection status:', connectionStatus);
+      
+      if (connectionStatus.connected) {
+        // If connected, check sample financial data
+        const financialData = await checkFinancialData();
+        console.log('Financial data availability:', {
+          donationsCount: financialData.donations.length,
+          expensesCount: financialData.expenses.length,
+          budgetsCount: financialData.budgets.length
+        });
+      }
+    };
+    
+    verifyConnection();
+  }, []);
 
-  const [isLoading, setIsLoading] = useState({
-    totalDonations: true,
-    totalExpenses: true,
-    monthlyDonations: true,
-    monthlyExpenses: true,
-    recentDonations: true,
-    previousMonthDonations: true,
-    previousMonthExpenses: true
-  });
+  // Get financial data from custom hooks
+  const {
+    totalBudget,
+    totalDonations,
+    budgetCategories,
+    monthlyDonations,
+    monthlyExpenses,
+    previousMonthDonations,
+    previousMonthExpenses,
+    campaigns,
+    isLoading,
+    refetchFinancialStats
+  } = useFinancialStats();
 
-  // Function to fetch financial data
-  const fetchFinancialStats = async () => {
+  // Fetch donors and expenses using custom hooks with explicit configuration
+  const { 
+    data: recentDonors, 
+    isLoading: donorsLoading, 
+    refetch: refetchRecentDonors 
+  } = useRecentDonors({
+    staleTime: 5000, // 5 seconds for very fresh data
+    gcTime: 60000, // Formerly cacheTime - 1 minute
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    retry: 3
+  });
+  
+  const { 
+    data: topDonors, 
+    isLoading: topDonorsLoading, 
+    refetch: refetchTopDonors 
+  } = useTopDonors({
+    staleTime: 5000, // 5 seconds for very fresh data
+    gcTime: 60000, // Formerly cacheTime - 1 minute
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    retry: 3
+  });
+  
+  const { 
+    data: expenses, 
+    isLoading: expensesLoading, 
+    refetch: refetchExpenses 
+  } = useExpenses({
+    staleTime: 5000, // 5 seconds for very fresh data
+    gcTime: 60000, // Formerly cacheTime - 1 minute
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    retry: 3
+  });
+  
+  // Automatically refetch data when the component mounts to ensure fresh data
+  useEffect(() => {
+    console.log("Refetching financial dashboard data...");
     
+    const fetchAllData = async () => {
+      try {
+        // Refresh financial stats first
+        await refetchFinancialStats();
+        
+        const donorsResult = await refetchRecentDonors();
+        console.log("Recent donors refetch result:", donorsResult.data);
+        
+        const topDonorsResult = await refetchTopDonors();
+        console.log("Top donors refetch result:", topDonorsResult.data);
+        
+        const expensesResult = await refetchExpenses();
+        console.log("Expenses refetch result:", expensesResult.data);
+      } catch (error) {
+        console.error("Error refetching financial data:", error);
+      }
+    };
     
-    // Fetch total donations
-    const { data: totalDonationsData } = await getSupabaseClient()
-      .from('donations')
-      .select('amount')
-      .eq('status', 'completed');
+    // Initial fetch
+    fetchAllData();
     
-    // Fetch total expenses
-    const { data: totalExpensesData } = await getSupabaseClient()
-      .from('expenses')
-      .select('amount');
+    // Set up an interval to periodically refresh the data
+    const intervalId = setInterval(fetchAllData, 15000); // Refresh every 15 seconds
     
-    // Get the current date
-    const now = new Date();
-    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-    const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString();
-    
-    // For previous month
-    const firstDayOfPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
-    const lastDayOfPrevMonth = new Date(now.getFullYear(), now.getMonth(), 0).toISOString();
-    
-    // Fetch monthly donations
-    const { data: monthlyDonationsData } = await getSupabaseClient()
-      .from('donations')
-      .select('amount')
-      .eq('status', 'completed')
-      .gte('donation_date', firstDayOfMonth)
-      .lte('donation_date', lastDayOfMonth);
-    
-    // Fetch previous month donations
-    const { data: prevMonthDonationsData } = await getSupabaseClient()
-      .from('donations')
-      .select('amount')
-      .eq('status', 'completed')
-      .gte('donation_date', firstDayOfPrevMonth)
-      .lte('donation_date', lastDayOfPrevMonth);
-    
-    // Fetch monthly expenses
-    const { data: monthlyExpensesData } = await getSupabaseClient()
-      .from('expenses')
-      .select('amount')
-      .gte('expense_date', firstDayOfMonth)
-      .lte('expense_date', lastDayOfMonth);
-    
-    // Fetch previous month expenses
-    const { data: prevMonthExpensesData } = await getSupabaseClient()
-      .from('expenses')
-      .select('amount')
-      .gte('expense_date', firstDayOfPrevMonth)
-      .lte('expense_date', lastDayOfPrevMonth);
-    
-    // Calculate total donations
-    const totalDonations = totalDonationsData?.reduce((sum, item) => sum + Number(item.amount), 0) || 0;
-    
-    // Calculate total expenses
-    const totalExpenses = totalExpensesData?.reduce((sum, item) => sum + Number(item.amount), 0) || 0;
-    
-    // Calculate monthly donations
-    const monthlyDonations = monthlyDonationsData?.reduce((sum, item) => sum + Number(item.amount), 0) || 0;
-    
-    // Calculate previous month donations
-    const previousMonthDonations = prevMonthDonationsData?.reduce((sum, item) => sum + Number(item.amount), 0) || 0;
-    
-    // Calculate monthly expenses
-    const monthlyExpenses = monthlyExpensesData?.reduce((sum, item) => sum + Number(item.amount), 0) || 0;
-    
-    // Calculate previous month expenses
-    const previousMonthExpenses = prevMonthExpensesData?.reduce((sum, item) => sum + Number(item.amount), 0) || 0;
-    
-    // Fetch recent donations
-    const { data: recentDonations } = await getSupabaseClient()
-      .from('donations')
-      .select(`
-        id,
-        amount,
-        donation_date,
-        profiles:donor_profile_id (
-          first_name,
-          last_name
-        )
-      `)
-      .eq('status', 'completed')
-      .order('donation_date', { ascending: false })
-      .limit(5);
-    
-    const formattedRecentDonations = recentDonations?.map(donation => ({
-      id: donation.id,
-      amount: donation.amount,
-      donation_date: donation.donation_date,
-      donor_name: donation.profiles ? 
-        `${donation.profiles.first_name || ''} ${donation.profiles.last_name || ''}`.trim() || 'Anonymous' : 
-        'Anonymous'
-    })) || [];
-    
-    return {
+    return () => clearInterval(intervalId);
+  }, [refetchRecentDonors, refetchTopDonors, refetchExpenses, refetchFinancialStats]);
+  
+  // Debug logging
+  useEffect(() => {
+    console.log("Financial Dashboard Data:", {
+      totalBudget,
       totalDonations,
-      totalExpenses,
+      budgetCategoriesCount: budgetCategories?.length,
+      monthlyDonations,
+      monthlyExpenses,
+      recentDonorsCount: recentDonors?.length,
+      topDonorsCount: topDonors?.length,
+      expensesCount: expenses?.length,
+      loadingStates: {
+        totalBudget: isLoading.totalBudget,
+        totalDonations: isLoading.totalDonations,
+        donors: donorsLoading,
+        topDonors: topDonorsLoading,
+        expenses: expensesLoading
+      }
+    });
+  }, [totalBudget, totalDonations, budgetCategories, monthlyDonations, monthlyExpenses, recentDonors, topDonors, expenses, isLoading, donorsLoading, topDonorsLoading, expensesLoading]);
+
+  return {
+    financialStats: {
+      totalBudget,
+      totalDonations,
       monthlyDonations,
       monthlyExpenses,
       previousMonthDonations,
       previousMonthExpenses,
-      recentDonations: formattedRecentDonations
-    };
-  };
-
-  // Using react-query to fetch and cache financial data
-  const { data, isLoading: queryLoading, refetch } = useQuery({
-    queryKey: ['financial-dashboard-stats'],
-    queryFn: fetchFinancialStats
-  });
-  
-  useEffect(() => {
-    if (data) {
-      setFinancialStats(data);
-      setIsLoading({
-        totalDonations: false,
-        totalExpenses: false,
-        monthlyDonations: false,
-        monthlyExpenses: false,
-        recentDonations: false,
-        previousMonthDonations: false,
-        previousMonthExpenses: false
-      });
+      budgetCategories: budgetCategories || [],
+      campaigns: campaigns || [],
+      isLoading
+    },
+    donorData: {
+      recentDonors: recentDonors || [],
+      topDonors: topDonors || [],
+      donorsLoading,
+      topDonorsLoading
+    },
+    expenses: {
+      data: expenses || [],
+      isLoading: expensesLoading
+    },
+    refetchData: {
+      refetchFinancialStats,
+      refetchRecentDonors,
+      refetchTopDonors,
+      refetchExpenses
     }
-  }, [data]);
-
-  return { 
-    financialStats, 
-    isLoading,
-    monthlyDonations: financialStats.monthlyDonations,
-    monthlyExpenses: financialStats.monthlyExpenses,
-    previousMonthDonations: financialStats.previousMonthDonations,
-    previousMonthExpenses: financialStats.previousMonthExpenses,
-    refetchFinancialStats: refetch 
   };
 };
-
-export default useFinancialDashboard;

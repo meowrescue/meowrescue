@@ -1,6 +1,6 @@
 
 import { useQuery } from "@tanstack/react-query";
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 
 export interface CatExpenseGroup {
   catId: string;
@@ -19,7 +19,7 @@ export const useCatExpenses = () => {
     queryKey: ["catExpenses"],
     queryFn: async () => {
       // Query the expenses table with cat relationships
-      const { data: expenses, error } = await getSupabaseClient()
+      const { data: expenses, error } = await supabase
         .from("expenses")
         .select(
           `

@@ -10,7 +10,7 @@ import CatPhotosSection from '@/components/cat/CatDetails/CatPhotosSection';
 import CatInfoSection from '@/components/cat/CatDetails/CatInfoSection';
 import AdoptionProcessSection from '@/components/cat/CatDetails/AdoptionProcessSection';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 
 const CatDetail = () => {
   const { id: catId } = useParams<{ id: string }>();
@@ -24,7 +24,7 @@ const CatDetail = () => {
 
   useEffect(() => {
     if (!catId) return;
-    const subscription = getSupabaseClient()
+    const subscription = supabase
       .channel(`cat-${catId}-updates`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'cats', filter: `id=eq.${catId}` }, (payload) => {
         console.log('Cat update received:', payload);

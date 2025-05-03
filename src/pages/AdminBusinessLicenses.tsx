@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import AdminLayout from '@/pages/Admin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -54,7 +54,7 @@ const AdminBusinessLicenses = () => {
   const { data: licenses, isLoading } = useQuery({
     queryKey: ['business-licenses'],
     queryFn: async () => {
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('business_licenses')
         .select('*')
         .order('created_at', { ascending: false });
@@ -67,7 +67,7 @@ const AdminBusinessLicenses = () => {
   // Add license mutation
   const addLicenseMutation = useMutation({
     mutationFn: async (license: typeof formData) => {
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('business_licenses')
         .insert([{
           license_type: license.license_type,
@@ -103,7 +103,7 @@ const AdminBusinessLicenses = () => {
   // Delete license mutation
   const deleteLicenseMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await getSupabaseClient()
+      const { error } = await supabase
         .from('business_licenses')
         .delete()
         .eq('id', id);

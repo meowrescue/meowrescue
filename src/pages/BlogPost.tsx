@@ -5,7 +5,7 @@ import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import SEO from '@/components/SEO';
 import { Calendar, ArrowLeft, Share2, Clock, ChevronLeft, ChevronRight, Facebook, Twitter, Linkedin, Mail } from 'lucide-react';
 import NotFound from './NotFound';
@@ -20,7 +20,7 @@ const BlogPost: React.FC = () => {
     queryKey: ['blogPost', slug],
     queryFn: async () => {
       
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('blog_posts')
         .select('*')
         .eq('slug', slug)
@@ -42,7 +42,7 @@ const BlogPost: React.FC = () => {
     const fetchRelatedPosts = async () => {
       if (post) {
         
-        const { data } = await getSupabaseClient()
+        const { data } = await supabase
           .from('blog_posts')
           .select('*')
           .eq('is_published', true)
@@ -62,7 +62,7 @@ const BlogPost: React.FC = () => {
   useEffect(() => {
     if (!post?.id) return;
     
-    const subscription = getSupabaseClient()
+    const subscription = supabase
       .channel(`blog-post-${post.id}-updates`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'blog_posts', filter: `id=eq.${post.id}` }, (payload) => {
         console.log('Blog post update received:', payload);

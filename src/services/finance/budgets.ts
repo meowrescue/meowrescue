@@ -1,4 +1,4 @@
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 
 export const getTotalBudget = async (): Promise<number> => {
   try {
@@ -8,7 +8,7 @@ export const getTotalBudget = async (): Promise<number> => {
     const currentYear = new Date().getFullYear();
     
     // Query budget categories for the current year and sum their amounts
-    const { data, error } = await getSupabaseClient()
+    const { data, error } = await supabase
       .from('budget_categories')
       .select('amount')
       .eq('year', currentYear);

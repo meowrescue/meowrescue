@@ -1,10 +1,10 @@
-
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 import { componentTagger } from "lovable-tagger";
 
 export default defineConfig(({ mode }) => ({
+  envPrefix: 'VITE_',
   server: {
     port: 8080,
     host: "::",
@@ -16,11 +16,23 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@integrations": path.resolve(__dirname, "./src/integrations"),
+      "@supabase": path.resolve(__dirname, "./src/integrations/supabase"),
+      "@supabase/supabase-js": path.resolve(__dirname, "./src/integrations/supabase/supabase-js.ts"),
+      "@supabase/types": path.resolve(__dirname, "./src/types/supabase.ts"),
+    },
+    extensions: ['.ts', '.tsx', '.js', '.jsx'],
+  },
+  optimizeDeps: {
+    include: ['@supabase/supabase-js'],
+    esbuildOptions: {
+      target: 'es2020',
+      platform: 'browser',
     },
   },
   build: {
     outDir: 'dist',
-    sourcemap: process.env.NODE_ENV === 'development',
+    sourcemap: mode === 'development',
     assetsInlineLimit: 4096,
     cssCodeSplit: true,
     minify: process.env.NODE_ENV === 'production' ? 'terser' : false,
@@ -48,19 +60,16 @@ export default defineConfig(({ mode }) => ({
     },
   },
   define: {
-    'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(process.env.VITE_SUPABASE_URL || ''),
-    'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(process.env.VITE_SUPABASE_ANON_KEY || ''),
-  },
-  optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
-    esbuildOptions: {
-      target: 'es2020',
-    },
+    'process.env.VITE_SUPABASE_URL': JSON.stringify(process.env.VITE_SUPABASE_URL || ''),
+    'process.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(process.env.VITE_SUPABASE_ANON_KEY || ''),
   },
   ssr: {
-    noExternal: ['react-helmet-async', '@radix-ui/*', 'lucide-react'],
+    noExternal: ['react-helmet-async', '@radix-ui/*', 'lucide-react', '@supabase/supabase-js'],
     optimizeDeps: {
       include: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
+      esbuildOptions: {
+        target: 'es2020',
+      },
     }
   },
   base: '/',

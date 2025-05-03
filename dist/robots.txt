@@ -1,0 +1,6 @@
+# Meow Rescue Robots.txt
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://meowrescue.org/sitemap.xml

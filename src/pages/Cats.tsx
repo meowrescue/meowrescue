@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Search, Filter } from 'lucide-react';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import SEO from '@/components/SEO';
 import PageHeader from '@/components/ui/PageHeader';
 import { scrollToTop } from '@/utils/scrollUtils';
@@ -33,7 +33,7 @@ const Cats: React.FC = () => {
     queryKey: ['adoptable-cats'],
     queryFn: async () => {
       try {
-        const { data, error } = await getSupabaseClient()
+        const { data, error } = await supabase
           .from('cats')
           .select('*')
           .eq('status', 'Available')
@@ -53,7 +53,7 @@ const Cats: React.FC = () => {
 
   // Subscribe to real-time updates for adoptable cats
   useEffect(() => {
-    const subscription = getSupabaseClient()
+    const subscription = supabase
       .channel('adoptable-cats-updates')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'cats' }, (payload) => {
         console.log('Cat update received:', payload);

@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import { format } from "date-fns";
 import { capitalizeWords } from "@/utils/stringUtils";
 
@@ -85,7 +85,7 @@ export const useExpenseEntry = ({ onSuccess }: ExpenseEntryProps = {}) => {
       }
 
       // First, create the expense record
-      const { data: expense, error: expenseError } = await getSupabaseClient()
+      const { data: expense, error: expenseError } = await supabase
         .from("expenses")
         .insert({
           description: capitalizedDescription,
@@ -107,18 +107,18 @@ export const useExpenseEntry = ({ onSuccess }: ExpenseEntryProps = {}) => {
         const fileName = `${expense.id}-${Date.now()}.${fileExt}`;
         const filePath = `${fileName}`;
 
-        const { error: uploadError } = await getSupabaseClient().storage
+        const { error: uploadError } = await supabase.storage
           .from("expense-receipts")
           .upload(filePath, expenseData.receiptFile);
 
         if (uploadError) throw uploadError;
 
-        const { data: publicURLData } = getSupabaseClient().storage
+        const { data: publicURLData } = supabase.storage
           .from("expense-receipts")
           .getPublicUrl(filePath);
 
         // Update the expense record with the receipt URL
-        const { error: updateError } = await getSupabaseClient()
+        const { error: updateError } = await supabase
           .from("expenses")
           .update({ receipt_url: publicURLData.publicUrl })
           .eq("id", expense.id);

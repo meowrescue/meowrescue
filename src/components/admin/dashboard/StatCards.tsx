@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import { Card, CardContent } from '@/components/ui/card';
 import { Cat, Heart, FileText, MessageSquare } from 'lucide-react';
 
@@ -9,7 +9,7 @@ const StatCards = () => {
   const { data: catsCount } = useQuery({
     queryKey: ['cats-count'],
     queryFn: async () => {
-      const { count, error } = await getSupabaseClient()
+      const { count, error } = await supabase
         .from('cats')
         .select('*', { count: 'exact', head: true });
       
@@ -21,7 +21,7 @@ const StatCards = () => {
   const { data: adoptionsCount } = useQuery({
     queryKey: ['adoptions-count'],
     queryFn: async () => {
-      const { count, error } = await getSupabaseClient()
+      const { count, error } = await supabase
         .from('applications')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'approved');
@@ -34,7 +34,7 @@ const StatCards = () => {
   const { data: pendingApplications } = useQuery({
     queryKey: ['pending-applications'],
     queryFn: async () => {
-      const { count, error } = await getSupabaseClient()
+      const { count, error } = await supabase
         .from('applications')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'pending');
@@ -47,7 +47,7 @@ const StatCards = () => {
   const { data: unreadMessages } = useQuery({
     queryKey: ['unread-messages'],
     queryFn: async () => {
-      const { count, error } = await getSupabaseClient()
+      const { count, error } = await supabase
         .from('contact_messages')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'New');

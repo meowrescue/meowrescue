@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import AdminLayout from '@/pages/Admin';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,7 +28,7 @@ const AdminApplications = () => {
       
       try {
         // First try to query the adoption_applications table
-        const { data: adoptionData, error: adoptionError } = await getSupabaseClient()
+        const { data: adoptionData, error: adoptionError } = await supabase
           .from('adoption_applications')
           .select(`
             *,
@@ -76,7 +76,7 @@ const AdminApplications = () => {
         }
         
         // Also query the foster applications
-        const { data: fosterData, error: fosterError } = await getSupabaseClient()
+        const { data: fosterData, error: fosterError } = await supabase
           .from('applications')
           .select(`
             *,
@@ -102,7 +102,7 @@ const AdminApplications = () => {
         }
         
         // Query volunteer applications
-        const { data: volunteerData, error: volunteerError } = await getSupabaseClient()
+        const { data: volunteerData, error: volunteerError } = await supabase
           .from('applications')
           .select(`
             *,
@@ -128,7 +128,7 @@ const AdminApplications = () => {
         }
         
         // Finally, check any other application types in the applications table
-        const { data: otherApps, error: otherError } = await getSupabaseClient()
+        const { data: otherApps, error: otherError } = await supabase
           .from('applications')
           .select(`
             *,

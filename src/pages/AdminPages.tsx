@@ -5,7 +5,7 @@ import AdminLayout from '@/pages/Admin';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Edit, FileText, Plus } from 'lucide-react';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import SEO from '@/components/SEO';
 
 interface ContentBlock {
@@ -43,7 +43,7 @@ const AdminPages: React.FC = () => {
   const { data: contentBlocks, isLoading, error } = useQuery({
     queryKey: ['content-blocks'],
     queryFn: async () => {
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('content_blocks')
         .select('*')
         .order('page', { ascending: true });

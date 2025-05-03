@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import AdminLayout from '@/pages/Admin';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -107,7 +107,7 @@ const AdminDocuments = () => {
   const { data: documents, isLoading: loadingDocuments } = useQuery({
     queryKey: ['admin-documents'],
     queryFn: async () => {
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('documents')
         .select(`
           *,
@@ -126,7 +126,7 @@ const AdminDocuments = () => {
   const { data: categories, isLoading: loadingCategories } = useQuery({
     queryKey: ['document-categories'],
     queryFn: async () => {
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('document_categories')
         .select('*')
         .order('name');
@@ -140,7 +140,7 @@ const AdminDocuments = () => {
   const { data: cats } = useQuery({
     queryKey: ['cats-list'],
     queryFn: async () => {
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('cats')
         .select('id, name')
         .order('name');
@@ -154,7 +154,7 @@ const AdminDocuments = () => {
   const { data: supplies } = useQuery({
     queryKey: ['supplies-list'],
     queryFn: async () => {
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('supplies')
         .select('id, name')
         .order('name');
@@ -182,7 +182,7 @@ const AdminDocuments = () => {
       };
       
       // Insert into the database
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('documents')
         .insert([documentData])
         .select();
@@ -211,7 +211,7 @@ const AdminDocuments = () => {
   // Add category mutation
   const addCategoryMutation = useMutation({
     mutationFn: async (category: typeof newCategory) => {
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('document_categories')
         .insert([category])
         .select();
@@ -244,7 +244,7 @@ const AdminDocuments = () => {
   const deleteDocumentMutation = useMutation({
     mutationFn: async (documentId: string) => {
       // Get the document to find the file path
-      const { data: document, error: getError } = await getSupabaseClient()
+      const { data: document, error: getError } = await supabase
         .from('documents')
         .select('file_path')
         .eq('id', documentId)
@@ -254,7 +254,7 @@ const AdminDocuments = () => {
       
       // Delete from storage if needed
       if (document.file_path.startsWith('documents/')) {
-        const { error: storageError } = await getSupabaseClient().storage
+        const { error: storageError } = await supabase.storage
           .from('documents')
           .remove([document.file_path.replace('documents/', '')]);
         
@@ -262,7 +262,7 @@ const AdminDocuments = () => {
       }
       
       // Delete from database
-      const { error } = await getSupabaseClient()
+      const { error } = await supabase
         .from('documents')
         .delete()
         .eq('id', documentId);
@@ -390,14 +390,14 @@ const AdminDocuments = () => {
     const filePath = `documents/${fileName}`;
     
     // Upload to Supabase storage
-    getSupabaseClient().storage
+    supabase.storage
       .from('documents')
       .upload(filePath, file)
       .then(({ data, error }) => {
         if (error) throw error;
         
         // Get the public URL
-        const { data: urlData } = getSupabaseClient().storage
+        const { data: urlData } = supabase.storage
           .from('documents')
           .getPublicUrl(filePath);
         

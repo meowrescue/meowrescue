@@ -24,7 +24,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import { User } from '@/types/users';
 import ImageUploader from '@/components/ImageUploader';
 
@@ -60,7 +60,7 @@ const UserCard: React.FC<UserCardProps> = ({ user, onRoleChange, onStatusChange,
 
   const handleSaveChanges = async () => {
     try {
-      const { error } = await getSupabaseClient()
+      const { error } = await supabase
         .from('profiles')
         .update({
           role_title: roleTitle,

@@ -8,10 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import { useToast } from "@/hooks/use-toast";
 import { ChevronLeft, Upload, X, Loader2 } from "lucide-react";
-import { LostFoundPost } from "@/types/getSupabaseClient()";
+import { LostFoundPost } from '@supabase/types';
 
 type FormData = {
   title: string;
@@ -68,7 +68,7 @@ const LostFoundForm = () => {
 
   const fetchPostData = async () => {
     try {
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from("lost_found_posts")
         .select("*")
         .eq("id", id)
@@ -163,7 +163,7 @@ const LostFoundForm = () => {
       const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
       const filePath = `${user!.id}/${fileName}`;
 
-      const { data, error } = await getSupabaseClient().storage
+      const { data, error } = await supabase.storage
         .from("lost_found_photos")
         .upload(filePath, photo);
 
@@ -172,7 +172,7 @@ const LostFoundForm = () => {
         throw new Error("Failed to upload one or more photos.");
       }
 
-      const { data: urlData } = getSupabaseClient().storage
+      const { data: urlData } = supabase.storage
         .from("lost_found_photos")
         .getPublicUrl(filePath);
 
@@ -193,7 +193,7 @@ const LostFoundForm = () => {
       const filePath = pathParts.slice(3).join("/");
 
       if (bucketName && filePath) {
-        await getSupabaseClient().storage.from("lost_found_photos").remove([filePath]);
+        await supabase.storage.from("lost_found_photos").remove([filePath]);
       }
     }
   };
@@ -240,7 +240,7 @@ const LostFoundForm = () => {
         }
 
         // Update post
-        const { error } = await getSupabaseClient()
+        const { error } = await supabase
           .from("lost_found_posts")
           .update({
             title: formData.title,
@@ -265,7 +265,7 @@ const LostFoundForm = () => {
         });
       } else {
         // Create new post
-        const { data, error } = await getSupabaseClient()
+        const { data, error } = await supabase
           .from("lost_found_posts")
           .insert({
             profile_id: user.id,

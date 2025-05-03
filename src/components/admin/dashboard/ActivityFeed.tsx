@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import { formatDistanceToNow } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { User, Plus, FileText, Calendar } from 'lucide-react';
@@ -24,7 +24,7 @@ const ActivityFeed = () => {
   const { data: recentActivity, isLoading, error } = useQuery({
     queryKey: ['recent-activity'],
     queryFn: async () => {
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('activity_logs')
         .select(`
           *,

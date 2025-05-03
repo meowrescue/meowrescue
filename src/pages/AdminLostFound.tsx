@@ -3,8 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AdminLayout from '@/pages/Admin';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
-import { LostFoundPost } from '@/types/getSupabaseClient()';
+import { supabase } from '@integrations/supabase';
+import { LostFoundPost } from '@supabase/types';
 import StatsCard from '@/components/admin/lost-found/StatsCard';
 import PostDetailsDialog from '@/components/admin/lost-found/PostDetailsDialog';
 import PostsTable from '@/components/admin/lost-found/PostsTable';
@@ -46,7 +46,7 @@ const AdminLostFound = () => {
     queryFn: async () => {
       try {
         // First fetch the posts
-        const { data: postsData, error: postsError } = await getSupabaseClient()
+        const { data: postsData, error: postsError } = await supabase
           .from('lost_found_posts')
           .select('*')
           .order('created_at', { ascending: false });
@@ -63,7 +63,7 @@ const AdminLostFound = () => {
         let profilesMap: Record<string, any> = {};
         
         if (profileIds.length > 0) {
-          const { data: profilesData, error: profilesError } = await getSupabaseClient()
+          const { data: profilesData, error: profilesError } = await supabase
             .from('profiles')
             .select('id, first_name, last_name, email')
             .in('id', profileIds);
@@ -96,7 +96,7 @@ const AdminLostFound = () => {
   // Archive post mutation
   const archivePost = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await getSupabaseClient()
+      const { error } = await supabase
         .from('lost_found_posts')
         .update({ status: 'archived' })
         .eq('id', id);
@@ -130,7 +130,7 @@ const AdminLostFound = () => {
   const restorePost = useMutation({
     mutationFn: async (id: string) => {
       // First get the post to determine the original status
-      const { data, error: fetchError } = await getSupabaseClient()
+      const { data, error: fetchError } = await supabase
         .from('lost_found_posts')
         .select('*')
         .eq('id', id)
@@ -142,7 +142,7 @@ const AdminLostFound = () => {
       const originalStatus = 'lost';
       
       // Update the post
-      const { error } = await getSupabaseClient()
+      const { error } = await supabase
         .from('lost_found_posts')
         .update({ status: originalStatus })
         .eq('id', id);
@@ -177,7 +177,7 @@ const AdminLostFound = () => {
   // Delete post mutation
   const deletePost = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await getSupabaseClient()
+      const { error } = await supabase
         .from('lost_found_posts')
         .delete()
         .eq('id', id);

@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { Cat, Heart, Home } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import getSupabaseClient, { checkSupabaseConnection } from '@/integrations/getSupabaseClient()/client';
+import { supabase, checkSupabaseConnection } from '@/integrations/supabase';
 import CountUp from './CountUp';
 import { useToast } from '@/hooks/use-toast';
 
@@ -11,7 +11,7 @@ const StatsSection: React.FC = () => {
   
   // First check if Supabase connection is working
   const { data: connectionStatus, isLoading: connectionChecking } = useQuery({
-    queryKey: ['getSupabaseClient()-connection-check'],
+    queryKey: ['supabase-connection-check'],
     queryFn: async () => {
       console.log('Checking Supabase connection from StatsSection...');
       return await checkSupabaseConnection();
@@ -43,7 +43,7 @@ const StatsSection: React.FC = () => {
         }
         
         
-        const { count, error } = await getSupabaseClient()
+        const { count, error } = await supabase
           .from('cats')
           .select('*', { count: 'exact', head: true });
         
@@ -75,7 +75,7 @@ const StatsSection: React.FC = () => {
         }
         
         
-        const { count, error } = await getSupabaseClient()
+        const { count, error } = await supabase
           .from('cats')
           .select('*', { count: 'exact', head: true });
         
@@ -107,7 +107,7 @@ const StatsSection: React.FC = () => {
         }
         
         
-        const { count, error } = await getSupabaseClient()
+        const { count, error } = await supabase
           .from('cats')
           .select('*', { count: 'exact', head: true })
           .eq('status', 'Adopted');

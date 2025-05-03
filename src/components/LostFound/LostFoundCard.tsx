@@ -2,7 +2,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { MapPin, CalendarDays } from "lucide-react";
-import { LostFoundPost } from "@/types/getSupabaseClient()";
+import { LostFoundPost } from '@supabase/types';
 import { getStatusBadgeClass, getStatusIcon } from "@/utils/lostFoundUtils";
 
 interface LostFoundCardProps {

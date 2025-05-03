@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -50,9 +51,9 @@ const OverallFundraisingGoal: React.FC<OverallFundraisingGoalProps> = ({
   return (
     <div className="max-w-5xl w-full mx-auto">
       <Card className="shadow-md mb-6 w-full bg-[#f7fafd] border border-[#e7f0f7] rounded-2xl p-0 overflow-hidden">
-        <CardHeader className="bg-[#0C3878] text-white rounded-t-lg py-4 px-6">
-          <CardTitle className="text-2xl font-serif font-bold">
-            {`Overall ${year} Fundraising Goal`}
+        <CardHeader className="pb-2 bg-[#004080] text-white rounded-t-2xl">
+          <CardTitle className="text-xl md:text-2xl font-semibold font-serif tracking-tight leading-tight">
+            Overall {year} Fundraising Goal
           </CardTitle>
         </CardHeader>
         <CardContent className="px-4 sm:px-8 py-6">

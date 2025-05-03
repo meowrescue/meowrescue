@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import { useToast } from '@/hooks/use-toast';
 import Layout from '@/components/Layout';
 import SEO from '@/components/SEO';
@@ -163,7 +163,7 @@ const FosterForm = () => {
     setIsSubmitting(true);
     try {
       // Submit to Supabase
-      const { error } = await getSupabaseClient().from('applications').insert({
+      const { error } = await supabase.from('applications').insert({
         applicant_id: user?.id,
         application_type: 'foster',
         status: 'pending',

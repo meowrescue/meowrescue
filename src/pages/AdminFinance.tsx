@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { PieChart, FileText, DollarSign } from 'lucide-react';
 import { useFinancialStats } from '@/hooks/useFinancialStats';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import MonthlyRevenueCard from "@/components/finance/dashboard/MonthlyRevenueCard";
 import MonthlyExpensesCard from "@/components/finance/dashboard/MonthlyExpensesCard";
 import TaxDeadlinesCard from "@/components/finance/dashboard/TaxDeadlinesCard";
@@ -38,7 +38,7 @@ const AdminFinance = () => {
   useEffect(() => {
     const fetchRecentDonations = async () => {
       try {
-        const { data, error } = await getSupabaseClient()
+        const { data, error } = await supabase
           .from('donations')
           .select(`
             id,

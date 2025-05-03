@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import SEO from "@/components/SEO";
@@ -16,7 +16,7 @@ const SuccessStories: React.FC = () => {
   const { data: stories, isLoading, refetch } = useQuery({
     queryKey: ["successStories"],
     queryFn: async () => {
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from("success_stories")
         .select("*, cats(name, photos_urls)")
         .order("created_at", { ascending: false });
@@ -27,7 +27,7 @@ const SuccessStories: React.FC = () => {
   });
 
   useEffect(() => {
-    const subscription = getSupabaseClient()
+    const subscription = supabase
       .channel('success-stories-updates')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'success_stories' }, (payload) => {
         console.log('Success story update received:', payload);

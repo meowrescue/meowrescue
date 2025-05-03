@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import { TeamMember } from '@/types/team';
 import Layout from '@/components/Layout';
 import SEO from '@/components/SEO';
@@ -14,9 +14,9 @@ const About = () => {
   const { data: teamMembers = [], isLoading } = useQuery({
     queryKey: ['team-members'],
     queryFn: async () => {
-      // No need to reassign getSupabaseClient, just use it directly
-      const { data, error } = await getSupabaseClient()
-        .from('profiles')
+      // No need to reassign supabase, just use it directly
+      const { data, error } = await supabaseClient
+        .from('team_members')
         .select('id, first_name, last_name, avatar_url, role, role_title, bio, show_in_team, created_at')
         .eq('show_in_team', true)
         .order('created_at');

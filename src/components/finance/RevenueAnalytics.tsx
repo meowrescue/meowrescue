@@ -17,7 +17,7 @@ import {
 } from "recharts";
 import { formatCurrency } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 
 const config = {
   donations: { color: "#4ade80" }, // Green
@@ -58,7 +58,7 @@ const RevenueAnalytics: React.FC = () => {
       const endOfYear = new Date(currentYear, 11, 31).toISOString();
       
       
-      const { data: donationsData, error: donationsError } = await getSupabaseClient()
+      const { data: donationsData, error: donationsError } = await supabase
         .from('donations')
         .select('amount, donation_date')
         .gte('donation_date', startOfYear)
@@ -82,7 +82,7 @@ const RevenueAnalytics: React.FC = () => {
       }
       
       // Fetch all expenses for the current year
-      const supabase2 = getSupabaseClient();
+      const supabase2 = supabase;
       const { data: expensesData, error: expensesError } = await supabase2
         .from('expenses')
         .select('amount, expense_date')

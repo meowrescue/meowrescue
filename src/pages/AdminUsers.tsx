@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import AdminLayout from '@/pages/Admin';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -59,7 +59,7 @@ const AdminUsers = () => {
   const { data: users, isLoading } = useQuery({
     queryKey: ['admin-users'],
     queryFn: async () => {
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
@@ -73,7 +73,7 @@ const AdminUsers = () => {
   const addUserMutation = useMutation({
     mutationFn: async (userData: typeof newUser) => {
       // Create auth user first
-      const { data: authData, error: authError } = await getSupabaseClient().auth.signUp({
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
         options: {
@@ -87,7 +87,7 @@ const AdminUsers = () => {
       if (authError) throw authError;
       
       // Set role in profile (the profile should be created automatically via trigger)
-      const { error: profileError } = await getSupabaseClient()
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({ role: userData.role })
         .eq('id', authData.user!.id);
@@ -117,7 +117,7 @@ const AdminUsers = () => {
   // Update user role mutation
   const updateRoleMutation = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: UserRole }) => {
-      const { error } = await getSupabaseClient()
+      const { error } = await supabase
         .from('profiles')
         .update({ role })
         .eq('id', userId);
@@ -146,7 +146,7 @@ const AdminUsers = () => {
   // Update user status mutation
   const updateStatusMutation = useMutation({
     mutationFn: async ({ userId, isActive }: { userId: string; isActive: boolean }) => {
-      const { error } = await getSupabaseClient()
+      const { error } = await supabase
         .from('profiles')
         .update({ is_active: isActive })
         .eq('id', userId);

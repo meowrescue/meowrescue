@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { TrendingUp, Users, Cat, Calendar, DollarSign, Clock } from 'lucide-react';
 import SEO from '@/components/SEO';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
 
@@ -31,7 +31,7 @@ const AdminAnalytics: React.FC = () => {
       try {
         // In a real implementation, you would have a proper analytics table
         // For now, we'll use a placeholder with count from the profiles table as an estimate
-        const { count, error } = await getSupabaseClient()
+        const { count, error } = await supabase
           .from('profiles')
           .select('*', { count: 'exact', head: true });
           
@@ -62,19 +62,19 @@ const AdminAnalytics: React.FC = () => {
       // For now, we'll return a simplified placeholder based on database content
       
       // Get counts from various tables to estimate popularity
-      const { count: catsCount } = await getSupabaseClient()
+      const { count: catsCount } = await supabase
         .from('cats')
         .select('*', { count: 'exact', head: true });
       
-      const { count: lostFoundCount } = await getSupabaseClient()
+      const { count: lostFoundCount } = await supabase
         .from('lost_found_posts')
         .select('*', { count: 'exact', head: true });
       
-      const { count: eventsCount } = await getSupabaseClient()
+      const { count: eventsCount } = await supabase
         .from('events')
         .select('*', { count: 'exact', head: true });
         
-      const { count: donationsCount } = await getSupabaseClient()
+      const { count: donationsCount } = await supabase
         .from('donations')
         .select('*', { count: 'exact', head: true });
         

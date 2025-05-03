@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import AdminLayout from '@/pages/Admin';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -49,7 +49,7 @@ const AdminTeam = () => {
   const { data: teamMembers, isLoading } = useQuery({
     queryKey: ['team-members'],
     queryFn: async () => {
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('team_members')
         .select('*')
         .order('display_order', { ascending: true });
@@ -65,7 +65,7 @@ const AdminTeam = () => {
       if (isEditMode) {
         // Update existing member
         const { id, ...updateData } = member;
-        const { data, error } = await getSupabaseClient()
+        const { data, error } = await supabase
           .from('team_members')
           .update(updateData)
           .eq('id', id)
@@ -75,7 +75,7 @@ const AdminTeam = () => {
         return data[0];
       } else {
         // Add new member
-        const { data, error } = await getSupabaseClient()
+        const { data, error } = await supabase
           .from('team_members')
           .insert([member])
           .select();
@@ -105,7 +105,7 @@ const AdminTeam = () => {
   // Delete team member mutation
   const deleteMemberMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await getSupabaseClient()
+      const { error } = await supabase
         .from('team_members')
         .delete()
         .eq('id', id);
@@ -132,7 +132,7 @@ const AdminTeam = () => {
   // Update display order mutation
   const updateOrderMutation = useMutation({
     mutationFn: async ({ id, newOrder }: { id: string; newOrder: number }) => {
-      const { error } = await getSupabaseClient()
+      const { error } = await supabase
         .from('team_members')
         .update({ display_order: newOrder })
         .eq('id', id);

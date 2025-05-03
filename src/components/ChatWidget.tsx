@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { MessageSquareText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLocation } from 'react-router-dom';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import { X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
@@ -35,7 +35,7 @@ const ChatWidget: React.FC = () => {
         if (storedSessionId) {
           setChatSessionId(storedSessionId);
           // Fetch existing messages
-          const { data, error } = await getSupabaseClient()
+          const { data, error } = await supabase
             .from('chat_messages')
             .select('*')
             .eq('chat_session_id', storedSessionId)
@@ -44,7 +44,7 @@ const ChatWidget: React.FC = () => {
           setMessages(data || []);
         } else {
           // Create a new chat session
-          const { data, error } = await getSupabaseClient()
+          const { data, error } = await supabase
             .from('chat_sessions')
             .insert([{ status: 'active' }])
             .select()
@@ -67,7 +67,7 @@ const ChatWidget: React.FC = () => {
     if (!chatSessionId) return;
     
     
-    const subscription = getSupabaseClient()
+    const subscription = supabase
       .channel(`chat-session-${chatSessionId}-updates`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_messages', filter: `chat_session_id=eq.${chatSessionId}` }, (payload) => {
         console.log('Chat message update received:', payload);
@@ -89,7 +89,7 @@ const ChatWidget: React.FC = () => {
     
     try {
       
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('chat_messages')
         .insert([{
           chat_session_id: chatSessionId,

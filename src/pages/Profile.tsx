@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import SEO from '@/components/SEO';
 import { useQuery } from '@tanstack/react-query';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -53,7 +53,7 @@ const Profile: React.FC = () => {
     queryKey: ['profile', user?.id],
     queryFn: async () => {
       if (!user) return null;
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
@@ -73,7 +73,7 @@ const Profile: React.FC = () => {
     queryKey: ['lostFoundPosts', user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('lost_found_posts')
         .select('*')
         .eq('profile_id', user.id);
@@ -92,7 +92,7 @@ const Profile: React.FC = () => {
     queryKey: ['blogPosts', user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('blog_posts')
         .select('*')
         .eq('author_profile_id', user.id);
@@ -111,7 +111,7 @@ const Profile: React.FC = () => {
         throw new Error("Authentication session is missing. Please log in again.");
       }
       
-      const { error } = await getSupabaseClient().auth.updateUser({
+      const { error } = await supabase.auth.updateUser({
         data: { 
           first_name: data.firstName,
           last_name: data.lastName 
@@ -153,7 +153,7 @@ const Profile: React.FC = () => {
         throw new Error("Authentication session is missing. Please log in again.");
       }
       
-      const { error } = await getSupabaseClient().auth.updateUser({
+      const { error } = await supabase.auth.updateUser({
         password: data.password
       });
       
@@ -225,21 +225,21 @@ const Profile: React.FC = () => {
       const fileName = `${user.id}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
       const filePath = `avatars/${fileName}`;
       
-      const { error: uploadError } = await getSupabaseClient().storage
+      const { error: uploadError } = await supabase.storage
         .from('profiles')
         .upload(filePath, selectedFile);
         
       if (uploadError) throw uploadError;
       
       // Get the public URL for the uploaded file
-      const { data: publicUrlData } = getSupabaseClient().storage
+      const { data: publicUrlData } = supabase.storage
         .from('profiles')
         .getPublicUrl(filePath);
         
       if (!publicUrlData.publicUrl) throw new Error('Could not get public URL for uploaded image');
       
       // Update the profile with the new avatar URL
-      const { error: updateError } = await getSupabaseClient()
+      const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: publicUrlData.publicUrl })
         .eq('id', user.id);

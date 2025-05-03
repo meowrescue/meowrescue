@@ -7,7 +7,7 @@ import { Calendar, MapPin, Clock, ArrowLeft } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { usePageData } from '@/contexts/PageDataContext';
 import { useQuery } from '@tanstack/react-query';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 
 const EventDetail: React.FC = () => {
   const { id: eventId } = useParams<{ id: string }>();
@@ -30,7 +30,7 @@ const EventDetail: React.FC = () => {
       
       // Client-side fetching fallback
       
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('events')
         .select('*')
         .eq('id', eventId)
@@ -60,7 +60,7 @@ const EventDetail: React.FC = () => {
   useEffect(() => {
     if (!eventId) return;
     
-    const subscription = getSupabaseClient()
+    const subscription = supabase
       .channel(`event-${eventId}-updates`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'events', filter: `id=eq.${eventId}` }, (payload) => {
         console.log('Event update received:', payload);

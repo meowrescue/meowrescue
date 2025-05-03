@@ -21,7 +21,7 @@ import { DatePicker } from "@/components/ui/date-picker"
 import { Textarea } from "@/components/ui/textarea";
 import { Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 
 interface MedicalRecord {
   id: string;
@@ -80,7 +80,7 @@ const CatMedicalRecords = ({ catId, editMode }: { catId: string; editMode: boole
   const { data: medicalRecords, isLoading, refetch } = useQuery({
     queryKey: ['cat-medical-records', catId],
     queryFn: async () => {
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('cat_medical_records')
         .select('*')
         .eq('cat_id', catId)
@@ -94,7 +94,7 @@ const CatMedicalRecords = ({ catId, editMode }: { catId: string; editMode: boole
 
   const createRecordMutation = useMutation({
     mutationFn: async (record: Omit<MedicalRecord, 'id' | 'created_at'>) => {
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('cat_medical_records')
         .insert([record])
         .select();
@@ -130,7 +130,7 @@ const CatMedicalRecords = ({ catId, editMode }: { catId: string; editMode: boole
 
   const deleteRecordMutation = useMutation({
     mutationFn: async (recordId: string) => {
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('cat_medical_records')
         .delete()
         .eq('id', recordId);

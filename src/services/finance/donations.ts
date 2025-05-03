@@ -1,4 +1,4 @@
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@/integrations/supabase';
 import { format } from 'date-fns';
 
 /**
@@ -15,7 +15,7 @@ export const getDonationsSum = async ({ startDate, endDate }: { startDate?: Date
     console.log('[Donations] Querying donations from', start.toISOString(), 'to', end.toISOString());
     
     // First try with status filter
-    const { data: filteredData, error: filteredError } = await getSupabaseClient()
+    const { data: filteredData, error: filteredError } = await supabase
       .from('donations')
       .select('amount')
       .eq('status', 'completed')
@@ -25,7 +25,7 @@ export const getDonationsSum = async ({ startDate, endDate }: { startDate?: Date
     if (filteredError) {
       console.log('[Donations] Status filter error:', filteredError);
       // If status filter fails, try without it
-      const { data: allData, error: allError } = await getSupabaseClient()
+      const { data: allData, error: allError } = await supabase
         .from('donations')
         .select('amount')
         .gte('donation_date', start.toISOString())
@@ -62,7 +62,7 @@ export const getMonthlyDonations = async () => {
     const firstDayOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
     console.debug('[Donations] Querying monthly donations from', firstDayOfMonth.toISOString(), 'to', firstDayOfNextMonth.toISOString());
 
-    const { data, error } = await getSupabaseClient()
+    const { data, error } = await supabase
       .from('donations')
       .select('amount')
       .eq('status', 'completed')
@@ -80,7 +80,7 @@ export const getMonthlyDonations = async () => {
     if (!data || data.length === 0) {
       console.log('No completed donations found. Checking if any donations exist without status filter...');
       
-      const { data: allData, error: allError } = await getSupabaseClient()
+      const { data: allData, error: allError } = await supabase
         .from('donations')
         .select('amount, status, donation_date')
         .gte('donation_date', firstDayOfMonth.toISOString())
@@ -100,7 +100,7 @@ export const getMonthlyDonations = async () => {
       }
       
       // Similar approach to budget_categories, try with a direct query
-      const { data: directData, error: directError } = await getSupabaseClient()
+      const { data: directData, error: directError } = await supabase
         .from('donations')
         .select('sum(amount)')
         .eq('status', 'completed')
@@ -150,7 +150,7 @@ export const getPreviousMonthDonations = async () => {
     console.log('Date range:', format(firstDayOfPreviousMonth, 'yyyy-MM-dd'), 'to', format(firstDayOfCurrentMonth, 'yyyy-MM-dd'));
     
     // First try with status=completed filter
-    const { data, error } = await getSupabaseClient()
+    const { data, error } = await supabase
       .from('donations')
       .select('amount')
       .eq('status', 'completed')
@@ -168,7 +168,7 @@ export const getPreviousMonthDonations = async () => {
     if (!data || data.length === 0) {
       console.log('No completed donations found for previous month. Trying direct sum query...');
       
-      const { data: directData, error: directError } = await getSupabaseClient()
+      const { data: directData, error: directError } = await supabase
         .from('donations')
         .select('sum(amount)')
         .eq('status', 'completed')
@@ -216,7 +216,7 @@ export const getTotalDonations = async () => {
     console.log('Date range:', format(firstDayOfYear, 'yyyy-MM-dd'), 'to', format(now, 'yyyy-MM-dd'));
     
     // First try with status=completed filter
-    const { data, error } = await getSupabaseClient()
+    const { data, error } = await supabase
       .from('donations')
       .select('amount')
       .eq('status', 'completed')
@@ -234,7 +234,7 @@ export const getTotalDonations = async () => {
     if (!data || data.length === 0) {
       console.log('No completed donations found for year. Trying direct sum query...');
       
-      const { data: directData, error: directError } = await getSupabaseClient()
+      const { data: directData, error: directError } = await supabase
         .from('donations')
         .select('sum(amount)')
         .eq('status', 'completed')
@@ -272,7 +272,7 @@ export const getTotalDonations = async () => {
 export const debugLogLatestDonations = async () => {
   try {
     
-    const { data, error } = await getSupabaseClient()
+    const { data, error } = await supabase
       .from('donations')
       .select('id, amount, donation_date, status')
       .order('donation_date', { ascending: false })

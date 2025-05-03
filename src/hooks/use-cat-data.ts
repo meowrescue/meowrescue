@@ -1,6 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import { Cat, MedicalRecord } from '@/types/cat';
 import { usePageData } from '@/contexts/PageDataContext';
 
@@ -19,7 +19,7 @@ export function useCatData(id: string) {
         return preloadedCat;
       }
       
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('cats')
         .select('*')
         .eq('id', id)
@@ -42,7 +42,7 @@ export function useCatData(id: string) {
         return preloadedMedicalRecords;
       }
       
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('cat_medical_records')
         .select('*')
         .eq('cat_id', id)

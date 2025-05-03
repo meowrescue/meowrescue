@@ -1,5 +1,5 @@
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 
 export interface Donor {
   name: string;
@@ -24,7 +24,7 @@ export const useRecentDonors = (options?: UseRecentDonorsOptions) => {
         
         
         // Use the get_recent_donors RPC function
-        const { data, error } = await getSupabaseClient()
+        const { data, error } = await supabase
           .rpc('get_recent_donors', { limit_count: limit });
           
         if (error) {
@@ -32,7 +32,7 @@ export const useRecentDonors = (options?: UseRecentDonorsOptions) => {
           
           // If RPC fails, try direct query as fallback
           console.log("Attempting fallback query for recent donors...");
-          const { data: fallbackData, error: fallbackError } = await getSupabaseClient()
+          const { data: fallbackData, error: fallbackError } = await supabase
             .from('donations')
             .select('id, name, amount, donation_date, is_anonymous')
             .eq('status', 'completed')

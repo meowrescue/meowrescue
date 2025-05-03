@@ -2,7 +2,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LostFoundPost } from "@/types/getSupabaseClient()";
+import { LostFoundPost } from '@supabase/types';
 import LostFoundCard from "./LostFoundCard";
 
 interface LostFoundGridProps {

@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import AdminLayout from '@/pages/Admin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -73,7 +73,7 @@ const AdminOrders = () => {
   const { data: orders, isLoading } = useQuery({
     queryKey: ['foster-orders'],
     queryFn: async () => {
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('supply_orders')
         .select(`
           *,
@@ -106,7 +106,7 @@ const AdminOrders = () => {
       
       if (status === 'Approved') {
         updateData.approved_at = new Date().toISOString();
-        updateData.approved_by = (await getSupabaseClient().auth.getUser()).data.user?.id;
+        updateData.approved_by = (await supabase.auth.getUser()).data.user?.id;
       }
       
       if (trackingNumber) {
@@ -121,7 +121,7 @@ const AdminOrders = () => {
         updateData.notes = notes;
       }
       
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('supply_orders')
         .update(updateData)
         .eq('id', orderId)

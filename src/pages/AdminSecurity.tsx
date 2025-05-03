@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import AdminLayout from '@/pages/Admin';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -55,7 +55,7 @@ const AdminSecurity = () => {
   const { data: activityLogs, isLoading, error } = useQuery({
     queryKey: ['activity-logs', activityLimit, activityTypeFilter, userFilter, searchQuery],
     queryFn: async () => {
-      let query = getSupabaseClient()
+      let query = supabase
         .from('activity_logs')
         .select(`
           *,
@@ -94,7 +94,7 @@ const AdminSecurity = () => {
   const { data: users } = useQuery({
     queryKey: ['security-users'],
     queryFn: async () => {
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('profiles')
         .select('id, email, first_name, last_name')
         .order('email', { ascending: true });

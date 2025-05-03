@@ -1,6 +1,6 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import { SuccessStory } from '../types';
 import { useToast } from '@/hooks/use-toast';
 
@@ -11,7 +11,7 @@ export const useSuccessStories = () => {
   const { data: stories, isLoading } = useQuery({
     queryKey: ['success-stories'],
     queryFn: async () => {
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('success_stories')
         .select('*, cats(name)')
         .order('created_at', { ascending: false });
@@ -23,7 +23,7 @@ export const useSuccessStories = () => {
 
   const addStoryMutation = useMutation({
     mutationFn: async (story: Omit<SuccessStory, 'id' | 'created_at' | 'updated_at'>) => {
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('success_stories')
         .insert([story])
         .select();
@@ -50,7 +50,7 @@ export const useSuccessStories = () => {
 
   const updateStoryMutation = useMutation({
     mutationFn: async ({ id, story }: { id: string; story: Partial<SuccessStory> }) => {
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('success_stories')
         .update(story)
         .eq('id', id)
@@ -78,7 +78,7 @@ export const useSuccessStories = () => {
 
   const deleteStoryMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await getSupabaseClient()
+      const { error } = await supabase
         .from('success_stories')
         .delete()
         .eq('id', id);
@@ -104,7 +104,7 @@ export const useSuccessStories = () => {
 
   const toggleHomepageDisplayMutation = useMutation({
     mutationFn: async ({ id, showOnHomepage }: { id: string; showOnHomepage: boolean }) => {
-      const { data, error } = await getSupabaseClient()
+      const { data, error } = await supabase
         .from('success_stories')
         .update({ show_on_homepage: showOnHomepage })
         .eq('id', id)

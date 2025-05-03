@@ -16,7 +16,7 @@ import { CalendarIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
 import { useToast } from '@/hooks/use-toast';
-import getSupabaseClient from '@/integrations/getSupabaseClient()/client';
+import { supabase } from '@integrations/supabase';
 import SEO from '@/components/SEO';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -56,7 +56,7 @@ const AdminEvents: React.FC = () => {
     queryFn: async () => {
       try {
         console.log("Fetching events");
-        const { data, error } = await getSupabaseClient()
+        const { data, error } = await supabase
           .from('events')
           .select('*')
           .order('date', { ascending: true });
@@ -89,7 +89,7 @@ const AdminEvents: React.FC = () => {
         
         const isNewEvent = !event.id;
         
-        const { data, error } = await getSupabaseClient()
+        const { data, error } = await supabase
           .from('events')
           .upsert([
             {
@@ -139,7 +139,7 @@ const AdminEvents: React.FC = () => {
     mutationFn: async (id: string) => {
       try {
         console.log("Deleting event:", id);
-        const { error } = await getSupabaseClient()
+        const { error } = await supabase
           .from('events')
           .delete()
           .eq('id', id);
@@ -247,7 +247,7 @@ const AdminEvents: React.FC = () => {
   
   try {
     // Upload the file to Supabase storage
-    const { data, error } = await getSupabaseClient().storage
+    const { data, error } = await supabase.storage
       .from('event-images')
       .upload(uniqueFileName, file, {
         cacheControl: '3600',
@@ -256,7 +256,7 @@ const AdminEvents: React.FC = () => {
     
     if (error) throw error;
     
-    const publicUrl = getSupabaseClient().storage.from('event-images').getPublicUrl(data.path).data.publicUrl;
+    const publicUrl = supabase.storage.from('event-images').getPublicUrl(data.path).data.publicUrl;
     setFormState(prev => ({ ...prev, image_url: publicUrl }));
     toast({
       title: "Image Uploaded",
