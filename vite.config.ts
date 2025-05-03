@@ -12,9 +12,9 @@ export default defineConfig(({ mode, command }) => ({
         default-src 'self';
         script-src 'self' 'unsafe-inline' 'unsafe-eval';
         style-src 'self' 'unsafe-inline';
-        img-src 'self' data: blob: https:;
+        img-src 'self' data: blob: https: https://*.supabase.co https://images.unsplash.com;
         frame-src 'self' https:;
-        connect-src 'self' https:;
+        connect-src 'self' https: https://*.supabase.co;
         font-src 'self' https: data:;
         media-src 'self' https: data:;
         object-src 'none';
