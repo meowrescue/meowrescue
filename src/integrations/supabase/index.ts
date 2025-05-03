@@ -1,13 +1,30 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'https://example.supabase.co';
-const supabaseAnonKey = 'example_key';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+let supabaseInstance: SupabaseClient | null = null;
+
+/**
+ * Initializes and returns the Supabase client instance (singleton).
+ * Ensures only one instance is created.
+ */
+export const getSupabaseClient = (): SupabaseClient => {
+  if (!supabaseInstance) {
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('Supabase URL or Anon Key is missing. Cannot initialize client. Check environment variables.');
+      throw new Error('Supabase configuration is missing.');
+    }
+    console.log('Initializing Supabase client (singleton)...');
+    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);
+  }
+  return supabaseInstance;
+};
 
 export const checkSupabaseConnection = async () => {
   try {
-    const { error } = await supabase.auth.getSession();
+    const client = getSupabaseClient();
+    const { error } = await client.auth.getSession();
     return !error;
   } catch (error) {
     console.error('Supabase connection check failed:', error);
@@ -17,7 +34,8 @@ export const checkSupabaseConnection = async () => {
 
 export const checkFinancialData = async () => {
   try {
-    const { data, error } = await supabase
+    const client = getSupabaseClient();
+    const { data, error } = await client
       .from('financial_data')
       .select('*')
       .limit(1);

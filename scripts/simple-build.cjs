@@ -1,9 +1,15 @@
+console.log('\n--- Script Start ---');
+
 // Simple build script for Meow Rescue SSG
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
+// Load environment variables (Supabase keys needed later)
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+
 const rootDir = process.cwd();
+const distDir = path.join(rootDir, 'dist');
 
 // Helper function for timestamp logging
 const log = (message) => {
@@ -14,311 +20,550 @@ const log = (message) => {
 // Function to clean previous build
 const cleanPreviousBuild = () => {
   log('🧹 Cleaning previous build...');
-  const distDir = path.join(rootDir, 'dist');
   if (fs.existsSync(distDir)) {
     fs.rmSync(distDir, { recursive: true, force: true });
   }
+  fs.mkdirSync(distDir, { recursive: true });
+  fs.mkdirSync(path.join(distDir, 'client'), { recursive: true });
+  fs.mkdirSync(path.join(distDir, 'server'), { recursive: true });
   log('✅ Clean completed');
 };
 
-// Function to build client application
-const buildClientApp = () => {
-  log('📦 Building the client application...');
+// Function to build client and server entries
+async function buildClientAndServer() {
+  log('📦 Building client application...');
   try {
-    // Run the build
-    log('📦 Starting Vite build...');
-    execSync('npx vite build --mode production', { 
-      stdio: 'inherit', 
-      shell: true, 
-      cwd: rootDir, 
-      env: { ...process.env, NODE_ENV: 'production' } 
-    });
-    log('✅ Client application built successfully!');
-    return true;
-  } catch (error) {
-    console.error('❌ Error during build:', error);
-    return false;
-  }
-};
-
-// Function to create HTML files with proper SEO content
-const createStaticHtmlFiles = () => {
-  log('📄 Creating static HTML files for all routes...');
-  
-  // Define all routes that need static HTML files
-  const routes = [
-    { path: '/', outputFile: 'index.html', title: 'Home', description: 'Meow Rescue is dedicated to rescuing, rehabilitating, and rehoming cats in need. Find your perfect feline companion today!' },
-    { path: '/about', outputFile: 'about.html', title: 'About Us', description: 'Learn about Meow Rescue\'s mission, our dedicated team, and our commitment to improving the lives of cats in our community.' },
-    { path: '/cats', outputFile: 'cats.html', title: 'Our Cats', description: 'Meet our adorable cats and kittens available for adoption. Each one has been rescued, given medical care, and socialized in a foster home.' },
-    { path: '/adopt', outputFile: 'adopt.html', title: 'Adopt', description: 'Find out how to adopt a cat from Meow Rescue. Our adoption process ensures each cat finds the right forever home.' },
-    { path: '/volunteer', outputFile: 'volunteer.html', title: 'Volunteer', description: 'Discover volunteer opportunities at Meow Rescue. Help us make a difference in the lives of cats in need.' },
-    { path: '/foster', outputFile: 'foster.html', title: 'Foster', description: 'Learn about fostering cats for Meow Rescue. Fostering saves lives and provides cats with a safe environment until adoption.' },
-    { path: '/donate', outputFile: 'donate.html', title: 'Donate', description: 'Support Meow Rescue\'s mission by donating. Your contribution helps us rescue and care for cats in need.' },
-    { path: '/events', outputFile: 'events.html', title: 'Events', description: 'Check out upcoming Meow Rescue events, including adoption days, fundraisers, and community outreach programs.' },
-    { path: '/blog', outputFile: 'blog.html', title: 'Blog', description: 'Read our blog for cat care tips, rescue stories, and updates on Meow Rescue\'s activities.' },
-    { path: '/contact', outputFile: 'contact.html', title: 'Contact Us', description: 'Get in touch with Meow Rescue. We\'re here to answer your questions about adoption, fostering, volunteering, and more.' },
-    { path: '/lost-found', outputFile: 'lost-found.html', title: 'Lost & Found', description: 'Report a lost or found cat. Meow Rescue helps reunite lost cats with their families and find homes for strays.' },
-    { path: '/success-stories', outputFile: 'success-stories.html', title: 'Success Stories', description: 'Read heartwarming stories of cats who found their forever homes through Meow Rescue.' },
-    { path: '/faq', outputFile: 'faq.html', title: 'FAQ', description: 'Find answers to frequently asked questions about Meow Rescue\'s adoption process, fostering program, and more.' }
-  ];
-  
-  // Read the template HTML file
-  const indexPath = path.join(rootDir, 'dist', 'index.html');
-  log(`Reading template from ${indexPath}`);
-  
-  if (!fs.existsSync(indexPath)) {
-    console.error('❌ Error: index.html not found in dist directory');
-    return false;
-  }
-  
-  const templateHtml = fs.readFileSync(indexPath, 'utf8');
-  log(`Template HTML size: ${templateHtml.length} bytes`);
-  
-  // Process each route
-  for (const route of routes) {
-    log(`Processing route: ${route.path}`);
+    log('--> Entering try block for client/server build.');
+    
+    // Use Vite's programmatic API with a simplified configuration
+    log('--> About to build client with programmatic API...');
+    
+    // Require Vite just before using it to ensure it's fresh
+    const { build } = require('vite');
     
     try {
-      // Skip index.html as it's already created
-      if (route.path === '/') {
-        log('✅ Skipping index.html as it already exists');
-        
-        // But still enhance it with SEO metadata
-        const enhancedIndexHtml = addSeoMetadata(templateHtml, route);
-        fs.writeFileSync(indexPath, enhancedIndexHtml, 'utf8');
-        log('✅ Enhanced index.html with SEO metadata');
-        continue;
-      }
-      
-      // Create directory if needed
-      const outputDir = path.dirname(path.join(rootDir, 'dist', route.outputFile));
-      if (!fs.existsSync(outputDir)) {
-        fs.mkdirSync(outputDir, { recursive: true });
-        log(`Created directory: ${outputDir}`);
-      }
-      
-      // Create HTML file with proper SEO metadata
-      const enhancedHtml = addSeoMetadata(templateHtml, route);
-      
-      // Add route-specific content placeholder for SEO
-      const contentHtml = addRouteContent(enhancedHtml, route);
-      
-      // Write the file
-      const outputPath = path.join(rootDir, 'dist', route.outputFile);
-      fs.writeFileSync(outputPath, contentHtml, 'utf8');
-      
-      const stats = fs.statSync(outputPath);
-      log(`✅ Created ${route.outputFile} (${stats.size} bytes)`);
-    } catch (error) {
-      console.error(`❌ Error creating HTML for ${route.path}:`, error.message);
+      await build({
+        root: rootDir,
+        mode: 'production',
+        build: {
+          outDir: 'dist/client',
+          emptyOutDir: true,
+          minify: false, // Disable minification for testing
+          sourcemap: false, // Disable sourcemaps for testing
+          // Simplified rollup options
+          rollupOptions: {
+            input: path.resolve(rootDir, 'index.html'),
+            output: {
+              manualChunks: undefined, // Disable code splitting for testing
+            }
+          }
+        },
+        logLevel: 'info',
+      });
+      log('--> Client build completed successfully.');
+    } catch (buildError) {
+      log(`❌ Error during Vite build: ${buildError.message}`);
+      console.error(buildError);
+      process.exit(1);
     }
-  }
-  
-  log('✅ Static HTML files created successfully');
-  return true;
-};
 
-// Function to add SEO metadata to HTML
-const addSeoMetadata = (html, route) => {
-  log(`Adding SEO metadata for ${route.path}`);
-  
-  // Create SEO metadata
-  const seoMetadata = `
-  <!-- Primary Meta Tags -->
-  <meta name="title" content="Meow Rescue - ${route.title}">
-  <meta name="description" content="${route.description}">
-  
-  <!-- Open Graph / Facebook -->
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://meowrescue.org${route.path}">
-  <meta property="og:title" content="Meow Rescue - ${route.title}">
-  <meta property="og:description" content="${route.description}">
-  <meta property="og:image" content="https://meowrescue.org/images/og-image.jpg">
-  
-  <!-- Twitter -->
-  <meta property="twitter:card" content="summary_large_image">
-  <meta property="twitter:url" content="https://meowrescue.org${route.path}">
-  <meta property="twitter:title" content="Meow Rescue - ${route.title}">
-  <meta property="twitter:description" content="${route.description}">
-  <meta property="twitter:image" content="https://meowrescue.org/images/og-image.jpg">
-  
-  <!-- Structured Data -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebPage",
-    "name": "Meow Rescue - ${route.title}",
-    "description": "${route.description}",
-    "url": "https://meowrescue.org${route.path}",
-    "isPartOf": {
-      "@type": "WebSite",
-      "name": "Meow Rescue",
-      "url": "https://meowrescue.org"
-    }
-  }
-  </script>`;
-  
-  // Insert SEO metadata before the closing head tag
-  return html.replace('</head>', `${seoMetadata}\n</head>`);
-};
+    log('📦 Building server entry...');
+    log('--> Server build is commented out for now.');
+    /* Server build is still commented out
+    await build({
+      root: rootDir,
+      mode: 'production',
+      build: {
+        ssr: 'src/entry-server.tsx',
+        outDir: 'dist/server',
+        rollupOptions: {
+          input: 'src/entry-server.tsx',
+        },
+      },
+      logLevel: 'info',
+    });
+    */
 
-// Function to add route-specific content for SEO
-const addRouteContent = (html, route) => {
-  log(`Adding content for ${route.path}`);
-  
-  // Create route-specific content based on the route
-  let content = '';
-  
-  switch (route.path) {
-    case '/about':
-      content = `
-      <div class="seo-content">
-        <h1>About Meow Rescue</h1>
-        <p>Meow Rescue is a dedicated cat rescue organization based in Pasco County, Florida. Our mission is to rescue, rehabilitate, and rehome cats in need.</p>
-        <p>We believe that every cat deserves a loving forever home. Our volunteers work tirelessly to ensure that each cat receives proper medical care, socialization, and ultimately, placement in a suitable adoptive home.</p>
-        <h2>Our Founders</h2>
-        <p>Meow Rescue was founded in 2018 by Patrick and Sarah Gilmore, whose passion for helping cats began when they rescued a litter of abandoned kittens. What started as a small operation out of their home has grown into a network of dedicated volunteers and foster families throughout Pasco County.</p>
-        <h2>Our Mission</h2>
-        <p>Our mission is simple: to improve the lives of cats through rescue, rehabilitation, and adoption. We work to reduce the population of homeless cats through TNR (Trap-Neuter-Return) programs and community education.</p>
-        <h2>Our Team</h2>
-        <p>Our team consists of dedicated volunteers who donate their time, energy, and resources to help cats in need. From foster parents to adoption counselors, every member of our team plays a vital role in our mission.</p>
-      </div>`;
-      break;
-    case '/cats':
-      content = `
-      <div class="seo-content">
-        <h1>Our Cats</h1>
-        <p>Meet the cats available for adoption at Meow Rescue. Each cat has been rescued, given medical care, and socialized in a foster home environment.</p>
-        <p>Our cats come in all ages, colors, and personalities. Whether you're looking for a playful kitten or a calm senior companion, we have the perfect match for you.</p>
-        <h2>Adoption Process</h2>
-        <p>Our adoption process is designed to ensure that each cat finds the right forever home. We carefully screen potential adopters to ensure they can provide a safe, loving environment for our cats.</p>
-        <h2>Featured Cats</h2>
-        <p>We have many wonderful cats available for adoption, including:</p>
-        <ul>
-          <li>Luna - A playful 1-year-old tabby who loves toys and cuddles</li>
-          <li>Oliver - A gentle 3-year-old orange tabby who gets along with everyone</li>
-          <li>Bella - A sweet 2-year-old calico who enjoys sitting in laps</li>
-          <li>Max - An energetic 6-month-old black kitten who loves to play</li>
-        </ul>
-      </div>`;
-      break;
-    case '/adopt':
-      content = `
-      <div class="seo-content">
-        <h1>Adopt a Cat</h1>
-        <p>Adopting a cat from Meow Rescue is a rewarding experience. Our adoption process ensures that each cat finds the right forever home.</p>
-        <p>When you adopt from us, you're not just gaining a new family member — you're also supporting our ongoing mission to help more cats in need throughout our community.</p>
-        <h2>Adoption Process</h2>
-        <p>Our adoption process includes:</p>
-        <ol>
-          <li>Browsing our available cats online or meeting them at an adoption event</li>
-          <li>Completing an adoption application</li>
-          <li>Home visit to ensure your home is safe for a cat</li>
-          <li>Adoption fee payment (which covers spay/neuter, vaccinations, and microchipping)</li>
-          <li>Taking your new family member home!</li>
-        </ol>
-        <h2>Adoption Fees</h2>
-        <p>Our adoption fees help cover the cost of care for our cats:</p>
-        <ul>
-          <li>Kittens (under 1 year): $150</li>
-          <li>Adult cats (1-7 years): $100</li>
-          <li>Senior cats (8+ years): $75</li>
-        </ul>
-      </div>`;
-      break;
-    case '/volunteer':
-      content = `
-      <div class="seo-content">
-        <h1>Volunteer with Meow Rescue</h1>
-        <p>Volunteers are the heart of Meow Rescue. Without our dedicated team of volunteers, we wouldn't be able to help as many cats as we do.</p>
-        <p>There are many ways to volunteer with Meow Rescue, from fostering cats to helping at adoption events.</p>
-        <h2>Volunteer Opportunities</h2>
-        <ul>
-          <li>Fostering cats and kittens</li>
-          <li>Helping at adoption events</li>
-          <li>Transporting cats to vet appointments</li>
-          <li>Fundraising and grant writing</li>
-          <li>Social media and website management</li>
-          <li>Community outreach and education</li>
-        </ul>
-        <h2>Volunteer Requirements</h2>
-        <p>To volunteer with Meow Rescue, you must:</p>
-        <ul>
-          <li>Be at least 18 years old (or 16 with parent/guardian permission)</li>
-          <li>Complete a volunteer application</li>
-          <li>Attend a volunteer orientation</li>
-          <li>Commit to at least 4 hours per month</li>
-        </ul>
-      </div>`;
-      break;
-    default:
-      content = `
-      <div class="seo-content">
-        <h1>Meow Rescue - ${route.title}</h1>
-        <p>${route.description}</p>
-      </div>`;
+    log('✅ Client build completed.');
+    return true; 
+  } catch (error) {
+    log('❌ Detailed Error during build process:');
+    console.error(error);
+    process.exit(1);
   }
-  
-  // Add the content before the closing body tag
-  // But make it hidden with CSS so it doesn't interfere with the React app
-  const contentWithStyle = `
-  <style>
-    .seo-content {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border-width: 0;
-    }
-  </style>
-  ${content}`;
-  
-  return html.replace('</body>', `${contentWithStyle}\n</body>`);
-};
+}
 
-// Function to generate sitemap.xml
-const generateSitemap = () => {
-  log('🗺️ Generating sitemap.xml...');
-  
-  // Define all your routes here for SEO
-  const routes = [
-    { path: "/", priority: "1.0", changefreq: "daily" },
-    { path: "/about", priority: "0.8", changefreq: "monthly" },
-    { path: "/cats", priority: "0.9", changefreq: "daily" },
-    { path: "/adopt", priority: "0.9", changefreq: "weekly" },
-    { path: "/volunteer", priority: "0.8", changefreq: "monthly" },
-    { path: "/foster", priority: "0.8", changefreq: "monthly" },
-    { path: "/donate", priority: "0.8", changefreq: "monthly" },
-    { path: "/events", priority: "0.9", changefreq: "daily" },
-    { path: "/blog", priority: "0.9", changefreq: "weekly" },
-    { path: "/contact", priority: "0.7", changefreq: "monthly" },
-    { path: "/lost-found", priority: "0.8", changefreq: "daily" },
-    { path: "/success-stories", priority: "0.8", changefreq: "weekly" },
-    { path: "/faq", priority: "0.7", changefreq: "monthly" }
+// Dynamic Route Fetching Functions
+async function getCatPaths() {
+  // Initialize Supabase here
+  const { createClient } = require('@supabase/supabase-js');
+  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseAnonKey) throw new Error('Supabase creds missing for getCatPaths');
+  const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+  const { data, error } = await supabase.from('cats').select('id');
+  if (error) {
+    console.error('Error fetching cat paths:', error);
+    return [];
+  }
+  return data.map(cat => `/cats/${cat.id}`);
+}
+
+async function getBlogPostPaths() {
+  // Initialize Supabase here
+  const { createClient } = require('@supabase/supabase-js');
+  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseAnonKey) throw new Error('Supabase creds missing for getBlogPostPaths');
+  const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+  const { data, error } = await supabase.from('blog_posts').select('slug').eq('is_published', true);
+  if (error) {
+    console.error('Error fetching blog post paths:', error);
+    return [];
+  }
+  return data.map(post => `/blog/${post.slug}`);
+}
+
+async function getEventPaths() {
+  // Initialize Supabase here
+  const { createClient } = require('@supabase/supabase-js');
+  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseAnonKey) throw new Error('Supabase creds missing for getEventPaths');
+  const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+  // Assuming events have numeric IDs
+  const { data, error } = await supabase.from('events').select('id'); 
+  if (error) {
+    console.error('Error fetching event paths:', error);
+    return [];
+  }
+  return data.map(event => `/events/${event.id}`);
+}
+
+// Function to render all routes to static HTML
+async function renderRoutesToHtml() {
+  log('📄 Rendering routes to static HTML...');
+
+  // Dynamically import the built server entry
+  const serverEntryPath = path.join(distDir, 'server', 'entry-server.js');
+  const { render } = await import(`file://${serverEntryPath}`);
+  const { QueryClient, dehydrate } = await import('@tanstack/react-query');
+
+  // Load the base HTML template
+  const template = fs.readFileSync(path.join(distDir, 'index.html'), 'utf-8');
+
+  // Define static routes
+  const staticRoutes = [
+    '/', '/about', '/cats', '/adopt', '/adopt/apply', '/volunteer', '/volunteer/apply',
+    '/foster', '/foster/apply', '/donate', '/events', '/blog', '/contact',
+    '/lost-found', '/lost-found/apply', '/success-stories', '/faq', '/privacy-policy', '/terms-of-service',
+    '/financial-transparency'
+    // Add any other static routes here
   ];
+
+  // Fetch dynamic route paths
+  log('📡 Fetching dynamic route paths from Supabase...');
+  const catPaths = await getCatPaths();
+  const blogPaths = await getBlogPostPaths();
+  const eventPaths = await getEventPaths();
+  // Add other dynamic path fetches here (e.g., lost-found items)
+  const allRoutes = [...staticRoutes, ...catPaths, ...blogPaths, ...eventPaths];
+  log(`🔍 Discovered ${allRoutes.length} total routes (${staticRoutes.length} static, ${allRoutes.length - staticRoutes.length} dynamic).`);
+
+  // Create rendering tasks for all routes
+  const renderTasks = allRoutes.map(async (url) => {
+    try {
+      const start = performance.now();
+      log(`  Rendering: ${url}`);
+
+      // Create a new QueryClient for each page render
+      const queryClient = new QueryClient({
+        defaultOptions: {
+          queries: {
+            // Set staleTime and gcTime to Infinity to prevent refetching on the client
+            // for initially pre-fetched data during SSG.
+            staleTime: Infinity,
+            gcTime: Infinity,
+          }
+        }
+      });
+      let pageData = null; // For data not suitable for React Query cache
+
+      // --- Data Prefetching Logic ---
+      if (url.startsWith('/cats/')) {
+        const catId = url.split('/').pop();
+        if (catId) {
+          log(`    Prefetching data for cat ID: ${catId}`);
+          // Fetch detailed cat data
+          const { createClient } = require('@supabase/supabase-js');
+          const supabaseUrl = process.env.VITE_SUPABASE_URL;
+          const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
+          if (!supabaseUrl || !supabaseAnonKey) throw new Error('Supabase creds missing for cat detail');
+          const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+          const { data: cat, error: catError } = await supabase
+            .from('cats')
+            .select('*') // Select all necessary fields
+            .eq('id', catId)
+            .single();
+
+          if (catError) throw new Error(`Failed to fetch cat ${catId}: ${catError.message}`);
+          if (!cat) throw new Error(`Cat with ID ${catId} not found.`);
+
+          // Fetch related data (e.g., medical records)
+          const { data: medicalRecords, error: medError } = await supabase
+            .from('cat_medical_records')
+            .select('*')
+            .eq('cat_id', catId)
+            .order('record_date', { ascending: false });
+
+          if (medError) console.warn(`    Warn: Failed to fetch medical records for cat ${catId}: ${medError.message}`);
+
+          // Prefetch the data into React Query
+          const catDetailQueryKey = ['catDetail', catId];
+          await queryClient.prefetchQuery({
+            queryKey: catDetailQueryKey,
+            queryFn: () => ({ ...cat, medicalRecords: medicalRecords || [] }),
+          });
+          // Pass data to PageDataProvider if needed
+          pageData = { pageType: 'catDetail', catId }; 
+        }
+      } else if (url.startsWith('/blog/')) {
+        const slug = url.split('/').pop();
+        if (slug) {
+          log(`    Prefetching data for blog slug: ${slug}`);
+          const { createClient } = require('@supabase/supabase-js');
+          const supabaseUrl = process.env.VITE_SUPABASE_URL;
+          const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
+          if (!supabaseUrl || !supabaseAnonKey) throw new Error('Supabase creds missing for blog post');
+          const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+          const { data: post, error: postError } = await supabase
+            .from('blog_posts')
+            .select('*') // Select necessary fields
+            .eq('slug', slug)
+            .eq('is_published', true)
+            .single();
+
+          if (postError) throw new Error(`Failed to fetch blog post ${slug}: ${postError.message}`);
+          if (!post) throw new Error(`Blog post with slug ${slug} not found or not published.`);
+
+           // Fetch related posts (example)
+           const { data: relatedPosts, error: relatedError } = await supabase
+             .from('blog_posts')
+             .select('id, title, slug, published_at, featured_image_url')
+             .neq('id', post.id)
+             .eq('is_published', true)
+             // Add logic for related tags/categories if needed
+             .limit(3);
+
+           if (relatedError) console.warn(`    Warn: Failed to fetch related posts for ${slug}: ${relatedError.message}`);
+
+          // Prefetch into React Query
+          const blogPostQueryKey = ['blogPost', slug];
+          await queryClient.prefetchQuery({
+            queryKey: blogPostQueryKey,
+            queryFn: () => ({ ...post, relatedPosts: relatedPosts || [] }),
+          });
+          pageData = { pageType: 'blogPost', slug };
+        }
+      } else if (url.startsWith('/events/')) {
+        const eventId = url.split('/').pop();
+        if (eventId && !isNaN(Number(eventId))) { // Ensure it's a valid ID
+          log(`    Prefetching data for event ID: ${eventId}`);
+          const { createClient } = require('@supabase/supabase-js');
+          const supabaseUrl = process.env.VITE_SUPABASE_URL;
+          const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
+          if (!supabaseUrl || !supabaseAnonKey) throw new Error('Supabase creds missing for event detail');
+          const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+          const { data: event, error: eventError } = await supabase
+            .from('events')
+            .select('*') // Select necessary fields
+            .eq('id', eventId)
+            .single();
+
+          if (eventError) throw new Error(`Failed to fetch event ${eventId}: ${eventError.message}`);
+          if (!event) throw new Error(`Event with ID ${eventId} not found.`);
+
+          // Prefetch into React Query
+          const eventDetailQueryKey = ['eventDetail', eventId];
+          await queryClient.prefetchQuery({
+            queryKey: eventDetailQueryKey,
+            queryFn: () => event,
+          });
+           pageData = { pageType: 'eventDetail', eventId };
+        }
+      }
+      // Add more prefetching logic for other page types (e.g., list pages)
+      else if (url === '/cats') {
+        log(`    Prefetching data for /cats list`);
+        const catsListQueryKey = ['adoptable-cats'];
+        await queryClient.prefetchQuery({
+          queryKey: catsListQueryKey,
+          queryFn: async () => {
+            const { createClient } = require('@supabase/supabase-js');
+            const supabaseUrl = process.env.VITE_SUPABASE_URL;
+            const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
+            if (!supabaseUrl || !supabaseAnonKey) throw new Error('Supabase creds missing for cats list');
+            const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+            const { data, error } = await supabase.from('cats').select('*').eq('status', 'Available').order('name');
+            if (error) throw error;
+            return data;
+          },
+        });
+      } else if (url === '/blog') {
+        log(`    Prefetching data for /blog list`);
+        const blogListQueryKey = ['blogPosts']; // Ensure this key matches your component's useQuery
+        await queryClient.prefetchQuery({
+          queryKey: blogListQueryKey,
+          queryFn: async () => {
+            const { createClient } = require('@supabase/supabase-js');
+            const supabaseUrl = process.env.VITE_SUPABASE_URL;
+            const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
+            if (!supabaseUrl || !supabaseAnonKey) throw new Error('Supabase creds missing for blog list');
+            const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+            const { data, error } = await supabase.from('blog_posts').select('*').eq('is_published', true).order('published_at', { ascending: false });
+            if (error) throw error;
+            return data;
+          },
+        });
+      } else if (url === '/events') {
+         log(`    Prefetching data for /events list`);
+         const eventsListQueryKey = ['events']; // Ensure this key matches your component's useQuery
+         await queryClient.prefetchQuery({
+           queryKey: eventsListQueryKey,
+           queryFn: async () => {
+             const { createClient } = require('@supabase/supabase-js');
+             const supabaseUrl = process.env.VITE_SUPABASE_URL;
+             const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
+             if (!supabaseUrl || !supabaseAnonKey) throw new Error('Supabase creds missing for events list');
+             const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+             const { data, error } = await supabase.from('events').select('*').order('date_start', { ascending: true });
+             if (error) throw error;
+             return data;
+           },
+         });
+      }
+      // --- End Data Prefetching ---
+
+      // 2. Render the route using the server entry
+      log(`    Calling server render function for ${url}...`);
+      const context = {}; // Placeholder for context if needed by render function
+      const { appHtml, helmetContext, dehydratedState } = await render(url, queryClient, null, context);
+      const { helmet } = helmetContext;
+
+      // Inject into template
+      // Important: Make sure placeholders exist in your dist/index.html
+      // Example: <title>Placeholder Title</title>, <!--app-html-->, maybe <!--helmet-tags-->
+      let html = template;
+      // 1. Inject Helmet Tags (handle potential lack of placeholder)
+      const helmetHtml = `${helmet.title.toString()}${helmet.meta.toString()}${helmet.link.toString()}${helmet.script.toString()}${helmet.style.toString()}`;
+      if (html.includes('<!--helmet-tags-->')) {
+        html = html.replace('<!--helmet-tags-->', helmetHtml);
+      } else {
+        // Fallback: inject before closing </head>
+        html = html.replace('</head>', `${helmetHtml}\n</head>`);
+      }
+
+      // 2. Inject App HTML
+      html = html.replace('<!--app-html-->', appHtml);
+
+      // 3. Inject Initial Data Script
+      const initialStateScript = `<script>window.__INITIAL_DATA__ = ${JSON.stringify({ queryClient: dehydratedState, pageData }).replace(/</g, '\\u003c')}; window.__INITIAL_PATH__ = "${url}";</script>`;
+      html = html.replace('</body>', `${initialStateScript}\n</body>`);
+
+      // Determine file path (use clean URLs: /about -> /about/index.html)
+      const filePath = path.join(distDir, url === '/' ? 'index.html' : path.join(url.substring(1), 'index.html'));
+      const fileDir = path.dirname(filePath);
+      if (!fs.existsSync(fileDir)) {
+        fs.mkdirSync(fileDir, { recursive: true });
+      }
+      fs.writeFileSync(filePath, html);
+      const duration = (performance.now() - start).toFixed(2);
+      log(`    ✅ Successfully rendered ${url} in ${duration}ms`, 'success');
+
+      // Reset query client state for the next route (important!)
+      queryClient.clear();
+
+    } catch (e) {
+      console.error(`❌ Failed to render ${url}: ${e.message}`);
+      // Optionally, decide if one error should stop the whole build
+      // process.exit(1);
+    }
+  });
+
+  // Wait for all rendering tasks to complete
+  await Promise.all(renderTasks);
+  log('✅ Static HTML files generated!');
+  return allRoutes; // Return all generated routes for sitemap
+}
+
+// Function to get all dynamic routes for sitemap generation
+async function getAllDynamicRoutes() {
+  log('🔍 Fetching dynamic routes...');
   
+  // Initialize Supabase client for fetching dynamic routes
+  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+  
+  if (!supabaseUrl || !supabaseKey) {
+    log('⚠️ Missing Supabase credentials. Skipping dynamic routes.');
+    return {
+      blogPosts: [],
+      cats: [],
+      events: []
+    };
+  }
+  
+  const supabase = createClient(supabaseUrl, supabaseKey);
+  
+  try {
+    // Fetch blog posts
+    const { data: blogPosts, error: blogError } = await supabase
+      .from('blog_posts')
+      .select('slug')
+      .eq('published', true);
+      
+    if (blogError) {
+      log(`⚠️ Error fetching blog posts: ${blogError.message}`);
+      return { blogPosts: [], cats: [], events: [] };
+    }
+    
+    // Fetch cats
+    const { data: cats, error: catsError } = await supabase
+      .from('cats')
+      .select('id');
+      
+    if (catsError) {
+      log(`⚠️ Error fetching cats: ${catsError.message}`);
+      return { blogPosts, cats: [], events: [] };
+    }
+    
+    // Fetch events
+    const { data: events, error: eventsError } = await supabase
+      .from('events')
+      .select('id');
+      
+    if (eventsError) {
+      log(`⚠️ Error fetching events: ${eventsError.message}`);
+      return { blogPosts, cats, events: [] };
+    }
+    
+    log(`✅ Found ${blogPosts.length} blog posts, ${cats.length} cats, and ${events.length} events.`);
+    return { blogPosts, cats, events };
+  } catch (error) {
+    log(`⚠️ Error fetching dynamic routes: ${error.message}`);
+    return { blogPosts: [], cats: [], events: [] };
+  }
+}
+
+// Generate a sitemap.xml file
+async function generateSitemap(dynamicRoutes) {
+  log('🗺️ Generating sitemap...');
+  
+  const baseUrl = 'https://meowrescue.org';
   const today = new Date().toISOString().split('T')[0];
-  const sitemapContent = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
-${routes.map(route => {
-  const loc = route.path === '/' ? 'https://meowrescue.org/' : `https://meowrescue.org${route.path}`;
-  return `  <url>
-    <loc>${loc}</loc>
+  
+  let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Static Routes -->
+  <url>
+    <loc>${baseUrl}/</loc>
     <lastmod>${today}</lastmod>
-    <changefreq>${route.changefreq}</changefreq>
-    <priority>${route.priority}</priority>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/cats</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/about</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/events</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/blog</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/contact</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/donate</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
   </url>`;
-}).join('\n')}
+  
+  // Add dynamic blog post routes
+  if (dynamicRoutes.blogPosts && dynamicRoutes.blogPosts.length > 0) {
+    dynamicRoutes.blogPosts.forEach(post => {
+      sitemap += `
+  <url>
+    <loc>${baseUrl}/blog/${post.slug}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>`;
+    });
+  }
+  
+  // Add dynamic cat routes
+  if (dynamicRoutes.cats && dynamicRoutes.cats.length > 0) {
+    dynamicRoutes.cats.forEach(cat => {
+      sitemap += `
+  <url>
+    <loc>${baseUrl}/cats/${cat.id}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>`;
+    });
+  }
+  
+  // Add dynamic event routes
+  if (dynamicRoutes.events && dynamicRoutes.events.length > 0) {
+    dynamicRoutes.events.forEach(event => {
+      sitemap += `
+  <url>
+    <loc>${baseUrl}/events/${event.id}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>`;
+    });
+  }
+  
+  // Close the sitemap
+  sitemap += `
 </urlset>`;
   
-  const outputDir = path.join(process.cwd(), 'dist');
-  fs.writeFileSync(path.join(outputDir, 'sitemap.xml'), sitemapContent, 'utf8');
-  log('✅ Sitemap generated!');
-};
+  // Write the sitemap to disk
+  fs.writeFileSync(path.join(distDir, 'sitemap.xml'), sitemap);
+  log('✅ Sitemap generated successfully.');
+}
 
 // Function to generate robots.txt
 const generateRobotsTxt = () => {
@@ -337,49 +582,60 @@ Sitemap: https://meowrescue.org/sitemap.xml
 
 // Function to create _redirects file for Netlify
 const createRedirects = () => {
-  log('📝 Creating _redirects file for Netlify...');
-  const redirectsContent = `/*    /index.html   200`;
-  const outputDir = path.join(process.cwd(), 'dist');
-  fs.writeFileSync(path.join(outputDir, '_redirects'), redirectsContent, 'utf8');
+  log('🚦 Creating _redirects file...');
+  const redirectsContent = `
+# Netlify Redirects
+
+# SPA fallback for client-side routing if needed (e.g., for admin panel?)
+# If your entire site is SSG, you might not need this.
+# /admin/*  /admin/index.html  200
+
+# Handle potential trailing slashes (optional but good practice)
+# If saving as /about/index.html, Netlify handles this automatically.
+# If saving as /about.html, you might need rules like:
+# /about/   /about.html   301
+
+# Catch-all for 404 page (ensure you have a 404.html)
+/*    /404.html   404
+`;
+  fs.writeFileSync(path.join(distDir, '_redirects'), redirectsContent.trim(), 'utf8');
   log('✅ _redirects file created!');
 };
 
-// Main build function
-const main = () => {
-  log('🚀 Starting build process with SEO optimization...');
+// Main function
+async function main() {
+  log('🚀 Starting SSG build process...');
   
-  // Clean previous build
+  // Clean the dist directory
   cleanPreviousBuild();
   
-  // Build the client application
-  const buildSuccess = buildClientApp();
+  // Build the client and server applications
+  const buildSuccess = await buildClientAndServer();
   
+  // Only proceed with dynamic routes and sitemap if build was successful
   if (buildSuccess) {
-    // Create static HTML files with SEO content
-    createStaticHtmlFiles();
+    log('📄 Fetching dynamic routes for sitemap...');
+    const dynamicRoutes = await getAllDynamicRoutes();
     
-    // Generate robots.txt
-    generateRobotsTxt();
+    log('🗺️ Generating sitemap...');
+    await generateSitemap(dynamicRoutes);
     
-    // Generate sitemap
-    generateSitemap();
+    log('📝 Generating robots.txt...');
+    await generateRobotsTxt();
     
-    // Create redirects file
-    createRedirects();
+    log('🚦 Creating _redirects file...');
+    await createRedirects();
     
-    log('🎉 Build process completed successfully with SEO optimization!');
-    log('✅ Generated:');
-    log('  - Static HTML files for all routes with SEO content');
-    log('  - robots.txt');
-    log('  - sitemap.xml');
-    log('  - _redirects for Netlify');
-    
+    log('✅ Build process completed successfully!');
     return true;
   } else {
-    console.error('❌ Build process failed');
-    process.exit(1);
+    log('❌ Build process failed. Skipping dynamic routes and sitemap generation.');
+    return false;
   }
-};
+}
 
-// Run the build process
-main();
+// Run the main function
+main().catch(error => {
+  console.error('❌ Unhandled error in main process:', error);
+  process.exit(1);
+});

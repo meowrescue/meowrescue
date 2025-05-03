@@ -1,54 +1,38 @@
-
 import React, { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase, checkSupabaseConnection } from '@/integrations/supabase';
+import { UserRole } from '@/types/users';
+import { getSupabaseClient, checkSupabaseConnection } from '@/integrations/supabase';
+import LoadingFallback from './LoadingFallback';
+import { logError } from '@/utils/logError';
 import { useToast } from '@/hooks/use-toast';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requireAdmin?: boolean;
+  requiredRoles?: UserRole[];
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
-  requireAdmin = false 
+  requireAdmin = false,
+  requiredRoles = []
 }) => {
   const { user, session, loading } = useAuth();
   const { toast } = useToast();
   const [showLoader, setShowLoader] = useState(true);
-  const [connectionChecked, setConnectionChecked] = useState(false);
-  const [connectionError, setConnectionError] = useState<string | null>(null);
-  
-  // Check Supabase connection
+  const [isConnectionChecked, setIsConnectionChecked] = useState(false);
+  const location = useLocation();
+
+  // Check connection on mount - might be redundant if AuthProvider handles this
   useEffect(() => {
-    const checkConnection = async () => {
-      try {
-        console.log('Checking Supabase connection from ProtectedRoute...');
-        const result = await checkSupabaseConnection();
-        
-        if (!result.connected) {
-          console.error('Supabase connection error in ProtectedRoute:', result.error);
-          setConnectionError(result.error);
-          toast({
-            title: "Connection Issue",
-            description: "Unable to connect to our services. Some features may not work properly.",
-            variant: "destructive",
-          });
-        } else {
-          console.log('Supabase connection successful from ProtectedRoute');
-        }
-      } catch (err) {
-        console.error('Exception checking Supabase connection:', err);
-        setConnectionError(err instanceof Error ? err.message : 'Unknown connection error');
-      } finally {
-        setConnectionChecked(true);
-      }
+    const checkConn = async () => {
+      await checkSupabaseConnection(); // Uses getSupabaseClient internally
+      setIsConnectionChecked(true);
     };
-    
-    checkConnection();
-  }, [toast]);
-  
+    checkConn();
+  }, []);
+
   // Add a slight delay before showing the loading spinner to prevent flashing
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -57,26 +41,23 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     
     return () => clearTimeout(timer);
   }, [loading]);
-  
+
   // If still loading, show loading indicator
-  if (showLoader || !connectionChecked) {
+  if (showLoader || !isConnectionChecked) {
+    console.log('ProtectedRoute: Auth loading or connection not checked yet.');
+    // Display a loading indicator while checking auth status or connection
     return (
       <div className="flex flex-col h-screen items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-meow-primary mb-4"></div>
-        {connectionError && (
-          <div className="text-red-500 text-center max-w-md px-4">
-            <p>Connection error: {connectionError}</p>
-            <p className="mt-2 text-sm">Try refreshing the page or checking your network connection.</p>
-          </div>
-        )}
+        <LoadingFallback />
       </div>
     );
   }
 
   // If user is not logged in, redirect to login
   if (!user || !session) {
-    console.log("User not logged in, redirecting to login");
-    return <Navigate to="/login" />;
+    console.log('ProtectedRoute: User not authenticated, redirecting to login.');
+    // Redirect them to the /login page, but save the current location they were
+    return <Navigate to={{ pathname: "/login", state: { from: location } }} />;
   }
 
   // If admin access required, check user email domain or user role
@@ -87,6 +68,18 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     if (!isAdmin) {
       console.log("User is not an admin, redirecting to home");
       return <Navigate to="/" />;
+    }
+  }
+
+  // If user is authenticated, check role access if requiredRoles are specified
+  if (requiredRoles && requiredRoles.length > 0) {
+    // Assuming user object has a 'role' property conforming to UserRole
+    const userRole = user.role as UserRole; // Cast might be needed depending on user type
+    if (!userRole || !requiredRoles.includes(userRole)) {
+      console.log(`ProtectedRoute: User role '${userRole}' does not have access. Redirecting.`);
+      logError('Access denied due to role mismatch', { path: location.pathname, requiredRoles, userRole });
+      // Redirect to an unauthorized page or home page
+      return <Navigate to="/unauthorized" />;
     }
   }
 

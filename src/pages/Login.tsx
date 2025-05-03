@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -10,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { supabase, checkSupabaseConnection } from '@/integrations/supabase';
+import { getSupabaseClient, checkSupabaseConnection } from '@/integrations/supabase';
 import Layout from '@/components/Layout';
 import SEO from '@/components/SEO';
 import { Cat } from 'lucide-react';
@@ -51,7 +50,8 @@ const Login: React.FC = () => {
   useEffect(() => {
     const verifyConnection = async () => {
       try {
-        const result = await checkSupabaseConnection();
+        const supabaseClient = getSupabaseClient();
+        const result = await checkSupabaseConnection(supabaseClient);
         setConnectionStatus({
           checked: true,
           connected: result.connected,
@@ -116,8 +116,8 @@ const Login: React.FC = () => {
     setIsLoading(true);
     
     try {
-      console.log("Calling signIn method with:", values.email);
-      const result = await signIn(values.email, values.password);
+      const supabaseClient = getSupabaseClient();
+      const result = await signIn(supabaseClient, values.email, values.password);
       console.log("Sign in result:", result);
       
       if (result.error) {

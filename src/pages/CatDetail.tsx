@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -10,7 +9,7 @@ import CatPhotosSection from '@/components/cat/CatDetails/CatPhotosSection';
 import CatInfoSection from '@/components/cat/CatDetails/CatInfoSection';
 import AdoptionProcessSection from '@/components/cat/CatDetails/AdoptionProcessSection';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { supabase } from '@integrations/supabase';
+import { getSupabaseClient } from '@/integrations/supabase';
 
 const CatDetail = () => {
   const { id: catId } = useParams<{ id: string }>();
@@ -24,8 +23,9 @@ const CatDetail = () => {
 
   useEffect(() => {
     if (!catId) return;
-    const subscription = supabase
-      .channel(`cat-${catId}-updates`)
+    const supabaseClient = getSupabaseClient();
+    const channel = supabaseClient.channel(`cat-${catId}-updates`);
+    const subscription = channel
       .on('postgres_changes', { event: '*', schema: 'public', table: 'cats', filter: `id=eq.${catId}` }, (payload) => {
         console.log('Cat update received:', payload);
         // Temporary workaround to refresh the page since refetch function is not available
@@ -34,7 +34,7 @@ const CatDetail = () => {
       .subscribe();
 
     return () => {
-      subscription.unsubscribe();
+      supabaseClient.removeChannel(channel);
     };
   }, [catId]);
 

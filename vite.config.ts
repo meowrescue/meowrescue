@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 import { componentTagger } from "lovable-tagger";
+import legacy from '@vitejs/plugin-legacy';
 
 export default defineConfig(({ mode }) => ({
   envPrefix: 'VITE_',
@@ -12,19 +13,20 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === 'development' && componentTagger(),
+    legacy({
+      targets: ['defaults', 'not IE 11']
+    })
   ].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
       "@integrations": path.resolve(__dirname, "./src/integrations"),
       "@supabase": path.resolve(__dirname, "./src/integrations/supabase"),
-      "@supabase/supabase-js": path.resolve(__dirname, "./src/integrations/supabase/supabase-js.ts"),
-      "@supabase/types": path.resolve(__dirname, "./src/types/supabase.ts"),
     },
     extensions: ['.ts', '.tsx', '.js', '.jsx'],
   },
   optimizeDeps: {
-    include: ['@supabase/supabase-js'],
+    include: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
     esbuildOptions: {
       target: 'es2020',
       platform: 'browser',
@@ -70,7 +72,7 @@ export default defineConfig(({ mode }) => ({
       esbuildOptions: {
         target: 'es2020',
       },
-    }
+    },
   },
   base: '/',
 }));

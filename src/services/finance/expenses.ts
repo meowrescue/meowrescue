@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase';
+import { getSupabaseClient } from '@/integrations/supabase';
 import { startOfMonth, endOfMonth, addMonths, format } from 'date-fns';
 
 /**
@@ -12,7 +12,7 @@ export const getExpensesSum = async ({ startDate, endDate }: { startDate?: Date,
     const jan1 = new Date(now.getFullYear(), 0, 1);
     const start = startDate || jan1;
     const end = endDate || now;
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseClient()
       .from('expenses')
       .select('amount')
       .gte('expense_date', start.toISOString())
@@ -42,7 +42,7 @@ export const getMonthlyExpenses = async (): Promise<number> => {
     const firstDayOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
     console.debug('[Expenses] Querying monthly expenses from', firstDayOfMonth.toISOString(), 'to', firstDayOfNextMonth.toISOString());
 
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseClient()
       .from('expenses')
       .select('amount')
       .gte('expense_date', firstDayOfMonth.toISOString())
@@ -59,7 +59,7 @@ export const getMonthlyExpenses = async (): Promise<number> => {
     if (!data || data.length === 0) {
       console.log('No expenses found for current month. Trying direct sum query...');
       
-      const { data: directData, error: directError } = await supabase
+      const { data: directData, error: directError } = await getSupabaseClient()
         .from('expenses')
         .select('sum(amount)')
         .gte('expense_date', firstDayOfMonth.toISOString())
@@ -77,7 +77,7 @@ export const getMonthlyExpenses = async (): Promise<number> => {
       }
       
       // Also try without date filters to see if we have any expenses at all
-      const { data: allData, error: allError } = await supabase
+      const { data: allData, error: allError } = await getSupabaseClient()
         .from('expenses')
         .select('amount, expense_date')
         .limit(5)
@@ -115,7 +115,7 @@ export const getPreviousMonthExpenses = async (): Promise<number> => {
     console.log('Date range:', format(firstDayOfPrevMonth, 'yyyy-MM-dd'), 'to', format(lastDayOfPrevMonth, 'yyyy-MM-dd'));
     
     // Standard query approach
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseClient()
       .from('expenses')
       .select('amount')
       .gte('expense_date', firstDayOfPrevMonth.toISOString())
@@ -132,7 +132,7 @@ export const getPreviousMonthExpenses = async (): Promise<number> => {
     if (!data || data.length === 0) {
       console.log('No expenses found for previous month. Trying direct sum query...');
       
-      const { data: directData, error: directError } = await supabase
+      const { data: directData, error: directError } = await getSupabaseClient()
         .from('expenses')
         .select('sum(amount)')
         .gte('expense_date', firstDayOfPrevMonth.toISOString())
@@ -169,7 +169,7 @@ export const getPreviousMonthExpenses = async (): Promise<number> => {
 export const debugLogLatestExpenses = async () => {
   try {
     
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseClient()
       .from('expenses')
       .select('id, amount, expense_date')
       .order('expense_date', { ascending: false })

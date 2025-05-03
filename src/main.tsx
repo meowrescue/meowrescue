@@ -1,4 +1,3 @@
-
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter, useLocation } from 'react-router-dom'
@@ -12,7 +11,8 @@ import './index.css'
 import '@fontsource/playfair-display/400.css'
 import '@fontsource/playfair-display/600.css'
 import '@fontsource/playfair-display/700.css'
-import { checkSupabaseSchema } from './integrations/supabase/diagnostics'
+import { checkSupabaseSchema } from './integrations/supabase'
+import { getSupabaseClient } from '@/integrations/supabase'
 
 // Error Boundary Component to catch initialization errors
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: Error | null}> {
@@ -146,13 +146,8 @@ ssgContent?.parentElement?.removeChild(ssgContent);
 // Create the root for React rendering
 const rootElement = document.getElementById('root');
 if (rootElement) {
-  const root = ReactDOM.createRoot(rootElement);
-  
-  // Get initial path from window if available (for direct navigation to subpages)
-  const initialPath = window.__INITIAL_PATH__ || '/';
-  
-  // Render the React app
-  root.render(
+  const supabaseClient = getSupabaseClient();
+  const AppRoot = (
     <React.StrictMode>
       <ErrorBoundary>
         <BrowserRouter>
@@ -160,7 +155,7 @@ if (rootElement) {
             <QueryClientProvider client={queryClient}>
               <HydrationBoundary state={dehydratedState}>
                 <TooltipProvider>
-                  <AuthProvider>
+                  <AuthProvider supabaseClient={supabaseClient}>
                     <PageDataProvider initialData={pageData}>
                       <App />
                     </PageDataProvider>
@@ -173,6 +168,9 @@ if (rootElement) {
       </ErrorBoundary>
     </React.StrictMode>
   );
+
+  // Use hydrateRoot to attach React to the existing server-rendered HTML
+  ReactDOM.hydrateRoot(rootElement, AppRoot);
   
   // Run initialization after render is complete
   // Using requestAnimationFrame ensures this runs after the next paint

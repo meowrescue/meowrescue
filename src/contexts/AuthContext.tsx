@@ -1,6 +1,5 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
-import { Session, User } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase';
+import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import { Session, User, SupabaseClient } from '@supabase/supabase-js';
 import { User as ExtendedUser } from '@/types/users';
 import { logAuth } from '@/utils/logActivity';
 
@@ -18,7 +17,12 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+interface AuthProviderProps {
+  children: ReactNode;
+  supabaseClient: SupabaseClient;
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children, supabaseClient }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<ExtendedUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,7 +31,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     let subscriptionUnsubscribe = () => {};
     try {
-      const supabaseClient = supabase;
       if (!supabaseClient.auth) {
         console.error('Supabase client auth property is not available. Check initialization.');
         setError('Authentication service is not available. Please check environment configuration.');
@@ -47,7 +50,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setTimeout(async () => {
               try {
                 console.log('Auth change: fetching profile for user ID:', newSession.user.id);
-                const { data: profile, error: profileError } = await supabase
+                const { data: profile, error: profileError } = await supabaseClient
                   .from('profiles')
                   .select('*')
                   .eq('id', newSession.user.id)
@@ -101,7 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const getSession = async () => {
       try {
         console.log('Getting session...');
-        const { data, error: sessionError } = await supabase.auth.getSession();
+        const { data, error: sessionError } = await supabaseClient.auth.getSession();
         
         if (sessionError) {
           console.error('Error getting session:', sessionError);
@@ -118,7 +121,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (session?.user) {
           console.log('Fetching user profile for ID:', session.user.id);
           try {
-            const { data: profile, error: profileError } = await supabase
+            const { data: profile, error: profileError } = await supabaseClient
               .from('profiles')
               .select('*')
               .eq('id', session.user.id)
@@ -169,7 +172,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     try {
       console.info('Attempting to sign in user:', email);
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
         email,
         password
       });
@@ -206,7 +209,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error } = await supabaseClient.auth.signUp({
         email,
         password,
       });
@@ -236,7 +239,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await logAuth.logout(user.id, user.email || '');
       }
       
-      const { error } = await supabase.auth.signOut();
+      const { error } = await supabaseClient.auth.signOut();
       if (error) throw error;
       
       // Clear user state
@@ -250,7 +253,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const resetPassword = async (email: string) => {
     setLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/update-password`,
       });
 
