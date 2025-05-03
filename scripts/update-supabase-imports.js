@@ -43,7 +43,13 @@ const updateFile = async (filePath) => {
     
     // Replace direct usage of supabase with getSupabaseClient()
     newContent = newContent.replace(
-      /(?<![a-zA-Z0-9_])supabase(?=\.|$|\s|\)|\(|\[|\]|;|,)/g,
+      /(?<![a-zA-Z0-9_])supabase\./g,
+      `getSupabaseClient().`
+    );
+    
+    // Replace supabase when used alone (like in conditionals or assignments)
+    newContent = newContent.replace(
+      /(?<![a-zA-Z0-9_])supabase(?![a-zA-Z0-9_\.])/g,
       `getSupabaseClient()`
     );
     

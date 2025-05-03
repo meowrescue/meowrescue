@@ -43,7 +43,7 @@ const AdminPages: React.FC = () => {
   const { data: contentBlocks, isLoading, error } = useQuery({
     queryKey: ['content-blocks'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('content_blocks')
         .select('*')
         .order('page', { ascending: true });

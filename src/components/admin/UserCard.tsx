@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Card, 
@@ -61,7 +60,7 @@ const UserCard: React.FC<UserCardProps> = ({ user, onRoleChange, onStatusChange,
 
   const handleSaveChanges = async () => {
     try {
-      const { error } = await supabase
+      const { error } = await getSupabaseClient()
         .from('profiles')
         .update({
           role_title: roleTitle,
@@ -287,4 +286,3 @@ const UserCard: React.FC<UserCardProps> = ({ user, onRoleChange, onStatusChange,
 };
 
 export default UserCard;
-

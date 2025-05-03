@@ -24,9 +24,13 @@ update_file() {
     sed -i 's/import { supabase, \(.*\) } from "@\/integrations\/supabase\/client";/import getSupabaseClient, { \1 } from "@\/integrations\/supabase\/client";/g' "$temp_file"
     
     # Replace direct usage of supabase
-    sed -i 's/\([^a-zA-Z0-9_]\)supabase\([^a-zA-Z0-9_]\)/\1getSupabaseClient()\2/g' "$temp_file"
-    sed -i 's/\([^a-zA-Z0-9_]\)supabase$/\1getSupabaseClient()/g' "$temp_file"
+    sed -i 's/\([^a-zA-Z0-9_]\)supabase\./\1getSupabaseClient()\./g' "$temp_file"
     sed -i 's/^supabase\./getSupabaseClient()./g' "$temp_file"
+    
+    # Replace supabase variable when it's used by itself (like in conditions or assignments)
+    sed -i 's/\([^a-zA-Z0-9_]\)supabase\([^a-zA-Z0-9_\.]\)/\1getSupabaseClient()\2/g' "$temp_file"
+    sed -i 's/\([^a-zA-Z0-9_]\)supabase$/\1getSupabaseClient()/g' "$temp_file"
+    sed -i 's/^supabase$/getSupabaseClient()/g' "$temp_file"
     
     # Overwrite the original file
     mv "$temp_file" "$file"
@@ -37,7 +41,7 @@ update_file() {
 echo "Updating all TypeScript and JavaScript files in src/"
 
 # Find all TypeScript and JavaScript files
-find src -type f -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" | while read file
+find src -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" \) | while read file
 do
   update_file "$file"
 done

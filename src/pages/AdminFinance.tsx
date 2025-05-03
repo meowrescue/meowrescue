@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AdminLayout from './Admin';
@@ -16,6 +17,7 @@ import IncomeTab from "@/components/finance/dashboard/tabs/IncomeTab";
 import ExpensesTab from "@/components/finance/dashboard/tabs/ExpensesTab";
 import ReportsTab from "@/components/finance/dashboard/tabs/ReportsTab";
 import TaxTab from "@/components/finance/dashboard/tabs/TaxTab";
+import useFinancialDashboard from '@/hooks/useFinancialDashboard';
 
 const AdminFinance = () => {
   const { data: expenses, isLoading: expensesLoading } = useExpenses();
@@ -28,7 +30,7 @@ const AdminFinance = () => {
     previousMonthDonations,
     previousMonthExpenses,
     isLoading: statsLoading
-  } = useFinancialStats();
+  } = useFinancialDashboard();
   
   const [recentDonations, setRecentDonations] = useState([]);
   const [isLoadingDonations, setIsLoadingDonations] = useState(true);
@@ -36,7 +38,7 @@ const AdminFinance = () => {
   useEffect(() => {
     const fetchRecentDonations = async () => {
       try {
-        const { data, error } = await supabase
+        const { data, error } = await getSupabaseClient()
           .from('donations')
           .select(`
             id,
