@@ -22,6 +22,10 @@ interface FinancialDataTabsProps {
     expensesLoading: boolean;
   };
   onDonate: (campaignId: string, assignedBudgetCategory?: string) => void;
+  onLoadMoreRecentDonors: () => void;
+  onLoadMoreTopDonors: () => void;
+  hasMoreRecentDonors: boolean;
+  hasMoreTopDonors: boolean;
   'data-realtime'?: string;
 }
 
@@ -35,6 +39,10 @@ const FinancialDataTabs: React.FC<FinancialDataTabsProps> = ({
   expenses,
   isLoading,
   onDonate,
+  onLoadMoreRecentDonors,
+  onLoadMoreTopDonors,
+  hasMoreRecentDonors,
+  hasMoreTopDonors,
   'data-realtime': dataRealtime,
 }) => {
   // Detect if we're in the browser environment
@@ -148,6 +156,10 @@ const FinancialDataTabs: React.FC<FinancialDataTabsProps> = ({
               donorsLoading={isLoading.donorsLoading}
               topDonors={topDonors}
               topDonorsLoading={isLoading.topDonorsLoading}
+              onLoadMoreRecentDonors={onLoadMoreRecentDonors}
+              onLoadMoreTopDonors={onLoadMoreTopDonors}
+              hasMoreRecentDonors={hasMoreRecentDonors}
+              hasMoreTopDonors={hasMoreTopDonors}
             />
           </TabsContent>
           <TabsContent 

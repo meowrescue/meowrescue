@@ -17,29 +17,45 @@ export const getDonationsSum = async ({ startDate, endDate }: { startDate?: Date
     // First try with status filter
     const { data: filteredData, error: filteredError } = await supabase
       .from('donations')
-      .select('amount')
+      .select('amount, donation_date, status, id')
       .eq('status', 'completed')
       .gte('donation_date', start.toISOString())
-      .lte('donation_date', end.toISOString());
+      .lte('donation_date', end.toISOString())
+      .order('donation_date', { ascending: false });
 
     if (filteredError) {
-      console.log('[Donations] Status filter error:', filteredError);
+      console.error('[Donations] Status filter error:', filteredError);
       // If status filter fails, try without it
       const { data: allData, error: allError } = await supabase
         .from('donations')
-        .select('amount')
+        .select('amount, donation_date, status, id')
         .gte('donation_date', start.toISOString())
-        .lte('donation_date', end.toISOString());
+        .lte('donation_date', end.toISOString())
+        .order('donation_date', { ascending: false });
 
       if (allError) {
         console.error('[Donations] Error fetching donations:', allError);
         return 0;
       }
       
+      console.log(`[Donations] Donations count: ${allData?.length}`);
+      if (allData && allData.length > 0) {
+        allData.forEach((item, idx) => {
+          console.log(`[Donations] Row ${idx + 1}: id=${item.id}, amount=${item.amount}, date=${item.donation_date}, status=${item.status}`);
+        });
+      }
+      
       return (allData || []).reduce((sum, item) => {
         const amount = typeof item.amount === 'string' ? parseFloat(item.amount) : item.amount;
         return sum + (isNaN(amount) ? 0 : amount);
       }, 0);
+    }
+
+    console.log(`[Donations] Filtered donations count: ${filteredData?.length}`);
+    if (filteredData && filteredData.length > 0) {
+      filteredData.forEach((item, idx) => {
+        console.log(`[Donations] Row ${idx + 1}: id=${item.id}, amount=${item.amount}, date=${item.donation_date}, status=${item.status}`);
+      });
     }
 
     return (filteredData || []).reduce((sum, item) => {

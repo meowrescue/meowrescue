@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -19,6 +18,10 @@ interface DonorWallProps {
   donorsLoading: boolean;
   topDonors: Donor[] | undefined;
   topDonorsLoading: boolean;
+  onLoadMoreRecentDonors?: () => void;
+  onLoadMoreTopDonors?: () => void;
+  hasMoreRecentDonors?: boolean;
+  hasMoreTopDonors?: boolean;
 }
 
 const DonorsTable = ({ donors, loading, showPosition = false }: { donors: Donor[] | undefined, loading: boolean, showPosition?: boolean }) => {
@@ -81,6 +84,10 @@ const DonorWall: React.FC<DonorWallProps> = ({
   donorsLoading,
   topDonors,
   topDonorsLoading,
+  onLoadMoreRecentDonors,
+  onLoadMoreTopDonors,
+  hasMoreRecentDonors,
+  hasMoreTopDonors,
 }) => {
   console.log("DonorWall rendering with recent donors:", recentDonors);
   console.log("DonorWall rendering with top donors:", topDonors);
@@ -98,9 +105,31 @@ const DonorWall: React.FC<DonorWallProps> = ({
           </TabsList>
           <TabsContent value="recent">
             <DonorsTable donors={recentDonors} loading={donorsLoading} showPosition={false} />
+            {hasMoreRecentDonors && (
+              <div className="flex justify-center mt-4">
+                <button
+                  className="px-4 py-2 bg-meow-primary text-white rounded hover:bg-meow-primary-dark transition"
+                  onClick={onLoadMoreRecentDonors}
+                  disabled={donorsLoading}
+                >
+                  {donorsLoading ? 'Loading...' : 'Load More'}
+                </button>
+              </div>
+            )}
           </TabsContent>
           <TabsContent value="top">
             <DonorsTable donors={topDonors} loading={topDonorsLoading} showPosition={true} />
+            {hasMoreTopDonors && (
+              <div className="flex justify-center mt-4">
+                <button
+                  className="px-4 py-2 bg-meow-primary text-white rounded hover:bg-meow-primary-dark transition"
+                  onClick={onLoadMoreTopDonors}
+                  disabled={topDonorsLoading}
+                >
+                  {topDonorsLoading ? 'Loading...' : 'Load More'}
+                </button>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </CardContent>
