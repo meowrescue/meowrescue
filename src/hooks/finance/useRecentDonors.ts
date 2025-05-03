@@ -75,8 +75,80 @@ export const useRecentDonors = (options?: UseRecentDonorsOptions) => {
         throw error;
       }
     },
+    // Refresh data frequently
+    refetchInterval: 15000, // Refresh every 15 seconds
+    // Consider data stale immediately
+    staleTime: 0,
+    // Always refetch when component mounts
+    refetchOnMount: true,
+    // Refetch when window regains focus
+    refetchOnWindowFocus: true,
     ...options
   });
+};
+
+/**
+ * Format a date string to MM/DD/YYYY format
+ * @param dateStr The date string to format
+ * @returns Formatted date string in MM/DD/YYYY format
+ */
+const formatDateToMMDDYYYY = (dateStr: string): string => {
+  // Default to original string if parsing fails
+  let result = dateStr;
+  
+  try {
+    // Try to parse as ISO date first
+    let date: Date | null = new Date(dateStr);
+    
+    // Check if we got a valid date
+    if (isNaN(date.getTime())) {
+      // Try to parse MM-DD-YYYY format
+      const dashParts = dateStr.split('-');
+      if (dashParts.length === 3) {
+        const month = parseInt(dashParts[0]);
+        const day = parseInt(dashParts[1]);
+        const year = parseInt(dashParts[2]);
+        
+        if (!isNaN(month) && !isNaN(day) && !isNaN(year)) {
+          date = new Date(year, month - 1, day);
+        } else {
+          // Try YYYY-MM-DD format
+          const year = parseInt(dashParts[0]);
+          const month = parseInt(dashParts[1]);
+          const day = parseInt(dashParts[2]);
+          
+          if (!isNaN(month) && !isNaN(day) && !isNaN(year)) {
+            date = new Date(year, month - 1, day);
+          }
+        }
+      } else {
+        // Try MM/DD/YYYY format
+        const slashParts = dateStr.split('/');
+        if (slashParts.length === 3) {
+          const month = parseInt(slashParts[0]);
+          const day = parseInt(slashParts[1]);
+          const year = parseInt(slashParts[2]);
+          
+          if (!isNaN(month) && !isNaN(day) && !isNaN(year)) {
+            date = new Date(year, month - 1, day);
+          }
+        }
+      }
+    }
+    
+    // If we have a valid date, format it
+    if (date && !isNaN(date.getTime())) {
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const year = date.getFullYear();
+      
+      result = `${month}/${day}/${year}`;
+    }
+  } catch (error) {
+    console.error("Error formatting date:", error);
+  }
+  
+  return result;
 };
 
 // Helper function to process donor data consistently
@@ -108,35 +180,8 @@ const processRecentDonors = (data: any[]): Donor[] => {
   
   // Format the data and ensure consistency between is_anonymous and isAnonymous properties
   return sortedData.map(donor => {
-    // Format the date as MM/DD/YYYY
-    let formattedDate = donor.date;
-    
-    try {
-      // Try to parse the date
-      const tryDate = new Date(donor.date);
-      
-      if (!isNaN(tryDate.getTime())) {
-        // Format as MM/DD/YYYY
-        const month = String(tryDate.getMonth() + 1).padStart(2, '0');
-        const day = String(tryDate.getDate()).padStart(2, '0');
-        const year = tryDate.getFullYear();
-        
-        formattedDate = `${month}/${day}/${year}`;
-      } else {
-        // Try to handle MM-DD-YYYY format
-        const dateParts = donor.date.split('-');
-        if (dateParts.length === 3) {
-          const month = String(parseInt(dateParts[0])).padStart(2, '0');
-          const day = String(parseInt(dateParts[1])).padStart(2, '0');
-          const year = dateParts[2];
-          
-          formattedDate = `${month}/${day}/${year}`;
-        }
-      }
-    } catch (error) {
-      console.error("Error formatting date:", error);
-      // Keep original date if parsing fails
-    }
+    // Format the date as MM/DD/YYYY using our helper function
+    const formattedDate = formatDateToMMDDYYYY(donor.date);
     
     return {
       ...donor,

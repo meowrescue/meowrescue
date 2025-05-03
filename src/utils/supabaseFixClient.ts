@@ -18,18 +18,40 @@ export function fixSupabaseConnection() {
       // Create headers object if it doesn't exist
       newInit.headers = newInit.headers || {};
       
-      // Add proper Accept header for JSON responses
-      if (!newInit.headers['Accept']) {
-        // @ts-ignore - TypeScript doesn't know about Headers
-        newInit.headers['Accept'] = 'application/json';
+      // Convert headers to plain object if it's a Headers instance
+      if (newInit.headers instanceof Headers) {
+        const plainHeaders = {};
+        newInit.headers.forEach((value, key) => {
+          plainHeaders[key] = value;
+        });
+        newInit.headers = plainHeaders;
       }
       
+      // Add proper Accept header for JSON responses
+      newInit.headers['Accept'] = 'application/json';
+      
+      // Add proper Content-Type header if not present
+      if (!newInit.headers['Content-Type'] && !newInit.headers['content-type']) {
+        newInit.headers['Content-Type'] = 'application/json';
+      }
+      
+      console.log(`Fixing Supabase request headers for: ${input}`);
       return originalFetch(input, newInit);
     }
     
     // Pass through all other requests unchanged
     return originalFetch(input, init);
   };
+  
+  // Patch the Supabase client's internal fetch as well if possible
+  try {
+    if (supabase && supabase.rest && typeof supabase.rest.headers === 'object') {
+      // Ensure proper Accept header is set in the Supabase client itself
+      supabase.rest.headers['Accept'] = 'application/json';
+    }
+  } catch (error) {
+    console.error('Error patching Supabase client headers:', error);
+  }
   
   // Log successful initialization
   console.log('Supabase connection fix applied');

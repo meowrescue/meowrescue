@@ -36,23 +36,53 @@ async function fixCspHeaders(filePath) {
     // Read the file content
     let content = fs.readFileSync(filePath, 'utf8');
     
-    // Fix img-src CSP directive
+    // Fix img-src CSP directive - make sure to include all needed image sources
     content = content.replace(
-      /img-src\s+'self'\s+data:[^;]*(getSupabaseClient\(\)\.co)[^;]*/g,
+      /img-src\s+'self'\s+data:[^;]*/g,
       `img-src 'self' data: blob: https://meowrescue.windsurf.build https://${supabaseDomain} https://images.unsplash.com`
     );
     
-    // Fix connect-src CSP directive
+    // Also fix any CSP directives with getSupabaseClient().co
     content = content.replace(
-      /connect-src\s+'self'[^;]*(getSupabaseClient\(\)\.co)[^;]*/g,
+      /img-src[^;]*getSupabaseClient\(\)\.co[^;]*/g,
+      `img-src 'self' data: blob: https://meowrescue.windsurf.build https://${supabaseDomain} https://images.unsplash.com`
+    );
+    
+    // Fix connect-src CSP directive - ensure proper WebSocket connections
+    content = content.replace(
+      /connect-src\s+'self'[^;]*/g,
       `connect-src 'self' https://${supabaseDomain} wss://${supabaseDomain} https:`
     );
     
-    // Fix script-src CSP directive to remove GPT Engineer reference
+    // Also fix any connect-src with getSupabaseClient().co
+    content = content.replace(
+      /connect-src[^;]*getSupabaseClient\(\)\.co[^;]*/g,
+      `connect-src 'self' https://${supabaseDomain} wss://${supabaseDomain} https:`
+    );
+    
+    // Fix script-src CSP directive
     content = content.replace(
       /script-src\s+'self'\s+'unsafe-inline'\s+'unsafe-eval'[^;]*/g,
       `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://${supabaseDomain}`
     );
+    
+    // Fix any meta tags with CSP
+    const metaTagRegex = /<meta\s+http-equiv="Content-Security-Policy"\s+content="([^"]+)"/g;
+    content = content.replace(metaTagRegex, (match, cspContent) => {
+      // Fix img-src in meta tag
+      cspContent = cspContent.replace(
+        /img-src\s+'self'\s+data:[^;]*/g,
+        `img-src 'self' data: blob: https://meowrescue.windsurf.build https://${supabaseDomain} https://images.unsplash.com`
+      );
+      
+      // Fix connect-src in meta tag
+      cspContent = cspContent.replace(
+        /connect-src\s+'self'[^;]*/g,
+        `connect-src 'self' https://${supabaseDomain} wss://${supabaseDomain} https:`
+      );
+      
+      return `<meta http-equiv="Content-Security-Policy" content="${cspContent}"`;
+    });
     
     // Write the updated content back to the file
     fs.writeFileSync(filePath, content, 'utf8');

@@ -132,10 +132,26 @@ const initializeDynamicElements = () => {
   });
 };
 
+// Configure React Query with minimal caching for immediate updates
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchOnWindowFocus: false,
+      // Set staleTime to 0 to consider data stale immediately
+      staleTime: 0,
+      // Set a short cacheTime to minimize cached data persistence
+      cacheTime: 1000 * 60, // 1 minute
+      // Always refetch when component mounts
+      refetchOnMount: true,
+      // Refetch when window regains focus
+      refetchOnWindowFocus: true,
+      // Refetch when network is reconnected
+      refetchOnReconnect: true,
+      // Retry failed queries
+      retry: 1,
+      // Log all query errors
+      onError: (error) => {
+        console.error('Query error:', error);
+      }
     },
   },
 });
