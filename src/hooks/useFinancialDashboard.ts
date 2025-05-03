@@ -35,6 +35,8 @@ export const useFinancialDashboard = () => {
     monthlyDonations: true,
     monthlyExpenses: true,
     recentDonations: true,
+    previousMonthDonations: true,
+    previousMonthExpenses: true
   });
 
   // Function to fetch financial data
@@ -160,17 +162,19 @@ export const useFinancialDashboard = () => {
         monthlyDonations: false,
         monthlyExpenses: false,
         recentDonations: false,
+        previousMonthDonations: false,
+        previousMonthExpenses: false
       });
     }
   }, [data]);
 
   return { 
+    financialStats, 
+    isLoading,
     monthlyDonations: financialStats.monthlyDonations,
     monthlyExpenses: financialStats.monthlyExpenses,
     previousMonthDonations: financialStats.previousMonthDonations,
     previousMonthExpenses: financialStats.previousMonthExpenses,
-    financialStats, 
-    isLoading,
     refetchFinancialStats: refetch 
   };
 };
