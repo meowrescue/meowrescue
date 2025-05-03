@@ -1,10 +1,15 @@
 [build]
   publish = "dist"
-  command = "node scripts/build-with-ssg.js"
+  command = "node scripts/netlify-build.js"
 
 [build.environment]
   NODE_VERSION = "18.18.0"
   NPM_VERSION = "9.8.1"
+  # Disable unused languages to speed up build
+  RUBY_VERSION = "skip"
+  PYTHON_VERSION = "skip"
+  PHP_VERSION = "skip"
+  GO_VERSION = "skip"
   # Do NOT set public Supabase keys directly here for secrets scan compliance
   # VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY must be set ONLY in the Netlify dashboard for production
 
