@@ -42,14 +42,13 @@ const updateFile = async (filePath) => {
     );
     
     // Replace direct usage of supabase with getSupabaseClient()
+    newContent = newContent.replace(
+      /(?<![a-zA-Z0-9_])supabase(?=\.[a-zA-Z])/g,
+      `getSupabaseClient()`
+    );
+    
+    // Write updated content back to file if changes were made
     if (newContent !== content) {
-      // Only replace direct usage if we've updated the import
-      newContent = newContent.replace(
-        /(?<![a-zA-Z0-9_])supabase(?=\.[a-zA-Z])/g,
-        `getSupabaseClient()`
-      );
-      
-      // Write updated content back to file
       await fs.promises.writeFile(filePath, newContent, 'utf8');
       console.log(`Updated: ${filePath}`);
     }
@@ -60,9 +59,7 @@ const updateFile = async (filePath) => {
 
 // Main execution
 const main = async () => {
-  // Find the project root (where src directory is located)
-  const projectRoot = path.resolve(__dirname, '..');
-  const srcDir = path.join(projectRoot, 'src');
+  const srcDir = path.join(__dirname, '..', 'src');
   
   console.log(`Searching for files in: ${srcDir}`);
   

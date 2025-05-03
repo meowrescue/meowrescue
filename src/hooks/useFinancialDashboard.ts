@@ -1,3 +1,4 @@
+
 import { useFinancialStats } from '@/hooks/useFinancialStats';
 import { useRecentDonors } from '@/hooks/finance/useRecentDonors';
 import { useTopDonors } from '@/hooks/finance/useTopDonors';
@@ -44,6 +45,9 @@ export const useFinancialDashboard = () => {
   });
 
   // Get financial data from custom hooks
+  const financialStatsResult = useFinancialStats();
+  
+  // Extract all the properties directly
   const {
     budgetCategories,
     monthlyDonations,
@@ -53,7 +57,7 @@ export const useFinancialDashboard = () => {
     campaigns,
     isLoading: financialStatsLoading,
     refetchFinancialStats
-  } = useFinancialStats();
+  } = financialStatsResult;
 
   // Fetch donors and expenses using custom hooks with explicit configuration
   const { 
@@ -154,7 +158,9 @@ export const useFinancialDashboard = () => {
       previousMonthExpenses,
       budgetCategories: budgetCategories || [],
       campaigns: campaigns || [],
-      isLoading: financialStatsLoading
+      isLoading: financialStatsLoading,
+      // Add the refetch function directly in the returned object
+      refetchFinancialStats
     },
     donorData: {
       recentDonors: recentDonors || [],

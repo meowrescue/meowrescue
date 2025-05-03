@@ -27,6 +27,7 @@ export const useExpenses = (options?: UseExpensesOptions) => {
     queryKey: ['expenses'],
     queryFn: async () => {
       try {
+        const supabase = getSupabaseClient();
         const { data, error } = await supabase
           .from('expenses')
           .select('*, cats(name)')
